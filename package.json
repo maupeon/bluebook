@@ -6,9 +6,17 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "remotion:studio": "remotion studio remotion/index.tsx",
+    "remotion:render": "remotion render remotion/index.tsx MarketingVideo out/marketing-video.mp4",
+    "remotion:render:horizontal": "remotion render remotion/index.tsx MarketingVideoHorizontal out/marketing-video-horizontal.mp4"
   },
   "dependencies": {
+    "@remotion/bundler": "^4.0.410",
+    "@remotion/cli": "^4.0.410",
+    "@remotion/google-fonts": "^4.0.410",
+    "@remotion/renderer": "^4.0.410",
+    "@remotion/transitions": "^4.0.410",
     "@stripe/stripe-js": "^8.6.1",
     "@supabase/supabase-js": "^2.91.1",
     "lucide-react": "^0.562.0",
@@ -17,6 +25,8 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-pageflip": "^2.0.3",
+    "remotion": "^4.0.410",
+    "resend": "^6.8.0",
     "stripe": "^20.1.2"
   },
   "devDependencies": {

@@ -49,8 +49,6 @@ export type PlanKey = keyof typeof STRIPE_PLANS;
  * Redirige al usuario a Stripe Checkout.
  * 
  * @param planKey - La clave del plan (basico, premium, deluxe)
- * @param successUrl - URL de redirección tras pago exitoso
- * @param cancelUrl - URL de redirección si el usuario cancela
  * 
  * Uso:
  * ```tsx
@@ -60,9 +58,7 @@ export type PlanKey = keyof typeof STRIPE_PLANS;
  * ```
  */
 export const redirectToCheckout = async (
-  planKey: PlanKey,
-  _successUrl: string = "/success",
-  _cancelUrl: string = "/precios"
+  planKey: PlanKey
 ): Promise<void> => {
   const stripe = await getStripe();
   

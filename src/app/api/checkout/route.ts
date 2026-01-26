@@ -6,26 +6,49 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const PLANS = {
+  // Planes de invitaciones existentes
   basico: {
     name: "Plan Básico - Blue Book",
     description: "Invitaciones digitales + RSVP hasta 50 invitados",
     price: 199900, // $1,999 MXN en centavos
+    type: "invitaciones",
   },
   premium: {
     name: "Plan Premium - Blue Book",
     description: "Todo lo básico + hasta 150 invitados + Galería post-boda",
     price: 399900, // $3,999 MXN
+    type: "invitaciones",
   },
   deluxe: {
     name: "Plan Deluxe - Blue Book",
     description: "Todo premium + invitados ilimitados + Video highlights + Soporte prioritario",
     price: 699900, // $6,999 MXN
+    type: "invitaciones",
+  },
+  // Nuevos planes de álbum digital
+  album_basico: {
+    name: "Álbum Digital - Básico",
+    description: "Hasta 50 fotos + Flipbook interactivo + URL personalizada",
+    price: 49900, // $499 MXN
+    type: "album",
+  },
+  album_premium: {
+    name: "Álbum Digital - Premium", 
+    description: "Hasta 150 fotos + 3 plantillas + Música de fondo + Compartir WhatsApp",
+    price: 79900, // $799 MXN
+    type: "album",
+  },
+  album_deluxe: {
+    name: "Álbum Digital - Deluxe",
+    description: "Fotos ilimitadas + Todas las plantillas + Dominio personalizado + Descarga PDF",
+    price: 129900, // $1,299 MXN
+    type: "album",
   },
 };
 
 export async function POST(request: NextRequest) {
   try {
-    const { planId } = await request.json();
+    const { planId, albumTitle, albumTemplate } = await request.json();
 
     const plan = PLANS[planId as keyof typeof PLANS];
     if (!plan) {
@@ -37,6 +60,11 @@ export async function POST(request: NextRequest) {
     if (baseUrl && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
       baseUrl = `https://${baseUrl}`;
     }
+
+    // Determinar URL de éxito según el tipo de producto
+    const successUrl = plan.type === "album" 
+      ? `${baseUrl}/checkout/success-album?session_id={CHECKOUT_SESSION_ID}`
+      : `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -54,11 +82,21 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${baseUrl}/precios`,
       metadata: {
         planId,
+        productType: plan.type,
+        // Para álbumes, incluir título y plantilla
+        ...(plan.type === "album" && {
+          albumTitle: albumTitle || "Nuestro Álbum",
+          albumTemplate: albumTemplate || "classic",
+        }),
       },
+      // Pedir email para álbumes (necesario para enviar link)
+      ...(plan.type === "album" && {
+        customer_email: undefined, // Stripe pedirá el email
+      }),
     });
 
     return NextResponse.json({ url: session.url });
