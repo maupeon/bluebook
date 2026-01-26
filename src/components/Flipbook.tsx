@@ -23,7 +23,7 @@ import {
 interface FlipbookProps {
   photos: string[]
   title: string
-  template: 'classic' | 'modern' | 'romantic' | 'elegant' | 'rustic'
+  template: 'classic' | 'modern' | 'romantic' | 'elegant' | 'rustic' | 'bluebook'
   musicUrl?: string
   weddingDate?: string
 }
@@ -118,6 +118,22 @@ const templateStyles = {
     pattern: 'bg-[url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M30 5c-1.5 3-4 5-7 5s-5.5-2-7-5c1.5 3 2 6 0 9s-5 4-8 3c3 1.5 5 4 5 7s-2 5.5-5 7c3-1.5 6-2 9 0s4 5 3 8c1.5-3 4-5 7-5s5.5 2 7 5c-1.5-3-2-6 0-9s5-4 8-3c-3-1.5-5-4-5-7s2-5.5 5-7c-3 1.5-6 2-9 0s-4-5-3-8\' fill=\'%23d4a574\' fill-opacity=\'0.04\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")]',
     glowColor: 'rgba(234,88,12,0.15)',
     frameStyle: 'shadow-[0_4px_25px_rgba(234,88,12,0.12)]',
+  },
+  bluebook: {
+    name: 'Blue Book',
+    pageBg: 'bg-gradient-to-br from-blue-50 via-sky-50/80 to-blue-100',
+    coverBg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800',
+    border: 'border-blue-200/60',
+    text: 'text-blue-900',
+    textLight: 'text-blue-600',
+    accent: 'bg-blue-200',
+    accentColor: '#3b82f6',
+    accentLight: 'bg-blue-100',
+    font: 'font-serif',
+    pattern: 'bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.03)_1px,_transparent_1px)] bg-[length:24px_24px]',
+    glowColor: 'rgba(59,130,246,0.2)',
+    frameStyle: 'shadow-[0_4px_20px_rgba(59,130,246,0.15),0_0_0_1px_rgba(59,130,246,0.1)]',
+    dark: true,
   },
 }
 
@@ -472,16 +488,16 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
             useMouseEvents={true}
           >
             {/* Cover Page - Premium Design */}
-            <Page className={`${isDark ? styles.coverBg : styles.coverBg} ${styles.pattern} flex items-center justify-center relative overflow-hidden`}>
+            <Page className={`${styles.coverBg} flex items-center justify-center relative overflow-hidden`}>
               {/* Decorative corner flourishes */}
               <div className="absolute top-6 left-6 w-20 h-20">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-amber-500/30' : styles.textLight} opacity-40`}>
+                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
                   <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
                   <circle cx="50" cy="50" r="3" fill="currentColor" />
                 </svg>
               </div>
               <div className="absolute bottom-6 right-6 w-20 h-20 rotate-180">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-amber-500/30' : styles.textLight} opacity-40`}>
+                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
                   <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
                   <circle cx="50" cy="50" r="3" fill="currentColor" />
                 </svg>
@@ -490,17 +506,17 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
               {/* Main content */}
               <div className="text-center px-8 z-10">
                 {/* Decorative line top */}
-                <div className={`w-32 h-px mx-auto mb-8 ${isDark ? 'bg-amber-500/40' : styles.accent}`} />
+                <div className={`w-32 h-px mx-auto mb-8 ${isDark ? 'bg-white/30' : styles.accent}`} />
 
                 {/* Heart icon with glow */}
                 <div className={`relative w-20 h-20 mx-auto mb-8`}>
                   <div
                     className="absolute inset-0 rounded-full animate-pulse"
-                    style={{ backgroundColor: styles.glowColor, filter: 'blur(15px)' }}
+                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : styles.glowColor, filter: 'blur(15px)' }}
                   />
-                  <div className={`relative w-full h-full rounded-full flex items-center justify-center ${isDark ? 'bg-amber-500/20 border border-amber-500/30' : `${styles.accent} border ${styles.border}`
+                  <div className={`relative w-full h-full rounded-full flex items-center justify-center ${isDark ? 'bg-white/20 border border-white/30' : `${styles.accent} border ${styles.border}`
                     }`}>
-                    <Heart className={`w-10 h-10 ${isDark ? 'text-amber-400' : styles.text}`} fill="currentColor" style={{ opacity: 0.8 }} />
+                    <Heart className={`w-10 h-10 ${isDark ? 'text-white' : styles.text}`} fill="currentColor" style={{ opacity: 0.9 }} />
                   </div>
                 </div>
 
@@ -512,7 +528,7 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
 
                 {/* Subtitle/Date */}
                 {weddingDate && (
-                  <div className={`flex items-center justify-center gap-2 mb-6 ${isDark ? 'text-white/50' : styles.textLight}`}>
+                  <div className={`flex items-center justify-center gap-2 mb-6 ${isDark ? 'text-white/70' : styles.textLight}`}>
                     <Calendar className="w-4 h-4" />
                     <span className="text-sm font-body">{weddingDate}</span>
                   </div>
@@ -520,18 +536,18 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
 
                 {/* Decorative divider */}
                 <div className="flex items-center justify-center gap-3 mb-6">
-                  <div className={`w-12 h-px ${isDark ? 'bg-amber-500/40' : styles.accent}`} />
-                  <Sparkles className={`w-4 h-4 ${isDark ? 'text-amber-500/60' : styles.textLight} opacity-60`} />
-                  <div className={`w-12 h-px ${isDark ? 'bg-amber-500/40' : styles.accent}`} />
+                  <div className={`w-12 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
+                  <Sparkles className={`w-4 h-4 ${isDark ? 'text-white/60' : styles.textLight} opacity-60`} />
+                  <div className={`w-12 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
                 </div>
 
                 {/* Photo count */}
-                <p className={`text-base ${isDark ? 'text-white/50' : styles.textLight}`}>
+                <p className={`text-base ${isDark ? 'text-white/60' : styles.textLight}`}>
                   {photos.length} momentos especiales
                 </p>
 
                 {/* Hint text */}
-                <p className={`text-xs mt-6 ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
+                <p className={`text-xs mt-6 ${isDark ? 'text-white/40' : styles.textLight} opacity-40`}>
                   Toca para comenzar →
                 </p>
               </div>
@@ -602,16 +618,16 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
             ))}
 
             {/* Back Cover - Premium Design */}
-            <Page className={`${styles.coverBg} ${styles.pattern} flex items-center justify-center relative overflow-hidden`}>
+            <Page className={`${styles.coverBg} flex items-center justify-center relative overflow-hidden`}>
               {/* Decorative corners */}
               <div className="absolute top-6 left-6 w-20 h-20">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-amber-500/30' : styles.textLight} opacity-40`}>
+                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
                   <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
                   <circle cx="50" cy="50" r="3" fill="currentColor" />
                 </svg>
               </div>
               <div className="absolute bottom-6 right-6 w-20 h-20 rotate-180">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-amber-500/30' : styles.textLight} opacity-40`}>
+                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
                   <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
                   <circle cx="50" cy="50" r="3" fill="currentColor" />
                 </svg>
@@ -619,8 +635,8 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
 
               <div className="text-center px-8 z-10">
                 {/* Heart icon */}
-                <div className={`${isDark ? 'bg-amber-500/20' : styles.accent} rounded-full w-16 h-16 mx-auto mb-8 flex items-center justify-center border ${isDark ? 'border-amber-500/30' : styles.border}`}>
-                  <Heart className={`w-8 h-8 ${isDark ? 'text-amber-400' : styles.text}`} fill="currentColor" style={{ opacity: 0.8 }} />
+                <div className={`${isDark ? 'bg-white/20' : styles.accent} rounded-full w-16 h-16 mx-auto mb-8 flex items-center justify-center border ${isDark ? 'border-white/30' : styles.border}`}>
+                  <Heart className={`w-8 h-8 ${isDark ? 'text-white' : styles.text}`} fill="currentColor" style={{ opacity: 0.9 }} />
                 </div>
 
                 {/* Thank you message */}
@@ -633,16 +649,16 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
 
                 {/* Decorative divider */}
                 <div className="flex items-center justify-center gap-3 mb-8">
-                  <div className={`w-8 h-px ${isDark ? 'bg-amber-500/40' : styles.accent}`} />
-                  <Heart className={`w-3 h-3 ${isDark ? 'text-amber-500/60' : styles.textLight} opacity-60`} fill="currentColor" />
-                  <div className={`w-8 h-px ${isDark ? 'bg-amber-500/40' : styles.accent}`} />
+                  <div className={`w-8 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
+                  <Heart className={`w-3 h-3 ${isDark ? 'text-white/60' : styles.textLight} opacity-60`} fill="currentColor" />
+                  <div className={`w-8 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
                 </div>
 
                 {/* Branding */}
-                <p className={`text-sm ${isDark ? 'text-white/40' : styles.textLight} opacity-50`}>
+                <p className={`text-sm ${isDark ? 'text-white/50' : styles.textLight} opacity-50`}>
                   Creado con amor en
                 </p>
-                <p className={`text-lg ${isDark ? 'text-white/80' : styles.text} font-semibold mt-1`}>
+                <p className={`text-lg ${isDark ? 'text-white' : styles.text} font-semibold mt-1`}>
                   Blue Book
                 </p>
               </div>

@@ -2,14 +2,19 @@ import Link from "next/link";
 import { Heart, Mail, Phone, MapPin, Instagram, Facebook } from "lucide-react";
 
 const footerLinks = {
-  servicios: [
-    { href: "/servicios#invitaciones", label: "Invitaciones Digitales" },
-    { href: "/servicios#rsvp", label: "Confirmaciones RSVP" },
-    { href: "/servicios#invitados", label: "Lista de Invitados" },
-    { href: "/servicios#galeria", label: "Galería Post-Boda" },
+  producto: [
+    { href: "/album-digital", label: "Álbum Digital" },
+    { href: "/album-digital#pricing", label: "Planes y Precios" },
+    { href: "/album-digital#demo-preview", label: "Ver Demo" },
+    // Comentado temporalmente - funcionalidades de invitaciones
+    // { href: "/servicios#invitaciones", label: "Invitaciones Digitales" },
+    // { href: "/servicios#rsvp", label: "Confirmaciones RSVP" },
+    // { href: "/servicios#invitados", label: "Lista de Invitados" },
+    // { href: "/servicios#galeria", label: "Galería Post-Boda" },
   ],
   empresa: [
-    { href: "/precios", label: "Precios" },
+    // Comentado temporalmente - página de precios de invitaciones
+    // { href: "/precios", label: "Precios" },
     { href: "/contacto", label: "Contacto" },
     { href: "/terminos", label: "Términos y Condiciones" },
     { href: "/privacidad", label: "Política de Privacidad" },
@@ -35,8 +40,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="font-body text-sm text-white/70 leading-relaxed mb-6">
-              Hacemos que su boda sea una experiencia digital inolvidable.
-              Invitaciones elegantes, gestión sencilla y recuerdos para siempre.
+              Crea álbumes digitales interactivos para tu boda.
+              Comparte tus recuerdos con un flipbook elegante y único.
             </p>
             <div className="flex gap-4">
               <a
@@ -60,13 +65,13 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Services Links */}
+          {/* Product Links */}
           <div>
             <h3 className="font-heading text-lg font-semibold text-white mb-6">
-              Servicios
+              Producto
             </h3>
             <ul className="space-y-3">
-              {footerLinks.servicios.map((link) => (
+              {footerLinks.producto.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

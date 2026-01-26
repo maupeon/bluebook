@@ -6,9 +6,10 @@ import { Menu, X, Heart } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
-  { href: "/servicios", label: "Servicios" },
   { href: "/album-digital", label: "Álbum Digital" },
-  { href: "/precios", label: "Precios" },
+  // Comentado temporalmente - funcionalidades de invitaciones
+  // { href: "/servicios", label: "Servicios" },
+  // { href: "/precios", label: "Precios" },
   { href: "/contacto", label: "Contacto" },
 ];
 
@@ -45,10 +46,10 @@ export function Navbar() {
           {/* CTA Button */}
           <div className="hidden lg:block">
             <Link
-              href="/contacto"
+              href="/album-digital"
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent text-primary font-body font-semibold text-sm rounded-full hover:bg-accent-light transition-all duration-300 hover:shadow-lg hover:shadow-accent/25"
             >
-              Comenzar
+              Crear álbum
               <Heart className="w-4 h-4" />
             </Link>
           </div>
@@ -78,11 +79,11 @@ export function Navbar() {
                 </Link>
               ))}
               <Link
-                href="/contacto"
+                href="/album-digital"
                 onClick={() => setIsMenuOpen(false)}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-primary font-body font-semibold rounded-full hover:bg-accent-light transition-all duration-300 mt-4"
               >
-                Comenzar
+                Crear álbum
                 <Heart className="w-4 h-4" />
               </Link>
             </div>

@@ -12,7 +12,6 @@ import {
   Images,
   Share2,
   Palette,
-  Music,
   Download,
   Globe,
   Users,
@@ -63,7 +62,6 @@ const albumPlans: AlbumPlan[] = [
     features: [
       "Todo lo del plan Básico",
       "3 plantillas premium a elegir",
-      "Música de fondo personalizada",
       "Compartir directo por WhatsApp",
       "Estadísticas de visualización",
       "Soporte prioritario",
@@ -83,7 +81,6 @@ const albumPlans: AlbumPlan[] = [
       "Dominio personalizado",
       "Descarga en PDF de alta calidad",
       "Subida de fotos por invitados",
-      "Video highlights animado",
       "Gestor personal asignado",
     ],
     badge: "Sin límites",
@@ -542,7 +539,7 @@ export default function AlbumDigitalPage() {
                     { icon: BookOpen, title: "Pasa las páginas", text: "Como un libro real con animación fluida" },
                     { icon: Share2, title: "Comparte con un link", text: "Un solo URL para todos tus invitados" },
                     { icon: Palette, title: "Diseños premium", text: "Plantillas creadas por diseñadores profesionales" },
-                    { icon: Music, title: "Música de fondo", text: "Añade la canción de tu primer baile" },
+                    { icon: Images, title: "Organiza tus fotos", text: "Sube y ordena tus mejores momentos" },
                   ].map((item, index) => (
                     <div
                       key={index}
@@ -1017,9 +1014,9 @@ export default function AlbumDigitalPage() {
                 gradient: "from-orange-500 to-amber-400",
               },
               {
-                icon: Music,
-                title: "Música de fondo",
-                description: "Añade una canción especial que suene mientras ven el álbum (Premium+).",
+                icon: Heart,
+                title: "Diseño elegante",
+                description: "Cada página está diseñada para realzar tus fotos de boda.",
                 gradient: "from-pink-500 to-rose-400",
               },
               {
@@ -1124,10 +1121,10 @@ export default function AlbumDigitalPage() {
               <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
             </button>
             <Link
-              href="/precios"
+              href="/contacto"
               className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-white/10 backdrop-blur-sm text-white font-body font-semibold rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
             >
-              Ver planes de invitaciones
+              Contáctanos
             </Link>
           </div>
 

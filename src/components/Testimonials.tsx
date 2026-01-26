@@ -12,33 +12,33 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
   {
     name: "María & Carlos",
-    date: "Junio 2025",
+    date: "Mayo 2025",
     location: "Ciudad de México",
-    text: "Blue Book hizo que manejar las invitaciones fuera increíblemente fácil. Nuestros invitados quedaron encantados con el diseño y pudimos ver las confirmaciones en tiempo real. ¡Totalmente recomendado!",
+    text: "Nuestros invitados no paran de ver el álbum. ¡Es como tener nuestra boda siempre a un click! El flipbook quedó precioso y muy fácil de compartir por WhatsApp.",
     rating: 5,
     avatar: "MC",
   },
   {
     name: "Laura & David",
-    date: "Septiembre 2025",
+    date: "Diciembre 2024",
     location: "Guadalajara",
-    text: "La galería post-boda fue el mejor regalo para nuestros invitados. Todos pudieron subir sus fotos y ahora tenemos recuerdos increíbles de ese día tan especial. El servicio al cliente es excepcional.",
+    text: "La calidad del flipbook superó nuestras expectativas. Poder pasar las páginas como un libro real hace que revivir los momentos sea muy especial. Totalmente recomendado.",
     rating: 5,
     avatar: "LD",
   },
   {
-    name: "Ana & Miguel",
-    date: "Abril 2025",
+    name: "Ana & Roberto",
+    date: "Marzo 2025",
     location: "Monterrey",
-    text: "Elegimos el plan Premium y fue la mejor decisión. El sistema RSVP nos ahorró muchísimo tiempo y estrés. El diseño de las invitaciones era exactamente lo que buscábamos: elegante y moderno.",
+    text: "Poder compartir nuestro álbum con familia en otro país fue invaluable. Lo mejor que pudimos regalar. El link funciona perfecto y las fotos se ven increíbles.",
     rating: 5,
-    avatar: "AM",
+    avatar: "AR",
   },
   {
     name: "Carmen & Javier",
     date: "Julio 2025",
     location: "Puebla",
-    text: "Desde el primer momento el equipo de Blue Book nos hizo sentir especiales. La atención personalizada y la calidad del servicio superaron todas nuestras expectativas. ¡Gracias por todo!",
+    text: "Elegimos la plantilla Elegante y quedó espectacular. Todos nuestros invitados nos felicitaron por el álbum. Es el recuerdo perfecto de nuestro día especial.",
     rating: 5,
     avatar: "CJ",
   },
@@ -46,7 +46,7 @@ const testimonials: Testimonial[] = [
     name: "Elena & Pablo",
     date: "Mayo 2025",
     location: "Querétaro",
-    text: "Lo que más nos gustó fue la facilidad de uso. En menos de una hora teníamos todas las invitaciones enviadas. El dashboard para ver las confirmaciones es súper intuitivo y bonito.",
+    text: "Lo que más me gustó fue la facilidad de uso. Subí las fotos, elegí el orden y en minutos tenía mi álbum listo. El soporte fue excelente cuando tuve una duda.",
     rating: 5,
     avatar: "EP",
   },
@@ -54,7 +54,7 @@ const testimonials: Testimonial[] = [
     name: "Sofía & Andrés",
     date: "Agosto 2025",
     location: "Cancún",
-    text: "Contratamos el plan Deluxe y valió cada peso. El gestor personal nos ayudó con todo y el video highlights fue el broche de oro. Una experiencia de 10.",
+    text: "Contratamos el plan Deluxe y valió cada peso. Pudimos subir todas nuestras fotos sin límite y el PDF descargable nos encantó. Una experiencia de 10.",
     rating: 5,
     avatar: "SA",
   },
@@ -73,7 +73,7 @@ export function Testimonials() {
             Lo que dicen las parejas
           </h2>
           <p className="font-body text-lg text-secondary">
-            Más de 500 parejas han confiado en nosotros para hacer su boda especial.
+            Más de 500 parejas han creado su álbum digital con nosotros.
             Estas son algunas de sus historias.
           </p>
         </div>

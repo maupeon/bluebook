@@ -10,39 +10,39 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "¿Cómo funcionan las invitaciones digitales?",
+    question: "¿Cómo funciona el álbum digital?",
     answer:
-      "Una vez elijan el diseño y personalicen su invitación, generamos un enlace único que pueden compartir por WhatsApp, email o redes sociales. Sus invitados podrán ver la invitación y confirmar asistencia directamente desde su celular.",
+      "Una vez completes tu compra, recibirás un email con un link a tu panel de administración. Desde ahí podrás subir tus fotos, elegir el orden y personalizar tu álbum. Cuando esté listo, obtendrás un link único para compartir con familia y amigos.",
   },
   {
-    question: "¿Puedo personalizar el diseño de las invitaciones?",
+    question: "¿Qué es un flipbook interactivo?",
     answer:
-      "¡Por supuesto! Todos nuestros planes incluyen personalización de colores, textos, fotos y detalles. En los planes Premium y Deluxe tienen acceso a más diseños y opciones de personalización avanzada.",
+      "Un flipbook es un álbum digital que simula la experiencia de pasar las páginas de un libro real. Tus invitados pueden navegar por las fotos deslizando o haciendo clic, creando una experiencia inmersiva y elegante.",
   },
   {
-    question: "¿Qué información pueden proporcionar los invitados en el RSVP?",
+    question: "¿Cuántas fotos puedo subir?",
     answer:
-      "El sistema RSVP permite recoger confirmación de asistencia, número de acompañantes, preferencias de menú, alergias alimentarias y cualquier nota adicional que necesiten. Todo queda registrado en su dashboard.",
+      "Depende del plan que elijas: el plan Básico permite hasta 50 fotos, el Premium hasta 150, y el Deluxe ofrece fotos ilimitadas. Puedes actualizar tu plan en cualquier momento si necesitas más espacio.",
   },
   {
-    question: "¿Cuánto tiempo tengo acceso a la galería post-boda?",
+    question: "¿Puedo personalizar las plantillas?",
     answer:
-      "El acceso a la galería es de por vida. Pueden descargar todas las fotos y videos cuando quieran, y sus invitados también tendrán acceso permanente para revivir los mejores momentos.",
+      "Sí, puedes elegir entre diferentes plantillas según tu plan. El plan Básico incluye 1 plantilla, el Premium ofrece 3 plantillas premium, y el Deluxe te da acceso a todas las plantillas disponibles.",
   },
   {
-    question: "¿Puedo cambiar de plan después de contratar?",
+    question: "¿Por cuánto tiempo tengo acceso a mi álbum?",
     answer:
-      "Sí, pueden actualizar su plan en cualquier momento pagando únicamente la diferencia. Si necesitan más invitados o funcionalidades, les ayudamos a hacer el cambio sin complicaciones.",
+      "El acceso es de por vida. Una vez creado tu álbum, estará disponible para ti y todos los que compartas el link, sin límite de tiempo ni costos adicionales.",
   },
   {
     question: "¿Qué métodos de pago aceptan?",
     answer:
-      "Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express), PayPal y transferencia bancaria. El pago es único y seguro a través de Stripe.",
+      "Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express) a través de Stripe. El pago es único y seguro. También aceptamos códigos de descuento.",
   },
   {
-    question: "¿Ofrecen soporte técnico?",
+    question: "¿Puedo cambiar de plan después de contratar?",
     answer:
-      "Todos los planes incluyen soporte por email. Los planes Premium y Deluxe tienen soporte prioritario y el plan Deluxe incluye un gestor personal asignado disponible 24/7 para resolver cualquier duda.",
+      "Sí, pueden actualizar su plan en cualquier momento pagando únicamente la diferencia. Si necesitan más fotos o plantillas, les ayudamos a hacer el cambio sin complicaciones.",
   },
   {
     question: "¿Qué pasa si no estoy satisfecho con el servicio?",
@@ -70,7 +70,7 @@ export function FAQ() {
             ¿Tienen dudas?
           </h2>
           <p className="font-body text-lg text-secondary">
-            Aquí encontrarán respuestas a las preguntas más comunes.
+            Aquí encontrarán respuestas a las preguntas más comunes sobre el álbum digital.
             Si necesitan más información, no duden en contactarnos.
           </p>
         </div>

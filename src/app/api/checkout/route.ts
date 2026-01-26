@@ -6,26 +6,27 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const PLANS = {
-  // Planes de invitaciones existentes
-  basico: {
-    name: "Plan Básico - Blue Book",
-    description: "Invitaciones digitales + RSVP hasta 50 invitados",
-    price: 199900, // $1,999 MXN en centavos
-    type: "invitaciones",
-  },
-  premium: {
-    name: "Plan Premium - Blue Book",
-    description: "Todo lo básico + hasta 150 invitados + Galería post-boda",
-    price: 399900, // $3,999 MXN
-    type: "invitaciones",
-  },
-  deluxe: {
-    name: "Plan Deluxe - Blue Book",
-    description: "Todo premium + invitados ilimitados + Video highlights + Soporte prioritario",
-    price: 699900, // $6,999 MXN
-    type: "invitaciones",
-  },
-  // Nuevos planes de álbum digital
+  // Comentado temporalmente - Planes de invitaciones
+  // basico: {
+  //   name: "Plan Básico - Blue Book",
+  //   description: "Invitaciones digitales + RSVP hasta 50 invitados",
+  //   price: 199900, // $1,999 MXN en centavos
+  //   type: "invitaciones",
+  // },
+  // premium: {
+  //   name: "Plan Premium - Blue Book",
+  //   description: "Todo lo básico + hasta 150 invitados + Galería post-boda",
+  //   price: 399900, // $3,999 MXN
+  //   type: "invitaciones",
+  // },
+  // deluxe: {
+  //   name: "Plan Deluxe - Blue Book",
+  //   description: "Todo premium + invitados ilimitados + Video highlights + Soporte prioritario",
+  //   price: 699900, // $6,999 MXN
+  //   type: "invitaciones",
+  // },
+
+  // Planes de álbum digital (activos)
   album_basico: {
     name: "Álbum Digital - Básico",
     description: "Hasta 50 fotos + Flipbook interactivo + URL personalizada",
@@ -33,8 +34,8 @@ const PLANS = {
     type: "album",
   },
   album_premium: {
-    name: "Álbum Digital - Premium", 
-    description: "Hasta 150 fotos + 3 plantillas + Música de fondo + Compartir WhatsApp",
+    name: "Álbum Digital - Premium",
+    description: "Hasta 150 fotos + 3 plantillas + Compartir WhatsApp",
     price: 79900, // $799 MXN
     type: "album",
   },
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Determinar URL de éxito según el tipo de producto
-    const successUrl = plan.type === "album" 
+    const successUrl = plan.type === "album"
       ? `${baseUrl}/checkout/success-album?session_id={CHECKOUT_SESSION_ID}`
       : `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
 
@@ -82,8 +83,10 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "payment",
+      // Habilitar cupones de descuento
+      allow_promotion_codes: true,
       success_url: successUrl,
-      cancel_url: `${baseUrl}/precios`,
+      cancel_url: `${baseUrl}/album-digital`,
       metadata: {
         planId,
         productType: plan.type,
