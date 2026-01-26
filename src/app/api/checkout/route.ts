@@ -32,6 +32,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Plan no válido" }, { status: 400 });
     }
 
+    // Get the base URL, ensuring it has a proper scheme
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+    if (baseUrl && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+      baseUrl = `https://${baseUrl}`;
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -48,8 +54,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/precios`,
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/precios`,
       metadata: {
         planId,
       },

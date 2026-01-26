@@ -10,10 +10,13 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.6.1",
+    "@supabase/supabase-js": "^2.91.1",
     "lucide-react": "^0.562.0",
+    "nanoid": "^5.1.6",
     "next": "15.5.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-pageflip": "^2.0.3",
     "stripe": "^20.1.2"
   },
   "devDependencies": {
