@@ -597,7 +597,7 @@ export default function AlbumDigitalPage() {
 
                 {/* Quote */}
                 <p className="font-body text-secondary mb-8 leading-relaxed italic">
-                  "{testimonial.quote}"
+                  &ldquo;{testimonial.quote}&rdquo;
                 </p>
 
                 {/* Author */}
