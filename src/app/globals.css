@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Blue Book Brand Colors - Azul Pastel */
+  --primary: #6b9ac4;
+  --primary-dark: #4a7ba7;
+  --primary-light: #a8c5db;
+  --secondary: #97b8d8;
+  --accent: #f4a7b9;
+  --accent-light: #f8c8d4;
+  --accent-dark: #e88a9f;
+  --light: #f0f7ff;
+  --muted: #dbeafe;
+  --dark: #2c3e50;
+  
+  /* Semantic colors */
+  --background: var(--light);
+  --foreground: var(--dark);
+  --card-bg: #ffffff;
+  --border: #c7ddf5;
 }
 
 @theme inline {
+  /* Colors */
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
+  --color-light: var(--light);
+  --color-muted: var(--muted);
+  --color-dark: var(--dark);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card-bg: var(--card-bg);
+  --color-border: var(--border);
+  
+  /* Fonts */
+  --font-heading: var(--font-cormorant);
+  --font-body: var(--font-montserrat);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), Georgia, serif;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent);
+  color: var(--primary);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(180deg, var(--light) 0%, #eef2f7 100%);
+}
+
+/* Floral pattern overlay */
+.floral-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-1.5 3-4 5-7 5s-5.5-2-7-5c1.5 3 2 6 0 9s-5 4-8 3c3 1.5 5 4 5 7s-2 5.5-5 7c3-1.5 6-2 9 0s4 5 3 8c1.5-3 4-5 7-5s5.5 2 7 5c-1.5-3-2-6 0-9s5-4 8-3c-3-1.5-5-4-5-7s2-5.5 5-7c-3 1.5-6 2-9 0s-4-5-3-8' fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
 }
