@@ -42,48 +42,31 @@ const albumPlans: AlbumPlan[] = [
   {
     id: "album_basico",
     name: "Básico",
-    price: 499,
+    price: 100,
     description: "Ideal para guardar tus mejores momentos",
     maxPhotos: "50 fotos",
     features: [
       "Flipbook interactivo",
       "URL personalizada para compartir",
       "1 plantilla (Clásica)",
-      "Compartir en redes sociales",
+      "Compartir por WhatsApp",
       "Acceso de por vida",
     ],
   },
   {
     id: "album_premium",
     name: "Premium",
-    price: 799,
-    description: "La experiencia completa para tu boda",
-    maxPhotos: "150 fotos",
+    price: 500,
+    description: "La experiencia completa para tus recuerdos",
+    maxPhotos: "Fotos ilimitadas",
     features: [
       "Todo lo del plan Básico",
-      "3 plantillas premium a elegir",
-      "Compartir directo por WhatsApp",
-      "Estadísticas de visualización",
+      "Todas las plantillas disponibles",
+      "Descarga en PDF de alta calidad",
       "Soporte prioritario",
     ],
     highlighted: true,
     badge: "Más popular",
-  },
-  {
-    id: "album_deluxe",
-    name: "Deluxe",
-    price: 1299,
-    description: "Sin límites para tus recuerdos",
-    maxPhotos: "Fotos ilimitadas",
-    features: [
-      "Todo lo del plan Premium",
-      "Todas las plantillas disponibles",
-      "Dominio personalizado",
-      "Descarga en PDF de alta calidad",
-      "Subida de fotos por invitados",
-      "Gestor personal asignado",
-    ],
-    badge: "Sin límites",
   },
 ];
 
@@ -114,14 +97,14 @@ const templates = [
     name: "Elegante",
     description: "Oscura y sofisticada",
     colors: ["bg-stone-800", "bg-neutral-700", "bg-amber-500"],
-    tier: "deluxe",
+    tier: "premium",
   },
   {
     id: "rustic",
     name: "Rústica",
     description: "Cálida y acogedora",
     colors: ["bg-orange-200", "bg-amber-100", "bg-yellow-100"],
-    tier: "deluxe",
+    tier: "premium",
   },
 ];
 
@@ -156,29 +139,17 @@ const useCases = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "María & Carlos",
-    date: "Boda Mayo 2025",
-    quote: "Nuestros invitados no paran de ver el álbum. ¡Es como tener nuestra boda siempre a un click!",
-    rating: 5,
-    avatar: "MC",
-  },
-  {
-    name: "Ana & Roberto",
-    date: "Boda Diciembre 2024",
-    quote: "La calidad del flipbook superó nuestras expectativas. La música de fondo hace que cada foto sea especial.",
-    rating: 5,
-    avatar: "AR",
-  },
-  {
-    name: "Laura & Diego",
-    date: "Boda Marzo 2025",
-    quote: "Poder compartir nuestro álbum con familia en otro país fue invaluable. Lo mejor que pudimos regalar.",
-    rating: 5,
-    avatar: "LD",
-  },
+
+// Demo data - defined outside component
+const DEMO_PHOTOS = [
+  "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=400&h=500&fit=crop",
 ];
+const DEMO_TITLE = "Ana & Carlos";
+const DEMO_DATE = "15 de Mayo, 2025";
+const TOTAL_DEMO_PAGES = DEMO_PHOTOS.length + 2; // cover + photos + back cover
 
 export default function AlbumDigitalPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -186,21 +157,24 @@ export default function AlbumDigitalPage() {
   const [selectedTemplate, setSelectedTemplate] = useState("classic");
   const [showForm, setShowForm] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [isFlipping, setIsFlipping] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [hoveredUseCase, setHoveredUseCase] = useState<string | null>(null);
 
   // Auto-flip animation for the demo
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsFlipping(true);
-      setTimeout(() => {
-        setCurrentPage((prev) => (prev + 1) % 3);
-        setIsFlipping(false);
-      }, 600);
-    }, 4000);
+      setCurrentPage((prev) => (prev + 1) % TOTAL_DEMO_PAGES);
+    }, 3500);
     return () => clearInterval(interval);
   }, []);
+
+  const goToPage = (direction: "next" | "prev") => {
+    if (direction === "next") {
+      setCurrentPage((prev) => Math.min(prev + 1, TOTAL_DEMO_PAGES - 1));
+    } else {
+      setCurrentPage((prev) => Math.max(prev - 1, 0));
+    }
+  };
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
@@ -244,12 +218,6 @@ export default function AlbumDigitalPage() {
   };
 
   const selectedPlan = albumPlans.find((p) => p.id === selectedPlanId);
-
-  const demoPages = [
-    { gradient: "from-rose-50 to-amber-50", title: "Nuestra Historia" },
-    { gradient: "from-amber-50 to-orange-50", title: "El Gran Día" },
-    { gradient: "from-pink-50 to-rose-50", title: "Para Siempre" },
-  ];
 
   return (
     <div className="pt-20 overflow-hidden">
@@ -454,65 +422,202 @@ export default function AlbumDigitalPage() {
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 lg:p-16 shadow-2xl border border-white/50">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Animated Flipbook Preview */}
+              {/* Animated Flipbook Preview - Matching real Flipbook component */}
               <div className="relative order-2 lg:order-1">
-                {/* Decorative glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-primary/10 blur-3xl transform scale-90 rounded-full" />
+                {/* Ambient glow */}
+                <div
+                  className="absolute inset-0 blur-[60px] transform rounded-full scale-110 opacity-60"
+                  style={{ backgroundColor: 'rgba(217,119,6,0.2)' }}
+                />
 
-                {/* Book container with 3D effect */}
-                <div className="relative perspective-1000">
+                {/* Book shadow */}
+                <div
+                  className="absolute inset-x-4 bottom-0 h-8 blur-2xl rounded-full transform translate-y-4"
+                  style={{ background: 'radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, transparent 70%)' }}
+                />
+
+                <div className="relative w-full max-w-[300px] mx-auto">
+                  {/* Main book container */}
                   <div
-                    className="relative w-full max-w-sm mx-auto"
-                    style={{ perspective: "1000px" }}
+                    className="relative rounded-xl overflow-hidden"
+                    style={{
+                      boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 10px 20px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255,255,255,0.1)',
+                    }}
                   >
-                    {/* Shadow under book */}
-                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[85%] h-8 bg-black/10 blur-xl rounded-full" />
+                    {/* Book aspect ratio container */}
+                    <div className="relative aspect-[3/4] bg-gradient-to-br from-amber-50 via-orange-50/80 to-amber-100 overflow-hidden">
 
-                    {/* Book pages */}
-                    <div className="relative aspect-[3/4] bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-amber-100">
-                      {demoPages.map((page, index) => (
+                      {/* All pages stacked - only current one visible */}
+
+                      {/* Cover Page */}
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 flex items-center justify-center transition-opacity duration-500 ${currentPage === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                      >
+                        {/* Pattern overlay */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.03)_1px,_transparent_1px)] bg-[length:20px_20px]" />
+
+                        {/* Decorative corner flourishes */}
+                        <div className="absolute top-4 left-4 w-12 h-12 opacity-40">
+                          <svg viewBox="0 0 100 100" className="w-full h-full text-amber-700">
+                            <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="50" cy="50" r="4" fill="currentColor" />
+                          </svg>
+                        </div>
+                        <div className="absolute bottom-4 right-4 w-12 h-12 rotate-180 opacity-40">
+                          <svg viewBox="0 0 100 100" className="w-full h-full text-amber-700">
+                            <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="50" cy="50" r="4" fill="currentColor" />
+                          </svg>
+                        </div>
+
+                        {/* Cover content */}
+                        <div className="text-center px-6 z-10">
+                          <div className="w-24 h-px mx-auto mb-6 bg-amber-300/60" />
+
+                          {/* Heart icon with glow */}
+                          <div className="relative w-14 h-14 mx-auto mb-6">
+                            <div className="absolute inset-0 rounded-full bg-amber-400/30 blur-md animate-pulse" />
+                            <div className="relative w-full h-full rounded-full bg-amber-200 border border-amber-300/60 flex items-center justify-center">
+                              <Heart className="w-7 h-7 text-amber-900 fill-amber-900/90" />
+                            </div>
+                          </div>
+
+                          <h3 className="font-serif text-2xl text-amber-900 mb-2">{DEMO_TITLE}</h3>
+
+                          <div className="flex items-center justify-center gap-2 text-amber-700 mb-4">
+                            <Calendar className="w-3 h-3" />
+                            <span className="text-xs">{DEMO_DATE}</span>
+                          </div>
+
+                          <div className="flex items-center justify-center gap-2 mb-4">
+                            <div className="w-8 h-px bg-amber-300/60" />
+                            <Sparkles className="w-3 h-3 text-amber-600/60" />
+                            <div className="w-8 h-px bg-amber-300/60" />
+                          </div>
+
+                          <p className="text-xs text-amber-700/60">{DEMO_PHOTOS.length} momentos especiales</p>
+                          <p className="text-[10px] mt-4 text-amber-600/40">Toca para comenzar →</p>
+                        </div>
+                      </div>
+
+                      {/* Photo Pages */}
+                      {DEMO_PHOTOS.map((photo, index) => (
                         <div
                           key={index}
-                          className={`absolute inset-0 bg-gradient-to-br ${page.gradient} flex items-center justify-center p-8 transition-all duration-700`}
-                          style={{
-                            opacity: currentPage === index ? 1 : 0,
-                            transform: currentPage === index
-                              ? "rotateY(0deg)"
-                              : isFlipping && currentPage === (index + 1) % 3
-                                ? "rotateY(-90deg)"
-                                : "rotateY(90deg)",
-                            transformOrigin: "left center",
-                          }}
+                          className={`absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50/80 to-amber-100 transition-opacity duration-500 ${currentPage === index + 1 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                         >
-                          <div className="text-center">
-                            <div className="w-20 h-20 bg-white/60 backdrop-blur-sm rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg">
-                              <Heart className="w-10 h-10 text-accent fill-accent/30" />
+                          {/* Pattern */}
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.03)_1px,_transparent_1px)] bg-[length:20px_20px]" />
+
+                          <div className="h-full w-full flex flex-col p-3">
+                            {/* Photo frame */}
+                            <div className="flex-1 flex items-center justify-center py-2">
+                              <div
+                                className="relative rounded-lg overflow-hidden bg-white"
+                                style={{
+                                  boxShadow: '0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+                                }}
+                              >
+                                <div className="absolute inset-0 border-[3px] border-amber-200/60 rounded-lg pointer-events-none z-10" />
+                                <img
+                                  src={photo}
+                                  alt={`Foto ${index + 1}`}
+                                  className="w-auto h-auto max-w-[250px] max-h-[300px] object-cover"
+                                />
+                              </div>
                             </div>
-                            <p className="font-heading text-2xl text-primary mb-2">
-                              {page.title}
-                            </p>
-                            <p className="font-body text-sm text-secondary/60">
-                              {index === 0 ? "Página 1 de 3" : index === 1 ? "Página 2 de 3" : "Página 3 de 3"}
-                            </p>
+
+                            {/* Page number */}
+                            <div className="text-center py-1">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-6 h-px bg-amber-300/30" />
+                                <span className="text-[10px] text-amber-700/50 font-serif">{index + 1}</span>
+                                <div className="w-6 h-px bg-amber-300/30" />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))}
 
-                      {/* Page flip indicator */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                        {demoPages.map((_, index) => (
-                          <div
-                            key={index}
-                            className={`w-2 h-2 rounded-full transition-all duration-300 ${currentPage === index ? "bg-accent w-6" : "bg-secondary/30"
-                              }`}
-                          />
-                        ))}
+                      {/* Back Cover */}
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 flex items-center justify-center transition-opacity duration-500 ${currentPage === TOTAL_DEMO_PAGES - 1 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                      >
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.03)_1px,_transparent_1px)] bg-[length:20px_20px]" />
+
+                        {/* Decorative corners */}
+                        <div className="absolute top-4 left-4 w-12 h-12 opacity-40">
+                          <svg viewBox="0 0 100 100" className="w-full h-full text-amber-700">
+                            <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="50" cy="50" r="4" fill="currentColor" />
+                          </svg>
+                        </div>
+                        <div className="absolute bottom-4 right-4 w-12 h-12 rotate-180 opacity-40">
+                          <svg viewBox="0 0 100 100" className="w-full h-full text-amber-700">
+                            <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="50" cy="50" r="4" fill="currentColor" />
+                          </svg>
+                        </div>
+
+                        <div className="text-center px-6 z-10">
+                          <div className="bg-amber-200 rounded-full w-12 h-12 mx-auto mb-6 flex items-center justify-center border border-amber-300/60">
+                            <Heart className="w-6 h-6 text-amber-900 fill-amber-900/90" />
+                          </div>
+
+                          <p className="font-serif text-amber-900 text-base mb-1">Gracias por compartir</p>
+                          <p className="font-serif text-amber-900 text-base mb-6">estos momentos</p>
+
+                          <div className="flex items-center justify-center gap-2 mb-6">
+                            <div className="w-6 h-px bg-amber-300/60" />
+                            <Heart className="w-2 h-2 text-amber-600/60 fill-amber-600/60" />
+                            <div className="w-6 h-px bg-amber-300/60" />
+                          </div>
+
+                          <p className="text-[10px] text-amber-700/50">Creado con amor en</p>
+                          <p className="text-sm text-amber-900 font-semibold mt-1">Blue Book</p>
+                        </div>
+                      </div>
+
+                      {/* Glossy overlay */}
+                      <div className="absolute inset-0 pointer-events-none z-20">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent" />
+                        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent" />
                       </div>
                     </div>
-
-                    {/* Book spine */}
-                    <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-amber-200 to-amber-100 rounded-l-lg shadow-inner" />
                   </div>
+
+                  {/* Navigation buttons */}
+                  <button
+                    onClick={() => goToPage("prev")}
+                    disabled={currentPage === 0}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-40 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-5 h-5 text-primary rotate-180" />
+                  </button>
+                  <button
+                    onClick={() => goToPage("next")}
+                    disabled={currentPage === TOTAL_DEMO_PAGES - 1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-40 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-5 h-5 text-primary" />
+                  </button>
+
+                  {/* Progress bar */}
+                  <div className="flex items-center justify-center gap-3 mt-6">
+                    <div className="flex-1 max-w-[180px] h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-amber-500 to-amber-600"
+                        style={{ width: `${((currentPage + 1) / TOTAL_DEMO_PAGES) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-secondary/60 font-body whitespace-nowrap">
+                      {currentPage + 1} / {TOTAL_DEMO_PAGES}
+                    </span>
+                  </div>
+
+                  <p className="text-center font-body text-xs text-secondary/50 mt-3">
+                    Usa las flechas para navegar
+                  </p>
                 </div>
               </div>
 
@@ -563,62 +668,6 @@ export default function AlbumDigitalPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 lg:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-full mb-6">
-              <Heart className="w-4 h-4 text-accent fill-accent/30" />
-              <span className="font-body text-sm font-semibold text-accent">Parejas felices</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-primary mb-4">
-              Lo que dicen nuestras parejas
-            </h2>
-            <p className="font-body text-lg text-secondary max-w-2xl mx-auto">
-              Más de 500 parejas ya han creado su álbum digital con nosotros
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="group bg-gradient-to-br from-light to-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-border/50 hover:-translate-y-2"
-              >
-                {/* Stars */}
-                <div className="flex gap-1 mb-6">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-
-                {/* Quote */}
-                <p className="font-body text-secondary mb-8 leading-relaxed italic">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </p>
-
-                {/* Author */}
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <span className="font-heading text-white font-semibold text-sm">
-                      {testimonial.avatar}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-heading text-primary font-semibold">
-                      {testimonial.name}
-                    </p>
-                    <p className="font-body text-sm text-secondary">
-                      {testimonial.date}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Pricing Section - Glassmorphism enhanced */}
       <section id="pricing" className="py-24 lg:py-32 bg-gradient-to-b from-light via-muted/30 to-light relative overflow-hidden">
         {/* Decorative blurs */}
@@ -641,12 +690,12 @@ export default function AlbumDigitalPage() {
           </div>
 
           {/* Plans Grid */}
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
             {albumPlans.map((plan, index) => (
               <div
                 key={plan.id}
                 className={`relative rounded-3xl transition-all duration-500 group ${plan.highlighted
-                  ? "bg-gradient-to-br from-primary via-primary to-primary-dark text-white shadow-2xl shadow-primary/30 scale-100 lg:scale-105 z-10"
+                  ? "bg-gradient-to-br from-primary via-primary to-primary-dark text-white shadow-2xl shadow-primary/30 z-10"
                   : "bg-white/80 backdrop-blur-xl hover:bg-white hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-3"
                   } border ${plan.highlighted ? "border-white/20" : "border-border/50"}`}
                 style={{
@@ -831,10 +880,7 @@ export default function AlbumDigitalPage() {
 
                     if (selectedPlan.id === "album_basico") {
                       isDisabled = templateTier !== "basic";
-                      requiredPlan = templateTier === "deluxe" ? "Deluxe" : "Premium";
-                    } else if (selectedPlan.id === "album_premium") {
-                      isDisabled = templateTier === "deluxe";
-                      requiredPlan = "Deluxe";
+                      requiredPlan = "Premium";
                     }
 
                     return (
@@ -1022,7 +1068,7 @@ export default function AlbumDigitalPage() {
               {
                 icon: Download,
                 title: "Descarga PDF",
-                description: "Descarga tu álbum en alta calidad para imprimir o guardar (Deluxe).",
+                description: "Descarga tu álbum en alta calidad para imprimir o guardar (Premium).",
                 gradient: "from-indigo-500 to-violet-400",
               },
               {
@@ -1033,8 +1079,8 @@ export default function AlbumDigitalPage() {
               },
               {
                 icon: Users,
-                title: "Fotos de invitados",
-                description: "Permite que tus invitados suban sus propias fotos al álbum (Deluxe).",
+                title: "Comparte con todos",
+                description: "Comparte fácilmente tu álbum con familia y amigos por WhatsApp.",
                 gradient: "from-red-500 to-orange-400",
               },
               {

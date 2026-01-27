@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Mail, Phone, MapPin, Instagram, Facebook } from "lucide-react";
 
 const footerLinks = {
@@ -32,9 +33,13 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-accent fill-accent" />
-              </div>
+              <Image
+                src="/icon.png"
+                alt="Blue Book"
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
               <span className="font-heading text-2xl font-semibold text-white">
                 Blue Book
               </span>

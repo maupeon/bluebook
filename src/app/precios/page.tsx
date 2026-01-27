@@ -27,80 +27,50 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    id: "basico",
+    id: "album_basico",
     name: "Básico",
-    price: 1999,
-    description: "Perfecto para bodas íntimas y pequeñas celebraciones",
+    price: 100,
+    description: "Perfecto para álbumes pequeños y recuerdos especiales",
     features: [
-      "Invitaciones digitales personalizadas",
-      "Sistema RSVP automatizado",
-      "Hasta 50 invitados",
-      "Dashboard de gestión en tiempo real",
-      "5 plantillas de diseño a elegir",
-      "Soporte por email (24-48h)",
-      "Exportación de lista a Excel",
-      "Recordatorios manuales",
+      "Hasta 50 fotos",
+      "Flipbook interactivo",
+      "URL personalizada",
+      "Compartir por WhatsApp",
+      "Soporte por email",
     ],
     notIncluded: [
-      "Galería post-boda",
-      "Diseños premium",
+      "Fotos ilimitadas",
+      "Todas las plantillas",
+      "Descarga PDF",
+    ],
+  },
+  {
+    id: "album_premium",
+    name: "Premium",
+    price: 500,
+    description: "La experiencia completa para sus recuerdos",
+    features: [
+      "Fotos ilimitadas",
+      "Flipbook interactivo",
+      "URL personalizada",
+      "Todas las plantillas disponibles",
+      "Compartir por WhatsApp",
+      "Descarga en PDF",
       "Soporte prioritario",
     ],
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    price: 3999,
-    description: "El más elegido por las parejas. Todo lo que necesitan.",
-    features: [
-      "Todo lo del plan Básico",
-      "Hasta 150 invitados",
-      "Galería post-boda privada",
-      "15 diseños exclusivos premium",
-      "Recordatorios automáticos programados",
-      "Gestión de menús y alergias",
-      "Soporte prioritario por email y chat",
-      "Estadísticas avanzadas",
-      "Personalización de colores y tipografías",
-    ],
-    notIncluded: ["Invitados ilimitados", "Video highlights"],
     highlighted: true,
     badge: "Más popular",
-  },
-  {
-    id: "deluxe",
-    name: "Deluxe",
-    price: 6999,
-    description: "La experiencia completa para su boda de ensueño",
-    features: [
-      "Todo lo del plan Premium",
-      "Invitados ilimitados",
-      "Diseño personalizado exclusivo",
-      "Video highlights con los mejores momentos",
-      "Subida de fotos por invitados",
-      "Almacenamiento ilimitado en galería",
-      "Soporte 24/7 dedicado",
-      "Gestor personal asignado",
-      "Invitación de prueba impresa",
-      "Acceso anticipado a nuevas funciones",
-    ],
-    badge: "Experiencia completa",
   },
 ];
 
 const comparisonFeatures = [
-  { name: "Invitaciones digitales", basic: true, premium: true, deluxe: true },
-  { name: "Sistema RSVP", basic: true, premium: true, deluxe: true },
-  { name: "Dashboard de gestión", basic: true, premium: true, deluxe: true },
-  { name: "Número de invitados", basic: "50", premium: "150", deluxe: "∞" },
-  { name: "Plantillas de diseño", basic: "5", premium: "15", deluxe: "Custom" },
-  { name: "Galería post-boda", basic: false, premium: true, deluxe: true },
-  { name: "Recordatorios automáticos", basic: false, premium: true, deluxe: true },
-  { name: "Gestión de menús/alergias", basic: false, premium: true, deluxe: true },
-  { name: "Video highlights", basic: false, premium: false, deluxe: true },
-  { name: "Subida fotos por invitados", basic: false, premium: false, deluxe: true },
-  { name: "Gestor personal", basic: false, premium: false, deluxe: true },
-  { name: "Soporte", basic: "Email", premium: "Prioritario", deluxe: "24/7" },
+  { name: "Flipbook interactivo", basic: true, premium: true },
+  { name: "URL personalizada", basic: true, premium: true },
+  { name: "Compartir por WhatsApp", basic: true, premium: true },
+  { name: "Número de fotos", basic: "50", premium: "∞" },
+  { name: "Plantillas disponibles", basic: "1", premium: "Todas" },
+  { name: "Descarga PDF", basic: false, premium: true },
+  { name: "Soporte", basic: "Email", premium: "Prioritario" },
 ];
 
 const faqs = [
@@ -217,13 +187,13 @@ export default function PreciosPage() {
           </div>
 
           {/* Cards Grid */}
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-6 max-w-4xl mx-auto">
             {plans.map((plan) => (
               <div
                 key={plan.id}
                 className={`relative rounded-3xl transition-all duration-500 group ${
                   plan.highlighted
-                    ? "bg-primary text-white shadow-2xl shadow-primary/30 scale-100 lg:scale-105 z-10"
+                    ? "bg-primary text-white shadow-2xl shadow-primary/30 z-10"
                     : "bg-light hover:bg-white border border-transparent hover:border-accent/20 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2"
                 }`}
               >
@@ -447,15 +417,11 @@ export default function PreciosPage() {
                     </th>
                     <th className="px-6 py-5 text-center font-heading text-lg font-semibold">
                       <span className="block">Básico</span>
-                      <span className="text-sm font-body font-normal opacity-70">$1,999</span>
+                      <span className="text-sm font-body font-normal opacity-70">$100</span>
                     </th>
                     <th className="px-6 py-5 text-center font-heading text-lg font-semibold bg-accent/20">
                       <span className="block">Premium</span>
-                      <span className="text-sm font-body font-normal opacity-70">$3,999</span>
-                    </th>
-                    <th className="px-6 py-5 text-center font-heading text-lg font-semibold">
-                      <span className="block">Deluxe</span>
-                      <span className="text-sm font-body font-normal opacity-70">$6,999</span>
+                      <span className="text-sm font-body font-normal opacity-70">$500</span>
                     </th>
                   </tr>
                 </thead>
@@ -501,23 +467,6 @@ export default function PreciosPage() {
                         ) : (
                           <span className="font-body text-sm text-primary font-semibold bg-accent/20 px-3 py-1 rounded-full">
                             {feature.premium}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {typeof feature.deluxe === "boolean" ? (
-                          feature.deluxe ? (
-                            <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center mx-auto">
-                              <Check className="w-4 h-4 text-accent" />
-                            </div>
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center mx-auto">
-                              <X className="w-4 h-4 text-secondary/40" />
-                            </div>
-                          )
-                        ) : (
-                          <span className="font-body text-sm text-primary font-semibold bg-accent/10 px-3 py-1 rounded-full">
-                            {feature.deluxe}
                           </span>
                         )}
                       </td>

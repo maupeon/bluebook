@@ -15,52 +15,34 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    id: "basico",
+    id: "album_basico",
     name: "Básico",
-    price: 1999,
-    description: "Perfecto para bodas íntimas",
+    price: 100,
+    description: "Perfecto para álbumes pequeños",
     features: [
-      "Invitaciones digitales personalizadas",
-      "Sistema RSVP automatizado",
-      "Hasta 50 invitados",
-      "Dashboard de gestión",
+      "Hasta 50 fotos",
+      "Flipbook interactivo",
+      "URL personalizada",
+      "Compartir por WhatsApp",
       "Soporte por email",
-      "Diseño a elegir entre 5 plantillas",
     ],
   },
   {
-    id: "premium",
+    id: "album_premium",
     name: "Premium",
-    price: 3999,
-    description: "El más elegido por las parejas",
+    price: 500,
+    description: "La experiencia completa",
     features: [
-      "Todo lo del plan Básico",
-      "Hasta 150 invitados",
-      "Galería post-boda privada",
-      "15 diseños exclusivos",
-      "Recordatorios automáticos",
-      "Exportación de datos",
+      "Fotos ilimitadas",
+      "Flipbook interactivo",
+      "URL personalizada",
+      "Todas las plantillas",
+      "Compartir por WhatsApp",
+      "Descarga en PDF",
       "Soporte prioritario",
     ],
     highlighted: true,
     badge: "Más popular",
-  },
-  {
-    id: "deluxe",
-    name: "Deluxe",
-    price: 6999,
-    description: "La experiencia completa",
-    features: [
-      "Todo lo del plan Premium",
-      "Invitados ilimitados",
-      "Video highlights incluido",
-      "Diseño personalizado exclusivo",
-      "Subida de fotos por invitados",
-      "Almacenamiento ilimitado",
-      "Soporte 24/7 dedicado",
-      "Gestor personal asignado",
-    ],
-    badge: "Exclusivo",
   },
 ];
 
@@ -109,13 +91,13 @@ export function PricingTable() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-6">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-6 max-w-4xl mx-auto">
           {plans.map((plan) => (
             <div
               key={plan.id}
               className={`relative rounded-3xl p-8 transition-all duration-300 ${
                 plan.highlighted
-                  ? "bg-primary text-white shadow-2xl shadow-primary/30 scale-105 lg:scale-110 z-10"
+                  ? "bg-primary text-white shadow-2xl shadow-primary/30 z-10"
                   : "bg-white border border-border hover:border-accent/30 hover:shadow-xl"
               }`}
             >

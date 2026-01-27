@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, Heart } from "lucide-react";
 
@@ -22,9 +23,13 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center group-hover:bg-primary-dark transition-colors duration-300">
-              <Heart className="w-5 h-5 text-accent fill-accent" />
-            </div>
+            <Image
+              src="/icon.png"
+              alt="Blue Book"
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
             <span className="font-heading text-2xl font-semibold text-primary">
               Blue Book
             </span>

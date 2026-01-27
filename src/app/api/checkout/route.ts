@@ -30,19 +30,13 @@ const PLANS = {
   album_basico: {
     name: "Álbum Digital - Básico",
     description: "Hasta 50 fotos + Flipbook interactivo + URL personalizada",
-    price: 49900, // $499 MXN
+    price: 10000, // $100 MXN
     type: "album",
   },
   album_premium: {
     name: "Álbum Digital - Premium",
-    description: "Hasta 150 fotos + 3 plantillas + Compartir WhatsApp",
-    price: 79900, // $799 MXN
-    type: "album",
-  },
-  album_deluxe: {
-    name: "Álbum Digital - Deluxe",
-    description: "Fotos ilimitadas + Todas las plantillas + Dominio personalizado + Descarga PDF",
-    price: 129900, // $1,299 MXN
+    description: "Fotos ilimitadas + Todas las plantillas + Compartir WhatsApp + Descarga PDF",
+    price: 50000, // $500 MXN
     type: "album",
   },
 };
