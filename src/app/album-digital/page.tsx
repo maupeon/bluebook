@@ -271,10 +271,10 @@ export default function AlbumDigitalPage() {
             </div>
 
             <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-semibold text-dark mb-8 leading-tight">
-              Convierte tus fotos en un{" "}
+              Tu álbum de boda{" "}
               <span className="relative inline-block">
                 <span className="relative z-10 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
-                  recuerdo mágico
+                  en un flipbook digital
                 </span>
                 {/* Underline decoration */}
                 <svg className="absolute -bottom-2 left-0 w-full h-3 text-accent/30" viewBox="0 0 200 12" fill="none">

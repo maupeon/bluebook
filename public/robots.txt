@@ -1,0 +1,13 @@
+# Blue Book - Robots.txt
+# https://bluebook.mx
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /upload/
+Disallow: /album/*/admin
+Disallow: /album/*/upload
+
+# Sitemap
+Sitemap: https://bluebook.mx/sitemap.xml

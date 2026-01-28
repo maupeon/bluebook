@@ -397,7 +397,7 @@ export default function ContactoPage() {
 
                     <p className="font-body text-xs text-secondary text-center">
                       Al enviar este formulario, aceptan nuestra{" "}
-                      <a href="#" className="text-accent hover:underline">
+                      <a href="/privacidad" className="text-accent hover:underline">
                         política de privacidad
                       </a>
                       .

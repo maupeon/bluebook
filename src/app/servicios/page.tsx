@@ -18,9 +18,15 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Servicios",
+  title: "Servicios Digitales para Bodas",
   description:
-    "Descubre todos nuestros servicios digitales para bodas: invitaciones personalizadas, sistema RSVP, gestión de invitados y galería post-boda.",
+    "Servicios digitales para bodas: álbumes digitales interactivos, invitaciones personalizadas, sistema RSVP y galería post-boda. Soluciones completas para tu boda.",
+  openGraph: {
+    title: "Servicios Digitales para Bodas | Blue Book",
+    description:
+      "Soluciones digitales completas para tu boda. Álbumes interactivos, invitaciones y más.",
+    url: "https://bluebook.mx/servicios",
+  },
 };
 
 const services = [

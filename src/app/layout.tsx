@@ -4,6 +4,41 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
+// Structured Data - Organization Schema
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Blue Book",
+  url: "https://bluebook.mx",
+  logo: "https://bluebook.mx/icon.png",
+  description:
+    "Crea álbumes digitales interactivos para tu boda. Comparte tus recuerdos con un flipbook elegante.",
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+52-55-1234-5678",
+    contactType: "customer service",
+    email: "hola@bluebook.mx",
+    areaServed: "MX",
+    availableLanguage: "Spanish",
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Ciudad de México",
+    addressCountry: "MX",
+  },
+  sameAs: ["https://instagram.com/bluebook.mx", "https://facebook.com/bluebook.mx"],
+};
+
+// Structured Data - WebSite Schema with SearchAction
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Blue Book",
+  url: "https://bluebook.mx",
+  description:
+    "Álbumes digitales interactivos para bodas. Crea un flipbook con las fotos de tu boda.",
+};
+
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
@@ -21,20 +56,20 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   metadataBase: new URL("https://bluebook.mx"),
   title: {
-    default: "Blue Book | Servicios Digitales para Bodas",
+    default: "Blue Book | Álbumes Digitales para Bodas",
     template: "%s | Blue Book",
   },
   description:
-    "Invitaciones digitales, confirmaciones RSVP, gestión de invitados y galería post-boda. Haz de tu boda una experiencia digital inolvidable.",
+    "Crea un álbum digital interactivo con las fotos de tu boda. Flipbook elegante para compartir con familia y amigos. Desde $100 MXN.",
   keywords: [
-    "bodas",
-    "invitaciones digitales",
-    "RSVP",
-    "wedding",
-    "invitaciones boda",
+    "álbum digital boda",
+    "flipbook boda",
+    "fotos boda digital",
+    "álbum fotos boda",
+    "recuerdos boda",
     "galería boda",
-    "servicios bodas",
     "bodas méxico",
+    "álbum interactivo",
   ],
   authors: [{ name: "Blue Book" }],
   creator: "Blue Book",
@@ -43,23 +78,23 @@ export const metadata: Metadata = {
     locale: "es_MX",
     url: "https://bluebook.mx",
     siteName: "Blue Book",
-    title: "Blue Book | Servicios Digitales para Bodas",
+    title: "Blue Book | Álbumes Digitales para Bodas",
     description:
-      "Invitaciones digitales, confirmaciones RSVP, gestión de invitados y galería post-boda. Haz de tu boda una experiencia digital inolvidable.",
+      "Crea un álbum digital interactivo con las fotos de tu boda. Flipbook elegante para compartir con familia y amigos.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Blue Book - Servicios Digitales para Bodas",
+        alt: "Blue Book - Álbumes Digitales para Bodas",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blue Book | Servicios Digitales para Bodas",
+    title: "Blue Book | Álbumes Digitales para Bodas",
     description:
-      "Invitaciones digitales, confirmaciones RSVP, gestión de invitados y galería post-boda.",
+      "Crea un flipbook digital interactivo con las fotos de tu boda. Compártelo con un solo link.",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -82,6 +117,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="scroll-smooth">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
+          }}
+        />
+      </head>
       <body
         className={`${cormorant.variable} ${montserrat.variable} antialiased bg-light text-dark`}
       >
