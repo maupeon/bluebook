@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Montserrat } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LanguageProvider } from "@/components/LanguageProvider";
+import { PromoBanner } from "@/components/PromoBanner";
+import { CONTACT_INFO, LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 
 // Structured Data - Organization Schema
 const organizationSchema = {
@@ -15,18 +19,18 @@ const organizationSchema = {
     "Crea álbumes digitales interactivos para tu boda. Comparte tus recuerdos con un flipbook elegante.",
   contactPoint: {
     "@type": "ContactPoint",
-    telephone: "+52-55-1234-5678",
+    telephone: CONTACT_INFO.whatsappNumber,
     contactType: "customer service",
-    email: "hola@bluebook.mx",
+    email: CONTACT_INFO.email,
     areaServed: "MX",
-    availableLanguage: "Spanish",
+    availableLanguage: ["Spanish", "English"],
   },
   address: {
     "@type": "PostalAddress",
-    addressLocality: "Ciudad de México",
+    addressLocality: "Mexico City",
     addressCountry: "MX",
   },
-  sameAs: ["https://instagram.com/bluebook.mx", "https://facebook.com/bluebook.mx"],
+  sameAs: [CONTACT_INFO.instagramUrl, CONTACT_INFO.whatsappUrl],
 };
 
 // Structured Data - WebSite Schema with SearchAction
@@ -110,13 +114,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const language = parseLanguage(cookieStore.get(LANGUAGE_COOKIE)?.value);
+
   return (
-    <html lang="es" className="scroll-smooth">
+    <html lang={language} className="scroll-smooth">
       <head>
         <script
           type="application/ld+json"
@@ -134,9 +141,12 @@ export default function RootLayout({
       <body
         className={`${cormorant.variable} ${montserrat.variable} antialiased bg-light text-dark`}
       >
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <LanguageProvider initialLanguage={language}>
+          <Navbar />
+          <PromoBanner />
+          <main>{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

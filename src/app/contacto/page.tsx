@@ -3,15 +3,16 @@
 import { useState, FormEvent } from "react";
 import {
   Mail,
-  Phone,
   MapPin,
   Send,
   Heart,
   Clock,
   CheckCircle,
   Instagram,
-  Facebook,
+  MessageCircle,
 } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
+import { CONTACT_INFO } from "@/lib/language";
 
 interface FormData {
   name: string;
@@ -24,6 +25,7 @@ interface FormData {
 }
 
 export default function ContactoPage() {
+  const { isEnglish } = useLanguage();
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -61,14 +63,15 @@ export default function ContactoPage() {
       <section className="py-20 lg:py-32 bg-gradient-to-b from-light via-muted/30 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <span className="font-body text-sm font-semibold text-accent uppercase tracking-wider">
-            Contacto
+            {isEnglish ? "Contact" : "Contacto"}
           </span>
           <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-semibold text-dark mt-4 mb-6">
-            Hablemos de su boda
+            {isEnglish ? "Let's talk about your wedding" : "Hablemos de su boda"}
           </h1>
           <p className="font-body text-lg sm:text-xl text-secondary max-w-3xl mx-auto">
-            Estamos aquí para ayudarles a crear la experiencia digital perfecta.
-            Cuéntennos sobre su boda y les responderemos en menos de 24 horas.
+            {isEnglish
+              ? "We are here to help you create the perfect digital experience. Tell us about your wedding and we will reply within 24 hours."
+              : "Estamos aqui para ayudarles a crear la experiencia digital perfecta. Cuentennos sobre su boda y les responderemos en menos de 24 horas."}
           </p>
         </div>
       </section>
@@ -80,12 +83,12 @@ export default function ContactoPage() {
             {/* Contact Info */}
             <div>
               <h2 className="font-heading text-3xl font-semibold text-primary mb-6">
-                ¿Cómo podemos ayudarles?
+                {isEnglish ? "How can we help?" : "Como podemos ayudarles?"}
               </h2>
               <p className="font-body text-lg text-secondary mb-10">
-                Ya sea que tengan preguntas sobre nuestros servicios, necesiten
-                ayuda para elegir un plan o simplemente quieran saludarnos, estamos
-                encantados de escucharles.
+                {isEnglish
+                  ? "Whether you have questions about our services, need help choosing a plan, or just want to say hi, we are happy to hear from you."
+                  : "Ya sea que tengan preguntas sobre nuestros servicios, necesiten ayuda para elegir un plan o simplemente quieran saludarnos, estamos encantados de escucharles."}
               </p>
 
               {/* Contact Details */}
@@ -99,27 +102,27 @@ export default function ContactoPage() {
                       Email
                     </h3>
                     <a
-                      href="mailto:hola@bluebook.mx"
+                      href={`mailto:${CONTACT_INFO.email}`}
                       className="font-body text-secondary hover:text-accent transition-colors"
                     >
-                      hola@bluebook.mx
+                      {CONTACT_INFO.email}
                     </a>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-accent" />
+                    <MessageCircle className="w-6 h-6 text-accent" />
                   </div>
                   <div>
                     <h3 className="font-heading text-lg font-semibold text-primary mb-1">
-                      Teléfono
+                      WhatsApp
                     </h3>
                     <a
-                      href="tel:+525512345678"
+                      href={CONTACT_INFO.whatsappUrl}
                       className="font-body text-secondary hover:text-accent transition-colors"
                     >
-                      +52 55 1234 5678
+                      {CONTACT_INFO.whatsappDisplay}
                     </a>
                   </div>
                 </div>
@@ -130,9 +133,11 @@ export default function ContactoPage() {
                   </div>
                   <div>
                     <h3 className="font-heading text-lg font-semibold text-primary mb-1">
-                      Ubicación
+                      {isEnglish ? "Location" : "Ubicacion"}
                     </h3>
-                    <p className="font-body text-secondary">Ciudad de México, México</p>
+                    <p className="font-body text-secondary">
+                      {isEnglish ? CONTACT_INFO.cityEn : CONTACT_INFO.cityEs}
+                    </p>
                   </div>
                 </div>
 
@@ -142,12 +147,12 @@ export default function ContactoPage() {
                   </div>
                   <div>
                     <h3 className="font-heading text-lg font-semibold text-primary mb-1">
-                      Horario de atención
+                      {isEnglish ? "Support hours" : "Horario de atencion"}
                     </h3>
                     <p className="font-body text-secondary">
-                      Lunes a Viernes: 9:00 - 19:00
+                      {isEnglish ? "Monday to Friday: 9:00 - 19:00" : "Lunes a Viernes: 9:00 - 19:00"}
                       <br />
-                      Sábados: 10:00 - 14:00
+                      {isEnglish ? "Saturday: 10:00 - 14:00" : "Sabados: 10:00 - 14:00"}
                     </p>
                   </div>
                 </div>
@@ -156,11 +161,11 @@ export default function ContactoPage() {
               {/* Social Links */}
               <div>
                 <h3 className="font-heading text-lg font-semibold text-primary mb-4">
-                  Síguenos en redes
+                  {isEnglish ? "Follow us" : "Siguenos en redes"}
                 </h3>
                 <div className="flex gap-4">
                   <a
-                    href="https://instagram.com"
+                    href={CONTACT_INFO.instagramUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-all duration-300"
@@ -169,13 +174,13 @@ export default function ContactoPage() {
                     <Instagram className="w-5 h-5" />
                   </a>
                   <a
-                    href="https://facebook.com"
+                    href={CONTACT_INFO.whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-all duration-300"
-                    aria-label="Facebook"
+                    aria-label="WhatsApp"
                   >
-                    <Facebook className="w-5 h-5" />
+                    <MessageCircle className="w-5 h-5" />
                   </a>
                 </div>
               </div>
@@ -186,12 +191,12 @@ export default function ContactoPage() {
                   <Heart className="w-8 h-8 text-accent flex-shrink-0" />
                   <div>
                     <h3 className="font-heading text-lg font-semibold text-primary mb-2">
-                      Comprometidos con su felicidad
+                      {isEnglish ? "Committed to your happiness" : "Comprometidos con su felicidad"}
                     </h3>
                     <p className="font-body text-sm text-secondary">
-                      Más de 500 parejas han confiado en nosotros. Nos encanta ser
-                      parte de su día especial y trabajamos para que todo salga
-                      perfecto.
+                      {isEnglish
+                        ? "More than 500 couples trust us. We love being part of your special day and work so everything runs perfectly."
+                        : "Mas de 500 parejas han confiado en nosotros. Nos encanta ser parte de su dia especial y trabajamos para que todo salga perfecto."}
                     </p>
                   </div>
                 </div>
@@ -206,11 +211,12 @@ export default function ContactoPage() {
                     <CheckCircle className="w-10 h-10 text-accent" />
                   </div>
                   <h3 className="font-heading text-2xl font-semibold text-primary mb-4">
-                    ¡Mensaje enviado!
+                    {isEnglish ? "Message sent!" : "Mensaje enviado!"}
                   </h3>
                   <p className="font-body text-secondary mb-8">
-                    Gracias por contactarnos. Les responderemos en menos de 24 horas.
-                    ¡Estamos emocionados de ayudarles con su boda!
+                    {isEnglish
+                      ? "Thanks for contacting us. We will get back to you in less than 24 hours."
+                      : "Gracias por contactarnos. Les responderemos en menos de 24 horas. Estamos emocionados de ayudarles con su boda."}
                   </p>
                   <button
                     onClick={() => {
@@ -227,13 +233,13 @@ export default function ContactoPage() {
                     }}
                     className="font-body text-accent hover:text-primary transition-colors underline"
                   >
-                    Enviar otro mensaje
+                    {isEnglish ? "Send another message" : "Enviar otro mensaje"}
                   </button>
                 </div>
               ) : (
                 <>
                   <h3 className="font-heading text-2xl font-semibold text-primary mb-6">
-                    Cuéntennos sobre su boda
+                    {isEnglish ? "Tell us about your wedding" : "Cuentennos sobre su boda"}
                   </h3>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -243,7 +249,7 @@ export default function ContactoPage() {
                         htmlFor="name"
                         className="block font-body text-sm font-medium text-primary mb-2"
                       >
-                        Sus nombres *
+                        {isEnglish ? "Your names *" : "Sus nombres *"}
                       </label>
                       <input
                         type="text"
@@ -252,7 +258,7 @@ export default function ContactoPage() {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        placeholder="María y Carlos"
+                        placeholder={isEnglish ? "Emma and Lucas" : "María y Carlos"}
                         className="w-full px-4 py-3 rounded-xl border border-border bg-white font-body text-primary placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                       />
                     </div>
@@ -263,7 +269,7 @@ export default function ContactoPage() {
                         htmlFor="email"
                         className="block font-body text-sm font-medium text-primary mb-2"
                       >
-                        Email *
+                        {isEnglish ? "Email *" : "Email *"}
                       </label>
                       <input
                         type="email"
@@ -272,7 +278,7 @@ export default function ContactoPage() {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        placeholder="su@email.com"
+                        placeholder={isEnglish ? "you@email.com" : "su@email.com"}
                         className="w-full px-4 py-3 rounded-xl border border-border bg-white font-body text-primary placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                       />
                     </div>
@@ -283,7 +289,7 @@ export default function ContactoPage() {
                         htmlFor="phone"
                         className="block font-body text-sm font-medium text-primary mb-2"
                       >
-                        Teléfono
+                        {isEnglish ? "Phone" : "Telefono"}
                       </label>
                       <input
                         type="tel"
@@ -291,7 +297,7 @@ export default function ContactoPage() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder="+52 55 1234 5678"
+                        placeholder={CONTACT_INFO.whatsappDisplay}
                         className="w-full px-4 py-3 rounded-xl border border-border bg-white font-body text-primary placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                       />
                     </div>
@@ -303,7 +309,7 @@ export default function ContactoPage() {
                           htmlFor="weddingDate"
                           className="block font-body text-sm font-medium text-primary mb-2"
                         >
-                          Fecha de la boda
+                          {isEnglish ? "Wedding date" : "Fecha de la boda"}
                         </label>
                         <input
                           type="date"
@@ -319,7 +325,7 @@ export default function ContactoPage() {
                           htmlFor="guests"
                           className="block font-body text-sm font-medium text-primary mb-2"
                         >
-                          Número de invitados
+                          {isEnglish ? "Number of guests" : "Numero de invitados"}
                         </label>
                         <input
                           type="number"
@@ -339,7 +345,7 @@ export default function ContactoPage() {
                         htmlFor="plan"
                         className="block font-body text-sm font-medium text-primary mb-2"
                       >
-                        Plan de interés
+                        {isEnglish ? "Interested plan" : "Plan de interes"}
                       </label>
                       <select
                         id="plan"
@@ -348,11 +354,11 @@ export default function ContactoPage() {
                         onChange={handleChange}
                         className="w-full px-4 py-3 rounded-xl border border-border bg-white font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                       >
-                        <option value="">Selecciona un plan</option>
+                        <option value="">{isEnglish ? "Select a plan" : "Selecciona un plan"}</option>
                         <option value="plan50">Plan 50 ($200 MXN)</option>
                         <option value="plan200">Plan 200 ($500 MXN)</option>
-                        <option value="ilimitado">Plan Ilimitado ($2,000 MXN)</option>
-                        <option value="nodecidido">Aún no lo sé</option>
+                        <option value="ilimitado">{isEnglish ? "Unlimited Plan ($2,000 MXN)" : "Plan Ilimitado ($2,000 MXN)"}</option>
+                        <option value="nodecidido">{isEnglish ? "Not sure yet" : "Aun no lo se"}</option>
                       </select>
                     </div>
 
@@ -362,7 +368,7 @@ export default function ContactoPage() {
                         htmlFor="message"
                         className="block font-body text-sm font-medium text-primary mb-2"
                       >
-                        Mensaje *
+                        {isEnglish ? "Message *" : "Mensaje *"}
                       </label>
                       <textarea
                         id="message"
@@ -371,7 +377,9 @@ export default function ContactoPage() {
                         onChange={handleChange}
                         required
                         rows={4}
-                        placeholder="Cuéntennos más sobre su boda, sus necesidades o cualquier pregunta que tengan..."
+                        placeholder={isEnglish
+                          ? "Tell us more about your wedding, your needs, or any questions you have..."
+                          : "Cuentennos mas sobre su boda, sus necesidades o cualquier pregunta que tengan..."}
                         className="w-full px-4 py-3 rounded-xl border border-border bg-white font-body text-primary placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all resize-none"
                       />
                     </div>
@@ -385,20 +393,20 @@ export default function ContactoPage() {
                       {isSubmitting ? (
                         <>
                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Enviando...
+                          {isEnglish ? "Sending..." : "Enviando..."}
                         </>
                       ) : (
                         <>
-                          Enviar mensaje
+                          {isEnglish ? "Send message" : "Enviar mensaje"}
                           <Send className="w-5 h-5" />
                         </>
                       )}
                     </button>
 
                     <p className="font-body text-xs text-secondary text-center">
-                      Al enviar este formulario, aceptan nuestra{" "}
+                      {isEnglish ? "By sending this form, you accept our " : "Al enviar este formulario, aceptan nuestra "}
                       <a href="/privacidad" className="text-accent hover:underline">
-                        política de privacidad
+                        {isEnglish ? "privacy policy" : "politica de privacidad"}
                       </a>
                       .
                     </p>

@@ -10,6 +10,7 @@ import { supabase, Album, AlbumPhoto, AlbumInvite } from '@/lib/supabase'
 import QRCode from 'qrcode'
 import { isUnlimitedPhotosPlan } from '@/lib/albumPlans'
 import { parseJsonSafe } from '@/lib/http'
+import { useLanguage } from '@/components/LanguageProvider'
 
 interface CloudinaryResult {
   event: string
@@ -40,6 +41,7 @@ interface InviteWithUrl extends AlbumInvite {
 }
 
 export default function AdminPage() {
+  const { isEnglish } = useLanguage()
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -125,7 +127,7 @@ export default function AdminPage() {
 
   const openUploadWidget = () => {
     if (!window.cloudinary) {
-      alert('Cargando... intenta de nuevo en unos segundos')
+      alert(isEnglish ? 'Loading... try again in a few seconds' : 'Cargando... intenta de nuevo en unos segundos')
       return
     }
 
@@ -134,7 +136,11 @@ export default function AdminPage() {
     const remainingForPlan = limitedPlan ? Math.max(albumLimit - photos.length, 0) : 150
 
     if (limitedPlan && remainingForPlan <= 0) {
-      alert(`Este álbum ya alcanzó el límite de ${albumLimit} fotos de su plan.`)
+      alert(
+        isEnglish
+          ? `This album already reached the ${albumLimit} photo limit for its plan.`
+          : `Este album ya alcanzo el limite de ${albumLimit} fotos de su plan.`
+      )
       return
     }
 
@@ -291,7 +297,7 @@ export default function AdminPage() {
     if (!token) return
 
     setSavingSettings(true)
-    setSettingsMessage('Guardando...')
+    setSettingsMessage(isEnglish ? 'Saving...' : 'Guardando...')
     setSettingsMessageType('')
 
     const res = await fetch(`/api/albums/${slug}`, {
@@ -305,7 +311,7 @@ export default function AdminPage() {
 
     const payload = await parseJsonSafe<{ album?: Album; error?: string }>(res)
     if (!res.ok || !payload.data?.album) {
-      setSettingsMessage(payload.data?.error || 'No se pudo guardar la configuración')
+      setSettingsMessage(payload.data?.error || (isEnglish ? 'Could not save settings' : 'No se pudo guardar la configuracion'))
       setSettingsMessageType('error')
       setSavingSettings(false)
       return
@@ -314,7 +320,7 @@ export default function AdminPage() {
     const updatedAlbum = payload.data.album
     setAlbum(updatedAlbum)
     setAlbumDate(updatedAlbum.wedding_date ? updatedAlbum.wedding_date.slice(0, 10) : '')
-    setSettingsMessage('Cambios guardados')
+    setSettingsMessage(isEnglish ? 'Changes saved' : 'Cambios guardados')
     setSettingsMessageType('success')
     setSavingSettings(false)
   }
@@ -339,7 +345,7 @@ export default function AdminPage() {
       })
       setQrDataUrl(dataUrl)
     } catch (error) {
-      console.error('Error generando QR:', error)
+      console.error('Error generating QR:', error)
       setQrDataUrl('')
     } finally {
       setCreatingQr(false)
@@ -348,7 +354,7 @@ export default function AdminPage() {
 
   const downloadQr = () => {
     if (!qrInvite || !qrDataUrl) return
-    const slugName = (qrInvite.guest_name || 'invitado').toLowerCase().replace(/\s+/g, '-')
+    const slugName = (qrInvite.guest_name || (isEnglish ? 'guest' : 'invitado')).toLowerCase().replace(/\s+/g, '-')
     const a = document.createElement('a')
     a.href = qrDataUrl
     a.download = `qr-${slug}-${slugName}.png`
@@ -358,8 +364,12 @@ export default function AdminPage() {
   }
 
   const shareInvite = async (invite: InviteWithUrl) => {
-    const title = `Comparte fotos de ${album?.title || 'nuestro álbum'}`
-    const text = `Sube tus fotos de la boda aquí:`
+    const title = isEnglish
+      ? `Share photos of ${album?.title || 'our album'}`
+      : `Comparte fotos de ${album?.title || 'nuestro album'}`
+    const text = isEnglish
+      ? 'Upload your wedding photos here:'
+      : 'Sube tus fotos de la boda aqui:'
 
     if (navigator.share) {
       try {
@@ -399,7 +409,7 @@ export default function AdminPage() {
               {album?.title}
             </h1>
             <p className="font-body text-secondary">
-              Panel de administración
+              {isEnglish ? 'Admin panel' : 'Panel de administracion'}
             </p>
           </div>
           <button
@@ -407,7 +417,7 @@ export default function AdminPage() {
             className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary font-body font-semibold rounded-full shadow-md hover:shadow-lg transition-all"
           >
             <Eye className="w-5 h-5" />
-            Ver álbum
+            {isEnglish ? 'View album' : 'Ver album'}
             <ExternalLink className="w-4 h-4" />
           </button>
         </div>
@@ -423,7 +433,7 @@ export default function AdminPage() {
             }`}
           >
             <Upload className="w-5 h-5" />
-            Fotos ({photos.length})
+            {isEnglish ? `Photos (${photos.length})` : `Fotos (${photos.length})`}
           </button>
           <button
             onClick={() => setActiveTab('invites')}
@@ -434,7 +444,9 @@ export default function AdminPage() {
             }`}
           >
             <Users className="w-5 h-5" />
-            Invitados ({invites.filter(i => i.is_active).length})
+            {isEnglish
+              ? `Guests (${invites.filter(i => i.is_active).length})`
+              : `Invitados (${invites.filter(i => i.is_active).length})`}
           </button>
         </div>
 
@@ -442,15 +454,19 @@ export default function AdminPage() {
         {activeTab === 'photos' && (
           <>
             <div className="bg-white rounded-2xl shadow-lg p-5 mb-6">
-              <p className="font-body text-lg text-primary mb-1">Ajustes de experiencia</p>
+              <p className="font-body text-lg text-primary mb-1">
+                {isEnglish ? 'Experience settings' : 'Ajustes de experiencia'}
+              </p>
               <p className="font-body text-sm text-secondary mb-4">
-                Define la fecha para que el álbum tenga una experiencia más personalizada.
+                {isEnglish
+                  ? 'Set the date to make the album experience more personalized.'
+                  : 'Define la fecha para que el album tenga una experiencia mas personalizada.'}
               </p>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="block font-body text-sm font-semibold text-primary mb-2" htmlFor="album-date">
-                    Fecha del evento
+                    {isEnglish ? 'Event date' : 'Fecha del evento'}
                   </label>
                   <div className="relative">
                     <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-accent" />
@@ -473,7 +489,9 @@ export default function AdminPage() {
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent text-white font-body font-semibold hover:bg-accent/90 transition-all disabled:opacity-60"
                 >
                   <Save className="h-4 w-4" />
-                  {savingSettings ? 'Guardando...' : 'Guardar cambios'}
+                  {savingSettings
+                    ? (isEnglish ? 'Saving...' : 'Guardando...')
+                    : (isEnglish ? 'Save changes' : 'Guardar cambios')}
                 </button>
                 {settingsMessage && (
                   <p
@@ -488,11 +506,13 @@ export default function AdminPage() {
 
             <div className="bg-white rounded-2xl shadow-lg p-5 mb-6">
               <p className="font-body text-sm text-secondary mb-2">
-                Capacidad del plan
+                {isEnglish ? 'Plan capacity' : 'Capacidad del plan'}
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-semibold">
-                  {albumHasLimit ? `${photos.length} / ${albumLimit} fotos` : 'Fotos ilimitadas'}
+                  {albumHasLimit
+                    ? `${photos.length} / ${albumLimit} ${isEnglish ? 'photos' : 'fotos'}`
+                    : (isEnglish ? 'Unlimited photos' : 'Fotos ilimitadas')}
                 </span>
                 {albumHasLimit && (
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
@@ -500,7 +520,9 @@ export default function AdminPage() {
                       ? 'bg-green-100 text-green-700'
                       : 'bg-red-100 text-red-700'
                   }`}>
-                    {remainingAlbumPhotos} disponibles
+                    {isEnglish
+                      ? `${remainingAlbumPhotos} available`
+                      : `${remainingAlbumPhotos} disponibles`}
                   </span>
                 )}
               </div>
@@ -515,10 +537,18 @@ export default function AdminPage() {
                 <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
                   <Upload className="w-8 h-8 text-accent" />
                 </div>
-                <span className="font-heading text-xl text-primary">Subir fotos</span>
+                <span className="font-heading text-xl text-primary">
+                  {isEnglish ? 'Upload photos' : 'Subir fotos'}
+                </span>
                 <span className="font-body text-secondary text-sm">
-                  JPG, PNG, HEIC hasta 15MB cada una
-                  {albumHasLimit ? ` · Límite total ${albumLimit} fotos` : ''}
+                  {isEnglish
+                    ? 'JPG, PNG, HEIC up to 15MB each'
+                    : 'JPG, PNG, HEIC hasta 15MB cada una'}
+                  {albumHasLimit
+                    ? (isEnglish
+                        ? ` · Total limit ${albumLimit} photos`
+                        : ` · Limite total ${albumLimit} fotos`)
+                    : ''}
                 </span>
               </button>
             </div>
@@ -528,10 +558,10 @@ export default function AdminPage() {
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="font-heading text-xl text-primary">
-                    {photos.length} foto{photos.length !== 1 ? 's' : ''}
+                    {photos.length} {isEnglish ? `photo${photos.length !== 1 ? 's' : ''}` : `foto${photos.length !== 1 ? 's' : ''}`}
                   </h2>
                   <p className="font-body text-sm text-secondary">
-                    Arrastra para reordenar
+                    {isEnglish ? 'Drag to reorder' : 'Arrastra para reordenar'}
                   </p>
                 </div>
 
@@ -549,7 +579,7 @@ export default function AdminPage() {
                     >
                       <img
                         src={photo.photo_url}
-                        alt={`Foto ${index + 1}`}
+                        alt={`${isEnglish ? 'Photo' : 'Foto'} ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
 
@@ -588,7 +618,9 @@ export default function AdminPage() {
             {photos.length === 0 && (
               <div className="text-center py-12 bg-white rounded-2xl shadow-lg">
                 <p className="font-body text-secondary">
-                  Aún no hay fotos. ¡Haz clic en el botón de arriba para comenzar!
+                  {isEnglish
+                    ? 'There are no photos yet. Click the button above to start.'
+                    : 'Aun no hay fotos. Haz clic en el boton de arriba para comenzar!'}
                 </p>
               </div>
             )}

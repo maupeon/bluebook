@@ -4,16 +4,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, Heart } from "lucide-react";
-
-const navLinks = [
-  { href: "/", label: "Inicio" },
-  { href: "/album-digital", label: "Álbum Digital" },
-  { href: "/precios", label: "Precios" },
-  { href: "/contacto", label: "Contacto" },
-];
+import { useLanguage } from "@/components/LanguageProvider";
+import { getLanguageName } from "@/lib/language";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { language, setLanguage, isEnglish } = useLanguage();
+
+  const navLinks = [
+    { href: "/", label: isEnglish ? "Home" : "Inicio" },
+    { href: "/album-digital", label: isEnglish ? "Digital Album" : "Album Digital" },
+    { href: "/precios", label: isEnglish ? "Pricing" : "Precios" },
+    { href: "/contacto", label: isEnglish ? "Contact" : "Contacto" },
+  ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
@@ -46,13 +49,31 @@ export function Navbar() {
             ))}
           </div>
 
+          {/* Language Switch */}
+          <div className="hidden lg:flex items-center gap-1 rounded-full border border-border bg-white p-1">
+            {(["es", "en"] as const).map((item) => (
+              <button
+                key={item}
+                onClick={() => setLanguage(item)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  language === item
+                    ? "bg-primary text-white"
+                    : "text-secondary hover:bg-light"
+                }`}
+                aria-label={`Switch language to ${getLanguageName(item)}`}
+              >
+                {item.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           {/* CTA Button */}
           <div className="hidden lg:block">
             <Link
               href="/album-digital"
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent text-primary font-body font-semibold text-sm rounded-full hover:bg-accent-light transition-all duration-300 hover:shadow-lg hover:shadow-accent/25"
             >
-              Crear álbum
+              {isEnglish ? "Create album" : "Crear album"}
               <Heart className="w-4 h-4" />
             </Link>
           </div>
@@ -61,7 +82,7 @@ export function Navbar() {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden p-2 text-primary hover:text-secondary transition-colors"
-            aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-label={isMenuOpen ? (isEnglish ? "Close menu" : "Cerrar menu") : (isEnglish ? "Open menu" : "Abrir menu")}
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -71,6 +92,23 @@ export function Navbar() {
         {isMenuOpen && (
           <div className="lg:hidden absolute top-16 left-0 right-0 bg-white border-b border-border shadow-lg">
             <div className="px-4 py-6 space-y-4">
+              <div className="inline-flex items-center gap-1 rounded-full border border-border bg-white p-1">
+                {(["es", "en"] as const).map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => setLanguage(item)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      language === item
+                        ? "bg-primary text-white"
+                        : "text-secondary hover:bg-light"
+                    }`}
+                    aria-label={`Switch language to ${getLanguageName(item)}`}
+                  >
+                    {item.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -86,7 +124,7 @@ export function Navbar() {
                 onClick={() => setIsMenuOpen(false)}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-primary font-body font-semibold rounded-full hover:bg-accent-light transition-all duration-300 mt-4"
               >
-                Crear álbum
+                {isEnglish ? "Create album" : "Crear album"}
                 <Heart className="w-4 h-4" />
               </Link>
             </div>

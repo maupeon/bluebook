@@ -1,13 +1,18 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle, Heart, ArrowRight } from "lucide-react";
+import { cookies } from "next/headers";
+import { CONTACT_INFO, LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 
 export const metadata: Metadata = {
   title: "¡Pago completado!",
   description: "Tu pago se ha procesado correctamente. ¡Bienvenidos a Blue Book!",
 };
 
-export default function CheckoutSuccessPage() {
+export default async function CheckoutSuccessPage() {
+  const cookieStore = await cookies();
+  const isEnglish = parseLanguage(cookieStore.get(LANGUAGE_COOKIE)?.value) === "en";
+
   return (
     <div className="min-h-screen pt-20 flex items-center justify-center gradient-hero floral-pattern">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
@@ -18,11 +23,11 @@ export default function CheckoutSuccessPage() {
 
         {/* Title */}
         <h1 className="font-heading text-4xl sm:text-5xl font-semibold text-primary mb-4">
-          ¡Enhorabuena!
+          {isEnglish ? "Congratulations!" : "Enhorabuena!"}
         </h1>
 
         <p className="font-body text-xl text-secondary mb-8">
-          Su pago se ha procesado correctamente.
+          {isEnglish ? "Your payment was processed successfully." : "Su pago se ha procesado correctamente."}
         </p>
 
         {/* Details Card */}
@@ -30,18 +35,19 @@ export default function CheckoutSuccessPage() {
           <div className="flex items-center justify-center gap-2 mb-6">
             <Heart className="w-6 h-6 text-accent fill-accent" />
             <span className="font-heading text-2xl text-primary">
-              ¡Bienvenidos a Blue Book!
+              {isEnglish ? "Welcome to Blue Book!" : "Bienvenidos a Blue Book!"}
             </span>
           </div>
 
           <p className="font-body text-secondary mb-6">
-            En las próximas horas recibirán un email con los pasos para empezar
-            a crear sus invitaciones y configurar su cuenta.
+            {isEnglish
+              ? "In the next few hours you will receive an email with the steps to start creating your invitations and configure your account."
+              : "En las proximas horas recibiran un email con los pasos para empezar a crear sus invitaciones y configurar su cuenta."}
           </p>
 
           <div className="bg-light rounded-xl p-6 text-left">
             <h3 className="font-heading text-lg font-semibold text-primary mb-4">
-              ¿Qué viene ahora?
+              {isEnglish ? "What happens next?" : "Que viene ahora?"}
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
@@ -49,7 +55,7 @@ export default function CheckoutSuccessPage() {
                   1
                 </span>
                 <span className="font-body text-secondary">
-                  Revisen su email para el enlace de acceso
+                  {isEnglish ? "Check your email for your access link" : "Revisen su email para el enlace de acceso"}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -57,7 +63,7 @@ export default function CheckoutSuccessPage() {
                   2
                 </span>
                 <span className="font-body text-secondary">
-                  Elijan el diseño perfecto para sus invitaciones
+                  {isEnglish ? "Choose the perfect design for your invitations" : "Elijan el diseno perfecto para sus invitaciones"}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -65,7 +71,7 @@ export default function CheckoutSuccessPage() {
                   3
                 </span>
                 <span className="font-body text-secondary">
-                  Personalicen los detalles y empiecen a enviar
+                  {isEnglish ? "Customize details and start sending" : "Personalicen los detalles y empiecen a enviar"}
                 </span>
               </li>
             </ul>
@@ -78,19 +84,19 @@ export default function CheckoutSuccessPage() {
             href="/"
             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white font-body font-semibold rounded-full hover:bg-primary-dark transition-all duration-300 group"
           >
-            Volver al inicio
+            {isEnglish ? "Back to home" : "Volver al inicio"}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
         {/* Support note */}
         <p className="font-body text-sm text-secondary mt-10">
-          ¿Tienen alguna pregunta? Escríbannos a{" "}
+          {isEnglish ? "Any questions? Write to us at " : "Tienen alguna pregunta? Escribannos a "}
           <a
-            href="mailto:hola@bluebook.mx"
+            href={`mailto:${CONTACT_INFO.email}`}
             className="text-accent hover:underline"
           >
-            hola@bluebook.mx
+            {CONTACT_INFO.email}
           </a>
         </p>
       </div>

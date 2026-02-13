@@ -18,11 +18,12 @@ import {
   UploadCloud,
 } from "lucide-react";
 import {
-  ALBUM_PLANS_LIST,
   AlbumPlanId,
+  getLocalizedAlbumPlans,
   isUnlimitedPhotosPlan,
 } from "@/lib/albumPlans";
 import { parseJsonSafe, summarizeHttpError } from "@/lib/http";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type Template = {
   id: string;
@@ -76,16 +77,30 @@ const planLevels: Record<AlbumPlanId, 1 | 2 | 3> = {
   album_unlimited: 3,
 };
 
+const templateTranslations: Record<string, { enName: string; enDescription: string }> = {
+  classic: { enName: "Editorial", enDescription: "Clean and elegant" },
+  modern: { enName: "Modern", enDescription: "Minimal and balanced" },
+  romantic: { enName: "Romantic", enDescription: "Soft and warm" },
+  elegant: { enName: "Night", enDescription: "Luxury contrast" },
+  rustic: { enName: "Earth", enDescription: "Natural and organic" },
+};
+
 export default function AlbumDigitalPage() {
+  const { language, isEnglish } = useLanguage();
   const [loadingPlan, setLoadingPlan] = useState<AlbumPlanId | null>(null);
   const [albumTitle, setAlbumTitle] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("classic");
   const [selectedPlanId, setSelectedPlanId] = useState<AlbumPlanId>("album_200");
   const [showForm, setShowForm] = useState(false);
 
+  const localizedPlans = useMemo(
+    () => getLocalizedAlbumPlans(language),
+    [language]
+  );
+
   const selectedPlan = useMemo(
-    () => ALBUM_PLANS_LIST.find((plan) => plan.id === selectedPlanId)!,
-    [selectedPlanId]
+    () => localizedPlans.find((plan) => plan.id === selectedPlanId)!,
+    [localizedPlans, selectedPlanId]
   );
 
   const selectedPlanLevel = planLevels[selectedPlanId];
@@ -113,7 +128,7 @@ export default function AlbumDigitalPage() {
 
   const handleCheckout = async () => {
     if (!albumTitle.trim()) {
-      alert("Por favor, agrega un título para tu álbum.");
+      alert(isEnglish ? "Please add a title for your album." : "Por favor, agrega un titulo para tu album.");
       return;
     }
 
@@ -136,13 +151,13 @@ export default function AlbumDigitalPage() {
         const errorMessage = data?.error || summarizeHttpError(
           response.status,
           raw,
-          "No se pudo iniciar el pago"
+          isEnglish ? "Unable to start payment" : "No se pudo iniciar el pago"
         );
         alert(errorMessage);
       }
     } catch (error) {
       console.error("Error en checkout:", error);
-      alert("Error de conexión. Intenta nuevamente.");
+      alert(isEnglish ? "Connection error. Please try again." : "Error de conexion. Intenta nuevamente.");
     } finally {
       setLoadingPlan(null);
     }
@@ -162,25 +177,28 @@ export default function AlbumDigitalPage() {
             <div>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#7A5A4A] shadow-sm">
                 <Sparkles className="h-4 w-4" />
-                Álbum digital bluebook
+                {isEnglish ? "Blue Book digital album" : "Album digital bluebook"}
               </div>
 
               <h1 className="font-heading text-4xl leading-tight text-[#1D2E4B] sm:text-5xl lg:text-6xl">
-                Tu boda en un álbum móvil,
-                <span className="block text-[#C96F5A]">listo para compartir por QR</span>
+                {isEnglish ? "Your wedding in a mobile album," : "Tu boda en un album movil,"}
+                <span className="block text-[#C96F5A]">
+                  {isEnglish ? "ready to share with QR" : "listo para compartir por QR"}
+                </span>
               </h1>
 
               <p className="mt-6 max-w-xl font-body text-base text-[#42516B] sm:text-lg">
-                Diseñado para celular, inspirado en una estética editorial romántica. Tus invitados escanean,
-                suben sus fotos y el recuerdo se arma en tiempo real.
+                {isEnglish
+                  ? "Designed for mobile with an editorial romantic aesthetic. Your guests scan, upload photos, and your memories are built in real time."
+                  : "Disenado para celular, inspirado en una estetica editorial romantica. Tus invitados escanean, suben sus fotos y el recuerdo se arma en tiempo real."}
               </p>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {[
-                  { icon: QrCode, text: "QR para invitados en todos los planes" },
-                  { icon: Images, text: "50, 200 o fotos ilimitadas" },
-                  { icon: Smartphone, text: "Experiencia optimizada para móvil" },
-                  { icon: ShieldCheck, text: "Pago único y acceso de por vida" },
+                  { icon: QrCode, text: isEnglish ? "QR for guests in every plan" : "QR para invitados en todos los planes" },
+                  { icon: Images, text: isEnglish ? "50, 200, or unlimited photos" : "50, 200 o fotos ilimitadas" },
+                  { icon: Smartphone, text: isEnglish ? "Mobile-first experience" : "Experiencia optimizada para movil" },
+                  { icon: ShieldCheck, text: isEnglish ? "One-time payment and lifetime access" : "Pago unico y acceso de por vida" },
                 ].map((item) => (
                   <div
                     key={item.text}
@@ -199,33 +217,36 @@ export default function AlbumDigitalPage() {
                   }}
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1D2E4B] px-7 py-3.5 font-semibold text-white transition hover:bg-[#283E61]"
                 >
-                  Elegir plan
+                  {isEnglish ? "Choose plan" : "Elegir plan"}
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <Link
                   href="/precios"
                   className="inline-flex items-center justify-center rounded-full border border-[#D4C4BC] bg-white px-7 py-3.5 font-semibold text-[#334766] transition hover:bg-[#F9F3EF]"
                 >
-                  Ver comparativa completa
+                  {isEnglish ? "View full comparison" : "Ver comparativa completa"}
                 </Link>
               </div>
             </div>
 
             <div className="mx-auto w-full max-w-md rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-[#C96F5A]/10 backdrop-blur">
               <div className="rounded-3xl bg-[#1D2E4B] p-5 text-white">
-                <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#BFD6F0]">Flujo de invitados</p>
-                <h3 className="mt-2 font-heading text-2xl">Escanean y suben</h3>
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#BFD6F0]">
+                  {isEnglish ? "Guest flow" : "Flujo de invitados"}
+                </p>
+                <h3 className="mt-2 font-heading text-2xl">{isEnglish ? "Scan and upload" : "Escanean y suben"}</h3>
                 <p className="mt-2 text-sm text-[#DDE7F5]">
-                  Desde tu panel generas un QR para compartir durante el evento. Cada invitado entra a una
-                  página de carga lista para móvil.
+                  {isEnglish
+                    ? "From your dashboard you generate a QR to share during the event. Each guest opens a mobile-ready upload page."
+                    : "Desde tu panel generas un QR para compartir durante el evento. Cada invitado entra a una pagina de carga lista para movil."}
                 </p>
               </div>
 
               <div className="mt-4 space-y-3">
                 {[
-                  { icon: ScanLine, title: "1. Compartes QR", body: "En mesa de regalos, pista o invitación" },
-                  { icon: UploadCloud, title: "2. Suben fotos", body: "Sin app, directo desde su celular" },
-                  { icon: Camera, title: "3. Curas el álbum", body: "Ordenas todo en un flipbook elegante" },
+                  { icon: ScanLine, title: isEnglish ? "1. Share the QR" : "1. Compartes QR", body: isEnglish ? "At your gift table, dance floor, or invitation" : "En mesa de regalos, pista o invitacion" },
+                  { icon: UploadCloud, title: isEnglish ? "2. Guests upload photos" : "2. Suben fotos", body: isEnglish ? "No app required, straight from their phone" : "Sin app, directo desde su celular" },
+                  { icon: Camera, title: isEnglish ? "3. Curate the album" : "3. Curas el album", body: isEnglish ? "Organize everything in an elegant flipbook" : "Ordenas todo en un flipbook elegante" },
                 ].map((step) => (
                   <div
                     key={step.title}
@@ -251,17 +272,21 @@ export default function AlbumDigitalPage() {
       <section id="pricing" className="px-4 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mb-10 text-center sm:mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8B6C5F]">Planes del álbum digital</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8B6C5F]">
+              {isEnglish ? "Digital album plans" : "Planes del album digital"}
+            </p>
             <h2 className="mt-3 font-heading text-3xl text-[#1D2E4B] sm:text-4xl">
-              3 planes, todos con QR para invitados
+              {isEnglish ? "3 plans, all with guest QR" : "3 planes, todos con QR para invitados"}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-[#566580] sm:text-base">
-              Elige por volumen de fotos. La experiencia del álbum y el flujo QR están incluidos desde el plan de entrada.
+              {isEnglish
+                ? "Choose by photo volume. Album experience and QR flow are included from the entry plan."
+                : "Elige por volumen de fotos. La experiencia del album y el flujo QR estan incluidos desde el plan de entrada."}
             </p>
           </div>
 
           <div className="grid gap-5 lg:grid-cols-3">
-            {ALBUM_PLANS_LIST.map((plan) => (
+            {localizedPlans.map((plan) => (
               <article
                 key={plan.id}
                 className={`rounded-3xl border p-6 shadow-lg transition ${
@@ -320,7 +345,7 @@ export default function AlbumDigitalPage() {
                       : "bg-[#1D2E4B] text-white hover:bg-[#2A4164]"
                   }`}
                 >
-                  Elegir este plan
+                  {isEnglish ? "Choose this plan" : "Elegir este plan"}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </article>
@@ -333,17 +358,23 @@ export default function AlbumDigitalPage() {
         <div className="mx-auto max-w-6xl rounded-[32px] border border-[#E7DBD2] bg-white px-6 py-8 shadow-xl sm:px-8">
           <div className="grid gap-7 lg:grid-cols-2 lg:items-center">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8A6A5E]">Incluido en todos los planes</p>
-              <h3 className="mt-2 font-heading text-3xl text-[#1D2E4B]">Módulo QR de invitados</h3>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8A6A5E]">
+                {isEnglish ? "Included in every plan" : "Incluido en todos los planes"}
+              </p>
+              <h3 className="mt-2 font-heading text-3xl text-[#1D2E4B]">
+                {isEnglish ? "Guest QR module" : "Modulo QR de invitados"}
+              </h3>
               <p className="mt-3 text-sm text-[#5A6A84] sm:text-base">
-                Dentro del panel de administración puedes generar invitaciones, abrir su QR, descargarlo y compartirlo por WhatsApp o desde el botón compartir del celular.
+                {isEnglish
+                  ? "Inside the admin panel you can create invitations, open their QR, download it, and share it by WhatsApp or with the phone share button."
+                  : "Dentro del panel de administracion puedes generar invitaciones, abrir su QR, descargarlo y compartirlo por WhatsApp o desde el boton compartir del celular."}
               </p>
 
               <div className="mt-5 space-y-3">
                 {[
-                  "Un QR por invitado o uno general para toda la fiesta",
-                  "Control de cuántas fotos sube cada invitado",
-                  "Todo entra al mismo álbum para que lo ordenes al final",
+                  isEnglish ? "One QR per guest or a universal one for the full event" : "Un QR por invitado o uno general para toda la fiesta",
+                  isEnglish ? "Control how many photos each guest can upload" : "Control de cuantas fotos sube cada invitado",
+                  isEnglish ? "Everything goes into one album so you can curate at the end" : "Todo entra al mismo album para que lo ordenes al final",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-2.5 text-sm text-[#31425F]">
                     <div className="mt-0.5 rounded-full bg-[#FDE9E0] p-1 text-[#C96F5A]">
@@ -358,8 +389,12 @@ export default function AlbumDigitalPage() {
             <div className="rounded-3xl border border-[#EADFD8] bg-[#FBF8F5] p-5">
               <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.12em] text-[#8A6B5F]">Invitación lista</p>
-                  <p className="font-heading text-xl text-[#1D2E4B]">Mesa principal</p>
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#8A6B5F]">
+                    {isEnglish ? "Invitation ready" : "Invitacion lista"}
+                  </p>
+                  <p className="font-heading text-xl text-[#1D2E4B]">
+                    {isEnglish ? "Main table" : "Mesa principal"}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-[#FDE9E0] p-2 text-[#C96F5A]">
                   <QrCode className="h-5 w-5" />
@@ -369,16 +404,18 @@ export default function AlbumDigitalPage() {
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1D2E4B] px-3 py-2.5 text-sm font-semibold text-white">
                   <Share2 className="h-4 w-4" />
-                  Compartir
+                  {isEnglish ? "Share" : "Compartir"}
                 </button>
                 <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#D7C8BE] bg-white px-3 py-2.5 text-sm font-semibold text-[#334766]">
                   <QrCode className="h-4 w-4" />
-                  Descargar QR
+                  {isEnglish ? "Download QR" : "Descargar QR"}
                 </button>
               </div>
 
               <p className="mt-4 text-xs text-[#687690]">
-                En producción, este bloque se genera automáticamente desde cada invitación del panel admin.
+                {isEnglish
+                  ? "In production, this block is generated automatically from each invitation in the admin panel."
+                  : "En produccion, este bloque se genera automaticamente desde cada invitacion del panel admin."}
               </p>
             </div>
           </div>
@@ -394,25 +431,29 @@ export default function AlbumDigitalPage() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.13em] text-[#8A6A5E]">Checkout</p>
-                <h3 className="font-heading text-2xl text-[#1D2E4B]">Personaliza tu álbum</h3>
+                <h3 className="font-heading text-2xl text-[#1D2E4B]">
+                  {isEnglish ? "Customize your album" : "Personaliza tu album"}
+                </h3>
               </div>
             </div>
 
             <div className="grid gap-7 lg:grid-cols-[1.2fr_0.8fr]">
               <div>
                 <label htmlFor="album-title" className="mb-2 block text-sm font-semibold text-[#2D3E5A]">
-                  Título del álbum
+                  {isEnglish ? "Album title" : "Titulo del album"}
                 </label>
                 <input
                   id="album-title"
                   value={albumTitle}
                   onChange={(event) => setAlbumTitle(event.target.value)}
-                  placeholder="Ej. Fernanda & Miguel - 23 Nov"
+                  placeholder={isEnglish ? "Ex. Fernanda & Miguel - Nov 23" : "Ej. Fernanda & Miguel - 23 Nov"}
                   maxLength={100}
                   className="w-full rounded-2xl border border-[#DCCFC6] px-4 py-3.5 text-sm text-[#1D2E4B] outline-none transition placeholder:text-[#8D97A8] focus:border-[#C96F5A] focus:ring-4 focus:ring-[#FDE3D9]"
                 />
 
-                <p className="mt-5 mb-2 text-sm font-semibold text-[#2D3E5A]">Plantilla</p>
+                <p className="mt-5 mb-2 text-sm font-semibold text-[#2D3E5A]">
+                  {isEnglish ? "Template" : "Plantilla"}
+                </p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {templates.map((template) => {
                     const disabled = !canUseTemplate(template, selectedPlanId);
@@ -440,11 +481,15 @@ export default function AlbumDigitalPage() {
                             />
                           ))}
                         </div>
-                        <p className="text-sm font-semibold text-[#233754]">{template.name}</p>
-                        <p className="text-xs text-[#63718B]">{template.description}</p>
+                        <p className="text-sm font-semibold text-[#233754]">
+                          {isEnglish ? templateTranslations[template.id].enName : template.name}
+                        </p>
+                        <p className="text-xs text-[#63718B]">
+                          {isEnglish ? templateTranslations[template.id].enDescription : template.description}
+                        </p>
                         {disabled && (
                           <p className="mt-1 text-[11px] font-semibold text-[#A46D5C]">
-                            Disponible en plan superior
+                            {isEnglish ? "Available on higher plan" : "Disponible en plan superior"}
                           </p>
                         )}
                       </button>
@@ -454,26 +499,28 @@ export default function AlbumDigitalPage() {
               </div>
 
               <aside className="rounded-2xl border border-[#E8DDD6] bg-[#FCFAF8] p-4">
-                <p className="text-xs uppercase tracking-[0.12em] text-[#8A6A5E]">Resumen</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#8A6A5E]">
+                  {isEnglish ? "Summary" : "Resumen"}
+                </p>
                 <h4 className="mt-1 font-heading text-2xl text-[#1D2E4B]">{selectedPlan.name}</h4>
                 <p className="text-sm text-[#5A6A84]">{selectedPlan.subtitle}</p>
 
                 <div className="mt-5 space-y-2 text-sm text-[#344662]">
                   <p className="flex items-center justify-between">
-                    <span>Límite de fotos</span>
+                    <span>{isEnglish ? "Photo limit" : "Limite de fotos"}</span>
                     <strong>
                       {isUnlimitedPhotosPlan(selectedPlan.maxPhotos)
-                        ? "Ilimitadas"
-                        : `${selectedPlan.maxPhotos} fotos`}
+                        ? (isEnglish ? "Unlimited" : "Ilimitadas")
+                        : `${selectedPlan.maxPhotos} ${isEnglish ? "photos" : "fotos"}`}
                     </strong>
                   </p>
                   <p className="flex items-center justify-between">
-                    <span>QR invitados</span>
-                    <strong>Incluido</strong>
+                    <span>{isEnglish ? "Guest QR" : "QR invitados"}</span>
+                    <strong>{isEnglish ? "Included" : "Incluido"}</strong>
                   </p>
                   <p className="flex items-center justify-between">
-                    <span>Plantillas activas</span>
-                    <strong>{selectedPlanLevel === 1 ? "1" : selectedPlanLevel === 2 ? "3" : "Todas"}</strong>
+                    <span>{isEnglish ? "Active templates" : "Plantillas activas"}</span>
+                    <strong>{selectedPlanLevel === 1 ? "1" : selectedPlanLevel === 2 ? "3" : (isEnglish ? "All" : "Todas")}</strong>
                   </p>
                 </div>
 
@@ -482,7 +529,7 @@ export default function AlbumDigitalPage() {
                   <p className="mt-1 font-heading text-4xl text-[#1D2E4B]">
                     ${selectedPlan.priceMx.toLocaleString()} <span className="text-base">MXN</span>
                   </p>
-                  <p className="text-xs text-[#687690]">Pago único</p>
+                  <p className="text-xs text-[#687690]">{isEnglish ? "One-time payment" : "Pago unico"}</p>
                 </div>
 
                 <button
@@ -490,7 +537,9 @@ export default function AlbumDigitalPage() {
                   disabled={loadingPlan !== null || !albumTitle.trim()}
                   className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#1D2E4B] px-5 py-3.5 font-semibold text-white transition hover:bg-[#283F63] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loadingPlan === selectedPlanId ? "Procesando..." : "Crear mi álbum"}
+                  {loadingPlan === selectedPlanId
+                    ? (isEnglish ? "Processing..." : "Procesando...")
+                    : (isEnglish ? "Create my album" : "Crear mi album")}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </aside>

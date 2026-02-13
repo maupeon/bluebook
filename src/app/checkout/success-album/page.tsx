@@ -5,6 +5,8 @@ import Stripe from "stripe";
 import { nanoid } from "nanoid";
 import { createClient } from "@supabase/supabase-js";
 import { getAlbumPlan } from "@/lib/albumPlans";
+import { cookies } from "next/headers";
+import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 
 export const metadata: Metadata = {
   title: "¡Tu álbum está listo!",
@@ -99,6 +101,8 @@ export default async function CheckoutSuccessAlbumPage({
 }: {
   searchParams: Promise<{ session_id?: string }>;
 }) {
+  const cookieStore = await cookies();
+  const isEnglish = parseLanguage(cookieStore.get(LANGUAGE_COOKIE)?.value) === "en";
   const params = await searchParams;
   const sessionId = params.session_id;
 
@@ -106,15 +110,19 @@ export default async function CheckoutSuccessAlbumPage({
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center gradient-hero floral-pattern px-4">
         <div className="max-w-lg bg-white rounded-2xl shadow-xl p-8 text-center">
-          <h1 className="font-heading text-3xl text-primary mb-3">No encontramos tu sesión</h1>
+          <h1 className="font-heading text-3xl text-primary mb-3">
+            {isEnglish ? "Session not found" : "No encontramos tu sesion"}
+          </h1>
           <p className="font-body text-secondary mb-6">
-            Regresa al álbum digital y vuelve a intentar el checkout.
+            {isEnglish
+              ? "We could not find your session. Please go back to the digital album and try checkout again."
+              : "Regresa al album digital y vuelve a intentar el checkout."}
           </p>
           <Link
             href="/album-digital"
             className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white font-body font-semibold rounded-full"
           >
-            Volver a álbum digital
+            {isEnglish ? "Back to digital album" : "Volver a album digital"}
           </Link>
         </div>
       </div>
@@ -130,15 +138,19 @@ export default async function CheckoutSuccessAlbumPage({
   return (
     <div className="min-h-screen pt-20 flex items-center justify-center gradient-hero floral-pattern px-4">
       <div className="max-w-lg bg-white rounded-2xl shadow-xl p-8 text-center">
-        <h1 className="font-heading text-3xl text-primary mb-3">Estamos terminando tu álbum</h1>
+        <h1 className="font-heading text-3xl text-primary mb-3">
+          {isEnglish ? "We are finishing your album" : "Estamos terminando tu album"}
+        </h1>
         <p className="font-body text-secondary mb-6">
-          No fue posible crear el álbum automáticamente en este intento. Reintenta en unos segundos.
+          {isEnglish
+            ? "We could not create your album automatically on this attempt. Please try again in a few seconds."
+            : "No fue posible crear el album automaticamente en este intento. Reintenta en unos segundos."}
         </p>
         <a
           href={`/checkout/success-album?session_id=${encodeURIComponent(sessionId)}`}
           className="inline-flex items-center justify-center px-6 py-3 bg-accent text-white font-body font-semibold rounded-full"
         >
-          Reintentar ahora
+          {isEnglish ? "Retry now" : "Reintentar ahora"}
         </a>
       </div>
     </div>

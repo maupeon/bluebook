@@ -1,3 +1,5 @@
+import type { Language } from "@/lib/language";
+
 export const UNLIMITED_PHOTO_LIMIT = 999999;
 
 export type AlbumPlanId = 'album_50' | 'album_200' | 'album_unlimited';
@@ -85,6 +87,62 @@ export const ALBUM_PLANS: Record<AlbumPlanId, AlbumPlan> = {
 export const ALBUM_PLANS_LIST: AlbumPlan[] = ALBUM_PLAN_ORDER.map(
   (planId) => ALBUM_PLANS[planId]
 );
+
+const PLAN_TRANSLATIONS_EN: Record<AlbumPlanId, Pick<AlbumPlan, "name" | "subtitle" | "description" | "features" | "maxPhotosLabel" | "badge">> = {
+  album_50: {
+    name: "Plan 50",
+    subtitle: "For intimate events",
+    description: "Up to 50 photos, interactive flipbook, and QR for guest uploads.",
+    features: [
+      "Up to 50 photos",
+      "Interactive flipbook",
+      "QR for guests",
+      "Shareable link",
+      "Lifetime access",
+    ],
+    maxPhotosLabel: "50 photos",
+    badge: undefined,
+  },
+  album_200: {
+    name: "Plan 200",
+    subtitle: "Most popular",
+    description: "Up to 200 photos, more styles, and QR sharing during your event.",
+    features: [
+      "Up to 200 photos",
+      "3 album styles",
+      "QR for guests",
+      "Photo ordering panel",
+      "Lifetime access",
+    ],
+    maxPhotosLabel: "200 photos",
+    badge: "Most popular",
+  },
+  album_unlimited: {
+    name: "Unlimited Plan",
+    subtitle: "Full coverage",
+    description: "Unlimited photos, all templates, and full QR flow.",
+    features: [
+      "Unlimited photos",
+      "All templates",
+      "QR for guests",
+      "Full album control",
+      "Lifetime access",
+    ],
+    maxPhotosLabel: "Unlimited",
+    badge: undefined,
+  },
+};
+
+export const getLocalizedAlbumPlans = (language: Language): AlbumPlan[] => {
+  if (language === "es") {
+    return ALBUM_PLANS_LIST;
+  }
+
+  return ALBUM_PLAN_ORDER.map((planId) => ({
+    ...ALBUM_PLANS[planId],
+    ...PLAN_TRANSLATIONS_EN[planId],
+  }));
+};
 
 export const getAlbumPlan = (planId: string): AlbumPlan | null => {
   if (planId in ALBUM_PLANS) {

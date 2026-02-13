@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Upload, Trash2, GripVertical, Eye } from 'lucide-react'
 import { supabase, Album } from '@/lib/supabase'
+import { useLanguage } from '@/components/LanguageProvider'
 
 interface CloudinaryResult {
   event: string
@@ -30,6 +31,7 @@ declare global {
 }
 
 export default function UploadPage() {
+  const { isEnglish } = useLanguage()
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
@@ -74,7 +76,7 @@ export default function UploadPage() {
 
   const openUploadWidget = () => {
     if (!window.cloudinary) {
-      alert('Cargando... intenta de nuevo en unos segundos')
+      alert(isEnglish ? 'Loading... try again in a few seconds' : 'Cargando... intenta de nuevo en unos segundos')
       return
     }
 
@@ -118,7 +120,7 @@ export default function UploadPage() {
             or: 'o',
             menu: {
               files: 'Mis archivos',
-              web: 'Dirección web',
+              web: isEnglish ? 'Web address' : 'Direccion web',
             },
           },
         },
@@ -168,7 +170,7 @@ export default function UploadPage() {
     setSaving(false)
 
     if (error) {
-      alert('Error al guardar. Intenta de nuevo.')
+      alert(isEnglish ? 'Error saving. Please try again.' : 'Error al guardar. Intenta de nuevo.')
       return
     }
 
@@ -192,7 +194,9 @@ export default function UploadPage() {
             {album?.title}
           </h1>
           <p className="font-body text-secondary">
-            Sube las fotos de tu boda para crear tu álbum digital
+            {isEnglish
+              ? 'Upload your wedding photos to create your digital album'
+              : 'Sube las fotos de tu boda para crear tu album digital'}
           </p>
         </div>
 
@@ -205,9 +209,13 @@ export default function UploadPage() {
             <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
               <Upload className="w-8 h-8 text-accent" />
             </div>
-            <span className="font-heading text-xl text-primary">Subir fotos</span>
+            <span className="font-heading text-xl text-primary">
+              {isEnglish ? 'Upload photos' : 'Subir fotos'}
+            </span>
             <span className="font-body text-secondary text-sm">
-              JPG, PNG, HEIC hasta 15MB cada una • Máximo 150 fotos
+              {isEnglish
+                ? 'JPG, PNG, HEIC up to 15MB each • Maximum 150 photos'
+                : 'JPG, PNG, HEIC hasta 15MB cada una • Maximo 150 fotos'}
             </span>
           </button>
         </div>
@@ -216,13 +224,13 @@ export default function UploadPage() {
         {photos.length > 0 && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-heading text-xl text-primary">
-                {photos.length} foto{photos.length !== 1 ? 's' : ''}
-              </h2>
-              <p className="font-body text-sm text-secondary">
-                Arrastra para reordenar
-              </p>
-            </div>
+                <h2 className="font-heading text-xl text-primary">
+                {photos.length} {isEnglish ? `photo${photos.length !== 1 ? 's' : ''}` : `foto${photos.length !== 1 ? 's' : ''}`}
+                </h2>
+                <p className="font-body text-sm text-secondary">
+                {isEnglish ? 'Drag to reorder' : 'Arrastra para reordenar'}
+                </p>
+              </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {photos.map((photo, index) => (
@@ -238,7 +246,7 @@ export default function UploadPage() {
                 >
                   <img
                     src={photo}
-                    alt={`Foto ${index + 1}`}
+                    alt={`${isEnglish ? 'Photo' : 'Foto'} ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                   
@@ -278,12 +286,12 @@ export default function UploadPage() {
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                  Guardando...
+                  {isEnglish ? 'Saving...' : 'Guardando...'}
                 </>
               ) : (
                 <>
                   <Eye className="w-5 h-5" />
-                  Crear mi álbum
+                  {isEnglish ? 'Create my album' : 'Crear mi album'}
                 </>
               )}
             </button>
@@ -294,7 +302,9 @@ export default function UploadPage() {
         {photos.length === 0 && (
           <div className="text-center py-12">
             <p className="font-body text-secondary">
-              Aún no has subido fotos. ¡Haz clic en el botón de arriba para comenzar!
+              {isEnglish
+                ? "You haven't uploaded photos yet. Click the button above to get started."
+                : 'Aun no has subido fotos. Haz clic en el boton de arriba para comenzar!'}
             </p>
           </div>
         )}

@@ -17,6 +17,7 @@ import {
   ZoomOut,
   Calendar,
 } from 'lucide-react'
+import { useLanguage } from '@/components/LanguageProvider'
 
 interface FlipbookProps {
   photos: string[]
@@ -177,6 +178,7 @@ function FloatingParticles({ color }: { color: string }) {
 }
 
 export default function Flipbook({ photos, title, template = 'classic', weddingDate }: FlipbookProps) {
+  const { isEnglish } = useLanguage()
   const bookRef = useRef<FlipBookRef>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -233,7 +235,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isFullscreen, zoomedPhoto])
+  }, [isFullscreen, zoomedPhoto, totalPages])
 
   useEffect(() => {
     const updateViewport = () => {
@@ -300,10 +302,10 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
   const progressPercent = ((currentPage + 1) / totalPages) * 100
   const pageLabel =
     currentPage === 0
-      ? 'Portada'
+      ? (isEnglish ? 'Cover' : 'Portada')
       : currentPage === totalPages - 1
-        ? 'Cierre'
-        : `Foto ${currentPage} de ${Math.max(totalPages - 2, 1)}`
+        ? (isEnglish ? 'Back cover' : 'Cierre')
+        : `${isEnglish ? 'Photo' : 'Foto'} ${currentPage} ${isEnglish ? 'of' : 'de'} ${Math.max(totalPages - 2, 1)}`
 
   // Responsive dimensions
   const bookWidth = isFullscreen
@@ -339,14 +341,14 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
             <X className="w-6 h-6 text-white" />
           </button>
 
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <div className="fixed bottom-6 sm:bottom-auto sm:top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-[101]">
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 zoomOut()
               }}
               className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label="Reducir zoom"
+              aria-label={isEnglish ? 'Zoom out' : 'Reducir zoom'}
             >
               <ZoomOut className="w-5 h-5 text-white" />
             </button>
@@ -365,7 +367,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                 zoomIn()
               }}
               className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label="Ampliar zoom"
+              aria-label={isEnglish ? 'Zoom in' : 'Ampliar zoom'}
             >
               <ZoomIn className="w-5 h-5 text-white" />
             </button>
@@ -374,7 +376,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
           <div className="max-w-[95vw] max-h-[90vh] overflow-auto" onWheel={handleZoomWheel}>
             <img
               src={zoomedPhoto}
-              alt="Foto ampliada"
+              alt={isEnglish ? 'Expanded photo' : 'Foto ampliada'}
               className="mx-auto rounded-lg shadow-2xl object-contain transition-transform duration-150"
               style={{
                 width: '100%',
@@ -394,7 +396,9 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div>
                 <h3 className="font-heading text-2xl text-primary">{title}</h3>
-                <p className="font-body text-sm text-secondary mt-1">{photos.length} fotos</p>
+                <p className="font-body text-sm text-secondary mt-1">
+                  {photos.length} {isEnglish ? 'photos' : 'fotos'}
+                </p>
               </div>
               <button
                 onClick={() => setShowGallery(false)}
@@ -414,7 +418,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                   >
                     <img
                       src={photo}
-                      alt={`Foto ${index + 1}`}
+                      alt={`${isEnglish ? 'Photo' : 'Foto'} ${index + 1}`}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
@@ -438,21 +442,21 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
       )}
 
       {/* Top Controls - Enhanced */}
-      <div className={`flex items-center justify-between w-full max-w-[560px] transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4') : 'opacity-100'
+      <div className={`flex items-center justify-between w-full max-w-[560px] gap-2 transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4') : 'opacity-100'
         }`}>
         <div className="flex items-center gap-2">
           <button
             onClick={goToCover}
-            className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
-            title="Ir a la portada"
+            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
+            title={isEnglish ? 'Go to cover' : 'Ir a la portada'}
           >
             <ChevronsLeft className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
           </button>
 
           <button
             onClick={goToBack}
-            className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
-            title="Ir al cierre"
+            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
+            title={isEnglish ? 'Go to back cover' : 'Ir al cierre'}
           >
             <ChevronsRight className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
           </button>
@@ -461,17 +465,17 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowGallery(true)}
-            className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
+            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
               }`}
-            title="Ver galería (G)"
+            title={isEnglish ? 'Open gallery (G)' : 'Ver galeria (G)'}
           >
             <Grid3X3 className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
           </button>
           <button
             onClick={toggleFullscreen}
-            className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
+            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
               }`}
-            title="Pantalla completa (F)"
+            title={isEnglish ? 'Fullscreen (F)' : 'Pantalla completa (F)'}
           >
             {isFullscreen ? (
               <Minimize2 className="w-5 h-5 text-white" />
@@ -597,12 +601,12 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
 
                 {/* Photo count */}
                 <p className={`text-base ${isDark ? 'text-white/60' : styles.textLight}`}>
-                  {photos.length} momentos especiales
+                  {photos.length} {isEnglish ? 'special moments' : 'momentos especiales'}
                 </p>
 
                 {/* Hint text */}
                 <p className={`text-xs mt-6 ${isDark ? 'text-white/40' : styles.textLight} opacity-40`}>
-                  Toca para comenzar →
+                  {isEnglish ? 'Tap to begin' : 'Toca para comenzar'} →
                 </p>
               </div>
             </Page>
@@ -634,14 +638,14 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center rounded">
                           <div className="text-center">
                             <Heart className="w-8 h-8 text-gray-200 animate-pulse mx-auto mb-2" />
-                            <p className="text-xs text-gray-300">Cargando...</p>
+                            <p className="text-xs text-gray-300">{isEnglish ? 'Loading...' : 'Cargando...'}</p>
                           </div>
                         </div>
                       )}
 
                       <img
                         src={photo}
-                        alt={`Recuerdo ${index + 1}`}
+                        alt={`${isEnglish ? 'Memory' : 'Recuerdo'} ${index + 1}`}
                         className={`max-w-full max-h-[560px] w-auto h-auto object-contain rounded transition-all duration-500 ${loadedImages.has(index) ? 'opacity-100' : 'opacity-0'
                           }`}
                         loading="lazy"
@@ -698,10 +702,10 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
 
                 {/* Thank you message */}
                 <p className={`${styles.font} ${isDark ? 'text-white' : styles.text} text-xl mb-2`}>
-                  Gracias por compartir
+                  {isEnglish ? 'Thank you for sharing' : 'Gracias por compartir'}
                 </p>
                 <p className={`${styles.font} ${isDark ? 'text-white' : styles.text} text-xl mb-8`}>
-                  estos momentos
+                  {isEnglish ? 'these moments' : 'estos momentos'}
                 </p>
 
                 {/* Decorative divider */}
@@ -713,7 +717,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
 
                 {/* Branding */}
                 <p className={`text-sm ${isDark ? 'text-white/50' : styles.textLight} opacity-50`}>
-                  Creado con amor en
+                  {isEnglish ? 'Made with love at' : 'Creado con amor en'}
                 </p>
                 <p className={`text-lg ${isDark ? 'text-white' : styles.text} font-semibold mt-1`}>
                   Blue Book
@@ -728,33 +732,33 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
               type="button"
               onClick={goToPrev}
               className="pointer-events-auto absolute left-0 top-0 h-full w-1/4 md:hidden"
-              aria-label="Foto anterior"
+              aria-label={isEnglish ? 'Previous photo' : 'Foto anterior'}
             />
             <button
               type="button"
               onClick={goToNext}
               className="pointer-events-auto absolute right-0 top-0 h-full w-1/4 md:hidden"
-              aria-label="Foto siguiente"
+              aria-label={isEnglish ? 'Next photo' : 'Foto siguiente'}
             />
           </div>
         </div>
       </div>
 
       {/* Bottom Navigation - Enhanced */}
-      <div className={`flex items-center gap-4 transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4') : 'opacity-100'
+      <div className={`flex items-center gap-2 sm:gap-4 w-full max-w-[560px] transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4') : 'opacity-100'
         }`}>
         <button
           onClick={goToPrev}
           disabled={currentPage === 0}
-          className={`p-4 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 active:scale-95 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
+          className={`p-2.5 sm:p-4 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 active:scale-95 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
             }`}
-          aria-label="Página anterior"
+          aria-label={isEnglish ? 'Previous page' : 'Pagina anterior'}
         >
           <ChevronLeft className={`w-6 h-6 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
         </button>
 
         {/* Progress bar - enhanced */}
-        <div className="flex items-center gap-3 min-w-[200px]">
+        <div className="flex-1 min-w-0">
           <div className={`flex-1 h-2 rounded-full overflow-hidden ${isFullscreen ? 'bg-white/10' : 'bg-gray-200'
             }`}>
             <div
@@ -765,19 +769,19 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
               }}
             />
           </div>
-          <span className={`font-body text-sm whitespace-nowrap ${isFullscreen ? 'text-white/60' : 'text-secondary'
+          <span className={`mt-2 block font-body text-xs sm:text-sm whitespace-nowrap truncate ${isFullscreen ? 'text-white/60' : 'text-secondary'
             }`}>
             {currentPage + 1} / {totalPages}
-            <span className="text-xs ml-2 opacity-70">{`(${pageLabel})`}</span>
+            <span className="text-xs ml-2 opacity-70 hidden sm:inline">{`(${pageLabel})`}</span>
           </span>
         </div>
 
         <button
           onClick={goToNext}
           disabled={currentPage >= totalPages - 1}
-          className={`p-4 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 active:scale-95 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
+          className={`p-2.5 sm:p-4 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 active:scale-95 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
             }`}
-          aria-label="Página siguiente"
+          aria-label={isEnglish ? 'Next page' : 'Pagina siguiente'}
         >
           <ChevronRight className={`w-6 h-6 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
         </button>
@@ -786,7 +790,9 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
       {/* Instructions - subtle */}
       <p className={`font-body text-xs transition-all duration-500 ${isFullscreen ? 'text-white/30' : 'text-secondary/40'
         } ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-        Usa ← → para navegar • Home/End para portada/cierre • F pantalla completa • G galería • Click en foto para ampliar
+        {isEnglish
+          ? 'Use ← → to navigate • Home/End for cover/back cover • F fullscreen • G gallery • Tap photo to zoom'
+          : 'Usa ← → para navegar • Home/End para portada/cierre • F pantalla completa • G galeria • Click en foto para ampliar'}
       </p>
 
       {/* Styles */}

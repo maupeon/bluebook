@@ -6,6 +6,7 @@ import { Upload, Trash2, Eye, Camera, ExternalLink, AlertCircle } from 'lucide-r
 import { supabase, Album, AlbumPhoto, AlbumInvite } from '@/lib/supabase'
 import { isUnlimitedPhotosPlan } from '@/lib/albumPlans'
 import { parseJsonSafe, summarizeHttpError } from '@/lib/http'
+import { useLanguage } from '@/components/LanguageProvider'
 
 interface CloudinaryResult {
   event: string
@@ -32,6 +33,7 @@ declare global {
 }
 
 export default function GuestUploadPage() {
+  const { isEnglish } = useLanguage()
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -53,7 +55,7 @@ export default function GuestUploadPage() {
 
   const fetchData = useCallback(async () => {
     if (!token) {
-      setError('No se proporcionó un token de acceso.')
+      setError(isEnglish ? 'No access token was provided.' : 'No se proporciono un token de acceso.')
       setLoading(false)
       return
     }
@@ -66,7 +68,7 @@ export default function GuestUploadPage() {
       .single()
 
     if (!albumData) {
-      setError('Álbum no encontrado.')
+      setError(isEnglish ? 'Album not found.' : 'Album no encontrado.')
       setLoading(false)
       return
     }
@@ -88,13 +90,13 @@ export default function GuestUploadPage() {
       .single()
 
     if (!inviteData) {
-      setError('Invitación no válida o expirada.')
+      setError(isEnglish ? 'Invalid or expired invite.' : 'Invitacion no valida o expirada.')
       setLoading(false)
       return
     }
 
     if (!inviteData.is_active) {
-      setError('Esta invitación ha sido revocada.')
+      setError(isEnglish ? 'This invite has been revoked.' : 'Esta invitacion ha sido revocada.')
       setLoading(false)
       return
     }
@@ -112,7 +114,7 @@ export default function GuestUploadPage() {
     setMyPhotos(mine)
 
     setLoading(false)
-  }, [slug, token, router])
+  }, [slug, token, router, isEnglish])
 
   useEffect(() => {
     fetchData()
@@ -131,12 +133,12 @@ export default function GuestUploadPage() {
 
   const openUploadWidget = () => {
     if (!window.cloudinary) {
-      alert('Cargando... intenta de nuevo en unos segundos')
+      alert(isEnglish ? 'Loading... try again in a few seconds' : 'Cargando... intenta de nuevo en unos segundos')
       return
     }
 
     if (effectiveRemaining <= 0) {
-      alert('Has alcanzado el límite de fotos permitido.')
+      alert(isEnglish ? 'You reached the photo limit allowed.' : 'Has alcanzado el limite de fotos permitido.')
       return
     }
 
@@ -197,7 +199,7 @@ export default function GuestUploadPage() {
             const errorMessage = payload.data?.error || summarizeHttpError(
               res.status,
               payload.raw,
-              'Error al subir la foto'
+              isEnglish ? 'Error uploading photo' : 'Error al subir la foto'
             )
             alert(errorMessage)
           }
@@ -239,7 +241,7 @@ export default function GuestUploadPage() {
             <AlertCircle className="w-8 h-8 text-red-500" />
           </div>
           <h1 className="font-heading text-2xl text-primary mb-2">
-            Acceso no disponible
+            {isEnglish ? 'Access unavailable' : 'Acceso no disponible'}
           </h1>
           <p className="font-body text-secondary">
             {error}
@@ -259,11 +261,11 @@ export default function GuestUploadPage() {
           </h1>
           {invite?.guest_name && !invite.is_general && (
             <p className="font-body text-xl text-accent mb-2">
-              ¡Hola, {invite.guest_name}!
+              {isEnglish ? `Hi, ${invite.guest_name}!` : `Hola, ${invite.guest_name}!`}
             </p>
           )}
           <p className="font-body text-secondary">
-            Sube tus fotos para contribuir al álbum
+            {isEnglish ? 'Upload your photos to contribute to the album' : 'Sube tus fotos para contribuir al album'}
           </p>
         </div>
 
@@ -279,7 +281,7 @@ export default function GuestUploadPage() {
                   {invite?.photos_uploaded || 0} / {invite?.max_photos || 0}
                 </p>
                 <p className="font-body text-secondary text-sm">
-                  fotos subidas
+                  {isEnglish ? 'photos uploaded' : 'fotos subidas'}
                 </p>
               </div>
             </div>
@@ -290,8 +292,10 @@ export default function GuestUploadPage() {
                 : 'bg-red-100 text-red-700'
             }`}>
               {effectiveRemaining > 0
-                ? `Puedes subir ${effectiveRemaining} foto${effectiveRemaining !== 1 ? 's' : ''} más`
-                : 'Has alcanzado el límite de fotos'
+                ? (isEnglish
+                    ? `You can upload ${effectiveRemaining} more photo${effectiveRemaining !== 1 ? 's' : ''}`
+                    : `Puedes subir ${effectiveRemaining} foto${effectiveRemaining !== 1 ? 's' : ''} mas`)
+                : (isEnglish ? 'You reached the photo limit' : 'Has alcanzado el limite de fotos')
               }
             </div>
           </div>
@@ -307,10 +311,18 @@ export default function GuestUploadPage() {
               <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
                 <Upload className="w-8 h-8 text-accent" />
               </div>
-              <span className="font-heading text-xl text-primary">Subir fotos</span>
+              <span className="font-heading text-xl text-primary">
+                {isEnglish ? 'Upload photos' : 'Subir fotos'}
+              </span>
               <span className="font-body text-secondary text-sm">
-                JPG, PNG, HEIC hasta 15MB cada una
-                {albumHasLimit ? ` · Cupo global ${totalAlbumPhotos}/${albumLimit}` : ''}
+                {isEnglish
+                  ? 'JPG, PNG, HEIC up to 15MB each'
+                  : 'JPG, PNG, HEIC hasta 15MB cada una'}
+                {albumHasLimit
+                  ? (isEnglish
+                      ? ` · Global capacity ${totalAlbumPhotos}/${albumLimit}`
+                      : ` · Cupo global ${totalAlbumPhotos}/${albumLimit}`)
+                  : ''}
               </span>
             </button>
           </div>
@@ -321,10 +333,10 @@ export default function GuestUploadPage() {
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="font-heading text-xl text-primary">
-                Tus fotos ({myPhotos.length})
+                {isEnglish ? `Your photos (${myPhotos.length})` : `Tus fotos (${myPhotos.length})`}
               </h2>
               <p className="font-body text-sm text-secondary">
-                Solo puedes eliminar tus propias fotos
+                {isEnglish ? 'You can only delete your own photos' : 'Solo puedes eliminar tus propias fotos'}
               </p>
             </div>
 
@@ -336,7 +348,7 @@ export default function GuestUploadPage() {
                 >
                   <img
                     src={photo.photo_url}
-                    alt={`Foto ${index + 1}`}
+                    alt={`${isEnglish ? 'Photo' : 'Foto'} ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
 
@@ -362,7 +374,7 @@ export default function GuestUploadPage() {
             className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-white font-body font-semibold rounded-full hover:bg-accent/90 transition-all"
           >
             <Eye className="w-5 h-5" />
-            Ver el álbum completo
+            {isEnglish ? 'View full album' : 'Ver el album completo'}
             <ExternalLink className="w-4 h-4" />
           </button>
         </div>

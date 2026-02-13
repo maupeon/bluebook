@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import AlbumClient from './AlbumClient'
+import { LANGUAGE_COOKIE, parseLanguage } from '@/lib/language'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -23,6 +25,8 @@ async function getAlbumPhotos(albumId: string): Promise<string[]> {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const cookieStore = await cookies()
+  const isEnglish = parseLanguage(cookieStore.get(LANGUAGE_COOKIE)?.value) === 'en'
   const { slug } = await params
   const { data: album } = await supabase
     .from('albums')
@@ -30,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('slug', slug)
     .single()
 
-  if (!album) return { title: 'Álbum no encontrado' }
+  if (!album) return { title: isEnglish ? 'Album not found' : 'Album no encontrado' }
 
   // Try to get photos from new table, fallback to legacy array
   let photoUrls = await getAlbumPhotos(album.id)
@@ -42,16 +46,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${album.title} | Blue Book`,
-    description: `Mira el álbum de fotos de ${album.title}, una experiencia premium para compartir recuerdos inolvidables.`,
+    description: isEnglish
+      ? `View the photo album of ${album.title}, a premium experience for sharing unforgettable memories.`
+      : `Mira el album de fotos de ${album.title}, una experiencia premium para compartir recuerdos inolvidables.`,
     openGraph: {
       title: album.title,
-      description: `${photoUrls.length} recuerdos en este álbum premium`,
+      description: isEnglish
+        ? `${photoUrls.length} memories in this premium album`
+        : `${photoUrls.length} recuerdos en este album premium`,
       images: [coverImage],
     },
   }
 }
 
 export default async function AlbumPage({ params }: Props) {
+  const cookieStore = await cookies()
+  const isEnglish = parseLanguage(cookieStore.get(LANGUAGE_COOKIE)?.value) === 'en'
   const { slug } = await params
   const { data: album, error } = await supabase
     .from('albums')
@@ -84,8 +94,16 @@ export default async function AlbumPage({ params }: Props) {
             </svg>
           </div>
           <h1 className="font-heading text-3xl text-primary mb-2">{album.title}</h1>
-          <p className="font-body text-secondary text-lg">Este álbum aún no tiene fotos para mostrar.</p>
-          <p className="font-body text-sm text-secondary/75 mt-3">Cuando el álbum esté listo, aparecerá aquí tu experiencia premium.</p>
+          <p className="font-body text-secondary text-lg">
+            {isEnglish
+              ? 'This album has no photos to show yet.'
+              : 'Este album aun no tiene fotos para mostrar.'}
+          </p>
+          <p className="font-body text-sm text-secondary/75 mt-3">
+            {isEnglish
+              ? 'When the album is ready, your premium experience will appear here.'
+              : 'Cuando el album este listo, aparecera aqui tu experiencia premium.'}
+          </p>
         </div>
       </div>
     )

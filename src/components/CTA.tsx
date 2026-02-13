@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Heart, ArrowRight, Infinity } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function CTA() {
+  const { isEnglish } = useLanguage();
+
   return (
     <section className="py-20 lg:py-32 bg-primary relative overflow-hidden">
       {/* Decorative elements */}
@@ -16,11 +21,12 @@ export function CTA() {
 
         {/* Content */}
         <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-6">
-          ¿Listo para crear tu álbum?
+          {isEnglish ? "Ready to create your album?" : "Listo para crear tu album?"}
         </h2>
         <p className="font-body text-lg text-white/80 max-w-2xl mx-auto mb-10">
-          En minutos tendrás un hermoso flipbook digital para compartir con todos los que amas.
-          Más de 500 parejas ya han creado su álbum con nosotros.
+          {isEnglish
+            ? "In minutes, you will have a beautiful digital flipbook to share with everyone you love. More than 500 couples have already created their album with us."
+            : "En minutos tendras un hermoso flipbook digital para compartir con todos los que amas. Mas de 500 parejas ya han creado su album con nosotros."}
         </p>
 
         {/* CTAs */}
@@ -29,14 +35,14 @@ export function CTA() {
             href="/album-digital"
             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-accent text-primary font-body font-semibold rounded-full hover:bg-accent-light transition-all duration-300 hover:shadow-xl hover:shadow-accent/25 group"
           >
-            Crear mi álbum
+            {isEnglish ? "Create my album" : "Crear mi album"}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
           <Link
             href="/contacto"
             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white font-body font-semibold rounded-full border border-white/20 hover:bg-white/20 transition-all duration-300"
           >
-            Contactar con nosotros
+            {isEnglish ? "Contact us" : "Contactar con nosotros"}
           </Link>
         </div>
 
@@ -44,7 +50,9 @@ export function CTA() {
         <div className="flex items-center justify-center gap-2 mt-8">
           <Infinity className="w-4 h-4 text-white/50" />
           <p className="font-body text-sm text-white/50">
-            Acceso de por vida · Pago único · Garantía de satisfacción
+            {isEnglish
+              ? "Lifetime access · One-time payment · Satisfaction guarantee"
+              : "Acceso de por vida · Pago unico · Garantia de satisfaccion"}
           </p>
         </div>
       </div>

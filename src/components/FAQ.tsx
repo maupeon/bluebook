@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface FAQItem {
   question: string;
   answer: string;
 }
 
-const faqs: FAQItem[] = [
+const faqsEs: FAQItem[] = [
   {
     question: "¿Cómo funciona el álbum digital?",
     answer:
@@ -51,8 +52,53 @@ const faqs: FAQItem[] = [
   },
 ];
 
+const faqsEn: FAQItem[] = [
+  {
+    question: "How does the digital album work?",
+    answer:
+      "Once you complete your purchase, you receive an email with a link to your admin panel. From there, you can upload photos, choose order, and personalize your album. When it is ready, you get a unique link to share with family and friends.",
+  },
+  {
+    question: "What is an interactive flipbook?",
+    answer:
+      "A flipbook is a digital album that recreates the feeling of turning pages in a real book. Your guests can browse photos by swiping or clicking for an immersive and elegant experience.",
+  },
+  {
+    question: "How many photos can I upload?",
+    answer:
+      "It depends on the plan: Plan 50 allows 50 photos, Plan 200 allows 200 photos, and Unlimited has no cap. You can upgrade your plan anytime.",
+  },
+  {
+    question: "Do all plans include a QR for guests?",
+    answer:
+      "Yes. Every plan includes invitations with link and QR so guests can upload photos from their phone without downloading apps.",
+  },
+  {
+    question: "How long do I keep access to my album?",
+    answer:
+      "Access is lifetime. Once your album is created, it stays available for you and anyone you share the link with, with no time limit or extra fees.",
+  },
+  {
+    question: "What payment methods do you accept?",
+    answer:
+      "We accept credit and debit cards (Visa, Mastercard, American Express) through Stripe. Payment is one-time and secure. Discount codes are also supported.",
+  },
+  {
+    question: "Can I change plan after purchase?",
+    answer:
+      "Yes, you can upgrade at any time by paying only the difference. If you need more photos or templates, we help you switch quickly.",
+  },
+  {
+    question: "What if I am not satisfied with the service?",
+    answer:
+      "We offer a 14-day satisfaction guarantee. If you are not happy for any reason, we refund 100% of your payment.",
+  },
+];
+
 export function FAQ() {
+  const { isEnglish } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const faqs = isEnglish ? faqsEn : faqsEs;
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -64,14 +110,15 @@ export function FAQ() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="font-body text-sm font-semibold text-accent uppercase tracking-wider">
-            Preguntas Frecuentes
+            {isEnglish ? "Frequently Asked Questions" : "Preguntas Frecuentes"}
           </span>
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-primary mt-4 mb-6">
-            ¿Tienen dudas?
+            {isEnglish ? "Any questions?" : "Tienen dudas?"}
           </h2>
           <p className="font-body text-lg text-secondary">
-            Aquí encontrarán respuestas a las preguntas más comunes sobre el álbum digital.
-            Si necesitan más información, no duden en contactarnos.
+            {isEnglish
+              ? "Here you will find answers to the most common questions about the digital album. If you need more information, contact us anytime."
+              : "Aqui encontraran respuestas a las preguntas mas comunes sobre el album digital. Si necesitan mas informacion, no duden en contactarnos."}
           </p>
         </div>
 

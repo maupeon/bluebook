@@ -1,4 +1,7 @@
 import { Resend } from 'resend'
+import { CONTACT_INFO } from '@/lib/language'
+
+const SUPPORT_EMAIL = CONTACT_INFO.email
 
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY
@@ -24,7 +27,7 @@ export async function sendAdminEmail({ to, albumTitle, adminUrl }: SendAdminEmai
   try {
     const { data, error } = await resend.emails.send({
       from: 'Blue Book <hola@bluebook.mx>',
-      replyTo: 'hola@bluebook.mx',
+      replyTo: SUPPORT_EMAIL,
       to: [to],
       subject: `Tu álbum "${albumTitle}" está listo`,
       html: `
@@ -86,7 +89,7 @@ export async function sendAdminEmail({ to, albumTitle, adminUrl }: SendAdminEmai
             <div style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
               <p style="color: #9CA3AF; font-size: 14px; margin: 0;">
                 ¿Tienes preguntas? Escríbenos a
-                <a href="mailto:hola@bluebook.mx" style="color: #D4A574;">hola@bluebook.mx</a>
+                <a href="mailto:${SUPPORT_EMAIL}" style="color: #D4A574;">${SUPPORT_EMAIL}</a>
               </p>
               <p style="color: #9CA3AF; font-size: 12px; margin: 15px 0 0;">
                 © ${new Date().getFullYear()} Blue Book. Todos los derechos reservados.
@@ -128,7 +131,7 @@ export async function sendInviteEmail({ to, albumTitle, guestName, inviteUrl, ma
   try {
     const { data, error } = await resend.emails.send({
       from: 'Blue Book <hola@bluebook.mx>',
-      replyTo: 'hola@bluebook.mx',
+      replyTo: SUPPORT_EMAIL,
       to: [to],
       subject: `Te invitan a contribuir al álbum "${albumTitle}"`,
       html: `

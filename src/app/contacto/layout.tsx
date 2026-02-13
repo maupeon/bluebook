@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { CONTACT_INFO } from "@/lib/language";
 
 export const metadata: Metadata = {
   title: "Contacto",
@@ -22,8 +23,8 @@ const localBusinessSchema = {
   url: "https://bluebook.mx",
   logo: "https://bluebook.mx/icon.png",
   image: "https://bluebook.mx/og-image.jpg",
-  telephone: "+52-55-1234-5678",
-  email: "hola@bluebook.mx",
+  telephone: CONTACT_INFO.whatsappNumber,
+  email: CONTACT_INFO.email,
   address: {
     "@type": "PostalAddress",
     addressLocality: "Ciudad de México",
@@ -51,8 +52,8 @@ const localBusinessSchema = {
   ],
   priceRange: "$100 - $500 MXN",
   sameAs: [
-    "https://instagram.com/bluebook.mx",
-    "https://facebook.com/bluebook.mx",
+    CONTACT_INFO.instagramUrl,
+    CONTACT_INFO.whatsappUrl,
   ],
 };
 
