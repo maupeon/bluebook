@@ -1,55 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Star, Sparkles } from "lucide-react";
-
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-  features: string[];
-  highlighted?: boolean;
-  badge?: string;
-}
-
-const plans: Plan[] = [
-  {
-    id: "album_basico",
-    name: "Básico",
-    price: 100,
-    description: "Perfecto para álbumes pequeños",
-    features: [
-      "Hasta 50 fotos",
-      "Flipbook interactivo",
-      "URL personalizada",
-      "Compartir por WhatsApp",
-      "Soporte por email",
-    ],
-  },
-  {
-    id: "album_premium",
-    name: "Premium",
-    price: 500,
-    description: "La experiencia completa",
-    features: [
-      "Fotos ilimitadas",
-      "Flipbook interactivo",
-      "URL personalizada",
-      "Todas las plantillas",
-      "Compartir por WhatsApp",
-      "Descarga en PDF",
-      "Soporte prioritario",
-    ],
-    highlighted: true,
-    badge: "Más popular",
-  },
-];
+import { ArrowRight, Check, Crown } from "lucide-react";
+import { ALBUM_PLANS_LIST, AlbumPlanId, isUnlimitedPhotosPlan } from "@/lib/albumPlans";
+import { parseJsonSafe, summarizeHttpError } from "@/lib/http";
 
 export function PricingTable() {
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<AlbumPlanId | null>(null);
 
-  const handleCheckout = async (planId: string) => {
+  const handleCheckout = async (planId: AlbumPlanId) => {
     setLoadingPlan(planId);
     try {
       const response = await fetch("/api/checkout", {
@@ -58,167 +17,81 @@ export function PricingTable() {
         body: JSON.stringify({ planId }),
       });
 
-      const data = await response.json();
-
-      if (data.url) {
+      const { data, raw } = await parseJsonSafe<{ url?: string; error?: string }>(response);
+      if (response.ok && data?.url) {
         window.location.href = data.url;
       } else {
-        alert("Error al procesar el pago. Por favor, inténtalo de nuevo.");
+        const errorMessage = data?.error || summarizeHttpError(
+          response.status,
+          raw,
+          "No se pudo iniciar el pago"
+        );
+        alert(errorMessage);
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error al conectar con el servidor.");
+      console.error("Error en checkout:", error);
     } finally {
       setLoadingPlan(null);
     }
   };
 
   return (
-    <section className="py-20 lg:py-32 bg-light" id="precios">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="font-body text-sm font-semibold text-accent uppercase tracking-wider">
-            Precios Transparentes
-          </span>
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-primary mt-4 mb-6">
-            Elijan el plan perfecto para ustedes
-          </h2>
-          <p className="font-body text-lg text-secondary">
-            Sin sorpresas ni costos ocultos. Pagan una vez y disfrutan de todo
-            para su boda.
-          </p>
+    <section className="bg-[#FBF8F5] py-20" id="precios">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mx-auto mb-12 max-w-3xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8A6D60]">Álbum digital</p>
+          <h2 className="mt-3 font-heading text-4xl text-[#1D2E4B]">Planes con QR en todos los niveles</h2>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-6 max-w-4xl mx-auto">
-          {plans.map((plan) => (
-            <div
+        <div className="grid gap-5 lg:grid-cols-3">
+          {ALBUM_PLANS_LIST.map((plan) => (
+            <article
               key={plan.id}
-              className={`relative rounded-3xl p-8 transition-all duration-300 ${
-                plan.highlighted
-                  ? "bg-primary text-white shadow-2xl shadow-primary/30 z-10"
-                  : "bg-white border border-border hover:border-accent/30 hover:shadow-xl"
+              className={`rounded-3xl border p-6 shadow-lg ${
+                plan.featured
+                  ? "border-[#1D2E4B] bg-[#1D2E4B] text-white"
+                  : "border-[#E4D8CF] bg-white text-[#1D2E4B]"
               }`}
             >
-              {/* Badge */}
               {plan.badge && (
-                <div
-                  className={`absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-body font-semibold flex items-center gap-1.5 ${
-                    plan.highlighted
-                      ? "bg-accent text-primary"
-                      : "bg-secondary text-white"
-                  }`}
-                >
-                  {plan.highlighted ? (
-                    <Star className="w-4 h-4 fill-current" />
-                  ) : (
-                    <Sparkles className="w-4 h-4" />
-                  )}
+                <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-[#F8D8CB] px-3 py-1 text-xs font-semibold text-[#8D3F2D]">
+                  <Crown className="h-3.5 w-3.5" />
                   {plan.badge}
-                </div>
+                </span>
               )}
-
-              {/* Plan Name */}
-              <h3
-                className={`font-heading text-2xl font-semibold mb-2 ${
-                  plan.highlighted ? "text-white" : "text-primary"
-                }`}
-              >
-                {plan.name}
-              </h3>
-              <p
-                className={`font-body text-sm mb-6 ${
-                  plan.highlighted ? "text-white/70" : "text-secondary"
-                }`}
-              >
-                {plan.description}
+              <h3 className="font-heading text-3xl">{plan.name}</h3>
+              <p className={`mt-2 text-sm ${plan.featured ? "text-[#DCE7F6]" : "text-[#5A6A84]"}`}>{plan.description}</p>
+              <p className="mt-5 font-heading text-5xl">
+                ${plan.priceMx.toLocaleString()} <span className="text-sm font-body">MXN</span>
+              </p>
+              <p className={`mt-1 text-sm ${plan.featured ? "text-[#DCE7F6]" : "text-[#5A6A84]"}`}>
+                {isUnlimitedPhotosPlan(plan.maxPhotos) ? "Fotos ilimitadas" : `${plan.maxPhotos} fotos`}
               </p>
 
-              {/* Price */}
-              <div className="mb-8">
-                <span
-                  className={`font-heading text-5xl font-bold ${
-                    plan.highlighted ? "text-white" : "text-primary"
-                  }`}
-                >
-                  ${plan.price.toLocaleString()}
-                </span>
-                <span
-                  className={`font-body text-sm ml-2 ${
-                    plan.highlighted ? "text-white/70" : "text-secondary"
-                  }`}
-                >
-                  MXN · pago único
-                </span>
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-4 mb-8">
-                {plan.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-start gap-3">
-                    <Check
-                      className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                        plan.highlighted ? "text-accent" : "text-accent"
-                      }`}
-                    />
-                    <span
-                      className={`font-body text-sm ${
-                        plan.highlighted ? "text-white/90" : "text-secondary"
-                      }`}
-                    >
-                      {feature}
-                    </span>
+              <ul className="mt-5 space-y-2 text-sm">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-2">
+                    <Check className={`h-4 w-4 ${plan.featured ? "text-[#F8D8CB]" : "text-[#C96F5A]"}`} />
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              {/* CTA Button */}
               <button
                 onClick={() => handleCheckout(plan.id)}
                 disabled={loadingPlan === plan.id}
-                className={`w-full py-4 rounded-full font-body font-semibold transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed ${
-                  plan.highlighted
-                    ? "bg-accent text-primary hover:bg-accent-light hover:shadow-lg"
-                    : "bg-primary text-white hover:bg-primary-dark hover:shadow-lg"
-                }`}
+                className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold transition ${
+                  plan.featured
+                    ? "bg-[#F7CAB8] text-[#5D2E22] hover:bg-[#F4BCAB]"
+                    : "bg-[#1D2E4B] text-white hover:bg-[#2A4164]"
+                } disabled:opacity-70`}
               >
-                {loadingPlan === plan.id ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      className="animate-spin h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Procesando...
-                  </span>
-                ) : (
-                  `Elegir ${plan.name}`
-                )}
+                {loadingPlan === plan.id ? "Procesando..." : "Elegir plan"}
+                <ArrowRight className="h-4 w-4" />
               </button>
-            </div>
+            </article>
           ))}
         </div>
-
-        {/* Guarantee */}
-        <p className="text-center font-body text-sm text-secondary mt-12">
-          💝 Garantía de satisfacción de 14 días. Si no estáis contentos, os devolvemos el dinero.
-        </p>
       </div>
     </section>
   );

@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     template: "%s | Blue Book",
   },
   description:
-    "Crea un álbum digital interactivo con las fotos de tu boda. Flipbook elegante para compartir con familia y amigos. Desde $100 MXN.",
+    "Crea un álbum digital interactivo con las fotos de tu boda. Flipbook elegante para compartir con familia y amigos. Planes desde $200 MXN.",
   keywords: [
     "álbum digital boda",
     "flipbook boda",

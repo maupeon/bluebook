@@ -23,23 +23,23 @@ export const getStripe = (): Promise<Stripe | null> => {
  * Estos IDs deben coincidir con los productos/precios creados en el Dashboard de Stripe.
  */
 export const STRIPE_PLANS = {
-  basico: {
-    priceId: "price_basic_99",
-    name: "Básico",
-    price: 99,
-    currency: "eur",
+  plan50: {
+    priceId: "price_album_50",
+    name: "Plan 50",
+    price: 200,
+    currency: "mxn",
   },
-  premium: {
-    priceId: "price_premium_199",
-    name: "Premium",
-    price: 199,
-    currency: "eur",
+  plan200: {
+    priceId: "price_album_200",
+    name: "Plan 200",
+    price: 500,
+    currency: "mxn",
   },
-  deluxe: {
-    priceId: "price_deluxe_349",
-    name: "Deluxe",
-    price: 349,
-    currency: "eur",
+  ilimitado: {
+    priceId: "price_album_unlimited",
+    name: "Plan Ilimitado",
+    price: 2000,
+    currency: "mxn",
   },
 } as const;
 
@@ -48,12 +48,12 @@ export type PlanKey = keyof typeof STRIPE_PLANS;
 /**
  * Redirige al usuario a Stripe Checkout.
  * 
- * @param planKey - La clave del plan (basico, premium, deluxe)
+ * @param planKey - La clave del plan (plan50, plan200, ilimitado)
  * 
  * Uso:
  * ```tsx
  * const handleCheckout = async () => {
- *   await redirectToCheckout('premium', '/success', '/precios');
+ *   await redirectToCheckout('plan200');
  * };
  * ```
  */

@@ -3,10 +3,16 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { nanoid } from 'nanoid'
 import { sendAdminEmail } from '@/lib/email'
+import { getAlbumPlan, UNLIMITED_PHOTO_LIMIT } from '@/lib/albumPlans'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-})
+const getStripeClient = (): Stripe | null => {
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  if (!secretKey) return null
+
+  return new Stripe(secretKey, {
+    apiVersion: "2025-12-15.clover",
+  })
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +20,14 @@ const supabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripeClient()
+  if (!stripe) {
+    return NextResponse.json(
+      { error: 'Stripe no está configurado (STRIPE_SECRET_KEY).' },
+      { status: 500 }
+    )
+  }
+
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
@@ -45,6 +59,21 @@ export async function POST(req: NextRequest) {
       const adminToken = nanoid(32)  // Token de administrador
       const title = metadata.albumTitle || 'Nuestro Álbum'
       const template = metadata.albumTemplate || 'classic'
+      const plan = getAlbumPlan(metadata.planId || '')
+      const maxPhotos = plan?.maxPhotos || 50
+      const stripeSessionId = session.id
+
+      // Evitar duplicados por reintentos del webhook.
+      const { data: existingAlbum } = await supabase
+        .from('albums')
+        .select('id, slug')
+        .eq('stripe_session_id', stripeSessionId)
+        .maybeSingle()
+
+      if (existingAlbum) {
+        console.log('Album ya creado para sesión Stripe:', stripeSessionId, existingAlbum.slug)
+        return NextResponse.json({ received: true, duplicate: true })
+      }
 
       // Crear álbum en Supabase con admin_token
       const { data, error } = await supabase
@@ -56,8 +85,9 @@ export async function POST(req: NextRequest) {
           template,
           photos: [],
           admin_token: adminToken,
+          stripe_session_id: stripeSessionId,
           guest_upload_enabled: true,
-          max_photos_per_guest: 10,
+          max_photos_per_guest: maxPhotos,
         })
         .select()
         .single()
@@ -82,6 +112,12 @@ export async function POST(req: NextRequest) {
         })
       }
       console.log('Admin URL:', adminUrl)
+      console.log(
+        'Plan creado:',
+        plan?.id || metadata.planId || 'desconocido',
+        'límite fotos:',
+        maxPhotos >= UNLIMITED_PHOTO_LIMIT ? 'ilimitado' : maxPhotos
+      )
     }
 
     // Para planes de invitaciones, puedes agregar lógica aquí

@@ -349,9 +349,9 @@ export default function ContactoPage() {
                         className="w-full px-4 py-3 rounded-xl border border-border bg-white font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                       >
                         <option value="">Selecciona un plan</option>
-                        <option value="basico">Básico ($1,999 MXN)</option>
-                        <option value="premium">Premium ($3,999 MXN)</option>
-                        <option value="deluxe">Deluxe ($6,999 MXN)</option>
+                        <option value="plan50">Plan 50 ($200 MXN)</option>
+                        <option value="plan200">Plan 200 ($500 MXN)</option>
+                        <option value="ilimitado">Plan Ilimitado ($2,000 MXN)</option>
                         <option value="nodecidido">Aún no lo sé</option>
                       </select>
                     </div>

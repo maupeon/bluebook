@@ -3,106 +3,95 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Planes y precios transparentes para álbumes digitales de boda. Plan Básico $100 MXN (50 fotos), Plan Premium $500 MXN (fotos ilimitadas). Pago único, acceso de por vida.",
+    "Planes y precios transparentes para álbumes digitales de boda. $200 MXN por 50 fotos, $500 MXN por 200 fotos y $2000 MXN por fotos ilimitadas.",
   keywords: [
     "precios álbum digital boda",
     "cuánto cuesta álbum boda",
     "flipbook boda precio",
+    "qr para invitados boda",
   ],
   openGraph: {
     title: "Precios y Planes | Blue Book",
     description:
-      "Álbumes digitales desde $100 MXN. Sin suscripciones, pago único, acceso de por vida.",
+      "Álbumes digitales desde $200 MXN con QR para invitados en todos los planes.",
     url: "https://bluebook.mx/precios",
   },
 };
 
-// Product Schema for SEO
-const productSchemaBasico = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  name: "Álbum Digital Básico - Blue Book",
-  description:
-    "Álbum digital interactivo con flipbook para bodas. Incluye hasta 50 fotos, URL personalizada y acceso de por vida.",
-  brand: {
-    "@type": "Brand",
-    name: "Blue Book",
+const productSchemas = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Álbum Digital Plan 50 - Blue Book",
+    description: "Hasta 50 fotos, flipbook interactivo y QR para invitados.",
+    brand: { "@type": "Brand", name: "Blue Book" },
+    offers: {
+      "@type": "Offer",
+      price: "200",
+      priceCurrency: "MXN",
+      availability: "https://schema.org/InStock",
+      url: "https://bluebook.mx/precios",
+      priceValidUntil: "2027-12-31",
+    },
   },
-  offers: {
-    "@type": "Offer",
-    price: "100",
-    priceCurrency: "MXN",
-    availability: "https://schema.org/InStock",
-    url: "https://bluebook.mx/precios",
-    priceValidUntil: "2026-12-31",
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Álbum Digital Plan 200 - Blue Book",
+    description: "Hasta 200 fotos, 3 plantillas y QR para invitados.",
+    brand: { "@type": "Brand", name: "Blue Book" },
+    offers: {
+      "@type": "Offer",
+      price: "500",
+      priceCurrency: "MXN",
+      availability: "https://schema.org/InStock",
+      url: "https://bluebook.mx/precios",
+      priceValidUntil: "2027-12-31",
+    },
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    reviewCount: "500",
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Álbum Digital Plan Ilimitado - Blue Book",
+    description: "Fotos ilimitadas, todas las plantillas y QR para invitados.",
+    brand: { "@type": "Brand", name: "Blue Book" },
+    offers: {
+      "@type": "Offer",
+      price: "2000",
+      priceCurrency: "MXN",
+      availability: "https://schema.org/InStock",
+      url: "https://bluebook.mx/precios",
+      priceValidUntil: "2027-12-31",
+    },
   },
-};
+];
 
-const productSchemaPremium = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  name: "Álbum Digital Premium - Blue Book",
-  description:
-    "Álbum digital premium con fotos ilimitadas, todas las plantillas, descarga en PDF y soporte prioritario.",
-  brand: {
-    "@type": "Brand",
-    name: "Blue Book",
-  },
-  offers: {
-    "@type": "Offer",
-    price: "500",
-    priceCurrency: "MXN",
-    availability: "https://schema.org/InStock",
-    url: "https://bluebook.mx/precios",
-    priceValidUntil: "2026-12-31",
-  },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "350",
-  },
-};
-
-// FAQ Schema for SEO
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
     {
       "@type": "Question",
-      name: "¿Por qué es un pago único?",
+      name: "¿Los 3 planes incluyen QR para invitados?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Creemos que planear una boda ya es suficientemente estresante. Un pago único significa que no tienen que preocuparse por suscripciones ni costos adicionales.",
+        text: "Sí. Todos los planes incluyen invitaciones con link y QR para que invitados suban fotos desde su celular.",
       },
     },
     {
       "@type": "Question",
-      name: "¿Puedo cambiar de plan más tarde?",
+      name: "¿Qué cambia entre planes?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "¡Por supuesto! Pueden actualizar en cualquier momento pagando solo la diferencia entre planes. Sin complicaciones.",
+        text: "Cambia principalmente el volumen de fotos y el acceso a plantillas: 50, 200 o ilimitadas.",
       },
     },
     {
       "@type": "Question",
-      name: "¿Qué métodos de pago aceptan?",
+      name: "¿Es pago único?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Aceptamos todas las tarjetas principales (Visa, Mastercard, Amex), PayPal y transferencia bancaria a través de Stripe.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "¿Y si no estoy satisfecho?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Tienen 14 días de garantía de satisfacción. Si no están contentos por cualquier motivo, les devolvemos el 100% sin preguntas.",
+        text: "Sí. Es un pago único en MXN con acceso de por vida al álbum.",
       },
     },
   ],
@@ -115,23 +104,16 @@ export default function PreciosLayout({
 }) {
   return (
     <>
+      {productSchemas.map((schema, index) => (
+        <script
+          key={`product-${index}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productSchemaBasico),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productSchemaPremium),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqSchema),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       {children}
     </>

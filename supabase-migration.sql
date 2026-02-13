@@ -177,3 +177,10 @@ WITH CHECK
 --   (SELECT COUNT(*) FROM albums) as total_albums,
 --   (SELECT COUNT(*) FROM albums WHERE admin_token IS NOT NULL) as albums_with_token,
 --   (SELECT COUNT(*) FROM album_photos) as total_photos_migrated;
+
+-- =====================================================
+-- 6. Campos de personalización de experiencia (fecha + música)
+-- =====================================================
+-- Se usan para mostrar la fecha del evento y activar música en el flipbook.
+ALTER TABLE albums ADD COLUMN IF NOT EXISTS wedding_date DATE;
+ALTER TABLE albums ADD COLUMN IF NOT EXISTS music_url TEXT;

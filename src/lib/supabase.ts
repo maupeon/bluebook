@@ -12,6 +12,8 @@ export type Album = {
   title: string
   photos: string[]  // Legacy - usar album_photos table
   template: 'classic' | 'modern' | 'romantic' | 'elegant' | 'rustic'
+  wedding_date?: string | null
+  music_url?: string | null
   admin_token: string
   guest_upload_enabled: boolean
   max_photos_per_guest: number

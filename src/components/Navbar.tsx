@@ -8,9 +8,7 @@ import { Menu, X, Heart } from "lucide-react";
 const navLinks = [
   { href: "/", label: "Inicio" },
   { href: "/album-digital", label: "Álbum Digital" },
-  // Comentado temporalmente - funcionalidades de invitaciones
-  // { href: "/servicios", label: "Servicios" },
-  // { href: "/precios", label: "Precios" },
+  { href: "/precios", label: "Precios" },
   { href: "/contacto", label: "Contacto" },
 ];
 

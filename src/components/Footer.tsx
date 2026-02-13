@@ -6,7 +6,7 @@ const footerLinks = {
   producto: [
     { href: "/album-digital", label: "Álbum Digital" },
     { href: "/album-digital#pricing", label: "Planes y Precios" },
-    { href: "/album-digital#demo-preview", label: "Ver Demo" },
+    { href: "/album-digital#album-form", label: "Personalizar Álbum" },
     // Comentado temporalmente - funcionalidades de invitaciones
     // { href: "/servicios#invitaciones", label: "Invitaciones Digitales" },
     // { href: "/servicios#rsvp", label: "Confirmaciones RSVP" },
@@ -14,8 +14,7 @@ const footerLinks = {
     // { href: "/servicios#galeria", label: "Galería Post-Boda" },
   ],
   empresa: [
-    // Comentado temporalmente - página de precios de invitaciones
-    // { href: "/precios", label: "Precios" },
+    { href: "/precios", label: "Precios" },
     { href: "/contacto", label: "Contacto" },
     { href: "/terminos", label: "Términos y Condiciones" },
     { href: "/privacidad", label: "Política de Privacidad" },
@@ -50,7 +49,7 @@ export function Footer() {
             </p>
             <div className="flex gap-4">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/bluebook.mx/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent transition-colors duration-300"
@@ -59,7 +58,7 @@ export function Footer() {
                 <Instagram className="w-5 h-5" />
               </a>
               <a
-                href="https://facebook.com"
+                href="https://facebook.com/bluebook.mx"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent transition-colors duration-300"

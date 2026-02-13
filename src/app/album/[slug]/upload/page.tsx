@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Upload, Trash2, Eye, Camera, ExternalLink, AlertCircle } from 'lucide-react'
 import { supabase, Album, AlbumPhoto, AlbumInvite } from '@/lib/supabase'
+import { isUnlimitedPhotosPlan } from '@/lib/albumPlans'
+import { parseJsonSafe, summarizeHttpError } from '@/lib/http'
 
 interface CloudinaryResult {
   event: string
@@ -39,10 +41,15 @@ export default function GuestUploadPage() {
   const [album, setAlbum] = useState<Album | null>(null)
   const [invite, setInvite] = useState<AlbumInvite | null>(null)
   const [myPhotos, setMyPhotos] = useState<AlbumPhoto[]>([])
+  const [totalAlbumPhotos, setTotalAlbumPhotos] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const photosRemaining = invite ? invite.max_photos - invite.photos_uploaded : 0
+  const albumLimit = album?.max_photos_per_guest || 0
+  const albumHasLimit = albumLimit >= 50 && !isUnlimitedPhotosPlan(albumLimit)
+  const albumRemaining = albumHasLimit ? Math.max(albumLimit - totalAlbumPhotos, 0) : Number.POSITIVE_INFINITY
+  const effectiveRemaining = Math.max(0, Math.min(photosRemaining, albumRemaining))
 
   const fetchData = useCallback(async () => {
     if (!token) {
@@ -96,8 +103,9 @@ export default function GuestUploadPage() {
 
     // Fetch my photos
     const photosRes = await fetch(`/api/albums/${slug}/photos`)
-    const photosData = await photosRes.json()
-    const allPhotos = photosData.photos || []
+    const photosPayload = await parseJsonSafe<{ photos?: AlbumPhoto[] }>(photosRes)
+    const allPhotos = photosPayload.data?.photos || []
+    setTotalAlbumPhotos(allPhotos.length)
 
     // Filter to show only my photos
     const mine = allPhotos.filter((p: AlbumPhoto) => p.uploaded_by_token === token)
@@ -127,7 +135,7 @@ export default function GuestUploadPage() {
       return
     }
 
-    if (photosRemaining <= 0) {
+    if (effectiveRemaining <= 0) {
       alert('Has alcanzado el límite de fotos permitido.')
       return
     }
@@ -138,7 +146,7 @@ export default function GuestUploadPage() {
         uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
         folder: `albums/${slug}`,
         multiple: true,
-        maxFiles: photosRemaining,
+        maxFiles: effectiveRemaining,
         sources: ['local', 'url', 'google_drive', 'dropbox', 'instagram'],
         resourceType: 'image',
         clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp', 'heic'],
@@ -176,13 +184,22 @@ export default function GuestUploadPage() {
           })
 
           if (res.ok) {
-            const data = await res.json()
-            setMyPhotos((prev) => [...prev, data.photo])
+            const payload = await parseJsonSafe<{ photo?: AlbumPhoto }>(res)
+            const createdPhoto = payload.data?.photo
+            if (createdPhoto) {
+              setMyPhotos((prev) => [...prev, createdPhoto])
+            }
             // Update invite photos count
             setInvite((prev) => prev ? { ...prev, photos_uploaded: prev.photos_uploaded + 1 } : null)
+            setTotalAlbumPhotos((prev) => prev + 1)
           } else {
-            const errData = await res.json()
-            alert(errData.error || 'Error al subir la foto')
+            const payload = await parseJsonSafe<{ error?: string }>(res)
+            const errorMessage = payload.data?.error || summarizeHttpError(
+              res.status,
+              payload.raw,
+              'Error al subir la foto'
+            )
+            alert(errorMessage)
           }
         }
       }
@@ -198,6 +215,7 @@ export default function GuestUploadPage() {
       setMyPhotos((prev) => prev.filter((p) => p.id !== photoId))
       // Update invite photos count
       setInvite((prev) => prev ? { ...prev, photos_uploaded: Math.max(0, prev.photos_uploaded - 1) } : null)
+      setTotalAlbumPhotos((prev) => Math.max(0, prev - 1))
     }
   }
 
@@ -267,12 +285,12 @@ export default function GuestUploadPage() {
             </div>
 
             <div className={`px-4 py-2 rounded-full font-body text-sm ${
-              photosRemaining > 0
+              effectiveRemaining > 0
                 ? 'bg-green-100 text-green-700'
                 : 'bg-red-100 text-red-700'
             }`}>
-              {photosRemaining > 0
-                ? `Puedes subir ${photosRemaining} foto${photosRemaining !== 1 ? 's' : ''} más`
+              {effectiveRemaining > 0
+                ? `Puedes subir ${effectiveRemaining} foto${effectiveRemaining !== 1 ? 's' : ''} más`
                 : 'Has alcanzado el límite de fotos'
               }
             </div>
@@ -280,7 +298,7 @@ export default function GuestUploadPage() {
         </div>
 
         {/* Upload Button */}
-        {photosRemaining > 0 && (
+        {effectiveRemaining > 0 && (
           <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
             <button
               onClick={openUploadWidget}
@@ -292,6 +310,7 @@ export default function GuestUploadPage() {
               <span className="font-heading text-xl text-primary">Subir fotos</span>
               <span className="font-body text-secondary text-sm">
                 JPG, PNG, HEIC hasta 15MB cada una
+                {albumHasLimit ? ` · Cupo global ${totalAlbumPhotos}/${albumLimit}` : ''}
               </span>
             </button>
           </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { validateAccess } from '@/lib/validateAccess'
+import { UNLIMITED_PHOTO_LIMIT } from '@/lib/albumPlans'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,6 +55,30 @@ export async function POST(
 
   if (access.role === 'unauthorized') {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
+  // Verificar límite total del álbum según el plan contratado.
+  const albumPhotoLimit = access.album?.max_photos_per_guest
+  if (
+    albumPhotoLimit &&
+    albumPhotoLimit >= 50 &&
+    albumPhotoLimit < UNLIMITED_PHOTO_LIMIT
+  ) {
+    const { count, error: countError } = await supabaseAdmin
+      .from('album_photos')
+      .select('*', { count: 'exact', head: true })
+      .eq('album_id', access.albumId)
+
+    if (countError) {
+      return NextResponse.json({ error: countError.message }, { status: 500 })
+    }
+
+    if ((count ?? 0) >= albumPhotoLimit) {
+      return NextResponse.json(
+        { error: `Este álbum llegó al límite de ${albumPhotoLimit} fotos de su plan.` },
+        { status: 403 }
+      )
+    }
   }
 
   // Si es invitado, verificar límite de fotos

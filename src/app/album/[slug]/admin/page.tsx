@@ -4,9 +4,12 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   Upload, Trash2, GripVertical, Eye, UserPlus,
-  Copy, Check, Users, X, Plus, ExternalLink
+  Copy, Check, Users, X, Plus, ExternalLink, QrCode, Share2, Download, CalendarDays, Save
 } from 'lucide-react'
 import { supabase, Album, AlbumPhoto, AlbumInvite } from '@/lib/supabase'
+import QRCode from 'qrcode'
+import { isUnlimitedPhotosPlan } from '@/lib/albumPlans'
+import { parseJsonSafe } from '@/lib/http'
 
 interface CloudinaryResult {
   event: string
@@ -50,7 +53,15 @@ export default function AdminPage() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [activeTab, setActiveTab] = useState<'photos' | 'invites'>('photos')
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [showQrModal, setShowQrModal] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [qrInvite, setQrInvite] = useState<InviteWithUrl | null>(null)
+  const [qrDataUrl, setQrDataUrl] = useState('')
+  const [creatingQr, setCreatingQr] = useState(false)
+  const [albumDate, setAlbumDate] = useState('')
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [settingsMessage, setSettingsMessage] = useState('')
+  const [settingsMessageType, setSettingsMessageType] = useState<'success' | 'error' | ''>('')
 
   // New invite form state
   const [newInviteName, setNewInviteName] = useState('')
@@ -80,16 +91,19 @@ export default function AdminPage() {
     }
 
     setAlbum(albumData as Album)
+    setAlbumDate(albumData.wedding_date ? albumData.wedding_date.slice(0, 10) : '')
+    setSettingsMessage('')
+    setSettingsMessageType('')
 
     // Fetch photos
     const photosRes = await fetch(`/api/albums/${slug}/photos`)
-    const photosData = await photosRes.json()
-    setPhotos(photosData.photos || [])
+    const photosPayload = await parseJsonSafe<{ photos?: AlbumPhoto[] }>(photosRes)
+    setPhotos(photosPayload.data?.photos || [])
 
     // Fetch invites
     const invitesRes = await fetch(`/api/albums/${slug}/invites?token=${token}`)
-    const invitesData = await invitesRes.json()
-    setInvites(invitesData.invites || [])
+    const invitesPayload = await parseJsonSafe<{ invites?: InviteWithUrl[] }>(invitesRes)
+    setInvites(invitesPayload.data?.invites || [])
 
     setLoading(false)
   }, [slug, token, router])
@@ -115,13 +129,22 @@ export default function AdminPage() {
       return
     }
 
+    const albumLimit = album?.max_photos_per_guest || 0
+    const limitedPlan = albumLimit >= 50 && !isUnlimitedPhotosPlan(albumLimit)
+    const remainingForPlan = limitedPlan ? Math.max(albumLimit - photos.length, 0) : 150
+
+    if (limitedPlan && remainingForPlan <= 0) {
+      alert(`Este álbum ya alcanzó el límite de ${albumLimit} fotos de su plan.`)
+      return
+    }
+
     window.cloudinary.openUploadWidget(
       {
         cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
         uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
         folder: `albums/${slug}`,
         multiple: true,
-        maxFiles: 150,
+        maxFiles: limitedPlan ? remainingForPlan : 150,
         sources: ['local', 'url', 'google_drive', 'dropbox', 'instagram'],
         resourceType: 'image',
         clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp', 'heic'],
@@ -158,8 +181,11 @@ export default function AdminPage() {
           })
 
           if (res.ok) {
-            const data = await res.json()
-            setPhotos((prev) => [...prev, data.photo])
+            const payload = await parseJsonSafe<{ photo?: AlbumPhoto }>(res)
+            const createdPhoto = payload.data?.photo
+            if (createdPhoto) {
+              setPhotos((prev) => [...prev, createdPhoto])
+            }
           }
         }
       }
@@ -209,6 +235,11 @@ export default function AdminPage() {
 
   const createInvite = async () => {
     setCreatingInvite(true)
+    const planLimit = album?.max_photos_per_guest || 0
+    const computedMaxPhotos =
+      planLimit >= 50 && !isUnlimitedPhotosPlan(planLimit)
+        ? Math.min(Math.max(newInviteMaxPhotos, 1), planLimit)
+        : Math.max(newInviteMaxPhotos, 1)
 
     const res = await fetch(`/api/albums/${slug}/invites`, {
       method: 'POST',
@@ -217,15 +248,18 @@ export default function AdminPage() {
         token,
         guest_name: newInviteName || (newInviteIsGeneral ? 'Link General' : null),
         guest_email: newInviteEmail || null,
-        max_photos: newInviteMaxPhotos,
+        max_photos: computedMaxPhotos,
         is_general: newInviteIsGeneral,
         send_email: newInviteSendEmail && newInviteEmail,
       }),
     })
 
     if (res.ok) {
-      const data = await res.json()
-      setInvites((prev) => [data.invite, ...prev])
+      const payload = await parseJsonSafe<{ invite?: InviteWithUrl }>(res)
+      const createdInvite = payload.data?.invite
+      if (createdInvite) {
+        setInvites((prev) => [createdInvite, ...prev])
+      }
       setShowInviteModal(false)
       setNewInviteName('')
       setNewInviteEmail('')
@@ -253,9 +287,99 @@ export default function AdminPage() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  const saveAlbumSettings = async () => {
+    if (!token) return
+
+    setSavingSettings(true)
+    setSettingsMessage('Guardando...')
+    setSettingsMessageType('')
+
+    const res = await fetch(`/api/albums/${slug}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        wedding_date: albumDate ? albumDate : null,
+      }),
+    })
+
+    const payload = await parseJsonSafe<{ album?: Album; error?: string }>(res)
+    if (!res.ok || !payload.data?.album) {
+      setSettingsMessage(payload.data?.error || 'No se pudo guardar la configuración')
+      setSettingsMessageType('error')
+      setSavingSettings(false)
+      return
+    }
+
+    const updatedAlbum = payload.data.album
+    setAlbum(updatedAlbum)
+    setAlbumDate(updatedAlbum.wedding_date ? updatedAlbum.wedding_date.slice(0, 10) : '')
+    setSettingsMessage('Cambios guardados')
+    setSettingsMessageType('success')
+    setSavingSettings(false)
+  }
+
   const viewAlbum = () => {
     window.open(`/album/${slug}`, '_blank')
   }
+
+  const openQrForInvite = async (invite: InviteWithUrl) => {
+    setShowQrModal(true)
+    setQrInvite(invite)
+    setQrDataUrl('')
+    setCreatingQr(true)
+    try {
+      const dataUrl = await QRCode.toDataURL(invite.share_url, {
+        width: 720,
+        margin: 2,
+        color: {
+          dark: '#1E2E4A',
+          light: '#FFFFFF',
+        },
+      })
+      setQrDataUrl(dataUrl)
+    } catch (error) {
+      console.error('Error generando QR:', error)
+      setQrDataUrl('')
+    } finally {
+      setCreatingQr(false)
+    }
+  }
+
+  const downloadQr = () => {
+    if (!qrInvite || !qrDataUrl) return
+    const slugName = (qrInvite.guest_name || 'invitado').toLowerCase().replace(/\s+/g, '-')
+    const a = document.createElement('a')
+    a.href = qrDataUrl
+    a.download = `qr-${slug}-${slugName}.png`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  const shareInvite = async (invite: InviteWithUrl) => {
+    const title = `Comparte fotos de ${album?.title || 'nuestro álbum'}`
+    const text = `Sube tus fotos de la boda aquí:`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text,
+          url: invite.share_url,
+        })
+        return
+      } catch (error) {
+        console.error('Share cancelado o no disponible:', error)
+      }
+    }
+
+    await copyToClipboard(invite.share_url, `share-${invite.id}`)
+  }
+
+  const albumLimit = album?.max_photos_per_guest || 0
+  const albumHasLimit = albumLimit >= 50 && !isUnlimitedPhotosPlan(albumLimit)
+  const remainingAlbumPhotos = albumHasLimit ? Math.max(albumLimit - photos.length, 0) : null
 
   if (loading) {
     return (
@@ -317,6 +441,71 @@ export default function AdminPage() {
         {/* Photos Tab */}
         {activeTab === 'photos' && (
           <>
+            <div className="bg-white rounded-2xl shadow-lg p-5 mb-6">
+              <p className="font-body text-lg text-primary mb-1">Ajustes de experiencia</p>
+              <p className="font-body text-sm text-secondary mb-4">
+                Define la fecha para que el álbum tenga una experiencia más personalizada.
+              </p>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block font-body text-sm font-semibold text-primary mb-2" htmlFor="album-date">
+                    Fecha del evento
+                  </label>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-accent" />
+                    <input
+                      id="album-date"
+                      type="date"
+                      value={albumDate}
+                      onChange={(e) => setAlbumDate(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl font-body focus:outline-none focus:ring-2 focus:ring-accent/50"
+                    />
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={saveAlbumSettings}
+                  disabled={savingSettings}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent text-white font-body font-semibold hover:bg-accent/90 transition-all disabled:opacity-60"
+                >
+                  <Save className="h-4 w-4" />
+                  {savingSettings ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+                {settingsMessage && (
+                  <p
+                    className={`text-sm ${settingsMessageType === 'error' ? 'text-red-600' : 'text-green-600'}`}
+                    role="status"
+                  >
+                    {settingsMessage}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-5 mb-6">
+              <p className="font-body text-sm text-secondary mb-2">
+                Capacidad del plan
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-semibold">
+                  {albumHasLimit ? `${photos.length} / ${albumLimit} fotos` : 'Fotos ilimitadas'}
+                </span>
+                {albumHasLimit && (
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    (remainingAlbumPhotos || 0) > 0
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {remainingAlbumPhotos} disponibles
+                  </span>
+                )}
+              </div>
+            </div>
+
             {/* Upload Button */}
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
               <button
@@ -329,6 +518,7 @@ export default function AdminPage() {
                 <span className="font-heading text-xl text-primary">Subir fotos</span>
                 <span className="font-body text-secondary text-sm">
                   JPG, PNG, HEIC hasta 15MB cada una
+                  {albumHasLimit ? ` · Límite total ${albumLimit} fotos` : ''}
                 </span>
               </button>
             </div>
@@ -422,7 +612,7 @@ export default function AdminPage() {
             </div>
 
             <p className="font-body text-secondary mb-6">
-              Crea enlaces para que tus invitados suban sus fotos. Puedes limitar cuántas fotos puede subir cada uno.
+              Crea enlaces y comparte QR para que tus invitados suban sus fotos desde su celular.
             </p>
 
             {invites.length === 0 ? (
@@ -466,6 +656,14 @@ export default function AdminPage() {
 
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => openQrForInvite(invite)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-primary font-body text-sm rounded-full hover:bg-gray-50 transition-all"
+                      >
+                        <QrCode className="w-4 h-4" />
+                        QR
+                      </button>
+
+                      <button
                         onClick={() => copyToClipboard(invite.share_url, invite.id)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-primary font-body text-sm rounded-full hover:bg-gray-50 transition-all"
                       >
@@ -482,6 +680,14 @@ export default function AdminPage() {
                         )}
                       </button>
 
+                      <button
+                        onClick={() => shareInvite(invite)}
+                        className="p-2 text-primary hover:bg-gray-100 rounded-full transition-colors"
+                        title="Compartir invitación"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+
                       {invite.is_active && (
                         <button
                           onClick={() => revokeInvite(invite.id)}
@@ -496,6 +702,74 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* QR Modal */}
+        {showQrModal && qrInvite && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="font-heading text-xl text-primary">
+                    QR para invitación
+                  </h3>
+                  <p className="font-body text-sm text-secondary">
+                    {qrInvite.guest_name || 'Invitado'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowQrModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-secondary" />
+                </button>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 flex justify-center mb-4">
+                {creatingQr ? (
+                  <div className="w-56 h-56 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
+                  </div>
+                ) : qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="Código QR de invitación"
+                    className="w-56 h-56 rounded-lg"
+                  />
+                ) : (
+                  <div className="w-56 h-56 flex items-center justify-center text-sm text-secondary text-center">
+                    No se pudo generar el QR. Intenta de nuevo.
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <button
+                  onClick={downloadQr}
+                  disabled={!qrDataUrl}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-full font-body font-medium disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  Descargar
+                </button>
+                <button
+                  onClick={() => shareInvite(qrInvite)}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-primary rounded-full font-body font-medium"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Compartir
+                </button>
+              </div>
+
+              <button
+                onClick={() => copyToClipboard(qrInvite.share_url, `qr-link-${qrInvite.id}`)}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-primary rounded-full font-body font-medium"
+              >
+                <Copy className="w-4 h-4" />
+                {copiedId === `qr-link-${qrInvite.id}` ? 'Link copiado' : 'Copiar link'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -597,9 +871,14 @@ export default function AdminPage() {
                     value={newInviteMaxPhotos}
                     onChange={(e) => setNewInviteMaxPhotos(Number(e.target.value))}
                     min={1}
-                    max={100}
+                    max={albumHasLimit ? albumLimit : 9999}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl font-body focus:outline-none focus:ring-2 focus:ring-accent/50"
                   />
+                  {albumHasLimit && (
+                    <p className="mt-2 text-xs text-secondary">
+                      Tu plan permite un máximo total de {albumLimit} fotos.
+                    </p>
+                  )}
                 </div>
 
                 <button

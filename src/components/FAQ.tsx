@@ -22,12 +22,12 @@ const faqs: FAQItem[] = [
   {
     question: "¿Cuántas fotos puedo subir?",
     answer:
-      "Depende del plan que elijas: el plan Básico permite hasta 50 fotos, el Premium hasta 150, y el Deluxe ofrece fotos ilimitadas. Puedes actualizar tu plan en cualquier momento si necesitas más espacio.",
+      "Depende del plan que elijas: Plan 50 permite 50 fotos, Plan 200 permite 200 fotos y Plan Ilimitado no tiene tope. Puedes actualizar tu plan en cualquier momento.",
   },
   {
-    question: "¿Puedo personalizar las plantillas?",
+    question: "¿Todos los planes incluyen QR para invitados?",
     answer:
-      "Sí, puedes elegir entre diferentes plantillas según tu plan. El plan Básico incluye 1 plantilla, el Premium ofrece 3 plantillas premium, y el Deluxe te da acceso a todas las plantillas disponibles.",
+      "Sí. En todos los planes puedes generar invitaciones con link y QR para que tus invitados suban fotos desde su celular sin descargar apps.",
   },
   {
     question: "¿Por cuánto tiempo tengo acceso a mi álbum?",

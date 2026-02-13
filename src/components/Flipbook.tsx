@@ -5,26 +5,23 @@ import HTMLFlipBook from 'react-pageflip'
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Maximize2,
   Minimize2,
   Grid3X3,
   X,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
   Heart,
   Sparkles,
   ZoomIn,
+  ZoomOut,
   Calendar,
-  Download,
 } from 'lucide-react'
 
 interface FlipbookProps {
   photos: string[]
   title: string
   template: 'classic' | 'modern' | 'romantic' | 'elegant' | 'rustic' | 'bluebook'
-  musicUrl?: string
   weddingDate?: string
 }
 
@@ -179,18 +176,17 @@ function FloatingParticles({ color }: { color: string }) {
   )
 }
 
-export default function Flipbook({ photos, title, template = 'classic', musicUrl, weddingDate }: FlipbookProps) {
+export default function Flipbook({ photos, title, template = 'classic', weddingDate }: FlipbookProps) {
   const bookRef = useRef<FlipBookRef>(null)
-  const audioRef = useRef<HTMLAudioElement>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showGallery, setShowGallery] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set())
   const [showControls, setShowControls] = useState(true)
   const [zoomedPhoto, setZoomedPhoto] = useState<string | null>(null)
+  const [zoomScale, setZoomScale] = useState(1)
   const [isFlipping, setIsFlipping] = useState(false)
+  const [viewportWidth, setViewportWidth] = useState(1024)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const totalPages = photos.length + 2
@@ -223,11 +219,13 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (zoomedPhoto) {
-        if (e.key === 'Escape') setZoomedPhoto(null)
+        if (e.key === 'Escape') closeZoom()
         return
       }
       if (e.key === 'ArrowLeft') goToPrev()
       if (e.key === 'ArrowRight') goToNext()
+      if (e.key === 'Home') goToPage(0)
+      if (e.key === 'End') goToPage(totalPages - 1)
       if (e.key === 'Escape' && isFullscreen) toggleFullscreen()
       if (e.key === 'f') toggleFullscreen()
       if (e.key === 'g') setShowGallery(prev => !prev)
@@ -236,6 +234,15 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isFullscreen, zoomedPhoto])
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setViewportWidth(window.innerWidth)
+    }
+    updateViewport()
+    window.addEventListener('resize', updateViewport)
+    return () => window.removeEventListener('resize', updateViewport)
+  }, [])
 
   const onFlip = useCallback((e: FlipEvent) => {
     setIsFlipping(true)
@@ -249,6 +256,8 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
     bookRef.current?.pageFlip()?.turnToPage(page)
     setShowGallery(false)
   }
+  const goToCover = () => goToPage(0)
+  const goToBack = () => goToPage(totalPages - 1)
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -260,31 +269,51 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
     }
   }
 
-  const toggleMusic = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause()
-      } else {
-        audioRef.current.play()
-      }
-      setIsPlaying(!isPlaying)
-    }
-  }
-
-  const toggleMute = () => {
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
-    }
-  }
-
   const handleImageLoad = (index: number) => {
     setLoadedImages(prev => new Set([...prev, index]))
   }
 
+  const openZoom = (photo: string) => {
+    setZoomedPhoto(photo)
+    setZoomScale(1)
+  }
+
+  const closeZoom = () => {
+    setZoomedPhoto(null)
+    setZoomScale(1)
+  }
+
+  const clampZoom = (next: number) => Math.max(1, Math.min(3.5, next))
+
+  const zoomIn = () => setZoomScale(prev => clampZoom(prev + 0.25))
+  const zoomOut = () => setZoomScale(prev => clampZoom(prev - 0.25))
+
+  const handleZoomWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    if (e.deltaY < 0) {
+      zoomIn()
+    } else {
+      zoomOut()
+    }
+  }
+
+  const progressPercent = ((currentPage + 1) / totalPages) * 100
+  const pageLabel =
+    currentPage === 0
+      ? 'Portada'
+      : currentPage === totalPages - 1
+        ? 'Cierre'
+        : `Foto ${currentPage} de ${Math.max(totalPages - 2, 1)}`
+
   // Responsive dimensions
-  const bookWidth = isFullscreen ? 550 : 480
-  const bookHeight = isFullscreen ? 750 : 650
+  const bookWidth = isFullscreen
+    ? Math.min(650, viewportWidth - 48)
+    : Math.max(280, Math.min(560, viewportWidth - 40))
+  const bookHeight = Math.round(bookWidth * 1.35)
+  const minFlipWidth = Math.max(220, Math.round(bookWidth * 0.72))
+  const maxFlipWidth = Math.min(650, bookWidth)
+  const minFlipHeight = Math.max(300, Math.round(bookHeight * 0.72))
+  const maxFlipHeight = Math.max(420, bookHeight)
 
   return (
     <div
@@ -294,29 +323,67 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
           : 'relative'
         }`}
     >
-      {/* Audio element */}
-      {musicUrl && (
-        <audio ref={audioRef} src={musicUrl} loop preload="auto" />
-      )}
-
       {/* Photo Zoom Modal */}
       {zoomedPhoto && (
         <div
           className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-lg flex items-center justify-center p-4 animate-fadeIn cursor-zoom-out"
-          onClick={() => setZoomedPhoto(null)}
+          onClick={closeZoom}
         >
           <button
-            onClick={() => setZoomedPhoto(null)}
+            onClick={(e) => {
+              e.stopPropagation()
+              closeZoom()
+            }}
             className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
           >
             <X className="w-6 h-6 text-white" />
           </button>
-          <img
-            src={zoomedPhoto}
-            alt="Foto ampliada"
-            className="max-w-[95vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
+
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                zoomOut()
+              }}
+              className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              aria-label="Reducir zoom"
+            >
+              <ZoomOut className="w-5 h-5 text-white" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setZoomScale(1)
+              }}
+              className="px-3 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-sm text-white font-medium transition-colors"
+            >
+              {Math.round(zoomScale * 100)}%
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                zoomIn()
+              }}
+              className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              aria-label="Ampliar zoom"
+            >
+              <ZoomIn className="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+          <div className="max-w-[95vw] max-h-[90vh] overflow-auto" onWheel={handleZoomWheel}>
+            <img
+              src={zoomedPhoto}
+              alt="Foto ampliada"
+              className="mx-auto rounded-lg shadow-2xl object-contain transition-transform duration-150"
+              style={{
+                width: '100%',
+                transform: `scale(${zoomScale})`,
+                transformOrigin: 'center center',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
         </div>
       )}
 
@@ -374,34 +441,21 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
       <div className={`flex items-center justify-between w-full max-w-[560px] transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4') : 'opacity-100'
         }`}>
         <div className="flex items-center gap-2">
-          {musicUrl && (
-            <>
-              <button
-                onClick={toggleMusic}
-                className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
-                  }`}
-                title={isPlaying ? 'Pausar música' : 'Reproducir música'}
-              >
-                {isPlaying ? (
-                  <Pause className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
-                ) : (
-                  <Play className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
-                )}
-              </button>
-              <button
-                onClick={toggleMute}
-                className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
-                  }`}
-                title={isMuted ? 'Activar sonido' : 'Silenciar'}
-              >
-                {isMuted ? (
-                  <VolumeX className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
-                ) : (
-                  <Volume2 className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
-                )}
-              </button>
-            </>
-          )}
+          <button
+            onClick={goToCover}
+            className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
+            title="Ir a la portada"
+          >
+            <ChevronsLeft className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
+          </button>
+
+          <button
+            onClick={goToBack}
+            className={`p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
+            title="Ir al cierre"
+          >
+            <ChevronsRight className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -465,10 +519,10 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
             width={bookWidth}
             height={bookHeight}
             size="stretch"
-            minWidth={300}
-            maxWidth={650}
-            minHeight={420}
-            maxHeight={850}
+            minWidth={minFlipWidth}
+            maxWidth={maxFlipWidth}
+            minHeight={minFlipHeight}
+            maxHeight={maxFlipHeight}
             showCover={true}
             mobileScrollSupport={true}
             onFlip={onFlip}
@@ -570,7 +624,7 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
                           inset 0 0 0 1px rgba(255,255,255,0.5)
                         `,
                       }}
-                      onClick={() => setZoomedPhoto(photo)}
+                      onClick={() => openZoom(photo)}
                     >
                       {/* Subtle border effect */}
                       <div className={`absolute inset-0 border-4 ${styles.border} rounded-lg pointer-events-none z-10`} />
@@ -599,6 +653,9 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
                         <div className="bg-black/50 backdrop-blur-sm rounded-full p-3">
                           <ZoomIn className="w-6 h-6 text-white" />
                         </div>
+                      </div>
+                      <div className="absolute top-3 left-3 bg-black/45 text-white text-xs px-2 py-1 rounded-full">
+                        {index + 1}
                       </div>
                     </div>
                   </div>
@@ -664,6 +721,22 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
               </div>
             </Page>
           </HTMLFlipBook>
+
+          {/* Quick touch hotspots inside book only */}
+          <div className="absolute inset-0 z-10 pointer-events-none">
+            <button
+              type="button"
+              onClick={goToPrev}
+              className="pointer-events-auto absolute left-0 top-0 h-full w-1/4 md:hidden"
+              aria-label="Foto anterior"
+            />
+            <button
+              type="button"
+              onClick={goToNext}
+              className="pointer-events-auto absolute right-0 top-0 h-full w-1/4 md:hidden"
+              aria-label="Foto siguiente"
+            />
+          </div>
         </div>
       </div>
 
@@ -687,7 +760,7 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
             <div
               className="h-full rounded-full transition-all duration-700 ease-out"
               style={{
-                width: `${((currentPage + 1) / totalPages) * 100}%`,
+                width: `${progressPercent}%`,
                 background: `linear-gradient(90deg, ${styles.accentColor}, ${styles.accentColor}dd)`,
               }}
             />
@@ -695,6 +768,7 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
           <span className={`font-body text-sm whitespace-nowrap ${isFullscreen ? 'text-white/60' : 'text-secondary'
             }`}>
             {currentPage + 1} / {totalPages}
+            <span className="text-xs ml-2 opacity-70">{`(${pageLabel})`}</span>
           </span>
         </div>
 
@@ -712,7 +786,7 @@ export default function Flipbook({ photos, title, template = 'classic', musicUrl
       {/* Instructions - subtle */}
       <p className={`font-body text-xs transition-all duration-500 ${isFullscreen ? 'text-white/30' : 'text-secondary/40'
         } ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-        Usa ← → para navegar • F pantalla completa • G galería • Click en foto para ampliar
+        Usa ← → para navegar • Home/End para portada/cierre • F pantalla completa • G galería • Click en foto para ampliar
       </p>
 
       {/* Styles */}

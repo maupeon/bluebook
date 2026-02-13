@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Álbum Digital Interactivo para Bodas",
   description:
-    "Crea un flipbook digital interactivo con las fotos de tu boda. Comparte tus recuerdos con familia y amigos con un solo link. Desde $100 MXN.",
+    "Crea un flipbook digital interactivo con las fotos de tu boda. Comparte tus recuerdos con familia y amigos con un solo link y QR. Desde $200 MXN.",
   keywords: [
     "álbum digital boda",
     "flipbook boda",
@@ -49,10 +49,10 @@ const productSchema = {
   image: "https://bluebook.mx/og-image.jpg",
   offers: {
     "@type": "AggregateOffer",
-    lowPrice: "100",
-    highPrice: "500",
+    lowPrice: "200",
+    highPrice: "2000",
     priceCurrency: "MXN",
-    offerCount: "2",
+    offerCount: "3",
     availability: "https://schema.org/InStock",
     url: "https://bluebook.mx/album-digital",
   },
@@ -74,7 +74,7 @@ const softwareSchema = {
   operatingSystem: "Web",
   offers: {
     "@type": "Offer",
-    price: "100",
+    price: "200",
     priceCurrency: "MXN",
   },
   aggregateRating: {
