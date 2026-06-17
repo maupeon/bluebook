@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { CONTACT_INFO } from '@/lib/language'
+import { formatMXN } from '@/lib/weddingPlans'
 
 const SUPPORT_EMAIL = CONTACT_INFO.email
 
@@ -199,6 +200,221 @@ export async function sendInviteEmail({ to, albumTitle, guestName, inviteUrl, ma
     return { success: true, data }
   } catch (error) {
     console.error('Error sending invite email:', error)
+    return { success: false, error }
+  }
+}
+
+interface LeadNotificationLead {
+  service: 'planner' | 'invitations'
+  partner1Name: string
+  partner1Phone: string
+  partner2Name: string | null
+  partner2Phone: string | null
+  email: string | null
+  weddingDate: string | null
+  noDateYet: boolean
+  city: string | null
+  guestCount: number | null
+  budgetRange: string | null
+  styles: string[]
+  priorities: string[]
+  quotedPriceMx: number | null
+  language: string
+}
+
+const LEAD_BUDGET_LABELS: Record<string, string> = {
+  lt100k: 'Menos de $100,000',
+  '100to200k': '$100,000 – $200,000',
+  '200to400k': '$200,000 – $400,000',
+  gt400k: 'Más de $400,000',
+  na: 'Prefieren no decir',
+}
+
+export async function sendLeadNotificationEmail({ lead }: { lead: LeadNotificationLead }) {
+  const resend = getResendClient()
+  if (!resend) {
+    return { success: false, error: 'Email service not configured' }
+  }
+
+  try {
+    const serviceLabel = lead.service === 'planner' ? 'Planner' : 'Invitaciones'
+    const coupleLabel = lead.partner2Name
+      ? `${lead.partner1Name} y ${lead.partner2Name}`
+      : lead.partner1Name
+
+    const waLink = (phone: string) =>
+      `<a href="https://wa.me/${phone.replace('+', '')}" style="color: #C96F5A;">${phone}</a>`
+
+    const rows: Array<[string, string]> = [
+      ['Servicio', serviceLabel],
+      ['Pareja', coupleLabel],
+      [`WhatsApp ${lead.partner1Name}`, waLink(lead.partner1Phone)],
+      ...(lead.partner2Phone
+        ? ([[`WhatsApp ${lead.partner2Name || 'pareja'}`, waLink(lead.partner2Phone)]] as Array<
+            [string, string]
+          >)
+        : []),
+      ['Correo', lead.email || '—'],
+      ['Fecha', lead.weddingDate || (lead.noDateYet ? 'Aún sin fecha' : '—')],
+      ['Ciudad', lead.city || '—'],
+      ['Invitados', lead.guestCount !== null ? String(lead.guestCount) : '—'],
+      ['Presupuesto', lead.budgetRange ? LEAD_BUDGET_LABELS[lead.budgetRange] || lead.budgetRange : '—'],
+      ['Estilos', lead.styles.length > 0 ? lead.styles.join(', ') : '—'],
+      ['Prioridades', lead.priorities.length > 0 ? lead.priorities.join(', ') : '—'],
+      [
+        'Precio cotizado',
+        lead.quotedPriceMx !== null
+          ? `$${lead.quotedPriceMx.toLocaleString('es-MX')} MXN${lead.service === 'planner' ? ' al mes' : ''}`
+          : 'Cotización personalizada',
+      ],
+      ['Idioma', lead.language === 'en' ? 'Inglés' : 'Español'],
+    ]
+
+    const tableRows = rows
+      .map(
+        ([label, value]) => `
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #5A6A84; font-size: 13px; white-space: nowrap;">${label}</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #1D2E4B; font-size: 14px;">${value}</td>
+          </tr>`
+      )
+      .join('')
+
+    const { data, error } = await resend.emails.send({
+      from: 'Blue Book <hola@bluebook.mx>',
+      replyTo: SUPPORT_EMAIL,
+      to: [CONTACT_INFO.email],
+      subject: `Nueva pareja: ${coupleLabel} — ${serviceLabel}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FBF8F5; margin: 0; padding: 40px 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #E4D8CF; border-radius: 16px; overflow: hidden;">
+            <div style="padding: 28px 30px 12px;">
+              <p style="margin: 0; color: #C96F5A; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Nueva solicitud</p>
+              <h1 style="margin: 8px 0 0; color: #1D2E4B; font-size: 22px; font-weight: 600;">
+                ${coupleLabel} — ${serviceLabel}
+              </h1>
+            </div>
+            <div style="padding: 16px 14px 28px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                ${tableRows}
+              </table>
+              <p style="margin: 20px 16px 0; color: #5A6A84; font-size: 13px;">
+                Gestiónala en el panel (sección Clientes).
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    })
+
+    if (error) {
+      console.error('Error sending lead notification email:', error)
+      return { success: false, error }
+    }
+
+    console.log('Lead notification email sent successfully:', data)
+    return { success: true, data }
+  } catch (error) {
+    console.error('Error sending lead notification email:', error)
+    return { success: false, error }
+  }
+}
+
+interface PaymentNotificationParams {
+  service: 'planner' | 'invitations'
+  partner1Name: string
+  partner2Name: string | null
+  email: string | null
+  amountMx: number | null
+}
+
+export async function sendPaymentNotificationEmail({
+  service,
+  partner1Name,
+  partner2Name,
+  email,
+  amountMx,
+}: PaymentNotificationParams) {
+  const resend = getResendClient()
+  if (!resend) {
+    return { success: false, error: 'Email service not configured' }
+  }
+
+  try {
+    const coupleLabel = partner2Name ? `${partner1Name} y ${partner2Name}` : partner1Name
+    const productLabel =
+      service === 'planner'
+        ? `Planner ${formatMXN(amountMx ?? 0)}/mes`
+        : amountMx !== null
+          ? `Invitaciones ${formatMXN(amountMx)}`
+          : 'Invitaciones'
+
+    const rows: Array<[string, string]> = [
+      ['Pareja', coupleLabel],
+      ['Producto', productLabel],
+      ['Correo', email || '—'],
+    ]
+
+    const tableRows = rows
+      .map(
+        ([label, value]) => `
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #5A6A84; font-size: 13px; white-space: nowrap;">${label}</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #1D2E4B; font-size: 14px;">${value}</td>
+          </tr>`
+      )
+      .join('')
+
+    const { data, error } = await resend.emails.send({
+      from: 'Blue Book <hola@bluebook.mx>',
+      replyTo: SUPPORT_EMAIL,
+      to: [CONTACT_INFO.email],
+      subject: `Pago recibido: ${partner1Name} — ${productLabel}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FBF8F5; margin: 0; padding: 40px 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #E4D8CF; border-radius: 16px; overflow: hidden;">
+            <div style="padding: 28px 30px 12px;">
+              <p style="margin: 0; color: #C96F5A; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Pago recibido</p>
+              <h1 style="margin: 8px 0 0; color: #1D2E4B; font-size: 22px; font-weight: 600;">
+                ${coupleLabel} — ${productLabel}
+              </h1>
+            </div>
+            <div style="padding: 16px 14px 28px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                ${tableRows}
+              </table>
+              <p style="margin: 20px 16px 0; color: #5A6A84; font-size: 13px;">
+                Activa la boda en el panel (sección Clientes).
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    })
+
+    if (error) {
+      console.error('Error sending payment notification email:', error)
+      return { success: false, error }
+    }
+
+    console.log('Payment notification email sent successfully:', data)
+    return { success: true, data }
+  } catch (error) {
+    console.error('Error sending payment notification email:', error)
     return { success: false, error }
   }
 }

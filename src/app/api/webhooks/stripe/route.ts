@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { nanoid } from 'nanoid'
-import { sendAdminEmail } from '@/lib/email'
+import { sendAdminEmail, sendPaymentNotificationEmail } from '@/lib/email'
 import { getAlbumPlan, UNLIMITED_PHOTO_LIMIT } from '@/lib/albumPlans'
+import { AGENT_PLAN, getInvitationTier } from '@/lib/weddingPlans'
 
 const getStripeClient = (): Stripe | null => {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -120,10 +121,70 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Para planes de invitaciones, puedes agregar lógica aquí
-    if (productType === 'invitaciones') {
-      // Tu lógica existente para invitaciones
-      console.log('Pago de invitaciones completado:', metadata.planId)
+    // Productos de boda (planner / invitaciones): marcar la solicitud como pagada.
+    // No se crea la boda aquí — la planner la activa manualmente.
+    if (productType === 'planner' || productType === 'invitations') {
+      const leadId = metadata.leadId
+
+      if (!leadId) {
+        console.error('Pago de boda sin leadId en metadata:', session.id)
+        return NextResponse.json({ received: true })
+      }
+
+      const { data: lead, error: leadError } = await supabase
+        .from('couple_leads')
+        .select(
+          'id, service, guest_count, email, partner1_name, partner2_name, stripe_session_id'
+        )
+        .eq('id', leadId)
+        .maybeSingle()
+
+      if (leadError || !lead) {
+        console.error('Solicitud no encontrada para pago de boda:', leadId, leadError)
+        return NextResponse.json({ received: true })
+      }
+
+      // Idempotencia: si ya está marcada con esta sesión, no reprocesar.
+      if (lead.stripe_session_id === session.id) {
+        console.log('Pago de boda ya procesado para sesión Stripe:', session.id)
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+
+      const { error: updateError } = await supabase
+        .from('couple_leads')
+        .update({
+          paid_at: new Date().toISOString(),
+          stripe_session_id: session.id,
+          stripe_customer_id: typeof session.customer === 'string' ? session.customer : null,
+          stripe_subscription_id:
+            typeof session.subscription === 'string' ? session.subscription : null,
+        })
+        .eq('id', leadId)
+
+      if (updateError) {
+        console.error('Error actualizando solicitud pagada:', updateError)
+        return NextResponse.json({ error: 'Failed to update lead' }, { status: 500 })
+      }
+
+      console.log('Pago de boda registrado para solicitud:', leadId, productType)
+
+      // Notificación a la planner (best-effort; nunca lanza).
+      // Usar el monto real cobrado por Stripe; si no viene, derivar como respaldo.
+      const sessionAmountMx =
+        typeof session.amount_total === 'number' ? session.amount_total / 100 : null
+      const amountMx =
+        sessionAmountMx ??
+        (productType === 'planner'
+          ? AGENT_PLAN.priceMxMonthly
+          : getInvitationTier(lead.guest_count ?? 0).priceMx)
+
+      await sendPaymentNotificationEmail({
+        service: productType,
+        partner1Name: lead.partner1_name || '',
+        partner2Name: lead.partner2_name || null,
+        email: lead.email || null,
+        amountMx,
+      })
     }
   }
 

@@ -14,10 +14,28 @@
   --dark: #2c3e50;
   
   /* Semantic colors */
-  --background: var(--light);
-  --foreground: var(--dark);
+  --background: var(--bone);
+  --foreground: var(--ink);
   --card-bg: #ffffff;
   --border: #c7ddf5;
+
+  /* Editorial palette (planner / couples experience) */
+  --bone: #fbf8f5;
+  --cream: #fcfaf8;
+  --ink: #1d2e4b;
+  --ink-soft: #3c4d6e;
+  --ink-muted: #5a6a84;
+  --sand: #e4d8cf;
+  --sand-soft: #efe6e0;
+  --terra: #c96f5a;
+  --terra-deep: #a4533e;
+  --terra-light: #f8d8cb;
+  --pale-green: #edf3ec;
+  --pale-green-ink: #346538;
+  --pale-blue: #e7f0fa;
+  --pale-blue-ink: #1f6c9f;
+  --pale-yellow: #fbf3db;
+  --pale-yellow-ink: #956400;
 }
 
 @theme inline {
@@ -36,7 +54,25 @@
   --color-foreground: var(--foreground);
   --color-card-bg: var(--card-bg);
   --color-border: var(--border);
-  
+
+  /* Editorial palette */
+  --color-bone: var(--bone);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-sand: var(--sand);
+  --color-sand-soft: var(--sand-soft);
+  --color-terra: var(--terra);
+  --color-terra-deep: var(--terra-deep);
+  --color-terra-light: var(--terra-light);
+  --color-pale-green: var(--pale-green);
+  --color-pale-green-ink: var(--pale-green-ink);
+  --color-pale-blue: var(--pale-blue);
+  --color-pale-blue-ink: var(--pale-blue-ink);
+  --color-pale-yellow: var(--pale-yellow);
+  --color-pale-yellow-ink: var(--pale-yellow-ink);
+
   /* Fonts */
   --font-heading: var(--font-cormorant);
   --font-body: var(--font-montserrat);
@@ -51,8 +87,8 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bone);
+  color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
   line-height: 1.6;
 }
@@ -69,27 +105,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--muted);
+  background: var(--sand-soft);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--secondary);
+  background: var(--sand);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+  background: var(--ink-muted);
 }
 
 /* Selection */
 ::selection {
-  background: var(--accent);
-  color: var(--primary);
+  background: var(--terra-light);
+  color: var(--ink);
 }
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--terra);
   outline-offset: 2px;
 }
 
@@ -99,14 +135,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Gradient backgrounds */
-.gradient-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-}
-
-.gradient-accent {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-}
-
 .gradient-hero {
   background: linear-gradient(180deg, var(--light) 0%, #eef2f7 100%);
 }
@@ -192,38 +220,9 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1.05);
 }
 
-/* Glassmorphism utilities */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.glass-dark {
-  background: rgba(107, 154, 196, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(107, 154, 196, 0.2);
-}
-
-/* Radial gradient background */
-.bg-gradient-radial {
-  background: radial-gradient(circle, var(--tw-gradient-from), var(--tw-gradient-to));
-}
-
 /* Perspective for 3D effects */
 .perspective-1000 {
   perspective: 1000px;
-}
-
-/* Custom shadows */
-.shadow-glow-accent {
-  box-shadow: 0 0 30px rgba(244, 167, 185, 0.3);
-}
-
-.shadow-glow-primary {
-  box-shadow: 0 0 30px rgba(107, 154, 196, 0.3);
 }
 
 /* Smooth entrance animations */
@@ -248,4 +247,95 @@ h1, h2, h3, h4, h5, h6 {
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
+
+/* =================================
+   EDITORIAL / PLANNER EXPERIENCE
+================================= */
+
+/* Scroll-entry reveal (driven by IntersectionObserver in <Reveal/>) */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Chat mock message entrance */
+@keyframes chat-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-chat-in {
+  opacity: 0;
+  animation: chat-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Typing indicator dots */
+@keyframes typing-dot {
+  0%, 60%, 100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.typing-dot {
+  animation: typing-dot 1.2s ease-in-out infinite;
+}
+
+/* Soft breathing pulse for status dots */
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+/* Ambient drifting blob for hero backgrounds (fixed, low opacity) */
+@keyframes drift {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(4%, -3%) scale(1.06);
+  }
+}
+
+.animate-drift {
+  animation: drift 22s ease-in-out infinite;
+}
 

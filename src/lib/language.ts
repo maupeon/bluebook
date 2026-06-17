@@ -9,7 +9,7 @@ export const CONTACT_INFO = {
   whatsappNumber: "+524422029374",
   whatsappUrl: "https://wa.me/524422029374",
   email: "majomer9@gmail.com",
-  cityEs: "Ciudad de Mexico, Mexico",
+  cityEs: "Ciudad de México, México",
   cityEn: "Mexico City, Mexico",
 } as const;
 
@@ -18,5 +18,5 @@ export function parseLanguage(value?: string | null): Language {
 }
 
 export function getLanguageName(language: Language) {
-  return language === "en" ? "English" : "Espanol";
+  return language === "en" ? "English" : "Español";
 }

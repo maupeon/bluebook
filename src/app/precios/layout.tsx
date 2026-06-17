@@ -3,17 +3,17 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Planes y precios transparentes para álbumes digitales de boda. $200 MXN por 50 fotos, $500 MXN por 200 fotos y $2000 MXN por fotos ilimitadas.",
+    "Su wedding planner por $1,000 MXN al mes: un asistente 24/7 en WhatsApp más una planner real supervisando su boda. Invitaciones y confirmaciones incluidas. Cancelan cuando quieran.",
   keywords: [
-    "precios álbum digital boda",
-    "cuánto cuesta álbum boda",
-    "flipbook boda precio",
-    "qr para invitados boda",
+    "precio wedding planner",
+    "cuánto cuesta una wedding planner",
+    "wedding planner con IA",
+    "planner de bodas WhatsApp",
   ],
   openGraph: {
-    title: "Precios y Planes | Blue Book",
+    title: "Precios | Blue Book",
     description:
-      "Álbumes digitales desde $200 MXN con QR para invitados en todos los planes.",
+      "Una wedding planner real más un asistente 24/7 por $1,000 MXN al mes. Una fracción de lo que cobra una planner tradicional.",
     url: "https://bluebook.mx/precios",
   },
 };
@@ -22,12 +22,13 @@ const productSchemas = [
   {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: "Álbum Digital Plan 50 - Blue Book",
-    description: "Hasta 50 fotos, flipbook interactivo y QR para invitados.",
+    name: "Planner con IA - Blue Book",
+    description:
+      "Wedding planner por WhatsApp: invitaciones y confirmaciones incluidas, presupuesto, pagos, tareas y recordatorios, con una wedding planner real supervisando. Disponible 24/7.",
     brand: { "@type": "Brand", name: "Blue Book" },
     offers: {
       "@type": "Offer",
-      price: "200",
+      price: "1000",
       priceCurrency: "MXN",
       availability: "https://schema.org/InStock",
       url: "https://bluebook.mx/precios",
@@ -37,27 +38,13 @@ const productSchemas = [
   {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: "Álbum Digital Plan 200 - Blue Book",
-    description: "Hasta 200 fotos, 3 plantillas y QR para invitados.",
+    name: "Invitaciones + confirmaciones - Blue Book",
+    description:
+      "Invitaciones digitales con confirmaciones automáticas por WhatsApp y panel de seguimiento. Pago único por evento según el número de invitados.",
     brand: { "@type": "Brand", name: "Blue Book" },
     offers: {
       "@type": "Offer",
-      price: "500",
-      priceCurrency: "MXN",
-      availability: "https://schema.org/InStock",
-      url: "https://bluebook.mx/precios",
-      priceValidUntil: "2027-12-31",
-    },
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: "Álbum Digital Plan Ilimitado - Blue Book",
-    description: "Fotos ilimitadas, todas las plantillas y QR para invitados.",
-    brand: { "@type": "Brand", name: "Blue Book" },
-    offers: {
-      "@type": "Offer",
-      price: "2000",
+      price: "990",
       priceCurrency: "MXN",
       availability: "https://schema.org/InStock",
       url: "https://bluebook.mx/precios",
@@ -72,26 +59,26 @@ const faqSchema = {
   mainEntity: [
     {
       "@type": "Question",
-      name: "¿Los 3 planes incluyen QR para invitados?",
+      name: "¿Qué incluye el plan de $1,000 al mes?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Sí. Todos los planes incluyen invitaciones con link y QR para que invitados suban fotos desde su celular.",
+        text: "Invitaciones y confirmaciones incluidas, seguimiento de tareas, control de presupuesto y fechas de pago, recordatorios para ustedes y sus invitados, y respuestas 24/7 en WhatsApp, con una wedding planner real supervisando su boda.",
       },
     },
     {
       "@type": "Question",
-      name: "¿Qué cambia entre planes?",
+      name: "¿Por qué cuesta menos que una planner tradicional?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Cambia principalmente el volumen de fotos y el acceso a plantillas: 50, 200 o ilimitadas.",
+        text: "El asistente con IA se encarga del volumen del día a día y la planner real concentra su tiempo en lo que necesita criterio humano. Llevamos presupuesto, pagos, tareas y confirmaciones; no atendemos la boda físicamente ni negociamos contratos en persona.",
       },
     },
     {
       "@type": "Question",
-      name: "¿Es pago único?",
+      name: "¿Hay plazos forzosos?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Sí. Es un pago único en MXN con acceso de por vida al álbum.",
+        text: "No. El plan es mes a mes y lo cancelan cuando quieran, con un mensaje.",
       },
     },
   ],

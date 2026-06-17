@@ -12,20 +12,21 @@ export function Footer() {
 
   const footerLinks = {
     product: [
-      { href: "/album-digital", label: isEnglish ? "Digital Album" : "Album Digital" },
-      { href: "/album-digital#pricing", label: isEnglish ? "Plans & Pricing" : "Planes y Precios" },
-      { href: "/album-digital#album-form", label: isEnglish ? "Customize Album" : "Personalizar Album" },
+      { href: "/servicios", label: isEnglish ? "AI Wedding Planner" : "Planner con IA" },
+      { href: "/precios", label: isEnglish ? "Pricing" : "Precios" },
+      { href: "/acceso", label: isEnglish ? "Dashboard sign in" : "Acceso al panel" },
+      { href: "/album-digital", label: isEnglish ? "Digital Album" : "Álbum Digital" },
     ],
     company: [
       { href: "/precios", label: isEnglish ? "Pricing" : "Precios" },
       { href: "/contacto", label: isEnglish ? "Contact" : "Contacto" },
-      { href: "/terminos", label: isEnglish ? "Terms and Conditions" : "Terminos y Condiciones" },
-      { href: "/privacidad", label: isEnglish ? "Privacy Policy" : "Politica de Privacidad" },
+      { href: "/terminos", label: isEnglish ? "Terms and Conditions" : "Términos y Condiciones" },
+      { href: "/privacidad", label: isEnglish ? "Privacy Policy" : "Política de Privacidad" },
     ],
   };
 
   return (
-    <footer className="bg-primary text-white">
+    <footer className="bg-ink text-white">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
@@ -45,27 +46,27 @@ export function Footer() {
             </Link>
             <p className="font-body text-sm text-white/70 leading-relaxed mb-6">
               {isEnglish
-                ? "Create interactive digital albums for your wedding. Share your memories with an elegant and unique flipbook."
-                : "Crea albumes digitales interactivos para tu boda. Comparte tus recuerdos con un flipbook elegante y unico."}
+                ? "A wedding planner with a WhatsApp assistant that keeps your day-to-day organized, from budget to guest list."
+                : "Una wedding planner con asistente en WhatsApp que lleva el día a día de su boda, del presupuesto a la lista de invitados."}
             </p>
             <div className="flex gap-4">
               <a
                 href={CONTACT_INFO.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent transition-colors duration-300"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-terra transition-colors duration-300"
                 aria-label="Instagram"
               >
-                <Instagram className="w-5 h-5" />
+                <Instagram className="w-5 h-5" strokeWidth={1.5} />
               </a>
               <a
                 href={CONTACT_INFO.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent transition-colors duration-300"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-terra transition-colors duration-300"
                 aria-label="WhatsApp"
               >
-                <MessageCircle className="w-5 h-5" />
+                <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
               </a>
             </div>
           </div>
@@ -80,7 +81,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-body text-sm text-white/70 hover:text-accent transition-colors duration-300"
+                    className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
                   >
                     {link.label}
                   </Link>
@@ -99,7 +100,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-body text-sm text-white/70 hover:text-accent transition-colors duration-300"
+                    className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
                   >
                     {link.label}
                   </Link>
@@ -115,25 +116,25 @@ export function Footer() {
             </h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                <Mail className="w-5 h-5 text-terra mt-0.5 flex-shrink-0" strokeWidth={1.5} />
                 <a
                   href={`mailto:${CONTACT_INFO.email}`}
-                  className="font-body text-sm text-white/70 hover:text-accent transition-colors duration-300"
+                  className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
                 >
                   {CONTACT_INFO.email}
                 </a>
               </li>
               <li className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                <Phone className="w-5 h-5 text-terra mt-0.5 flex-shrink-0" strokeWidth={1.5} />
                 <a
                   href={`tel:${CONTACT_INFO.whatsappNumber}`}
-                  className="font-body text-sm text-white/70 hover:text-accent transition-colors duration-300"
+                  className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
                 >
                   {CONTACT_INFO.whatsappDisplay}
                 </a>
               </li>
               <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                <MapPin className="w-5 h-5 text-terra mt-0.5 flex-shrink-0" strokeWidth={1.5} />
                 <span className="font-body text-sm text-white/70">
                   {isEnglish ? CONTACT_INFO.cityEn : CONTACT_INFO.cityEs}
                 </span>
@@ -154,7 +155,7 @@ export function Footer() {
             </p>
             <p className="font-body text-sm text-white/50 flex items-center gap-1">
               {isEnglish ? "Made with" : "Hecho con"}{" "}
-              <Heart className="w-4 h-4 text-accent fill-accent" />{" "}
+              <Heart className="w-4 h-4 text-terra fill-terra" strokeWidth={1.5} />{" "}
               {isEnglish ? "for unforgettable couples" : "para parejas especiales"}
             </p>
           </div>
