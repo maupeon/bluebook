@@ -20,10 +20,24 @@ export interface CoupleWedding {
 }
 
 export interface BudgetSummary {
+  /** Lo que la planner estimó (weddings.budget_total). Puede no existir aún. */
   budgetTotal: number | null;
+  /** Pagado a proveedores. NO incluye los honorarios de la planner. */
   paid: number;
+  /** Programado con fecha y todavía sin pagar: un subconjunto del saldo. */
   pending: number;
+  /** Total contratado: la suma de las partidas, o de los proveedores contratados. */
   contracted: number;
+  /** El saldo del Checklist: contratado - pagado. Siempre derivado, nunca guardado. */
+  balance: number;
+  /** Honorarios de la planner, fuera del gasto con proveedores. */
+  feesPaid: number;
+  feesPending: number;
+  /**
+   * Pagado a proveedores que no cuelga de ninguna partida. Es la diferencia
+   * entre este resumen y la suma del checklist: se enseña en vez de esconderse.
+   */
+  unlinkedPaid: number;
 }
 
 export interface PanelVendor {
@@ -35,13 +49,75 @@ export interface PanelVendor {
   contractedAmount: number | null;
 }
 
+/**
+ * 'anticipo' y 'parcialidad' son pagos a proveedor y cuentan como gasto de la
+ * boda; 'honorarios' es lo que la pareja le paga a la planner y se enseña
+ * aparte. Sin la migración 0010 la columna no existe y todo se lee como
+ * 'parcialidad', que es justo lo que el panel asumía antes.
+ */
+export type PaymentKind = "anticipo" | "parcialidad" | "honorarios";
+
 export interface PanelPayment {
   id: string;
   vendorId: string | null;
+  vendorItemId: string | null;
   concept: string;
   amount: number;
   dueDate: string | null;
   paidAt: string | null;
+  kind: PaymentKind;
+}
+
+/**
+ * Una partida contratada, tal como la publica la vista v_checklist_pagos: el
+ * nivel más fino del checklist (categoría -> proveedor -> partida). El saldo
+ * llega ya derivado de la vista; aquí nunca se recalcula ni se guarda.
+ */
+export interface ChecklistItem {
+  id: string; // vendor_item_id
+  vendorId: string;
+  vendorName: string;
+  category: string;
+  concept: string;
+  details: string | null;
+  contracted: number;
+  /** Cuando la partida es precio x cantidad (el banquete: 400 x $1,175). */
+  unitPrice: number | null;
+  qty: number | null;
+  qtySource: string;
+  paid: number;
+  balance: number;
+  scheduledUnpaid: number;
+  nextDueDate: string | null;
+}
+
+export interface ChecklistVendorGroup {
+  vendorId: string;
+  vendorName: string;
+  items: ChecklistItem[];
+  contracted: number;
+  paid: number;
+  balance: number;
+  nextDueDate: string | null;
+}
+
+export interface ChecklistCategoryGroup {
+  category: string;
+  vendors: ChecklistVendorGroup[];
+  contracted: number;
+  paid: number;
+  balance: number;
+}
+
+export interface ChecklistSummary {
+  categories: ChecklistCategoryGroup[];
+  itemCount: number;
+  contracted: number;
+  paid: number;
+  balance: number;
+  scheduledUnpaid: number;
+  /** true si falta la vista v_checklist_pagos (migración 0010 pendiente). */
+  unavailable: boolean;
 }
 
 export interface PanelTask {
@@ -109,11 +185,235 @@ export interface PanelBundle {
   guestList: PanelGuest[];
   messages: PanelMessage[];
   messagesUnavailable?: boolean; // true si falta la tabla couple_messages
+  checklist: ChecklistSummary;
 }
 
 function toNum(v: unknown): number {
   const n = typeof v === "string" ? parseFloat(v) : (v as number);
   return Number.isFinite(n) ? n : 0;
+}
+
+function toNumOrNull(v: unknown): number | null {
+  if (v == null) return null;
+  const n = typeof v === "string" ? parseFloat(v) : (v as number);
+  return Number.isFinite(n) ? n : null;
+}
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+type PgError = { code?: string | null; message?: string | null } | null;
+
+/** 42P01: la relación todavía no existe (migración pendiente). */
+function isMissingRelation(error: PgError, relation: string): boolean {
+  if (!error) return false;
+  return error.code === "42P01" || Boolean(error.message?.includes(relation));
+}
+
+/** 42703: la columna todavía no existe (migración pendiente). */
+function isMissingColumn(error: PgError, column: string): boolean {
+  if (!error) return false;
+  return error.code === "42703" || Boolean(error.message?.includes(column));
+}
+
+const PAYMENT_KINDS: PaymentKind[] = ["anticipo", "parcialidad", "honorarios"];
+
+const PAYMENT_COLUMNS =
+  "id, vendor_id, vendor_item_id, concept, amount, due_date, paid_at, kind";
+// Las columnas que payments tenía antes de la migración 0010.
+const PAYMENT_COLUMNS_LEGACY =
+  "id, vendor_id, concept, amount, due_date, paid_at";
+
+type PaymentRow = {
+  id: string;
+  vendor_id: string | null;
+  vendor_item_id?: string | null;
+  concept: string;
+  amount: unknown;
+  due_date: string | null;
+  paid_at: string | null;
+  kind?: string | null;
+};
+
+/**
+ * Los pagos de la boda. `vendor_item_id` y `kind` llegan con la migración 0010:
+ * si aún no está aplicada Postgres responde 42703 y releemos con las columnas
+ * de siempre, leyendo cada pago como parcialidad a proveedor.
+ */
+async function fetchPayments(
+  supabase: AdminClient,
+  weddingId: string
+): Promise<PanelPayment[]> {
+  const read = (columns: string) =>
+    supabase
+      .from("payments")
+      .select(columns)
+      .eq("wedding_id", weddingId)
+      .order("due_date", { ascending: true, nullsFirst: false });
+
+  let res = await read(PAYMENT_COLUMNS);
+  if (res.error && isMissingColumn(res.error, "kind")) {
+    res = await read(PAYMENT_COLUMNS_LEGACY);
+  }
+
+  const rows = (res.data ?? []) as unknown as PaymentRow[];
+  return rows.map((p) => ({
+    id: p.id,
+    vendorId: p.vendor_id ?? null,
+    vendorItemId: p.vendor_item_id ?? null,
+    concept: p.concept,
+    amount: toNum(p.amount),
+    dueDate: p.due_date ?? null,
+    paidAt: p.paid_at ?? null,
+    kind: PAYMENT_KINDS.includes(p.kind as PaymentKind)
+      ? (p.kind as PaymentKind)
+      : "parcialidad",
+  }));
+}
+
+const CHECKLIST_COLUMNS =
+  "vendor_item_id, vendor_id, category, vendor_name, concept, details, contracted_amount, unit_price, qty, qty_source, pagado, saldo, programado_sin_pagar, proximo_vencimiento";
+
+type ChecklistRow = {
+  vendor_item_id: string;
+  vendor_id: string;
+  category: string | null;
+  vendor_name: string | null;
+  concept: string;
+  details: string | null;
+  contracted_amount: unknown;
+  unit_price: unknown;
+  qty: unknown;
+  qty_source: string | null;
+  pagado: unknown;
+  saldo: unknown;
+  programado_sin_pagar: unknown;
+  proximo_vencimiento: string | null;
+};
+
+function emptyChecklist(unavailable: boolean): ChecklistSummary {
+  return {
+    categories: [],
+    itemCount: 0,
+    contracted: 0,
+    paid: 0,
+    balance: 0,
+    scheduledUnpaid: 0,
+    unavailable,
+  };
+}
+
+/**
+ * Lee v_checklist_pagos y la reagrupa como en el papel: categoría -> proveedor
+ * -> partida. Si la migración 0010 no está aplicada la vista no existe (42P01)
+ * y devolvemos `unavailable` para que el panel omita la sección sin romperse,
+ * igual que ya se hace con couple_messages.
+ */
+async function fetchChecklist(
+  supabase: AdminClient,
+  weddingId: string
+): Promise<ChecklistSummary> {
+  const { data, error } = await supabase
+    .from("v_checklist_pagos")
+    .select(CHECKLIST_COLUMNS)
+    .eq("wedding_id", weddingId)
+    .order("category", { ascending: true })
+    .order("vendor_sort_order", { ascending: true })
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    return emptyChecklist(isMissingRelation(error, "v_checklist_pagos"));
+  }
+
+  const rows = (data ?? []) as unknown as ChecklistRow[];
+
+  const categories: ChecklistCategoryGroup[] = [];
+  const byCategory = new Map<string, ChecklistCategoryGroup>();
+  // Un mismo proveedor puede facturar en dos categorías: la llave lleva las dos.
+  const byVendor = new Map<string, ChecklistVendorGroup>();
+
+  for (const row of rows) {
+    const item: ChecklistItem = {
+      id: row.vendor_item_id,
+      vendorId: row.vendor_id,
+      vendorName: (row.vendor_name ?? "").trim(),
+      category: (row.category ?? "otro").trim() || "otro",
+      concept: row.concept,
+      details: row.details ?? null,
+      contracted: toNum(row.contracted_amount),
+      unitPrice: toNumOrNull(row.unit_price),
+      qty: toNumOrNull(row.qty),
+      qtySource: row.qty_source ?? "fijo",
+      paid: toNum(row.pagado),
+      balance: toNum(row.saldo),
+      scheduledUnpaid: toNum(row.programado_sin_pagar),
+      nextDueDate: row.proximo_vencimiento ?? null,
+    };
+
+    let category = byCategory.get(item.category);
+    if (!category) {
+      category = {
+        category: item.category,
+        vendors: [],
+        contracted: 0,
+        paid: 0,
+        balance: 0,
+      };
+      byCategory.set(item.category, category);
+      categories.push(category);
+    }
+
+    const vendorKey = `${item.category}::${item.vendorId}`;
+    let vendor = byVendor.get(vendorKey);
+    if (!vendor) {
+      vendor = {
+        vendorId: item.vendorId,
+        vendorName: item.vendorName,
+        items: [],
+        contracted: 0,
+        paid: 0,
+        balance: 0,
+        nextDueDate: null,
+      };
+      byVendor.set(vendorKey, vendor);
+      category.vendors.push(vendor);
+    }
+
+    vendor.items.push(item);
+    vendor.contracted += item.contracted;
+    vendor.paid += item.paid;
+    vendor.balance += item.balance;
+    // due_date es una fecha yyyy-mm-dd: comparar como texto es comparar fechas.
+    if (
+      item.nextDueDate &&
+      (vendor.nextDueDate == null || item.nextDueDate < vendor.nextDueDate)
+    ) {
+      vendor.nextDueDate = item.nextDueDate;
+    }
+
+    category.contracted += item.contracted;
+    category.paid += item.paid;
+    category.balance += item.balance;
+  }
+
+  return {
+    categories,
+    itemCount: rows.length,
+    contracted: categories.reduce((sum, c) => sum + c.contracted, 0),
+    paid: categories.reduce((sum, c) => sum + c.paid, 0),
+    balance: categories.reduce((sum, c) => sum + c.balance, 0),
+    scheduledUnpaid: rows.reduce(
+      (sum, r) => sum + toNum(r.programado_sin_pagar),
+      0
+    ),
+    unavailable: false,
+  };
+}
+
+/** El checklist de pagos de una boda, para quien no carga el bundle entero. */
+export async function getPanelChecklist(
+  weddingId: string
+): Promise<ChecklistSummary> {
+  return fetchChecklist(createAdminClient(), weddingId);
 }
 
 /**
@@ -170,18 +470,14 @@ export async function getPanelBundle(
   const supabase = createAdminClient();
   const weddingId = wedding.id;
 
-  const [vendorsRes, paymentsRes, tasksRes, membershipsRes, messagesRes] =
+  const [vendorsRes, payments, tasksRes, membershipsRes, messagesRes, checklist] =
     await Promise.all([
       supabase
         .from("vendors")
         .select("id, name, category, status, quoted_amount, contracted_amount")
         .eq("wedding_id", weddingId)
         .order("created_at", { ascending: true }),
-      supabase
-        .from("payments")
-        .select("id, vendor_id, concept, amount, due_date, paid_at")
-        .eq("wedding_id", weddingId)
-        .order("due_date", { ascending: true, nullsFirst: false }),
+      fetchPayments(supabase, weddingId),
       supabase
         .from("tasks")
         .select("id, title, due_date, done_at, notes")
@@ -199,16 +495,8 @@ export async function getPanelBundle(
         .select("id, author, body, created_at")
         .eq("wedding_id", weddingId)
         .order("created_at", { ascending: true }),
+      fetchChecklist(supabase, weddingId),
     ]);
-
-  const payments: PanelPayment[] = (paymentsRes.data ?? []).map((p) => ({
-    id: p.id,
-    vendorId: p.vendor_id ?? null,
-    concept: p.concept,
-    amount: toNum(p.amount),
-    dueDate: p.due_date ?? null,
-    paidAt: p.paid_at ?? null,
-  }));
 
   const vendors: PanelVendor[] = (vendorsRes.data ?? []).map((v) => ({
     id: v.id,
@@ -228,15 +516,36 @@ export async function getPanelBundle(
     notes: t.notes ?? null,
   }));
 
-  const paid = payments
-    .filter((p) => p.paidAt)
-    .reduce((sum, p) => sum + p.amount, 0);
-  const pending = payments
-    .filter((p) => !p.paidAt)
-    .reduce((sum, p) => sum + p.amount, 0);
-  const contracted = vendors
+  // El dinero, con la misma semántica del Checklist:
+  //   - `paid`/`pending` sólo cuentan pagos a proveedores. Los honorarios de la
+  //     planner no son gasto con proveedores y antes inflaban la barra.
+  //   - `contracted` sale de las partidas cuando existen (son el ancla del
+  //     Excel); sin la migración 0010 caemos a los proveedores contratados,
+  //     que es lo que el panel enseñaba hasta ahora.
+  //   - `balance` es el saldo: contratado - pagado, derivado siempre. No es
+  //     `pending`: una partida contratada sin pago programado también se debe,
+  //     y ése era justo el hueco del panel anterior.
+  const sumAmount = (list: PanelPayment[]) =>
+    list.reduce((sum, p) => sum + p.amount, 0);
+
+  const vendorPayments = payments.filter((p) => p.kind !== "honorarios");
+  const fees = payments.filter((p) => p.kind === "honorarios");
+
+  const paid = sumAmount(vendorPayments.filter((p) => p.paidAt));
+  const pending = sumAmount(vendorPayments.filter((p) => !p.paidAt));
+  const feesPaid = sumAmount(fees.filter((p) => p.paidAt));
+  const feesPending = sumAmount(fees.filter((p) => !p.paidAt));
+
+  const vendorsContracted = vendors
     .filter((v) => v.status === "contratado")
     .reduce((sum, v) => sum + (v.contractedAmount ?? v.quotedAmount ?? 0), 0);
+  const contracted =
+    checklist.itemCount > 0 ? checklist.contracted : vendorsContracted;
+  const balance = contracted - paid;
+  // Lo pagado que no cuelga de ninguna partida: por eso el saldo del resumen
+  // puede no cuadrar con la suma del checklist. Se muestra, no se maquilla.
+  const unlinkedPaid =
+    checklist.itemCount > 0 ? Math.max(0, paid - checklist.paid) : 0;
 
   const memberships = membershipsRes.data ?? [];
 
@@ -303,7 +612,16 @@ export async function getPanelBundle(
 
   return {
     wedding,
-    budget: { budgetTotal: wedding.budgetTotal, paid, pending, contracted },
+    budget: {
+      budgetTotal: wedding.budgetTotal,
+      paid,
+      pending,
+      contracted,
+      balance,
+      feesPaid,
+      feesPending,
+      unlinkedPaid,
+    },
     vendors,
     payments,
     tasks,
@@ -311,5 +629,6 @@ export async function getPanelBundle(
     guestList,
     messages,
     messagesUnavailable,
+    checklist,
   };
 }

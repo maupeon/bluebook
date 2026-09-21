@@ -25,6 +25,7 @@ import { parseJsonSafe } from "@/lib/http";
 import { daysUntil, formatLongDate, formatShortDate, formatTime } from "@/components/panel/dates";
 import {
   BudgetSection,
+  ChecklistSection,
   EmptyNote,
   Eyebrow,
   GuestsSection,
@@ -116,6 +117,19 @@ export function PanelDashboard({ bundle }: { bundle: PanelBundle }) {
       <Reveal delay={80} className="mt-8">
         <PaymentsSection payments={bundle.payments} isEnglish={isEnglish} />
       </Reveal>
+
+      {/* Checklist: el desglose del dinero, partida por partida. Sin la vista
+          v_checklist_pagos la sección no existe, y envolverla igual dejaría un
+          hueco de 2rem entre Pagos y Proveedores: por eso se salta el Reveal. */}
+      {bundle.checklist.unavailable ? null : (
+        <Reveal delay={80} className="mt-8">
+          <ChecklistSection
+            checklist={bundle.checklist}
+            unlinkedPaid={bundle.budget.unlinkedPaid}
+            isEnglish={isEnglish}
+          />
+        </Reveal>
+      )}
 
       {/* Proveedores */}
       <Reveal delay={80} className="mt-8 mb-4">

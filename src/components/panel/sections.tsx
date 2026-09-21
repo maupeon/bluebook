@@ -3,6 +3,8 @@
 import { CalendarClock } from "lucide-react";
 import type {
   BudgetSummary,
+  ChecklistItem,
+  ChecklistSummary,
   GuestSummary,
   PanelPayment,
   PanelVendor,
@@ -85,9 +87,19 @@ export function BudgetSection({
   budget: BudgetSummary;
   isEnglish: boolean;
 }) {
-  const { budgetTotal, paid, pending, contracted } = budget;
+  const {
+    budgetTotal,
+    paid,
+    pending,
+    contracted,
+    balance,
+    feesPaid,
+    feesPending,
+  } = budget;
 
-  if (budgetTotal == null) {
+  const hasMoney = contracted > 0 || paid > 0 || pending > 0;
+
+  if (budgetTotal == null && !hasMoney) {
     return (
       <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
         <Eyebrow>{isEnglish ? "Budget" : "Presupuesto"}</Eyebrow>
@@ -105,15 +117,21 @@ export function BudgetSection({
     );
   }
 
-  const safeTotal = budgetTotal > 0 ? budgetTotal : 0;
-  const cap = (n: number) =>
-    safeTotal > 0 ? Math.min(100, (n / safeTotal) * 100) : 0;
+  // Tres tramos sobre el estimado: lo pagado, el saldo de lo ya contratado y lo
+  // que sigue sin comprometer. El tramo de en medio sale del CONTRATADO y no de
+  // los pagos programados: una partida contratada sin fecha de pago también se
+  // debe, y contarla sólo cuando tenía fecha hacía ver el presupuesto más holgado
+  // de lo que estaba.
+  const safeTotal = budgetTotal != null && budgetTotal > 0 ? budgetTotal : 0;
+  const pct = (n: number) =>
+    safeTotal > 0 ? Math.min(100, Math.max(0, (n / safeTotal) * 100)) : 0;
 
-  const paidPct = cap(paid);
-  const pendingPct = cap(pending);
-  // "Por contratar" estimado = lo que falta del presupuesto sin asignar.
-  const usedPct = Math.min(100, paidPct + pendingPct);
-  const remainingPct = Math.max(0, 100 - usedPct);
+  const paidPct = pct(paid);
+  const balancePct = Math.min(pct(Math.max(0, balance)), 100 - paidPct);
+  const availablePct = Math.max(0, 100 - paidPct - balancePct);
+
+  const available = budgetTotal != null ? budgetTotal - contracted : null;
+  const over = available != null && available < 0;
 
   return (
     <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
@@ -124,48 +142,108 @@ export function BudgetSection({
             {isEnglish ? "Your budget" : "Su presupuesto"}
           </SectionTitle>
           <p className="mt-5 font-heading text-5xl tracking-tight text-ink tabular-nums">
-            {formatMXN(budgetTotal)}
+            {formatMXN(budgetTotal ?? contracted)}
+          </p>
+          <p className="mt-2 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+            {budgetTotal != null
+              ? isEnglish
+                ? "Estimated"
+                : "Estimado"
+              : isEnglish
+                ? "Contracted · no estimate yet"
+                : "Contratado · aún sin estimado"}
           </p>
         </div>
 
         <div className="flex flex-col justify-center">
           {/* Barra de asignación */}
-          <div
-            className="flex h-3 w-full overflow-hidden rounded-full bg-sand-soft"
-            role="img"
-            aria-label={
-              isEnglish
-                ? `Paid ${formatMXN(paid)}, due ${formatMXN(pending)}`
-                : `Pagado ${formatMXN(paid)}, por pagar ${formatMXN(pending)}`
-            }
-          >
-            <div className="h-full bg-terra" style={{ width: `${paidPct}%` }} />
-            <div className="h-full bg-sand" style={{ width: `${pendingPct}%` }} />
+          {safeTotal > 0 ? (
             <div
-              className="h-full bg-pale-green"
-              style={{ width: `${remainingPct}%` }}
-            />
-          </div>
+              className="flex h-3 w-full overflow-hidden rounded-full bg-sand-soft"
+              role="img"
+              aria-label={
+                isEnglish
+                  ? `Paid ${formatMXN(paid)}, outstanding ${formatMXN(balance)}, available ${formatMXN(available ?? 0)}`
+                  : `Pagado ${formatMXN(paid)}, saldo ${formatMXN(balance)}, disponible ${formatMXN(available ?? 0)}`
+              }
+            >
+              <div className="h-full bg-terra" style={{ width: `${paidPct}%` }} />
+              <div className="h-full bg-sand" style={{ width: `${balancePct}%` }} />
+              <div
+                className="h-full bg-pale-green"
+                style={{ width: `${availablePct}%` }}
+              />
+            </div>
+          ) : null}
 
-          <div className="mt-6 grid grid-cols-3 gap-4">
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <BudgetFigure
+              label={isEnglish ? "Contracted" : "Contratado"}
+              value={formatMXN(contracted)}
+              dotClass="bg-ink"
+            />
             <BudgetFigure
               label={isEnglish ? "Paid" : "Pagado"}
               value={formatMXN(paid)}
               dotClass="bg-terra"
             />
             <BudgetFigure
-              label={isEnglish ? "Due" : "Por pagar"}
-              value={formatMXN(pending)}
+              label={isEnglish ? "Outstanding" : "Saldo"}
+              value={formatMXN(balance)}
               dotClass="bg-sand"
             />
             <BudgetFigure
-              label={isEnglish ? "Contracted" : "Contratado"}
-              value={formatMXN(contracted)}
-              dotClass="bg-pale-green"
+              label={
+                over
+                  ? isEnglish
+                    ? "Over budget"
+                    : "Excedido"
+                  : isEnglish
+                    ? "Available"
+                    : "Disponible"
+              }
+              value={available != null ? formatMXN(Math.abs(available)) : "—"}
+              dotClass={over ? "bg-terra-deep" : "bg-pale-green"}
+            />
+          </div>
+
+          {pending > 0 ? (
+            <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+              {isEnglish
+                ? `Of that balance, ${formatMXN(pending)} already has a scheduled date.`
+                : `De ese saldo, ${formatMXN(pending)} ya tiene fecha programada.`}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Los honorarios de la planner no son gasto con proveedores: van aparte. */}
+      {feesPaid > 0 || feesPending > 0 ? (
+        <div className="mt-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-4 rounded-xl border border-sand bg-bone px-5 py-4">
+          <div>
+            <p className="font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+              {isEnglish ? "Planner fees" : "Honorarios de tu planner"}
+            </p>
+            <p className="mt-1 font-body text-xs text-ink-soft">
+              {isEnglish
+                ? "Counted apart from vendor spending."
+                : "Van aparte del gasto con proveedores."}
+            </p>
+          </div>
+          <div className="flex gap-8">
+            <BudgetFigure
+              label={isEnglish ? "Paid" : "Pagado"}
+              value={formatMXN(feesPaid)}
+              dotClass="bg-terra"
+            />
+            <BudgetFigure
+              label={isEnglish ? "Due" : "Por pagar"}
+              value={formatMXN(feesPending)}
+              dotClass="bg-sand"
             />
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -190,6 +268,190 @@ function BudgetFigure({
       <p className="mt-1.5 font-heading text-xl tracking-tight text-ink tabular-nums">
         {value}
       </p>
+    </div>
+  );
+}
+
+// ----- Checklist de pagos -----
+
+/**
+ * "400 × $1,175 MXN · según confirmados": de dónde sale el importe de una
+ * partida que se cotizó por precio unitario, que es la más cara de la boda.
+ */
+function qtyHint(item: ChecklistItem, isEnglish: boolean): string | null {
+  if (item.unitPrice == null || item.qty == null) return null;
+  const base = `${item.qty} × ${formatMXN(item.unitPrice)}`;
+  if (item.qtySource === "pax_confirmado") {
+    return `${base} · ${isEnglish ? "by confirmed guests" : "según confirmados"}`;
+  }
+  if (item.qtySource === "pax_contratado") {
+    return `${base} · ${isEnglish ? "by contracted pax" : "según pax contratado"}`;
+  }
+  return base;
+}
+
+export function ChecklistSection({
+  checklist,
+  unlinkedPaid,
+  isEnglish,
+}: {
+  checklist: ChecklistSummary;
+  /** Pagado a proveedores fuera de toda partida: lo que no cuadra, dicho. */
+  unlinkedPaid: number;
+  isEnglish: boolean;
+}) {
+  // Sin la migración 0010 la vista no existe: la sección simplemente no sale.
+  if (checklist.unavailable) return null;
+
+  return (
+    <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+      <Eyebrow>{isEnglish ? "Transparency" : "Transparencia"}</Eyebrow>
+      <SectionTitle>
+        {isEnglish ? "Payment checklist" : "Checklist de pagos"}
+      </SectionTitle>
+      <p className="mt-3 font-body text-sm text-ink-muted">
+        {isEnglish
+          ? "What's contracted, what's paid and what's left, vendor by vendor."
+          : "Lo contratado, lo pagado y lo que falta, proveedor por proveedor."}
+      </p>
+
+      {checklist.itemCount === 0 ? (
+        <p className="mt-6">
+          <EmptyNote>
+            {isEnglish
+              ? "No contracted items yet. Your planner will add them here."
+              : "Aún sin partidas contratadas. Tu planner las irá agregando aquí."}
+          </EmptyNote>
+        </p>
+      ) : (
+        <>
+          <div className="mt-7 grid grid-cols-3 gap-4 border-t border-sand pt-6">
+            <BudgetFigure
+              label={isEnglish ? "Contracted" : "Contratado"}
+              value={formatMXN(checklist.contracted)}
+              dotClass="bg-ink"
+            />
+            <BudgetFigure
+              label={isEnglish ? "Paid" : "Pagado"}
+              value={formatMXN(checklist.paid)}
+              dotClass="bg-terra"
+            />
+            <BudgetFigure
+              label={isEnglish ? "Outstanding" : "Saldo"}
+              value={formatMXN(checklist.balance)}
+              dotClass="bg-sand"
+            />
+          </div>
+
+          {unlinkedPaid > 0 ? (
+            <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+              {isEnglish
+                ? `Plus ${formatMXN(unlinkedPaid)} paid to vendors that isn't tied to any line item yet, so it isn't counted above.`
+                : `Además hay ${formatMXN(unlinkedPaid)} pagados a proveedores que no cuelgan de ninguna partida, por eso no suman aquí arriba.`}
+            </p>
+          ) : null}
+
+          <div className="mt-10 space-y-10">
+            {checklist.categories.map((category) => (
+              <section key={category.category}>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-sand pb-2">
+                  <h3 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra">
+                    {humanizeCategory(category.category, isEnglish)}
+                  </h3>
+                  <p className="font-body text-xs tabular-nums text-ink-muted">
+                    {formatMXN(category.contracted)} ·{" "}
+                    {isEnglish ? "outstanding" : "saldo"}{" "}
+                    {formatMXN(category.balance)}
+                  </p>
+                </div>
+
+                <div className="divide-y divide-sand">
+                  {category.vendors.map((vendor) => (
+                    <div key={vendor.vendorId} className="py-5">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                        <p className="font-body text-sm font-medium text-ink">
+                          {vendor.vendorName}
+                        </p>
+                        <p className="font-body text-xs tabular-nums text-ink-muted">
+                          {isEnglish ? "Paid" : "Pagado"}{" "}
+                          {formatMXN(vendor.paid)} {isEnglish ? "of" : "de"}{" "}
+                          {formatMXN(vendor.contracted)}
+                        </p>
+                      </div>
+
+                      <ul className="mt-3 space-y-4">
+                        {vendor.items.map((item) => {
+                          const hint = qtyHint(item, isEnglish);
+                          return (
+                            <li
+                              key={item.id}
+                              className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="font-body text-sm text-ink">
+                                  {item.concept}
+                                </p>
+                                {item.details ? (
+                                  <p className="mt-0.5 font-body text-xs text-ink-soft">
+                                    {item.details}
+                                  </p>
+                                ) : null}
+                                {hint ? (
+                                  <p className="mt-0.5 font-body text-xs tabular-nums text-ink-muted">
+                                    {hint}
+                                  </p>
+                                ) : null}
+                                {item.balance > 0 && item.nextDueDate ? (
+                                  <p className="mt-1 flex items-center gap-1.5 font-body text-xs text-ink-muted">
+                                    <CalendarClock
+                                      className="h-3.5 w-3.5"
+                                      strokeWidth={1.5}
+                                    />
+                                    <span className="tabular-nums">
+                                      {isEnglish ? "Next" : "Próximo"}{" "}
+                                      {formatShortDate(
+                                        item.nextDueDate,
+                                        isEnglish
+                                      )}
+                                    </span>
+                                  </p>
+                                ) : null}
+                              </div>
+
+                              <div className="flex-shrink-0 text-right">
+                                <p className="font-heading text-lg tracking-tight text-ink tabular-nums">
+                                  {formatMXN(item.contracted)}
+                                </p>
+                                <p className="mt-0.5 font-body text-xs tabular-nums text-ink-muted">
+                                  {isEnglish ? "Paid" : "Pagado"}{" "}
+                                  {formatMXN(item.paid)}
+                                </p>
+                                <p
+                                  className={`font-body text-xs tabular-nums ${
+                                    item.balance > 0
+                                      ? "text-terra-deep"
+                                      : "text-ink-soft"
+                                  }`}
+                                >
+                                  {item.balance > 0
+                                    ? `${isEnglish ? "Outstanding" : "Saldo"} ${formatMXN(item.balance)}`
+                                    : isEnglish
+                                      ? "Settled"
+                                      : "Liquidado"}
+                                </p>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
