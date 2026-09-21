@@ -168,6 +168,56 @@ export interface PanelGuest {
   notes: string | null;
 }
 
+/**
+ * ACOMODO DE MESAS (migración 0011).
+ *
+ * Los NÚMEROS salen de las vistas — `v_conciliacion_mesas` para los totales de
+ * la boda y `v_mesas` para la ocupación de cada mesa — y los NOMBRES de
+ * `seat_assignments`, que es la lista que se imprime para la puerta. El conteo
+ * de personas no se rehace aquí: ya divergió dos veces entre las dos apps.
+ */
+export interface PanelSeat {
+  id: string;
+  /** El nombre tal como va impreso en la lista de la puerta. */
+  displayName: string;
+  /** Personas que ocupa la fila: la lista real trae filas de 1 y de 2. */
+  pax: number;
+}
+
+export interface PanelTable {
+  id: string;
+  label: string;
+  /** null cuando no se capturó capacidad. La real va de 7 a 16: no se asume. */
+  capacity: number | null;
+  zone: string | null;
+  /** PAX sentado, leído de v_mesas. */
+  pax: number;
+  /** null cuando no hay capacidad: sin ella no hay sobrecupo que afirmar. */
+  overbooked: boolean | null;
+  seats: PanelSeat[];
+}
+
+export interface SeatingSummary {
+  tables: PanelTable[];
+  /** Capturados en la lista de mesas y todavía sin mesa: es un estado real. */
+  unassigned: PanelSeat[];
+  /** personas_confirmadas de v_conciliacion_mesas. Nunca se recalcula aquí. */
+  confirmedPeople: number;
+  /** Boletos que la vista no da ni por confirmados ni por cancelados. */
+  pendingPeople: number;
+  declinedPeople: number;
+  /** pax_acomodado: todo lo capturado en la lista de mesas, con mesa o sin ella. */
+  seatedPax: number;
+  /** pax_sin_mesa: capturado pero todavía sin mesa. */
+  unassignedPax: number;
+  /** Confirmados que no están sentados en ninguna mesa. */
+  unseatedPeople: number;
+  /** grupos_confirmados_sin_acomodar. */
+  groupsWithoutSeat: number;
+  /** true si falta la migración 0011 (tablas o vistas del acomodo). */
+  unavailable: boolean;
+}
+
 export interface PanelMessage {
   id: string;
   author: "couple" | "planner";
@@ -183,6 +233,7 @@ export interface PanelBundle {
   tasks: PanelTask[];
   guests: GuestSummary;
   guestList: PanelGuest[];
+  seating: SeatingSummary;
   messages: PanelMessage[];
   messagesUnavailable?: boolean; // true si falta la tabla couple_messages
   checklist: ChecklistSummary;
@@ -203,10 +254,15 @@ type AdminClient = ReturnType<typeof createAdminClient>;
 
 type PgError = { code?: string | null; message?: string | null } | null;
 
-/** 42P01: la relación todavía no existe (migración pendiente). */
+/**
+ * La relación todavía no existe (migración pendiente). 42P01 es el código crudo
+ * de Postgres; PGRST205 es el que contesta PostgREST cuando la tabla o la vista
+ * no está en su caché de esquema, que es lo que se ve desde el cliente.
+ */
 function isMissingRelation(error: PgError, relation: string): boolean {
   if (!error) return false;
-  return error.code === "42P01" || Boolean(error.message?.includes(relation));
+  if (error.code === "42P01" || error.code === "PGRST205") return true;
+  return Boolean(error.message?.includes(relation));
 }
 
 /** 42703: la columna todavía no existe (migración pendiente). */
@@ -416,6 +472,182 @@ export async function getPanelChecklist(
   return fetchChecklist(createAdminClient(), weddingId);
 }
 
+// Las tres vistas son la ÚNICA fuente de estos números. seat_assignments se lee
+// aparte porque ninguna vista publica fila por fila el nombre que va impreso en
+// la lista de la puerta.
+const MESAS_COLUMNS = "table_id, label, capacity, zone, pax, sobrecupo";
+const SEAT_COLUMNS = "id, table_id, display_name, pax";
+const INVITADOS_COLUMNS = "boletos, personas_confirmadas, personas_canceladas";
+const CONCILIACION_COLUMNS =
+  "personas_confirmadas, pax_acomodado, pax_sin_mesa, grupos_confirmados_sin_acomodar";
+
+type MesaRow = {
+  table_id: string;
+  label: string | null;
+  capacity: number | null;
+  zone: string | null;
+  pax: unknown;
+  sobrecupo: boolean | null;
+};
+
+type SeatRow = {
+  id: string;
+  table_id: string | null;
+  display_name: string | null;
+  pax: unknown;
+};
+
+type InvitadoRow = {
+  boletos: unknown;
+  personas_confirmadas: unknown;
+  personas_canceladas: unknown;
+};
+
+type ConciliacionRow = {
+  personas_confirmadas: unknown;
+  pax_acomodado: unknown;
+  pax_sin_mesa: unknown;
+  grupos_confirmados_sin_acomodar: unknown;
+};
+
+function emptySeating(unavailable: boolean): SeatingSummary {
+  return {
+    tables: [],
+    unassigned: [],
+    confirmedPeople: 0,
+    pendingPeople: 0,
+    declinedPeople: 0,
+    seatedPax: 0,
+    unassignedPax: 0,
+    unseatedPeople: 0,
+    groupsWithoutSeat: 0,
+    unavailable,
+  };
+}
+
+/**
+ * El acomodo de mesas de una boda. Sin la migración 0011 las vistas no existen
+ * (42P01 / PGRST205) y se devuelve `unavailable` para que la sección no salga y
+ * el resto del panel siga, igual que con v_checklist_pagos.
+ */
+async function fetchSeating(
+  supabase: AdminClient,
+  weddingId: string
+): Promise<SeatingSummary> {
+  const [mesasRes, seatsRes, invitadosRes, conciliacionRes] = await Promise.all([
+    supabase
+      .from("v_mesas")
+      .select(MESAS_COLUMNS)
+      .eq("wedding_id", weddingId)
+      .order("sort_order", { ascending: true })
+      .order("label", { ascending: true }),
+    supabase
+      .from("seat_assignments")
+      .select(SEAT_COLUMNS)
+      .eq("wedding_id", weddingId)
+      .order("sort_order", { ascending: true })
+      .order("display_name", { ascending: true }),
+    supabase
+      .from("v_invitados")
+      .select(INVITADOS_COLUMNS)
+      .eq("wedding_id", weddingId),
+    supabase
+      .from("v_conciliacion_mesas")
+      .select(CONCILIACION_COLUMNS)
+      .eq("wedding_id", weddingId)
+      .maybeSingle(),
+  ]);
+
+  const lecturas: Array<[PgError, string]> = [
+    [mesasRes.error, "v_mesas"],
+    [seatsRes.error, "seat_assignments"],
+    [invitadosRes.error, "v_invitados"],
+    [conciliacionRes.error, "v_conciliacion_mesas"],
+  ];
+  for (const [error, relation] of lecturas) {
+    if (!error) continue;
+    if (isMissingRelation(error, relation)) return emptySeating(true);
+    // Cualquier OTRO fallo de lectura (timeout, 500 de PostgREST, permiso
+    // denegado, la red) NO es "la vista está vacía". Devolver emptySeating(false)
+    // pintaba la sección con ceros y dejaba a la pareja viendo "0 confirmados"
+    // cuando en realidad la consulta se cayó. Se oculta la sección y se registra:
+    // esconder es honesto, enseñar un cero inventado no.
+    console.error(
+      `[panel] no se pudo leer ${relation} de la boda ${weddingId}: ${error.code ?? "sin código"} ${error.message ?? ""}`
+    );
+    return emptySeating(true);
+  }
+
+  const tables: PanelTable[] = (
+    (mesasRes.data ?? []) as unknown as MesaRow[]
+  ).map((m) => ({
+    id: m.table_id,
+    label: (m.label ?? "").trim(),
+    capacity: m.capacity ?? null,
+    zone: m.zone ?? null,
+    pax: toNum(m.pax),
+    overbooked: m.sobrecupo ?? null,
+    seats: [],
+  }));
+  const byTable = new Map(tables.map((t) => [t.id, t]));
+
+  // Una fila sin mesa está capturada pero sin acomodar, que es un estado real
+  // del trabajo de la planner. Una fila cuya mesa no vino en v_mesas se trata
+  // igual: antes que perderla de la lista, se enseña sin mesa.
+  const unassigned: PanelSeat[] = [];
+  for (const row of (seatsRes.data ?? []) as unknown as SeatRow[]) {
+    const seat: PanelSeat = {
+      id: row.id,
+      displayName: (row.display_name ?? "").trim(),
+      pax: toNum(row.pax),
+    };
+    const table = row.table_id ? byTable.get(row.table_id) : undefined;
+    if (table) table.seats.push(seat);
+    else unassigned.push(seat);
+  }
+
+  let confirmedFromGuests = 0;
+  let pendingPeople = 0;
+  let declinedPeople = 0;
+  for (const row of (invitadosRes.data ?? []) as unknown as InvitadoRow[]) {
+    const boletos = toNum(row.boletos);
+    const confirmadas = toNum(row.personas_confirmadas);
+    const canceladas = toNum(row.personas_canceladas);
+    confirmedFromGuests += confirmadas;
+    declinedPeople += canceladas;
+    // Por confirmar NO es otra forma de contar asistentes: son los boletos que
+    // la vista no da ni por confirmados ni por cancelados.
+    pendingPeople += Math.max(0, boletos - confirmadas - canceladas);
+  }
+
+  const conciliacion = (conciliacionRes.data ??
+    null) as unknown as ConciliacionRow | null;
+  const confirmedPeople = conciliacion
+    ? toNum(conciliacion.personas_confirmadas)
+    : confirmedFromGuests;
+  const seatedPax = conciliacion ? toNum(conciliacion.pax_acomodado) : 0;
+  const unassignedPax = conciliacion ? toNum(conciliacion.pax_sin_mesa) : 0;
+  const groupsWithoutSeat = conciliacion
+    ? toNum(conciliacion.grupos_confirmados_sin_acomodar)
+    : 0;
+
+  return {
+    tables,
+    unassigned,
+    confirmedPeople,
+    pendingPeople,
+    declinedPeople,
+    seatedPax,
+    unassignedPax,
+    // Los confirmados que no están sentados en ninguna mesa. Las dos listas del
+    // documento original no cuadran entre ellas, así que esto puede salir 0 con
+    // gente todavía sin lugar: la diferencia se enseña, no se fuerza.
+    unseatedPeople: Math.max(0, confirmedPeople - (seatedPax - unassignedPax)),
+    groupsWithoutSeat,
+    unavailable: false,
+  };
+}
+
 /**
  * Encuentra la(s) boda(s) cuyo contact_email coincide con el email autenticado.
  * Devuelve la más reciente (por wedding_date / created_at) o null.
@@ -470,8 +702,15 @@ export async function getPanelBundle(
   const supabase = createAdminClient();
   const weddingId = wedding.id;
 
-  const [vendorsRes, payments, tasksRes, membershipsRes, messagesRes, checklist] =
-    await Promise.all([
+  const [
+    vendorsRes,
+    payments,
+    tasksRes,
+    membershipsRes,
+    messagesRes,
+    checklist,
+    seating,
+  ] = await Promise.all([
       supabase
         .from("vendors")
         .select("id, name, category, status, quoted_amount, contracted_amount")
@@ -496,6 +735,7 @@ export async function getPanelBundle(
         .eq("wedding_id", weddingId)
         .order("created_at", { ascending: true }),
       fetchChecklist(supabase, weddingId),
+      fetchSeating(supabase, weddingId),
     ]);
 
   const vendors: PanelVendor[] = (vendorsRes.data ?? []).map((v) => ({
@@ -568,6 +808,18 @@ export async function getPanelBundle(
     return (row ?? null) as { name?: string | null; phone?: string | null } | null;
   };
 
+  // Respaldo para cuando falta la 0011 y v_invitados todavía no existe. Es la
+  // misma fórmula que la vista usa en su segunda rama: `seats` ya incluye al
+  // titular, así que sumarle plus_ones_confirmed contaría a los acompañantes
+  // dos veces, y con plus_ones_confirmed en null se cae al cupo completo.
+  const attendingLegacy = memberships
+    .filter((m) => m.confirmation === "confirmed")
+    .reduce((sum, m) => {
+      const seats = Math.max(1, m.seats ?? 1);
+      const companions = Math.max(0, m.plus_ones_confirmed ?? seats - 1);
+      return sum + Math.min(seats, 1 + companions);
+    }, 0);
+
   const guests: GuestSummary = {
     total: memberships.length,
     confirmed: memberships.filter((m) => m.confirmation === "confirmed").length,
@@ -575,16 +827,10 @@ export async function getPanelBundle(
     pending: memberships.filter(
       (m) => m.confirmation !== "confirmed" && m.confirmation !== "declined"
     ).length,
-    // `seats` ya incluye al titular: sumarle plus_ones_confirmed contaba a los
-    // acompañantes dos veces. Con plus_ones_confirmed en null caemos al cupo
-    // completo (seats) en lugar de dejar la fila en cero.
-    attending: memberships
-      .filter((m) => m.confirmation === "confirmed")
-      .reduce((sum, m) => {
-        const seats = Math.max(1, m.seats ?? 1);
-        const companions = Math.max(0, m.plus_ones_confirmed ?? seats - 1);
-        return sum + Math.min(seats, 1 + companions);
-      }, 0),
+    // Las personas que asisten se LEEN de v_invitados (vía v_conciliacion_mesas),
+    // que es la única definición del número. Recalcularlo aquí es justo lo que
+    // hizo que el admin y el panel enseñaran cifras distintas.
+    attending: seating.unavailable ? attendingLegacy : seating.confirmedPeople,
   };
 
   const guestList: PanelGuest[] = memberships.map((m) => {
@@ -638,6 +884,7 @@ export async function getPanelBundle(
     tasks,
     guests,
     guestList,
+    seating,
     messages,
     messagesUnavailable,
     checklist,

@@ -30,6 +30,7 @@ import {
   Eyebrow,
   GuestsSection,
   PaymentsSection,
+  SeatingSection,
   SectionTitle,
   VendorsSection,
 } from "@/components/panel/sections";
@@ -98,6 +99,15 @@ export function PanelDashboard({ bundle }: { bundle: PanelBundle }) {
       <Reveal delay={80} className="mt-8">
         <GuestListSection guests={bundle.guestList} isEnglish={isEnglish} />
       </Reveal>
+
+      {/* Acomodo: quién se sienta dónde. Sin la migración 0011 las vistas no
+          existen y la sección no sale; se salta el Reveal para no dejar el
+          hueco de 2rem entre la lista de invitados y las tareas. */}
+      {bundle.seating.unavailable ? null : (
+        <Reveal delay={80} className="mt-8">
+          <SeatingSection seating={bundle.seating} isEnglish={isEnglish} />
+        </Reveal>
+      )}
 
       {/* Tareas (interactivo) + Mensajes en zig-zag asimétrico */}
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_1fr]">

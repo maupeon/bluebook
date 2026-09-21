@@ -7,7 +7,10 @@ import type {
   ChecklistSummary,
   GuestSummary,
   PanelPayment,
+  PanelSeat,
+  PanelTable,
   PanelVendor,
+  SeatingSummary,
 } from "@/lib/couplePanel";
 import { formatMXN } from "@/lib/weddingPlans";
 import { formatShortDate, daysUntil } from "@/components/panel/dates";
@@ -35,6 +38,27 @@ export function EmptyNote({ children }: { children: React.ReactNode }) {
     <p className="font-body text-sm italic leading-relaxed text-ink-soft">
       {children}
     </p>
+  );
+}
+
+/** La rejilla de cifras del panel: misma métrica, mismo tamaño, misma tipografía. */
+function StatGrid({ stats }: { stats: { label: string; value: number }[] }) {
+  return (
+    <div className="mt-7 grid grid-cols-2 border-t border-sand sm:grid-cols-4">
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className="border-b border-sand px-1 py-5 sm:border-b-0 sm:border-r sm:px-6 sm:last:border-r-0 sm:first:pl-0"
+        >
+          <p className="font-heading text-4xl tracking-tight text-ink tabular-nums">
+            {stat.value}
+          </p>
+          <p className="mt-1 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+            {stat.label}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -507,21 +531,193 @@ export function GuestsSection({
       <Eyebrow>{isEnglish ? "Guests" : "Invitados"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Guests" : "Invitados"}</SectionTitle>
 
-      <div className="mt-7 grid grid-cols-2 border-t border-sand sm:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="border-b border-sand px-1 py-5 sm:border-b-0 sm:border-r sm:px-6 sm:last:border-r-0 sm:first:pl-0"
+      <StatGrid stats={stats} />
+    </div>
+  );
+}
+
+// ----- Acomodo de mesas -----
+
+/** "8 de 10 lugares", o sólo las personas cuando no se capturó capacidad. */
+function tableOccupancy(table: PanelTable, isEnglish: boolean): string {
+  if (table.capacity == null) {
+    return isEnglish
+      ? `${table.pax} ${table.pax === 1 ? "person" : "people"}`
+      : `${table.pax} ${table.pax === 1 ? "persona" : "personas"}`;
+  }
+  return isEnglish
+    ? `${table.pax} of ${table.capacity} seats`
+    : `${table.pax} de ${table.capacity} lugares`;
+}
+
+function SeatList({
+  seats,
+  isEnglish,
+}: {
+  seats: PanelSeat[];
+  isEnglish: boolean;
+}) {
+  if (seats.length === 0) {
+    return (
+      <p className="mt-3">
+        <EmptyNote>{isEnglish ? "Empty for now." : "Todavía vacía."}</EmptyNote>
+      </p>
+    );
+  }
+  return (
+    <ul className="mt-3 space-y-1.5">
+      {seats.map((seat) => (
+        <li
+          key={seat.id}
+          className="flex items-baseline justify-between gap-3 font-body text-sm text-ink"
+        >
+          <span className="min-w-0">{seat.displayName}</span>
+          {/* Una fila puede ser una pareja: el 2 sólo se dice cuando lo es. */}
+          {seat.pax > 1 ? (
+            <span className="flex-shrink-0 font-body text-xs tabular-nums text-ink-muted">
+              {seat.pax}
+            </span>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function SeatingSection({
+  seating,
+  isEnglish,
+}: {
+  seating: SeatingSummary;
+  isEnglish: boolean;
+}) {
+  // Sin la migración 0011 no hay mesas que enseñar: la sección no sale.
+  if (seating.unavailable) return null;
+
+  const hasSeating = seating.tables.length > 0 || seating.unassigned.length > 0;
+
+  if (!hasSeating) {
+    return (
+      <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
+        <Eyebrow>{isEnglish ? "Seating" : "Acomodo"}</Eyebrow>
+        <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
+        <p className="mt-5">
+          <EmptyNote>
+            {isEnglish
+              ? "Your planner hasn't laid out the tables yet."
+              : "Tu planner aún no arma el acomodo de mesas."}
+          </EmptyNote>
+        </p>
+      </div>
+    );
+  }
+
+  const stats = [
+    {
+      label: isEnglish ? "People confirmed" : "Personas confirmadas",
+      value: seating.confirmedPeople,
+    },
+    {
+      label: isEnglish ? "Awaiting reply" : "Por confirmar",
+      value: seating.pendingPeople,
+    },
+    {
+      label: isEnglish ? "Cancelled" : "Canceladas",
+      value: seating.declinedPeople,
+    },
+    {
+      label: isEnglish ? "Not seated yet" : "Sin acomodar",
+      value: seating.unseatedPeople,
+    },
+  ];
+
+  // Las dos listas del documento original no cuadran ni entre ellas: la de
+  // confirmaciones y la de mesas se cuentan aparte y la diferencia se dice.
+  const seatedPeople = seating.seatedPax - seating.unassignedPax;
+  const mismatch = seatedPeople !== seating.confirmedPeople;
+
+  return (
+    <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
+      <Eyebrow>{isEnglish ? "Seating" : "Acomodo"}</Eyebrow>
+      <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
+      <p className="mt-3 font-body text-sm text-ink-muted">
+        {isEnglish
+          ? "Who sits where, table by table."
+          : "Quién se sienta dónde, mesa por mesa."}
+      </p>
+
+      <StatGrid stats={stats} />
+
+      {mismatch ? (
+        <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+          {isEnglish
+            ? `The tables seat ${seatedPeople} and the guest list confirms ${seating.confirmedPeople}. The two lists rarely match to the person: this is where they stand today.`
+            : `En las mesas hay ${seatedPeople} personas sentadas y la lista de confirmaciones suma ${seating.confirmedPeople}. Las dos listas casi nunca cuadran a la persona: así están hoy.`}
+        </p>
+      ) : null}
+
+      {seating.unassignedPax > 0 ? (
+        <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+          {isEnglish
+            ? `${seating.unassignedPax} ${seating.unassignedPax === 1 ? "person is" : "people are"} on the list with no table yet.`
+            : `Hay ${seating.unassignedPax} ${seating.unassignedPax === 1 ? "persona" : "personas"} en la lista que todavía no ${seating.unassignedPax === 1 ? "tiene" : "tienen"} mesa.`}
+        </p>
+      ) : null}
+
+      {seating.groupsWithoutSeat > 0 ? (
+        <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+          {isEnglish
+            ? `${seating.groupsWithoutSeat} confirmed ${seating.groupsWithoutSeat === 1 ? "group doesn't" : "groups don't"} appear at any table yet.`
+            : `${seating.groupsWithoutSeat} ${seating.groupsWithoutSeat === 1 ? "grupo confirmado no aparece" : "grupos confirmados no aparecen"} todavía en ninguna mesa.`}
+        </p>
+      ) : null}
+
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        {seating.tables.map((table) => (
+          <section
+            key={table.id}
+            className="rounded-xl border border-sand bg-white px-5 py-4"
           >
-            <p className="font-heading text-4xl tracking-tight text-ink tabular-nums">
-              {stat.value}
-            </p>
-            <p className="mt-1 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
-              {stat.label}
-            </p>
-          </div>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h3 className="font-body text-sm font-medium text-ink">
+                {table.label}
+              </h3>
+              <div className="flex items-center gap-2">
+                <p className="font-body text-xs tabular-nums text-ink-muted">
+                  {tableOccupancy(table, isEnglish)}
+                </p>
+                {/* sobrecupo es null cuando nadie capturó capacidad: entonces
+                    no hay nada que afirmar y la etiqueta no sale. */}
+                {table.overbooked ? (
+                  <span className="rounded-full bg-terra-light px-2.5 py-0.5 font-body text-[11px] uppercase tracking-[0.08em] text-terra-deep">
+                    {isEnglish ? "Over capacity" : "Sobrecupo"}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+            {table.zone ? (
+              <p className="mt-0.5 font-body text-xs text-ink-soft">
+                {table.zone}
+              </p>
+            ) : null}
+            <SeatList seats={table.seats} isEnglish={isEnglish} />
+          </section>
         ))}
       </div>
+
+      {seating.unassigned.length > 0 ? (
+        <section className="mt-8 rounded-xl border border-sand bg-white px-5 py-4">
+          <h3 className="font-body text-sm font-medium text-ink">
+            {isEnglish ? "Still without a table" : "Todavía sin mesa"}
+          </h3>
+          <p className="mt-0.5 font-body text-xs text-ink-soft">
+            {isEnglish
+              ? "Already on the list; where they sit is still to be decided."
+              : "Ya están en la lista; falta decidir dónde se sientan."}
+          </p>
+          <SeatList seats={seating.unassigned} isEnglish={isEnglish} />
+        </section>
+      ) : null}
     </div>
   );
 }
