@@ -218,6 +218,81 @@ export interface SeatingSummary {
   unavailable: boolean;
 }
 
+/**
+ * EL GUION DEL DÍA (migración 0013).
+ *
+ * `startsAt`, `endsAt` y `durationMin` se LEEN de v_guion: la vista ya compuso
+ * la fecha de la boda con la hora y el day_offset, y ya resolvió que un
+ * sub-bloque sin hora hereda la del padre. Componerlos otra vez aquí es el bug
+ * que este proyecto ya pagó tres veces (los asistentes, el importe contratado y
+ * el PAX del banquete), así que en el guion no se hace ni una cuenta de fecha.
+ *
+ * La MINUTA no es otra cosa: es esta misma lista filtrada a los bloques
+ * principales con hora. Por eso no hay un segundo tipo para ella.
+ */
+export type RunOfShowKind =
+  | "cortejo"
+  | "lectura"
+  | "menu"
+  | "cancion"
+  | "persona"
+  | "pendiente"
+  | "nota";
+
+/** Una línea de dentro de un bloque: un puesto del cortejo, una lectura, un tiempo del menú. */
+export interface RunOfShowDetail {
+  id: string;
+  kind: RunOfShowKind;
+  /** "Padrinos de arras", "Primera lectura", "PRIMERO". */
+  label: string | null;
+  /** "Gravity (Leo Stannard)", "Tacos de Pato / Torre de Alcachofa". */
+  value: string | null;
+  /**
+   * El proveedor y el invitado de ESTE detalle, que pueden no ser los del
+   * bloque: dentro del vals, que lleva el DJ, hay una señal cronometrada para
+   * otro proveedor. Llegan como id y el bundle les pone nombre.
+   */
+  vendorId: string | null;
+  membershipId: string | null;
+  vendorName: string | null;
+  personName: string | null;
+  /** Sólo en los pendientes de material: la hora en que se tildó. */
+  doneAt: string | null;
+  notes: string | null;
+}
+
+export interface RunOfShowBlock {
+  id: string;
+  title: string;
+  /** v_guion.empieza y .termina: el instante absoluto, ya resuelto por la vista. */
+  startsAt: string | null;
+  endsAt: string | null;
+  /** v_guion.duracion_min. Nunca se deriva de las dos anteriores. */
+  durationMin: number | null;
+  /** 0 = el día de la boda, 1 = la madrugada siguiente (el fin del evento). */
+  dayOffset: number;
+  endDayOffset: number;
+  /** false cuando el bloque hereda la hora del padre y repetirla sería ruido. */
+  hasOwnTime: boolean;
+  /** El texto tal cual del papel ("3: 55 p.m."), para los bloques sin hora normalizada. */
+  timeLabel: string | null;
+  vendorName: string | null;
+  location: string | null;
+  notes: string | null;
+  details: RunOfShowDetail[];
+  /** CORTEJO y LECTURAS cuelgan de MISA: el guion tiene dos niveles, no uno. */
+  children: RunOfShowBlock[];
+}
+
+export interface RunOfShowSummary {
+  /** Sólo los bloques principales; los sub-bloques van dentro de `children`. */
+  blocks: RunOfShowBlock[];
+  /** pendientes_abiertos de v_guion, sumado. Material que falta por llevar. */
+  openTodos: number;
+  /** true si falta la migración 0013 o la lectura falló: la sección no sale. */
+  unavailable: boolean;
+}
+
 export interface PanelMessage {
   id: string;
   author: "couple" | "planner";
@@ -234,6 +309,7 @@ export interface PanelBundle {
   guests: GuestSummary;
   guestList: PanelGuest[];
   seating: SeatingSummary;
+  runOfShow: RunOfShowSummary;
   messages: PanelMessage[];
   messagesUnavailable?: boolean; // true si falta la tabla couple_messages
   checklist: ChecklistSummary;
@@ -648,6 +724,187 @@ async function fetchSeating(
   };
 }
 
+// v_guion es la ÚNICA fuente de `empieza`, `termina` y `duracion_min`. Se piden
+// tal cual y se imprimen tal cual. `starts_at` sólo se lee para saber si el
+// bloque tiene hora propia o la hereda del padre.
+const GUION_COLUMNS =
+  "block_id, parent_id, title, starts_at, day_offset, end_day_offset, time_label, empieza, termina, duracion_min, vendor_name, location, notes, pendientes_abiertos";
+const GUION_DETALLE_COLUMNS =
+  "id, block_id, kind, label, value, vendor_id, membership_id, done_at, notes";
+
+const RUN_OF_SHOW_KINDS: RunOfShowKind[] = [
+  "cortejo",
+  "lectura",
+  "menu",
+  "cancion",
+  "persona",
+  "pendiente",
+  "nota",
+];
+
+type GuionRow = {
+  block_id: string;
+  parent_id: string | null;
+  title: string | null;
+  starts_at: string | null;
+  day_offset: number | null;
+  end_day_offset: number | null;
+  time_label: string | null;
+  empieza: string | null;
+  termina: string | null;
+  duracion_min: unknown;
+  vendor_name: string | null;
+  location: string | null;
+  notes: string | null;
+  pendientes_abiertos: unknown;
+};
+
+type GuionDetalleRow = {
+  id: string;
+  block_id: string;
+  kind: string | null;
+  label: string | null;
+  value: string | null;
+  vendor_id: string | null;
+  membership_id: string | null;
+  done_at: string | null;
+  notes: string | null;
+};
+
+function emptyRunOfShow(unavailable: boolean): RunOfShowSummary {
+  return { blocks: [], openTodos: 0, unavailable };
+}
+
+/**
+ * El guion del día de una boda. Sin la migración 0013 la vista y las tablas no
+ * existen (42P01 / PGRST205) y se devuelve `unavailable` para que la sección no
+ * salga y el resto del panel siga, igual que con el acomodo de mesas.
+ */
+async function fetchRunOfShow(
+  supabase: AdminClient,
+  weddingId: string
+): Promise<RunOfShowSummary> {
+  const [guionRes, detallesRes] = await Promise.all([
+    supabase
+      .from("v_guion")
+      .select(GUION_COLUMNS)
+      .eq("wedding_id", weddingId)
+      // MISMO criterio que compararBloques() del admin (wedding-whatsapp/lib/
+      // guion.ts): manda sort_order, que es el orden que la planner arrastró y
+      // el que trae el papel, y `empieza` sólo desempata. Aquí se ordenaba al
+      // revés y la pareja podía ver el guion en un orden distinto al de la
+      // planner: mismo documento, dos criterios, que es el bug que este
+      // proyecto ya pagó tres veces.
+      // `empieza` lleva dentro el day_offset, así que como desempate el fin del
+      // evento a la 1:00 a.m. sigue cayendo después de la torna de las 23:30.
+      .order("sort_order", { ascending: true })
+      .order("empieza", { ascending: true, nullsFirst: false }),
+    supabase
+      .from("run_of_show_details")
+      .select(GUION_DETALLE_COLUMNS)
+      .eq("wedding_id", weddingId)
+      .order("sort_order", { ascending: true }),
+  ]);
+
+  const lecturas: Array<[PgError, string]> = [
+    [guionRes.error, "v_guion"],
+    [detallesRes.error, "run_of_show_details"],
+  ];
+  for (const [error, relation] of lecturas) {
+    if (!error) continue;
+    if (isMissingRelation(error, relation)) return emptyRunOfShow(true);
+    // Un fallo que NO es "falta la relación" no es un guion vacío. Enseñar el
+    // guion a medias el día de la boda es peor que no enseñarlo: se registra y
+    // la sección se oculta, igual que en el acomodo de mesas.
+    console.error(
+      `[panel] no se pudo leer ${relation} de la boda ${weddingId}: ${error.code ?? "sin código"} ${error.message ?? ""}`
+    );
+    return emptyRunOfShow(true);
+  }
+
+  const rows = (guionRes.data ?? []) as unknown as GuionRow[];
+  const byId = new Map<string, RunOfShowBlock>();
+  for (const row of rows) {
+    byId.set(row.block_id, {
+      id: row.block_id,
+      title: (row.title ?? "").trim(),
+      startsAt: row.empieza,
+      endsAt: row.termina,
+      durationMin: toNumOrNull(row.duracion_min),
+      dayOffset: row.day_offset ?? 0,
+      endDayOffset: row.end_day_offset ?? 0,
+      hasOwnTime: row.starts_at != null,
+      timeLabel: row.time_label,
+      vendorName: row.vendor_name,
+      location: row.location,
+      notes: row.notes,
+      details: [],
+      children: [],
+    });
+  }
+
+  for (const row of (detallesRes.data ?? []) as unknown as GuionDetalleRow[]) {
+    const block = byId.get(row.block_id);
+    if (!block) continue; // un detalle sin su bloque no tiene dónde salir
+    block.details.push({
+      id: row.id,
+      kind: RUN_OF_SHOW_KINDS.includes(row.kind as RunOfShowKind)
+        ? (row.kind as RunOfShowKind)
+        : "nota",
+      label: row.label ?? null,
+      value: row.value ?? null,
+      vendorId: row.vendor_id ?? null,
+      membershipId: row.membership_id ?? null,
+      vendorName: null,
+      personName: null,
+      doneAt: row.done_at ?? null,
+      notes: row.notes ?? null,
+    });
+  }
+
+  // El árbol conserva el orden que ya trae la vista. Un sub-bloque cuyo padre no
+  // vino se enseña como principal: antes que perderlo de la lista.
+  const blocks: RunOfShowBlock[] = [];
+  for (const row of rows) {
+    const block = byId.get(row.block_id);
+    if (!block) continue;
+    const parent = row.parent_id ? byId.get(row.parent_id) : undefined;
+    if (parent && parent !== block) parent.children.push(block);
+    else blocks.push(block);
+  }
+
+  return {
+    blocks,
+    // pendientes_abiertos es por bloque: sumarlo es contarlo una vez cada uno.
+    openTodos: rows.reduce((sum, r) => sum + toNum(r.pendientes_abiertos), 0),
+    unavailable: false,
+  };
+}
+
+/**
+ * Le pone nombre al proveedor y al invitado de cada detalle con lo que el bundle
+ * ya leyó. Se resuelve aquí y no con un embed de PostgREST porque un embed que
+ * falle tumba la lectura entera del guion, y el guion es lo último que la pareja
+ * puede perder. Escribe sobre los detalles que acaba de construir fetchRunOfShow.
+ */
+function resolveRunOfShowNames(
+  blocks: RunOfShowBlock[],
+  vendorNames: Map<string, string>,
+  personNames: Map<string, string>
+): void {
+  for (const block of blocks) {
+    for (const detail of block.details) {
+      if (detail.vendorId) {
+        detail.vendorName = vendorNames.get(detail.vendorId) ?? null;
+      }
+      if (detail.membershipId) {
+        detail.personName = personNames.get(detail.membershipId) ?? null;
+      }
+    }
+    resolveRunOfShowNames(block.children, vendorNames, personNames);
+  }
+}
+
 /**
  * Encuentra la(s) boda(s) cuyo contact_email coincide con el email autenticado.
  * Devuelve la más reciente (por wedding_date / created_at) o null.
@@ -710,6 +967,7 @@ export async function getPanelBundle(
     messagesRes,
     checklist,
     seating,
+    runOfShow,
   ] = await Promise.all([
       supabase
         .from("vendors")
@@ -736,6 +994,7 @@ export async function getPanelBundle(
         .order("created_at", { ascending: true }),
       fetchChecklist(supabase, weddingId),
       fetchSeating(supabase, weddingId),
+      fetchRunOfShow(supabase, weddingId),
     ]);
 
   const vendors: PanelVendor[] = (vendorsRes.data ?? []).map((v) => ({
@@ -852,6 +1111,14 @@ export async function getPanelBundle(
     };
   });
 
+  // Los detalles del guion traen ids de proveedor y de invitado; el nombre sale
+  // de las dos listas que el bundle ya cargó, sin una consulta más.
+  resolveRunOfShowNames(
+    runOfShow.blocks,
+    new Map(vendors.map((v) => [v.id, v.name])),
+    new Map(guestList.map((g) => [g.id, g.name]))
+  );
+
   // couple_messages puede no existir todavía (migración pendiente): degradar con elegancia.
   const messagesUnavailable = Boolean(
     messagesRes.error &&
@@ -885,6 +1152,7 @@ export async function getPanelBundle(
     guests,
     guestList,
     seating,
+    runOfShow,
     messages,
     messagesUnavailable,
     checklist,

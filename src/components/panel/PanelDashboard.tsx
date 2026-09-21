@@ -30,6 +30,7 @@ import {
   Eyebrow,
   GuestsSection,
   PaymentsSection,
+  RunOfShowSection,
   SeatingSection,
   SectionTitle,
   VendorsSection,
@@ -43,6 +44,12 @@ export function PanelDashboard({ bundle }: { bundle: PanelBundle }) {
   // discrepancias de hidratación entre el reloj/zona horaria del servidor y el del navegador.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // El guion del día encabeza el panel cuando existe: es lo que la pareja más
+  // quiere ver. Mientras la planner no lo arme (o falte la migración 0013) la
+  // sección no sale y el presupuesto recupera su separación de arriba.
+  const showRunOfShow =
+    !bundle.runOfShow.unavailable && bundle.runOfShow.blocks.length > 0;
 
   const days = daysUntil(wedding.weddingDate);
   let countdown: string;
@@ -86,8 +93,15 @@ export function PanelDashboard({ bundle }: { bundle: PanelBundle }) {
         </header>
       </Reveal>
 
+      {/* El día, hora por hora */}
+      {showRunOfShow ? (
+        <Reveal delay={80} className="mt-12">
+          <RunOfShowSection runOfShow={bundle.runOfShow} isEnglish={isEnglish} />
+        </Reveal>
+      ) : null}
+
       {/* Presupuesto */}
-      <Reveal delay={80} className="mt-12">
+      <Reveal delay={80} className={showRunOfShow ? "mt-8" : "mt-12"}>
         <BudgetSection budget={bundle.budget} isEnglish={isEnglish} />
       </Reveal>
 

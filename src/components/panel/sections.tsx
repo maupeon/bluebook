@@ -1,6 +1,7 @@
 "use client";
 
-import { CalendarClock } from "lucide-react";
+import { useState } from "react";
+import { CalendarClock, ChevronDown } from "lucide-react";
 import type {
   BudgetSummary,
   ChecklistItem,
@@ -10,6 +11,9 @@ import type {
   PanelSeat,
   PanelTable,
   PanelVendor,
+  RunOfShowBlock,
+  RunOfShowDetail,
+  RunOfShowSummary,
   SeatingSummary,
 } from "@/lib/couplePanel";
 import { formatMXN } from "@/lib/weddingPlans";
@@ -873,6 +877,276 @@ export function VendorsSection({
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+// ----- El guion del día -----
+
+/**
+ * "1:00 p.m." a partir del instante que v_guion ya resolvió. SÓLO se lee la hora
+ * del texto: la fecha, el day_offset y la duración llegan hechos de la vista y
+ * componerlos otra vez es justo lo que este módulo tiene prohibido. Se parte la
+ * cadena en vez de usar new Date() por lo mismo que dates.ts: un timestamp sin
+ * zona se corre de día en cuanto el navegador lo interpreta.
+ */
+function blockTime(instant: string | null, isEnglish: boolean): string {
+  if (!instant) return "";
+  const match = /[T ](\d{2}):(\d{2})/.exec(instant);
+  if (!match) return "";
+  const hour = Number(match[1]);
+  const suffix = hour < 12 ? (isEnglish ? "AM" : "a.m.") : isEnglish ? "PM" : "p.m.";
+  return `${hour % 12 === 0 ? 12 : hour % 12}:${match[2]} ${suffix}`;
+}
+
+/** "45 min", "1 h", "1 h 30 min" a partir de v_guion.duracion_min. */
+function durationLabel(minutes: number | null): string | null {
+  if (minutes == null || minutes <= 0) return null;
+  const hours = Math.floor(minutes / 60);
+  const rest = Math.round(minutes % 60);
+  if (hours === 0) return `${rest} min`;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
+function DetailList({
+  details,
+  isEnglish,
+}: {
+  details: RunOfShowDetail[];
+  isEnglish: boolean;
+}) {
+  if (details.length === 0) return null;
+
+  return (
+    <ul className="mt-3 space-y-3">
+      {details.map((detail) => {
+        const label = (detail.label ?? "").trim();
+        const value = (detail.value ?? "").trim();
+        // Un detalle puede traer sólo el valor (la canción de un momento): se
+        // sube a la primera línea antes que dejarla vacía.
+        const title = label || value;
+        const body = label ? value : "";
+        const pendiente = detail.kind === "pendiente";
+        const done = Boolean(detail.doneAt);
+
+        return (
+          <li key={detail.id} className="flex items-start gap-3">
+            {pendiente ? (
+              <span
+                aria-hidden
+                className={`mt-1 h-3.5 w-3.5 flex-shrink-0 rounded border ${
+                  done ? "border-terra bg-terra" : "border-sand bg-white"
+                }`}
+              />
+            ) : null}
+
+            <div className="min-w-0 flex-1">
+              <p
+                className={`font-body text-sm ${
+                  pendiente && done ? "text-ink-soft line-through" : "text-ink"
+                }`}
+              >
+                {title}
+              </p>
+              {body ? (
+                <p className="mt-0.5 font-body text-sm text-ink-soft">{body}</p>
+              ) : null}
+              {detail.personName ? (
+                <p className="mt-0.5 font-body text-xs text-ink-muted">
+                  {detail.personName}
+                </p>
+              ) : null}
+              {detail.notes ? (
+                <p className="mt-0.5 font-body text-xs italic text-ink-soft">
+                  {detail.notes}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex flex-shrink-0 items-center gap-2">
+              {pendiente ? (
+                <span className="font-body text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+                  {done
+                    ? isEnglish
+                      ? "Ready"
+                      : "Listo"
+                    : isEnglish
+                      ? "To bring"
+                      : "Por llevar"}
+                </span>
+              ) : null}
+              {/* El proveedor del detalle sólo aparece cuando no es el del
+                  bloque: los papelitos del vals los tira otro, no el DJ. */}
+              {detail.vendorName ? (
+                <span className="rounded-full border border-sand bg-white px-2.5 py-0.5 font-body text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+                  {detail.vendorName}
+                </span>
+              ) : null}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function RunOfShowRow({
+  block,
+  isEnglish,
+}: {
+  block: RunOfShowBlock;
+  isEnglish: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const inside = block.details.length + block.children.length;
+  const start = blockTime(block.startsAt, isEnglish);
+  const end = blockTime(block.endsAt, isEnglish);
+  const duration = durationLabel(block.durationMin);
+
+  // El texto del papel ("3: 55 p.m.") sólo sale cuando no hay hora normalizada:
+  // es lo que la planner reconoce de un vistazo y no se le puede cambiar debajo.
+  const time = start || (block.timeLabel ?? "").trim();
+
+  const meta = [
+    end ? (isEnglish ? `until ${end}` : `hasta ${end}`) : "",
+    duration ?? "",
+    block.vendorName ?? "",
+    block.location ?? "",
+  ].filter(Boolean);
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        disabled={inside === 0}
+        aria-expanded={inside === 0 ? undefined : open}
+        className="flex w-full items-start gap-4 py-4 text-left transition-colors hover:text-terra disabled:cursor-default"
+      >
+        <span className="w-24 flex-shrink-0">
+          <span className="block font-heading text-lg tracking-tight text-ink tabular-nums">
+            {time || "—"}
+          </span>
+          {/* El evento cruza medianoche: el fin a la 1:00 a.m. es del día
+              siguiente y la vista ya lo ordenó así. Aquí sólo se nombra. */}
+          {block.dayOffset > 0 ? (
+            <span className="mt-0.5 block font-body text-[11px] uppercase tracking-[0.08em] text-terra">
+              {isEnglish ? "next day" : "madrugada"}
+            </span>
+          ) : null}
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span className="block font-body text-sm font-medium text-ink">
+            {block.title}
+          </span>
+          {meta.length > 0 ? (
+            <span className="mt-0.5 block font-body text-xs text-ink-muted">
+              {meta.join(" · ")}
+            </span>
+          ) : null}
+        </span>
+
+        {inside > 0 ? (
+          <ChevronDown
+            className={`mt-1 h-4 w-4 flex-shrink-0 text-ink-muted transition-transform ${
+              open ? "rotate-180" : ""
+            }`}
+            strokeWidth={1.5}
+          />
+        ) : null}
+      </button>
+
+      {open ? (
+        <div className="pb-6 sm:pl-28">
+          {block.notes ? (
+            <p className="font-body text-sm italic leading-relaxed text-ink-soft">
+              {block.notes}
+            </p>
+          ) : null}
+
+          <DetailList details={block.details} isEnglish={isEnglish} />
+
+          {/* CORTEJO y LECTURAS cuelgan de MISA: el sub-bloque se enseña como lo
+              que es, una lista dentro del momento, y no como otro renglón. */}
+          {block.children.map((child) => {
+            const childTime = child.hasOwnTime
+              ? blockTime(child.startsAt, isEnglish)
+              : "";
+            const childMeta = [
+              childTime,
+              child.vendorName ?? "",
+              child.location ?? "",
+            ].filter(Boolean);
+
+            return (
+              <section
+                key={child.id}
+                className="mt-5 rounded-xl border border-sand bg-bone px-5 py-4"
+              >
+                <h4 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra">
+                  {child.title}
+                </h4>
+                {childMeta.length > 0 ? (
+                  <p className="mt-1 font-body text-xs text-ink-muted">
+                    {childMeta.join(" · ")}
+                  </p>
+                ) : null}
+                {child.notes ? (
+                  <p className="mt-1 font-body text-xs italic text-ink-soft">
+                    {child.notes}
+                  </p>
+                ) : null}
+                <DetailList details={child.details} isEnglish={isEnglish} />
+              </section>
+            );
+          })}
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+/**
+ * El guion del día: los bloques principales con su hora y, al abrir uno, lo que
+ * trae dentro. Todas las horas salen de v_guion; aquí no se compone ninguna.
+ */
+export function RunOfShowSection({
+  runOfShow,
+  isEnglish,
+}: {
+  runOfShow: RunOfShowSummary;
+  isEnglish: boolean;
+}) {
+  // Sin la migración 0013, o si la lectura falló, no hay guion que enseñar.
+  if (runOfShow.unavailable || runOfShow.blocks.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+      <Eyebrow>{isEnglish ? "The day" : "El día"}</Eyebrow>
+      <SectionTitle>
+        {isEnglish ? "Your run of show" : "Su guion del día"}
+      </SectionTitle>
+      <p className="mt-3 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+        {isEnglish
+          ? "Every moment of the day with its time and who runs it. Open one to see what it holds: the procession, the readings, the menu, the songs."
+          : "Cada momento del día con su hora y quién lo lleva. Abran uno para ver lo que trae dentro: el cortejo, las lecturas, el menú, las canciones."}
+      </p>
+
+      {runOfShow.openTodos > 0 ? (
+        <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+          {isEnglish
+            ? `${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "thing" : "things"} on the list still to bring.`
+            : `Quedan ${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "cosa" : "cosas"} de la lista de detalles por llevar.`}
+        </p>
+      ) : null}
+
+      <ul className="mt-8 divide-y divide-sand border-t border-sand">
+        {runOfShow.blocks.map((block) => (
+          <RunOfShowRow key={block.id} block={block} isEnglish={isEnglish} />
+        ))}
+      </ul>
     </div>
   );
 }
