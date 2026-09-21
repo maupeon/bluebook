@@ -52,12 +52,32 @@ export interface PanelTask {
   notes: string | null;
 }
 
+/**
+ * SEMÁNTICA CANÓNICA DE `memberships` (vale para las dos apps).
+ *
+ * - `seats`: tamaño TOTAL del grupo invitado, titular incluido. Es lo que la
+ *   pareja ve como "pases" y lo único que escriben los cuatro caminos que
+ *   crean membresías (addGuest del admin, /api/guests/bulk, la sincronización
+ *   con Google Sheets y /api/panel/guests). Mínimo 1.
+ * - `plus_ones_allowed`: acompañantes que caben en el cupo, o sea `seats - 1`.
+ *   Redundante; sobrevive porque el RPC `add_guest` sólo escribe esta columna.
+ * - `plus_ones_confirmed`: cuántos de esos acompañantes dijeron que sí, en el
+ *   rango `0..seats - 1`. NO incluye al titular y sólo lo escribe el flujo de
+ *   RSVP (webhook de WhatsApp y sincronización con Kapso). `null` = el
+ *   invitado todavía no dio el detalle.
+ *
+ * Por lo tanto las personas que asisten de una membresía confirmada son
+ * `1 (titular) + acompañantes confirmados`, acotado al cupo:
+ *   `min(seats, 1 + (plus_ones_confirmed ?? seats - 1))`
+ * Sumar `seats + plus_ones_confirmed` cuenta a los acompañantes dos veces,
+ * porque `seats` ya los incluye.
+ */
 export interface GuestSummary {
   total: number;
   confirmed: number;
   declined: number;
   pending: number;
-  attending: number; // asientos + acompañantes confirmados
+  attending: number; // personas que asisten: titular + acompañantes confirmados
 }
 
 export type GuestConfirmation = "pending" | "confirmed" | "declined" | "maybe";
@@ -235,13 +255,16 @@ export async function getPanelBundle(
     pending: memberships.filter(
       (m) => m.confirmation !== "confirmed" && m.confirmation !== "declined"
     ).length,
+    // `seats` ya incluye al titular: sumarle plus_ones_confirmed contaba a los
+    // acompañantes dos veces. Con plus_ones_confirmed en null caemos al cupo
+    // completo (seats) en lugar de dejar la fila en cero.
     attending: memberships
       .filter((m) => m.confirmation === "confirmed")
-      .reduce(
-        (sum, m) =>
-          sum + (m.seats ?? 1) + (m.plus_ones_confirmed ?? 0),
-        0
-      ),
+      .reduce((sum, m) => {
+        const seats = Math.max(1, m.seats ?? 1);
+        const companions = Math.max(0, m.plus_ones_confirmed ?? seats - 1);
+        return sum + Math.min(seats, 1 + companions);
+      }, 0),
   };
 
   const guestList: PanelGuest[] = memberships.map((m) => {

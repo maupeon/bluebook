@@ -5,19 +5,28 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export type Album = {
+/**
+ * Lo que se puede mandar al navegador de cualquier visitante del álbum.
+ * Todo lo sensible (email del cliente, admin_token) vive en `Album` y NO debe
+ * cruzar a un componente cliente: sus props se serializan en el payload RSC,
+ * que es público.
+ */
+export type AlbumPublico = {
   id: string
   slug: string
-  email: string
   title: string
   photos: string[]  // Legacy - usar album_photos table
   template: 'classic' | 'modern' | 'romantic' | 'elegant' | 'rustic'
   wedding_date?: string | null
   music_url?: string | null
+  created_at: string
+}
+
+export type Album = AlbumPublico & {
+  email: string
   admin_token: string
   guest_upload_enabled: boolean
   max_photos_per_guest: number
-  created_at: string
 }
 
 export type AlbumPhoto = {

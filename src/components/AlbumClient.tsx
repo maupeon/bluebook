@@ -1,11 +1,11 @@
 'use client'
 
 import Flipbook from '@/components/Flipbook'
-import { Album } from '@/lib/supabase'
+import { AlbumPublico } from '@/lib/supabase'
 import { useState } from 'react'
 
 interface Props {
-  album: Album
+  album: AlbumPublico
 }
 
 export default function AlbumClient({ album }: Props) {

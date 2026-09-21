@@ -1,7 +1,7 @@
 'use client'
 
 import Flipbook from '@/components/Flipbook'
-import { Album } from '@/lib/supabase'
+import { AlbumPublico } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
 import {
   Link2,
@@ -23,7 +23,7 @@ import { useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/components/LanguageProvider'
 
 interface Props {
-  album: Album & { wedding_date?: string }
+  album: AlbumPublico & { wedding_date?: string }
 }
 
 const validTemplates = ['classic', 'modern', 'romantic', 'elegant', 'rustic'] as const

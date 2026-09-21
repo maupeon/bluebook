@@ -1,18 +1,23 @@
-import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import AlbumClient from './AlbumClient'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { LANGUAGE_COOKIE, parseLanguage } from '@/lib/language'
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Esta página es pública: cualquiera con el slug ve el álbum. Por eso lee con
+// service-role (nunca con la anon key, que obligaría a dejar la RLS abierta) y
+// selecciona columnas explícitas: `select('*')` arrastraba admin_token y email
+// hasta el payload del cliente, que es público.
+const supabase = createAdminClient()
+
+// Lo único que AlbumClient necesita. admin_token, email y stripe_session_id
+// NO salen de aquí.
+const CAMPOS_PUBLICOS = 'id, slug, title, template, photos, wedding_date, created_at'
 
 async function getAlbumPhotos(albumId: string): Promise<string[]> {
   const { data: photos } = await supabase
@@ -65,7 +70,7 @@ export default async function AlbumPage({ params }: Props) {
   const { slug } = await params
   const { data: album, error } = await supabase
     .from('albums')
-    .select('*')
+    .select(CAMPOS_PUBLICOS)
     .eq('slug', slug)
     .single()
 

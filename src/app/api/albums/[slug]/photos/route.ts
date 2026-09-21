@@ -25,9 +25,12 @@ export async function GET(
     return NextResponse.json({ error: 'Álbum no encontrado' }, { status: 404 })
   }
 
+  // Este GET es público (basta el slug), así que nunca devuelve
+  // uploaded_by_token: es la credencial del invitado y permitiría suplantarlo
+  // para borrar o subir. Solo se usa dentro de estas rutas, jamás en la UI.
   const { data: photos, error } = await supabaseAdmin
     .from('album_photos')
-    .select('*')
+    .select('id, album_id, photo_url, cloudinary_public_id, uploaded_by_name, display_order, created_at')
     .eq('album_id', album.id)
     .order('display_order', { ascending: true })
 

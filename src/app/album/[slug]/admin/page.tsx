@@ -6,11 +6,22 @@ import {
   Upload, Trash2, GripVertical, Eye, UserPlus,
   Copy, Check, Users, X, Plus, ExternalLink, QrCode, Share2, Download, CalendarDays, Save
 } from 'lucide-react'
-import { supabase, Album, AlbumPhoto, AlbumInvite } from '@/lib/supabase'
+import type { Album, AlbumPhoto, AlbumInvite } from '@/lib/supabase'
 import QRCode from 'qrcode'
 import { isUnlimitedPhotosPlan } from '@/lib/albumPlans'
 import { parseJsonSafe } from '@/lib/http'
 import { useLanguage } from '@/components/LanguageProvider'
+
+// El servidor entrega el album sin admin_token ni email de la pareja.
+type AlbumPublico = Omit<Album, 'admin_token' | 'email'>
+
+interface AlbumSessionResponse {
+  role?: 'admin' | 'guest'
+  album?: AlbumPublico
+  photos?: AlbumPhoto[]
+  total_photos?: number
+  error?: string
+}
 
 interface CloudinaryResult {
   event: string
@@ -48,7 +59,7 @@ export default function AdminPage() {
   const slug = params.slug as string
   const token = searchParams.get('token')
 
-  const [album, setAlbum] = useState<Album | null>(null)
+  const [album, setAlbum] = useState<AlbumPublico | null>(null)
   const [photos, setPhotos] = useState<AlbumPhoto[]>([])
   const [invites, setInvites] = useState<InviteWithUrl[]>([])
   const [loading, setLoading] = useState(true)
@@ -79,28 +90,23 @@ export default function AdminPage() {
       return
     }
 
-    // Validate access
-    const { data: albumData } = await supabase
-      .from('albums')
-      .select('*')
-      .eq('slug', slug)
-      .eq('admin_token', token)
-      .single()
+    // Validate access (service-role: el admin_token se verifica en el servidor)
+    const sessionRes = await fetch(`/api/albums/${slug}/session?token=${encodeURIComponent(token)}`)
+    const sessionPayload = await parseJsonSafe<AlbumSessionResponse>(sessionRes)
+    const session = sessionPayload.data
 
-    if (!albumData) {
+    if (!sessionRes.ok || session?.role !== 'admin' || !session.album) {
       router.push('/404')
       return
     }
 
-    setAlbum(albumData as Album)
-    setAlbumDate(albumData.wedding_date ? albumData.wedding_date.slice(0, 10) : '')
+    setAlbum(session.album)
+    setAlbumDate(session.album.wedding_date ? session.album.wedding_date.slice(0, 10) : '')
     setSettingsMessage('')
     setSettingsMessageType('')
 
     // Fetch photos
-    const photosRes = await fetch(`/api/albums/${slug}/photos`)
-    const photosPayload = await parseJsonSafe<{ photos?: AlbumPhoto[] }>(photosRes)
-    setPhotos(photosPayload.data?.photos || [])
+    setPhotos(session.photos || [])
 
     // Fetch invites
     const invitesRes = await fetch(`/api/albums/${slug}/invites?token=${token}`)
@@ -309,7 +315,7 @@ export default function AdminPage() {
       }),
     })
 
-    const payload = await parseJsonSafe<{ album?: Album; error?: string }>(res)
+    const payload = await parseJsonSafe<{ album?: AlbumPublico; error?: string }>(res)
     if (!res.ok || !payload.data?.album) {
       setSettingsMessage(payload.data?.error || (isEnglish ? 'Could not save settings' : 'No se pudo guardar la configuracion'))
       setSettingsMessageType('error')

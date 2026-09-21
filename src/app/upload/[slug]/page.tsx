@@ -1,10 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Upload, Trash2, GripVertical, Eye } from 'lucide-react'
-import { supabase, Album } from '@/lib/supabase'
+import type { Album } from '@/lib/supabase'
+import { parseJsonSafe, summarizeHttpError } from '@/lib/http'
 import { useLanguage } from '@/components/LanguageProvider'
+
+// El servidor entrega el album sin admin_token ni email de la pareja.
+type AlbumPublico = Omit<Album, 'admin_token' | 'email'>
+
+interface AlbumSessionResponse {
+  role?: 'admin' | 'guest'
+  album?: AlbumPublico
+  error?: string
+}
 
 interface CloudinaryResult {
   event: string
@@ -34,9 +44,11 @@ export default function UploadPage() {
   const { isEnglish } = useLanguage()
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const slug = params.slug as string
-  
-  const [album, setAlbum] = useState<Album | null>(null)
+  const token = searchParams.get('token')
+
+  const [album, setAlbum] = useState<AlbumPublico | null>(null)
   const [loading, setLoading] = useState(true)
   const [photos, setPhotos] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
@@ -44,25 +56,29 @@ export default function UploadPage() {
 
   useEffect(() => {
     const fetchAlbum = async () => {
-      const { data, error } = await supabase
-        .from('albums')
-        .select('*')
-        .eq('slug', slug)
-        .single()
-
-      if (error || !data) {
+      if (!token) {
         router.push('/404')
         return
       }
 
-      setAlbum(data)
-      setPhotos(data.photos || [])
+      // Solo el admin_token del album abre esta pagina.
+      const res = await fetch(`/api/albums/${slug}/session?token=${encodeURIComponent(token)}`)
+      const payload = await parseJsonSafe<AlbumSessionResponse>(res)
+      const session = payload.data
+
+      if (!res.ok || session?.role !== 'admin' || !session.album) {
+        router.push('/404')
+        return
+      }
+
+      setAlbum(session.album)
+      setPhotos(session.album.photos || [])
       setLoading(false)
     }
 
     fetchAlbum()
     loadCloudinaryScript()
-  }, [slug, router])
+  }, [slug, token, router])
 
   const loadCloudinaryScript = () => {
     if (document.getElementById('cloudinary-script')) return
@@ -159,18 +175,24 @@ export default function UploadPage() {
 
   const saveAlbum = async () => {
     if (!album) return
-    
+
     setSaving(true)
-    
-    const { error } = await supabase
-      .from('albums')
-      .update({ photos })
-      .eq('id', album.id)
+
+    const res = await fetch(`/api/albums/${slug}/legacy-photos`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, photos }),
+    })
 
     setSaving(false)
 
-    if (error) {
-      alert(isEnglish ? 'Error saving. Please try again.' : 'Error al guardar. Intenta de nuevo.')
+    if (!res.ok) {
+      const payload = await parseJsonSafe<{ error?: string }>(res)
+      alert(payload.data?.error || summarizeHttpError(
+        res.status,
+        payload.raw,
+        isEnglish ? 'Error saving. Please try again.' : 'Error al guardar. Intenta de nuevo.'
+      ))
       return
     }
 
