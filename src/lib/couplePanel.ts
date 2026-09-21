@@ -536,11 +536,22 @@ export async function getPanelBundle(
   const feesPaid = sumAmount(fees.filter((p) => p.paidAt));
   const feesPending = sumAmount(fees.filter((p) => !p.paidAt));
 
+  // Lo contratado es la SUMA de las dos fuentes, no una u otra. Elegir por
+  // `itemCount > 0` hacía que el total saltara en cuanto se capturaba la
+  // primera partida y dejaba fuera a los proveedores contratados que todavía
+  // no tienen partida: la pareja veía aparecer un margen que no existe.
+  // Un proveedor con partidas capturadas ya está representado por ellas, así
+  // que solo se suman los contratados que NO tienen ninguna.
+  const vendorsConPartida = new Set(
+    checklist.categories.flatMap((c) => c.vendors.map((v) => v.vendorId))
+  );
   const vendorsContracted = vendors
-    .filter((v) => v.status === "contratado")
+    .filter((v) => v.status === "contratado" && !vendorsConPartida.has(v.id))
     .reduce((sum, v) => sum + (v.contractedAmount ?? v.quotedAmount ?? 0), 0);
-  const contracted =
-    checklist.itemCount > 0 ? checklist.contracted : vendorsContracted;
+  const contracted = checklist.contracted + vendorsContracted;
+  // El saldo puede salir NEGATIVO y eso es información, no un error: significa
+  // que se ha pagado más de lo contratado (un pago que aún no tiene partida
+  // capturada, o un ajuste). Se devuelve con su signo y la UI lo nombra.
   const balance = contracted - paid;
   // Lo pagado que no cuelga de ninguna partida: por eso el saldo del resumen
   // puede no cuadrar con la suma del checklist. Se muestra, no se maquilla.

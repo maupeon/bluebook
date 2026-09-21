@@ -163,8 +163,8 @@ export function BudgetSection({
               role="img"
               aria-label={
                 isEnglish
-                  ? `Paid ${formatMXN(paid)}, outstanding ${formatMXN(balance)}, available ${formatMXN(available ?? 0)}`
-                  : `Pagado ${formatMXN(paid)}, saldo ${formatMXN(balance)}, disponible ${formatMXN(available ?? 0)}`
+                  ? `Paid ${formatMXN(paid)}, ${balance < 0 ? "overpaid" : "outstanding"} ${formatMXN(Math.abs(balance))}, available ${formatMXN(available ?? 0)}`
+                  : `Pagado ${formatMXN(paid)}, ${balance < 0 ? "pagado de más" : "saldo"} ${formatMXN(Math.abs(balance))}, disponible ${formatMXN(available ?? 0)}`
               }
             >
               <div className="h-full bg-terra" style={{ width: `${paidPct}%` }} />
@@ -188,8 +188,19 @@ export function BudgetSection({
               dotClass="bg-terra"
             />
             <BudgetFigure
-              label={isEnglish ? "Outstanding" : "Saldo"}
-              value={formatMXN(balance)}
+              label={
+                balance < 0
+                  ? isEnglish
+                    ? "Overpaid"
+                    : "Pagado de más"
+                  : isEnglish
+                    ? "Outstanding"
+                    : "Saldo"
+              }
+              // Un saldo negativo significa que se pagó más de lo contratado.
+              // Imprimir "-$185,000" al lado de una barra que lo esconde con
+              // Math.max(0,...) hacía que la misma tarjeta se contradijera.
+              value={formatMXN(Math.abs(balance))}
               dotClass="bg-sand"
             />
             <BudgetFigure
