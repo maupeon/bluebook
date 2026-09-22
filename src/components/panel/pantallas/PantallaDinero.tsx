@@ -48,7 +48,7 @@ export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
-      <Reveal>
+      <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your money" : "Su dinero"}</Eyebrow>
           <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
@@ -58,16 +58,16 @@ export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
         </header>
       </Reveal>
 
-      <Reveal delay={80} className="mt-10">
+      <Reveal app className="mt-10">
         <BudgetSection budget={budget} isEnglish={isEnglish} />
       </Reveal>
 
-      <Reveal delay={80} className="mt-8">
+      <Reveal app className="mt-8">
         <PaymentsSection payments={bundle.payments} isEnglish={isEnglish} />
       </Reveal>
 
       {bundle.checklist.unavailable ? null : (
-        <Reveal delay={80} className="mt-8">
+        <Reveal app className="mt-8">
           <ChecklistSection
             checklist={bundle.checklist}
             unlinkedPaid={budget.unlinkedPaid}
@@ -76,7 +76,7 @@ export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
         </Reveal>
       )}
 
-      <Reveal delay={80} className="mt-8 mb-4">
+      <Reveal app className="mt-8 mb-4">
         <VendorsSection vendors={bundle.vendors} isEnglish={isEnglish} />
       </Reveal>
     </div>

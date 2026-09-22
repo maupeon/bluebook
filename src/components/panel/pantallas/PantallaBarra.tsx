@@ -103,7 +103,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
-      <Reveal>
+      <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "The bar" : "La barra"}</Eyebrow>
           <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
@@ -118,7 +118,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
         </header>
       </Reveal>
 
-      <Reveal delay={80} className="mt-10">
+      <Reveal app className="mt-10">
         <div className="rounded-2xl border border-sand bg-white p-6 sm:p-7">
           <label
             htmlFor="personas-barra"
@@ -204,7 +204,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
                   role="radio"
                   aria-checked={tipo === o.valor}
                   onClick={() => setTipo(o.valor)}
-                  className={`min-h-[2.75rem] rounded-full border px-4 py-2 font-body text-sm transition-[background-color,border-color,transform] duration-150 active:scale-[0.97] ${
+                  className={`min-h-[2.75rem] rounded-full border px-4 py-2 font-body text-sm transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] ${
                     tipo === o.valor
                       ? "border-ink bg-ink text-white"
                       : "border-sand bg-white text-ink-soft hover:bg-bone"
@@ -219,7 +219,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
       </Reveal>
 
       {tipo === "sin_alcohol" ? (
-        <Reveal delay={80} className="mt-8">
+        <Reveal app className="mt-8">
           <div className="rounded-2xl border border-sand bg-white p-7">
             <EmptyNote>
               {isEnglish
@@ -229,7 +229,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
           </div>
         </Reveal>
       ) : (
-        <Reveal delay={80} className="mt-8">
+        <Reveal app className="mt-8">
           {/* aria-live: mover el control reescribe las once cantidades, y sin
               esto un lector de pantalla sólo anuncia el número del control. */}
           <div
@@ -262,7 +262,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
       )}
 
       {tipo === "completa" ? (
-        <Reveal delay={80} className="mt-6 mb-4">
+        <Reveal app className="mt-6 mb-4">
           <div className="max-w-2xl space-y-2 font-body text-xs leading-relaxed text-ink-muted">
             <p>
               {isEnglish

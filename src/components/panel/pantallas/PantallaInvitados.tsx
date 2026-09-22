@@ -37,7 +37,7 @@ export function PantallaInvitados({ bundle }: { bundle: PanelBundle }) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
-      <Reveal>
+      <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your guests" : "Sus invitados"}</Eyebrow>
           <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
@@ -47,7 +47,7 @@ export function PantallaInvitados({ bundle }: { bundle: PanelBundle }) {
         </header>
       </Reveal>
 
-      <Reveal delay={80} className="mt-10">
+      <Reveal app className="mt-10">
         <GuestListSection
           guests={bundle.guestList}
           isEnglish={isEnglish}
@@ -56,7 +56,7 @@ export function PantallaInvitados({ bundle }: { bundle: PanelBundle }) {
       </Reveal>
 
       {bundle.seating.unavailable ? null : (
-        <Reveal delay={80} className="mt-8">
+        <Reveal app className="mt-8">
           <SeatingSection seating={bundle.seating} isEnglish={isEnglish} />
         </Reveal>
       )}

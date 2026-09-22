@@ -34,7 +34,7 @@ function Resumen({
   return (
     <Link
       href={href}
-      className="group flex flex-col rounded-2xl border border-sand bg-white p-6 transition-[transform,box-shadow] duration-150 hover:shadow-[0_2px_10px_rgba(29,46,75,0.06)] active:scale-[0.99] sm:p-7"
+      className="group flex flex-col rounded-2xl border border-sand bg-white p-6 transition-[scale,box-shadow] duration-150 hover:shadow-[0_2px_10px_rgba(29,46,75,0.06)] active:scale-[0.99] sm:p-7"
     >
       <Eyebrow>{eyebrow}</Eyebrow>
       <p className="mt-2 font-heading text-[28px] leading-tight tracking-tight text-ink sm:text-[32px]">
@@ -121,7 +121,7 @@ export function PantallaHoy({
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
-      <Reveal>
+      <Reveal app>
         <header>
           <Eyebrow>{cuenta}</Eyebrow>
           <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
@@ -144,7 +144,7 @@ export function PantallaHoy({
         </header>
       </Reveal>
 
-      <Reveal delay={80} className="mt-10">
+      <Reveal app className="mt-10">
         <div className="grid gap-5 sm:grid-cols-2">
           <Resumen
             eyebrow={isEnglish ? "Your money" : "Su dinero"}
@@ -168,10 +168,10 @@ export function PantallaHoy({
       </Reveal>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <Reveal delay={80}>
+        <Reveal app>
           <TasksSection tasks={bundle.tasks} isEnglish={isEnglish} />
         </Reveal>
-        <Reveal delay={160}>
+        <Reveal app>
           <MessagesSection
             initialMessages={bundle.messages}
             unavailable={Boolean(bundle.messagesUnavailable)}

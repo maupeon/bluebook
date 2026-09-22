@@ -12,7 +12,7 @@ export function PantallaDia({ bundle }: { bundle: PanelBundle }) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
-      <Reveal>
+      <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "The day" : "El día"}</Eyebrow>
           <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
@@ -32,11 +32,11 @@ export function PantallaDia({ bundle }: { bundle: PanelBundle }) {
       </Reveal>
 
       {hay ? (
-        <Reveal delay={80} className="mt-10">
+        <Reveal app className="mt-10">
           <RunOfShowSection runOfShow={runOfShow} isEnglish={isEnglish} />
         </Reveal>
       ) : (
-        <Reveal delay={80} className="mt-10">
+        <Reveal app className="mt-10">
           <div className="rounded-2xl border border-sand bg-white p-7">
             <EmptyNote>
               {isEnglish

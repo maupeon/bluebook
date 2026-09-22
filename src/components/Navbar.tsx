@@ -42,7 +42,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="font-body text-sm font-medium text-ink-muted hover:text-ink transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-terra hover:after:w-full after:transition-all after:duration-300"
+                className="font-body text-sm font-medium text-ink-muted hover:text-ink transition-colors duration-200 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-terra after:transition-transform after:duration-200 hover:after:scale-x-100"
               >
                 {link.label}
               </Link>
@@ -81,7 +81,7 @@ export function Navbar() {
           <div className="hidden lg:block">
             <Link
               href="/comenzar"
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-ink text-white font-body font-semibold text-sm rounded-full hover:bg-ink-soft transition-all duration-300 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-ink text-white font-body font-semibold text-sm rounded-full hover:bg-ink-soft transition-[background-color,scale] duration-150 active:scale-[0.98]"
             >
               {isEnglish ? "Start planning" : "Comenzar"}
               <Heart className="w-4 h-4" strokeWidth={1.5} />

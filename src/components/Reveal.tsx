@@ -7,10 +7,12 @@ interface RevealProps {
   className?: string;
   /** Delay in ms before the entrance transition starts (for stagger cascades). */
   delay?: number;
+  /** true en el panel: entrada corta y sin retraso. Ver .reveal--app. */
+  app?: boolean;
   as?: "div" | "section" | "li" | "span";
 }
 
-export function Reveal({ children, className = "", delay = 0, as = "div" }: RevealProps) {
+export function Reveal({ children, className = "", delay = 0, app = false, as = "div" }: RevealProps) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export function Reveal({ children, className = "", delay = 0, as = "div" }: Reve
     <Tag
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
-      className={`reveal ${className}`}
+      className={`reveal ${app ? "reveal--app" : ""} ${className}`}
       style={delay ? ({ "--reveal-delay": `${delay}ms` } as React.CSSProperties) : undefined}
     >
       {children}

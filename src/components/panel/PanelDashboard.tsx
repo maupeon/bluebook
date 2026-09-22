@@ -446,13 +446,24 @@ function TaskRow({
                 ? "Mark as done"
                 : "Marcar como hecha"
           }
-          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-all active:scale-90 disabled:opacity-50 ${
+          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] disabled:opacity-50 ${
             done
               ? "border-terra bg-terra text-white"
               : "border-sand bg-white hover:border-terra"
           }`}
         >
-          {done ? <Check className="h-3.5 w-3.5" strokeWidth={2} /> : null}
+          {/* La palomita se ANIMA, no aparece de la nada.
+              Es el control más tocado del panel y el único momento del producto
+              que puede sentirse como una recompensa: tachar algo de la lista de
+              su boda. Montarla y desmontarla la hacía parpadear.
+              Y el encogido baja del 10% al 3%: en un objetivo de 20 px, un 10%
+              son 2 px — un salto, no un acuse de recibo. */}
+          <Check
+            className="h-3.5 w-3.5 transition-[scale,opacity] duration-150"
+            strokeWidth={2}
+            style={{ scale: done ? 1 : 0.6, opacity: done ? 1 : 0 }}
+            aria-hidden="true"
+          />
         </button>
 
         <div className="min-w-0 flex-1">

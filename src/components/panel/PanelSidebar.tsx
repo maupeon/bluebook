@@ -132,7 +132,7 @@ export function PanelSidebar({ estado }: { estado: EstadoDelMenu }) {
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className={`group flex min-h-[3.5rem] items-center gap-3 rounded-xl border px-3 py-2 transition-[background-color,border-color,transform] duration-150 active:scale-[0.985] ${
+              className={`group flex min-h-[3.5rem] items-center gap-3 rounded-xl border px-3 py-2 transition-[background-color,border-color,scale] duration-150 active:scale-[0.985] ${
                 activo
                   ? "border-sand bg-white shadow-[0_1px_3px_rgba(29,46,75,0.07)]"
                   : "border-transparent hover:bg-white/60"
@@ -175,7 +175,7 @@ export function PanelSidebar({ estado }: { estado: EstadoDelMenu }) {
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className={`relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,transform] duration-150 active:scale-[0.97] ${
+              className={`relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] ${
                 activo ? "border-sand bg-white" : "border-transparent"
               }`}
             >

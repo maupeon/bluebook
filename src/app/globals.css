@@ -39,6 +39,24 @@
 }
 
 @theme inline {
+  /* ---- Movimiento ----
+     De 179 declaraciones `transition-*` en la app, DOS declaraban su curva. Las
+     otras 177 heredaban en silencio el defecto de Tailwind v4,
+     cubic-bezier(0.4, 0, 0.2, 1), que es simétrico: arranca lento. Está bien
+     para algo que se mueve de A a B, y mal para todo lo que ENTRA o SALE, que
+     es la mayoría de lo que hace esta app.
+
+     Fijar el defecto aquí corrige esas 177 sin tocar un solo .tsx.
+
+     --ease-reveal ya existía en el archivo, en las tres reglas de .reveal y
+     chat-in, pero sin nombre: nadie más podía usarla. Ahora se puede. */
+  --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  --default-transition-duration: 150ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Colors */
   --color-primary: var(--primary);
   --color-primary-dark: var(--primary-dark);
@@ -269,6 +287,20 @@ h1, h2, h3, h4, h5, h6 {
      a cambio de nada. */
 }
 
+/* EL PANEL NO ES UNA LANDING.
+   0.7s de fundido con desplazamiento tiene sentido la primera vez que alguien
+   baja por una página de marketing. En el panel, donde la pareja navega decenas
+   de veces al día entre cinco destinos, es 0.7s de espera SOBRE DATOS QUE YA
+   LLEGARON: el servidor ya respondió y la pantalla se hace la interesante.
+   Aquí la entrada sólo confirma que la pantalla cambió, y para eso basta la
+   opacidad y un tercio del tiempo. Sin translateY: no hay scroll de por medio
+   que justifique el desplazamiento. */
+.reveal--app {
+  transform: none;
+  transition: opacity 180ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+  transition-delay: 0ms;
+}
+
 .reveal.is-visible {
   opacity: 1;
   transform: none;
@@ -285,11 +317,14 @@ h1, h2, h3, h4, h5, h6 {
      justo la clase de micro-movimiento que "Reducir movimiento" pide quitar, y
      ocurre en cada toque del menú. El resto del feedback (color y borde) se
      queda: reducir movimiento no es quitar la respuesta. */
-  .active\:scale-\[0\.985\]:active,
-  .active\:scale-\[0\.97\]:active,
-  .active\:scale-\[0\.98\]:active,
-  .active\:scale-\[0\.99\]:active {
-    transform: none;
+  /* `scale: 1` y no `transform: none`.
+     Tailwind 4 compila scale-* a la propiedad CSS `scale`, no a `transform`
+     (comprobado en el CSS generado de esta app: .active\:scale-90:active pone
+     `scale: var(--tw-scale-x) var(--tw-scale-y)`). Con `transform: none` esta
+     regla no tocaba nada: documentaba una decision que el navegador nunca
+     ejecutaba. */
+  [class*="active:scale-"]:active {
+    scale: 1;
   }
 }
 
