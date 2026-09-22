@@ -22,11 +22,12 @@ const ESPERA_REENVIO = 45;
  * El código no tiene ese problema: se teclea en la misma pestaña donde se pidió,
  * no hay redirección ni cookie previa, y funciona desde cualquier aparato.
  *
- * TRANSICIÓN: mientras la plantilla de correo de Supabase siga mandando solo
- * `{{ .ConfirmationURL }}`, lo que llega es un enlace y no un código. El paso 2
- * lo dice y el enlace sigue funcionando (/auth/callback no se ha tocado), así
- * que nadie se queda fuera. Cuando la plantilla incluya `{{ .Token }}`, el
- * código aparece en el correo y este formulario ya lo espera.
+ * LA PLANTILLA DE CORREO MANDA EL CÓDIGO Y NADA MÁS. No puede llevar también
+ * `{{ .ConfirmationURL }}`, aunque parezca cómodo dar las dos opciones: el
+ * enlace y el código son EL MISMO token de un solo uso, así que el escáner de
+ * enlaces de Gmail abre el enlace y deja el código gastado antes de que nadie
+ * lo teclee. Medido en los logs de Supabase: /verify ocho segundos después del
+ * envío, y el código del usuario llegando después a "token has expired".
  */
 export function LoginForm({
   next,
@@ -215,9 +216,7 @@ export function LoginForm({
         <p className="mx-auto mt-3 max-w-[42ch] text-center font-body text-sm leading-relaxed text-ink-muted">
           {isEnglish ? "We sent a code to " : "Enviamos un código a "}
           <span className="font-medium text-ink">{correo}</span>
-          {isEnglish
-            ? ". Type it below. If you got a link instead, opening it also works."
-            : ". Escríbanlo aquí abajo. Si les llegó un enlace, también sirve abrirlo."}
+          {isEnglish ? ". Type it below." : ". Escríbanlo aquí abajo."}
         </p>
 
         {aviso}
