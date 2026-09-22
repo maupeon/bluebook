@@ -932,7 +932,33 @@ export async function getCoupleWeddingByEmail(
 
   if (error || !data || data.length === 0) return null;
 
-  const row = data[0];
+  // Un mismo correo puede tener más de una boda. Ordenar por created_at y
+  // quedarse con el primero elegía la fila capturada más tarde, que no tiene
+  // nada que ver con cuál boda está viva: una pareja cuya boda es en octubre
+  // veía la de hace tres años porque esa se había cargado ayer.
+  // El criterio correcto es el calendario: primero la próxima que viene, y si
+  // ya pasaron todas, la más reciente. Las que no tienen fecha van al final.
+  const hoy = new Date();
+  const hoyUTC = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const alMedioDia = (fecha: string | null): number | null => {
+    if (!fecha) return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+    if (!m) return null;
+    return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  };
+  const row = [...data].sort((a, b) => {
+    const fa = alMedioDia(a.wedding_date);
+    const fb = alMedioDia(b.wedding_date);
+    if (fa == null && fb == null) return 0;
+    if (fa == null) return 1;
+    if (fb == null) return -1;
+    const futuraA = fa >= hoyUTC;
+    const futuraB = fb >= hoyUTC;
+    // Una futura siempre le gana a una pasada.
+    if (futuraA !== futuraB) return futuraA ? -1 : 1;
+    // Entre futuras, la más cercana. Entre pasadas, la más reciente.
+    return futuraA ? fa - fb : fb - fa;
+  })[0];
   return {
     id: row.id,
     coupleName: row.couple_name ?? row.display_name ?? "",

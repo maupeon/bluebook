@@ -260,7 +260,10 @@ h1, h2, h3, h4, h5, h6 {
     opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--reveal-delay, 0ms);
-  will-change: transform;
+  /* Sin will-change: estaba puesto de forma permanente en cada bloque, y varios
+     miden miles de píxeles. Prometer una capa de composición para siempre, por
+     una transición de 0.7s que ocurre una sola vez, cuesta memoria todo el rato
+     a cambio de nada. */
 }
 
 .reveal.is-visible {

@@ -26,7 +26,18 @@ export function Reveal({ children, className = "", delay = 0, as = "div" }: Reve
           }
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+      // threshold 0 + rootMargin, NO una fracción de la altura.
+      //
+      // Antes era threshold 0.15: el bloque se revelaba cuando el 15% de SU
+      // altura estaba dentro de la ventana. Para un bloque alto eso es
+      // imposible — "Sus mesas" mide 14,362 px, o sea que pedía 2,154 px
+      // visibles cuando la ventana de un teléfono sólo ofrece 772. Nunca se
+      // revelaba: 14,362 px de opacity 0 justo después de la lista de
+      // invitados. Eso es lo que se reportó como "un scroll infinito sin nada".
+      //
+      // Con threshold 0 la condición es "asomó un pixel", que no depende del
+      // tamaño del bloque, y el margen inferior mantiene el retraso de entrada.
+      { threshold: 0, rootMargin: "0px 0px -80px 0px" }
     );
 
     observer.observe(node);
