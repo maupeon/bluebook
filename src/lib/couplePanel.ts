@@ -18,6 +18,8 @@ export interface CoupleWedding {
   weddingDate: string | null;
   venue: string | null;
   budgetTotal: number | null;
+  /** Honorarios CONTRATADOS de la planner (weddings.planner_fee_total). */
+  plannerFeeTotal: number | null;
   status: string;
 }
 
@@ -26,13 +28,35 @@ export interface BudgetSummary {
   budgetTotal: number | null;
   /** Pagado a proveedores. NO incluye los honorarios de la planner. */
   paid: number;
-  /** Programado con fecha y todavía sin pagar: un subconjunto del saldo. */
+  /**
+   * Lo que YA TIENE FECHA y todavía no se paga. Un subconjunto del saldo.
+   *
+   * El comentario anterior decía justo esto y el código contaba otra cosa:
+   * sumaba todo pago sin `paidAt`, tuviera fecha o no. Mientras ningún pago
+   * tenía due_date daba lo mismo; en cuanto se programe el primero, "está
+   * programado" y "lo debemos" dejan de ser el mismo número.
+   */
   pending: number;
+  /** Se debe y NADIE le ha puesto fecha. Es lo que la pareja debería empujar. */
+  pendingSinFecha: number;
   /** Total contratado: la suma de las partidas, o de los proveedores contratados. */
   contracted: number;
   /** El saldo del Checklist: contratado - pagado. Siempre derivado, nunca guardado. */
   balance: number;
-  /** Honorarios de la planner, fuera del gasto con proveedores. */
+  /**
+   * Cotizado de proveedores que NO están contratados. Antes se sumaba dentro de
+   * `contracted` como respaldo, así que una cotización que nadie firmó entraba
+   * al total contratado de la boda. Sale aparte: es una intención, no un gasto.
+   */
+  quotedNotContracted: number;
+  /**
+   * Honorarios de la planner, fuera del gasto con proveedores.
+   *
+   * `feesTotal` es lo CONTRATADO (weddings.planner_fee_total), no la suma de los
+   * pagos: sin él, "total de honorarios" significaba "lo que alguien ya tecleó",
+   * y con cero pagos capturados la pareja no veía nada. null = nadie lo capturó.
+   */
+  feesTotal: number | null;
   feesPaid: number;
   feesPending: number;
   /**
@@ -940,7 +964,7 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
   const { data, error } = await supabase
     .from("weddings")
     .select(
-      "id, couple_name, display_name, wedding_date, venue, budget_total, status, contact_email, created_at"
+      "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, contact_email, created_at"
     )
     .eq("contact_email", normalized)
     .order("created_at", { ascending: false });
@@ -981,6 +1005,8 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
     weddingDate: row.wedding_date ?? null,
     venue: row.venue ?? null,
     budgetTotal: row.budget_total != null ? toNum(row.budget_total) : null,
+    plannerFeeTotal:
+      row.planner_fee_total != null ? toNum(row.planner_fee_total) : null,
     status: row.status ?? "active",
   };
 });
@@ -1130,9 +1156,19 @@ export async function getPanelBundle(
   const fees = payments.filter((p) => p.kind === "honorarios");
 
   const paid = sumAmount(vendorPayments.filter((p) => p.paidAt));
-  const pending = sumAmount(vendorPayments.filter((p) => !p.paidAt));
+  const porPagar = vendorPayments.filter((p) => !p.paidAt);
+  const pending = sumAmount(porPagar.filter((p) => p.dueDate));
+  const pendingSinFecha = sumAmount(porPagar.filter((p) => !p.dueDate));
+
   const feesPaid = sumAmount(fees.filter((p) => p.paidAt));
-  const feesPending = sumAmount(fees.filter((p) => !p.paidAt));
+  const feesTotal =
+    wedding.plannerFeeTotal != null ? wedding.plannerFeeTotal : null;
+  // Con el total contratado, lo que falta es la resta y no la suma de los pagos
+  // que alguien se acordó de capturar. Sin él se cae al comportamiento viejo.
+  const feesPending =
+    feesTotal != null
+      ? Math.max(0, feesTotal - feesPaid)
+      : sumAmount(fees.filter((p) => !p.paidAt));
 
   // Lo contratado es la SUMA de las dos fuentes, no una u otra. Elegir por
   // `itemCount > 0` hacía que el total saltara en cuanto se capturaba la
@@ -1145,7 +1181,14 @@ export async function getPanelBundle(
   );
   const vendorsContracted = vendors
     .filter((v) => v.status === "contratado" && !vendorsConPartida.has(v.id))
-    .reduce((sum, v) => sum + (v.contractedAmount ?? v.quotedAmount ?? 0), 0);
+    // Sin el respaldo a quotedAmount: una cotización no es un contrato. Si la
+    // planner marcó contratado y no capturó el monto, el total dice la verdad
+    // (no lo cuenta) en vez de inventarlo con el número de la cotización.
+    .reduce((sum, v) => sum + (v.contractedAmount ?? 0), 0);
+  // Lo cotizado que todavía NO se contrata, aparte. Es una intención.
+  const quotedNotContracted = vendors
+    .filter((v) => v.status !== "contratado" && v.status !== "descartado")
+    .reduce((sum, v) => sum + (v.quotedAmount ?? 0), 0);
   const contracted = checklist.contracted + vendorsContracted;
   // El saldo puede salir NEGATIVO y eso es información, no un error: significa
   // que se ha pagado más de lo contratado (un pago que aún no tiene partida
@@ -1239,8 +1282,11 @@ export async function getPanelBundle(
       budgetTotal: wedding.budgetTotal,
       paid,
       pending,
+      pendingSinFecha,
       contracted,
       balance,
+      quotedNotContracted,
+      feesTotal,
       feesPaid,
       feesPending,
       unlinkedPaid,

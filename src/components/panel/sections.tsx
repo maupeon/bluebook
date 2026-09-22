@@ -125,11 +125,22 @@ export function BudgetSection({
     pending,
     contracted,
     balance,
+    feesTotal,
     feesPaid,
     feesPending,
   } = budget;
 
-  const hasMoney = contracted > 0 || paid > 0 || pending > 0;
+  // Los honorarios CUENTAN para decidir si hay dinero que enseñar. Antes no, así
+  // que una boda con honorarios contratados y ningún gasto con proveedores —el
+  // estado normal al empezar— caía en el vacío y la pareja no veía la única
+  // cifra que ya tenía.
+  const hasMoney =
+    contracted > 0 ||
+    paid > 0 ||
+    pending > 0 ||
+    (feesTotal ?? 0) > 0 ||
+    feesPaid > 0 ||
+    feesPending > 0;
 
   if (budgetTotal == null && !hasMoney) {
     return (
@@ -277,7 +288,7 @@ export function BudgetSection({
       </div>
 
       {/* Los honorarios de la planner no son gasto con proveedores: van aparte. */}
-      {feesPaid > 0 || feesPending > 0 ? (
+      {(feesTotal ?? 0) > 0 || feesPaid > 0 || feesPending > 0 ? (
         <div className="mt-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-4 rounded-xl border border-sand bg-bone px-5 py-4">
           <div>
             <p className="font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
