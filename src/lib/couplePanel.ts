@@ -335,10 +335,9 @@ type PgError = { code?: string | null; message?: string | null } | null;
  * de Postgres; PGRST205 es el que contesta PostgREST cuando la tabla o la vista
  * no está en su caché de esquema, que es lo que se ve desde el cliente.
  */
-function isMissingRelation(error: PgError, relation: string): boolean {
+function isMissingRelation(error: PgError, _relation: string): boolean {
   if (!error) return false;
-  if (error.code === "42P01" || error.code === "PGRST205") return true;
-  return Boolean(error.message?.includes(relation));
+  return error.code === "42P01" || error.code === "PGRST205";
 }
 
 /** 42703: la columna todavía no existe (migración pendiente). */
@@ -403,7 +402,7 @@ async function fetchPayments(
 }
 
 const CHECKLIST_COLUMNS =
-  "vendor_item_id, vendor_id, category, vendor_name, concept, details, contracted_amount, unit_price, qty, qty_source, pagado, saldo, programado_sin_pagar, proximo_vencimiento";
+  "vendor_item_id, vendor_id, category, vendor_name, concept, details, contracted_amount, unit_price, qty_vigente, qty_source, pagado, saldo, programado_sin_pagar, proximo_vencimiento";
 
 type ChecklistRow = {
   vendor_item_id: string;
@@ -414,7 +413,7 @@ type ChecklistRow = {
   details: string | null;
   contracted_amount: unknown;
   unit_price: unknown;
-  qty: unknown;
+  qty_vigente: unknown;
   qty_source: string | null;
   pagado: unknown;
   saldo: unknown;
@@ -453,7 +452,15 @@ async function fetchChecklist(
     .order("sort_order", { ascending: true });
 
   if (error) {
-    return emptyChecklist(isMissingRelation(error, "v_checklist_pagos"));
+    if (isMissingRelation(error, "v_checklist_pagos")) return emptyChecklist(true);
+    // Igual que en el acomodo y en el guion: un fallo que NO es "falta la vista"
+    // se registra antes de esconder la sección. Sin esta línea, pedir una columna
+    // que no existe se veía idéntico a una migración pendiente, y el checklist
+    // entero —18 partidas, $1,235,538— llevaba desde el primer día sin pintarse.
+    console.error(
+      `[panel] no se pudo leer v_checklist_pagos de la boda ${weddingId}: ${error.code ?? "sin código"} ${error.message ?? ""}`
+    );
+    return emptyChecklist(true);
   }
 
   const rows = (data ?? []) as unknown as ChecklistRow[];
@@ -473,7 +480,7 @@ async function fetchChecklist(
       details: row.details ?? null,
       contracted: toNum(row.contracted_amount),
       unitPrice: toNumOrNull(row.unit_price),
-      qty: toNumOrNull(row.qty),
+      qty: toNumOrNull(row.qty_vigente),
       qtySource: row.qty_source ?? "fijo",
       paid: toNum(row.pagado),
       balance: toNum(row.saldo),
