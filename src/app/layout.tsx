@@ -123,7 +123,11 @@ export default async function RootLayout({
   const language = parseLanguage(cookieStore.get(LANGUAGE_COOKIE)?.value);
 
   return (
-    <html lang={language} className="scroll-smooth">
+    // Sin className="scroll-smooth": el scroll suave vive en globals.css,
+    // condicionado a prefers-reduced-motion. data-scroll-behavior le dice a
+    // Next que lo desactive al cambiar de ruta (desde Next 16 ya no lo hace
+    // solo si falta el atributo).
+    <html lang={language} data-scroll-behavior="smooth">
       <head>
         <script
           type="application/ld+json"

@@ -277,7 +277,18 @@ export default function AlbumClient({ album }: Props) {
         </header>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="rounded-[28px] border border-white/70 bg-gradient-to-b p-4 sm:p-6 shadow-[0_25px_80px_rgba(15,23,42,0.14)] bg-white/70 backdrop-blur-sm" id="album-flipbook">
+          {/* NADA ENTRE ESTE BLOQUE Y EL FLIPBOOK PUEDE TENER backdrop-filter,
+              filter, transform ni translate/scale/rotate.
+              Cualquiera de esas propiedades convierte al elemento en el bloque
+              contenedor de sus descendientes `position: fixed`, y el Flipbook
+              tiene tres: el zoom de foto, la galeria y la pantalla completa de
+              respaldo (la de iPhone, que no tiene API de pantalla completa).
+              Este bloque tenia backdrop-blur-sm: los tres quedaban encerrados
+              en la tarjeta en vez de cubrir la pantalla. Medido en un telefono
+              de 375x812: la galeria media 300x513 y abria en y=908, fuera de la
+              vista. El blur aqui no aportaba nada visible: lo que hay detras
+              son manchas de color ya difuminadas a 120-130px. */}
+          <div className="rounded-[28px] border border-white/70 bg-gradient-to-b p-4 sm:p-6 shadow-[0_25px_80px_rgba(15,23,42,0.14)] bg-white/70" id="album-flipbook">
             <div className="mb-5 flex flex-wrap gap-3">
               <div className={`inline-flex items-center rounded-full bg-gradient-to-r ${theme.accentSoft} px-4 py-1.5 text-sm font-semibold text-white`}>
                 <Images className="w-4 h-4 mr-2" />
@@ -290,7 +301,11 @@ export default function AlbumClient({ album }: Props) {
             </div>
 
             <div
-              className={`transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              // Montado, sin translate-y-0: en Tailwind 4 compila a
+              // `translate: 0 0`, que no es `none` y tambien encierra los
+              // fixed del Flipbook (ver arriba). Sin clase, translate vuelve a
+              // `none` al terminar la entrada.
+              className={`transition-all duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-4'}`}
             >
               <Flipbook
                 photos={album.photos}

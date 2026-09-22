@@ -100,8 +100,15 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+/* Scroll suave solo para quien no pidio Reducir movimiento. Estaba declarado
+   dos veces (aqui y con la clase scroll-smooth en <html>) y ninguna de las dos
+   preguntaba: cada salto de ancla era un desplazamiento animado de toda la
+   pagina, justo lo que alguien con sensibilidad vestibular pidio no tener.
+   Las navegaciones entre rutas no animan: ver data-scroll-behavior en layout. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -325,6 +332,30 @@ h1, h2, h3, h4, h5, h6 {
      ejecutaba. */
   [class*="active:scale-"]:active {
     scale: 1;
+  }
+
+  /* Las animaciones infinitas y decorativas se paran. Este bloque cubria la
+     entrada de .reveal y el encogido de los toques, pero se le escapaban las
+     que nunca terminan: el blob que deriva detras del hero, el punto que
+     respira, los puntos de "escribiendo", los corazones que flotan en el hero
+     y en el album, el degradado que se desplaza en el titular, y los pulse/ping
+     de Tailwind. Todas quedan en su fotograma de reposo.
+     animate-spin NO esta aqui a proposito: un spinner comunica "cargando", y
+     sin el la pantalla parece colgada.
+     !important porque Hero.tsx y Flipbook.tsx redefinen .animate-float,
+     .animate-gradient y .animate-float-particle dentro de <style jsx>, y la
+     clase jsx-XXXX que styled-jsx anade a esos selectores les da mas
+     especificidad que a esta regla. */
+  .animate-drift,
+  .animate-breathe,
+  .typing-dot,
+  .animate-float,
+  .animate-float-particle,
+  .animate-gradient,
+  .animate-pulse-glow,
+  .animate-pulse,
+  .animate-ping {
+    animation: none !important;
   }
 }
 

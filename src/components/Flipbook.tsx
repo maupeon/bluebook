@@ -191,31 +191,73 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
   const [viewportWidth, setViewportWidth] = useState(1024)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Safari de iPhone no tiene requestFullscreen para un <div>: la llamada
+  // lanzaba "is not a function" y el boton no hacia nada. Si la API no existe
+  // o el navegador la rechaza, la pantalla completa es el `fixed inset-0` del
+  // contenedor, que ya estaba escrito para eso.
+  const toggleFullscreen = useCallback(() => {
+    if (isFullscreen) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+      setIsFullscreen(false)
+    } else {
+      containerRef.current?.requestFullscreen?.().catch(() => {})
+      setIsFullscreen(true)
+    }
+  }, [isFullscreen])
+
   const totalPages = photos.length + 2
   const styles = templateStyles[template] || templateStyles.classic
   const isDark = 'dark' in styles && styles.dark
 
   // Auto-hide controls in fullscreen
+  //
+  // Antes solo escuchaba mousemove, y ocultar era solo opacity-0: los controles
+  // invisibles seguian recibiendo toques y foco. Con teclado, Tab aterrizaba en
+  // un boton que no se veia; en el telefono, un toque "en el libro" podia
+  // pulsar un boton transparente.
+  // Ahora cualquier interaccion los muestra (puntero, toque, tecla o foco), y
+  // ocultos llevan pointer-events-none. No se ocultan mientras el foco de
+  // teclado este en uno de ellos: seria volver a dejar el foco en algo invisible.
   useEffect(() => {
-    let timeout: NodeJS.Timeout
-    const handleMouseMove = () => {
+    if (!isFullscreen) {
       setShowControls(true)
-      clearTimeout(timeout)
-      timeout = setTimeout(() => setShowControls(false), 3000)
+      return
     }
 
-    if (isFullscreen) {
-      window.addEventListener('mousemove', handleMouseMove)
-      timeout = setTimeout(() => setShowControls(false), 3000)
-    } else {
-      setShowControls(true)
+    let timeout: ReturnType<typeof setTimeout>
+    const scheduleHide = () => {
+      clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        const active = document.activeElement
+        if (active?.closest('[data-flipbook-controls]') && active.matches(':focus-visible')) return
+        setShowControls(false)
+      }, 3000)
     }
+    const reveal = () => {
+      setShowControls(true)
+      scheduleHide()
+    }
+
+    const events = ['pointermove', 'pointerdown', 'keydown', 'focusin'] as const
+    events.forEach((type) => window.addEventListener(type, reveal))
+    scheduleHide()
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
+      events.forEach((type) => window.removeEventListener(type, reveal))
       clearTimeout(timeout)
     }
   }, [isFullscreen])
+
+  // Si se sale de la pantalla completa nativa con Esc o con el gesto del
+  // sistema, el keydown nunca llega a la pagina: sin esto isFullscreen se
+  // quedaba en true y el libro seguia maquetado como pantalla completa.
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) setIsFullscreen(false)
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [])
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -235,7 +277,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isFullscreen, zoomedPhoto, totalPages])
+  }, [isFullscreen, zoomedPhoto, totalPages, toggleFullscreen])
 
   useEffect(() => {
     const updateViewport = () => {
@@ -260,16 +302,6 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
   }
   const goToCover = () => goToPage(0)
   const goToBack = () => goToPage(totalPages - 1)
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen()
-      setIsFullscreen(true)
-    } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
-    }
-  }
 
   const handleImageLoad = (index: number) => {
     setLoadedImages(prev => new Set([...prev, index]))
@@ -442,7 +474,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
       )}
 
       {/* Top Controls - Enhanced */}
-      <div className={`flex items-center justify-between w-full max-w-[560px] gap-2 transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4') : 'opacity-100'
+      <div data-flipbook-controls className={`flex items-center justify-between w-full max-w-[560px] gap-2 transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none') : 'opacity-100'
         }`}>
         <div className="flex items-center gap-2">
           <button
@@ -726,26 +758,22 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
             </Page>
           </HTMLFlipBook>
 
-          {/* Quick touch hotspots inside book only */}
-          <div className="absolute inset-0 z-10 pointer-events-none">
-            <button
-              type="button"
-              onClick={goToPrev}
-              className="pointer-events-auto absolute left-0 top-0 h-full w-1/4 md:hidden"
-              aria-label={isEnglish ? 'Previous photo' : 'Foto anterior'}
-            />
-            <button
-              type="button"
-              onClick={goToNext}
-              className="pointer-events-auto absolute right-0 top-0 h-full w-1/4 md:hidden"
-              aria-label={isEnglish ? 'Next photo' : 'Foto siguiente'}
-            />
-          </div>
+          {/* Aqui habia dos <button> de w-1/4, uno por lado, encima del libro
+              en movil. page-flip escucha el toque en su propio contenedor, asi
+              que todo arrastre o swipe que empezara en esas franjas le llegaba
+              al boton y no al libro, y ahi estan justo las esquinas desde donde
+              se dobla la pagina. Era el unico gesto continuo e interrumpible
+              de la app, tapado por dos botones que hacian lo que el libro ya
+              hace solo: en vertical, un toque en el 40% izquierdo de la pagina
+              retrocede y en el resto avanza (Flip.getDirectionByPoint y
+              Render.calculateBoundsRect en page-flip). Con lector de pantalla
+              y teclado siguen las flechas de abajo, que tienen nombre, y las
+              teclas ← →. */}
         </div>
       </div>
 
       {/* Bottom Navigation - Enhanced */}
-      <div className={`flex items-center gap-2 sm:gap-4 w-full max-w-[560px] transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4') : 'opacity-100'
+      <div data-flipbook-controls className={`flex items-center gap-2 sm:gap-4 w-full max-w-[560px] transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none') : 'opacity-100'
         }`}>
         <button
           onClick={goToPrev}

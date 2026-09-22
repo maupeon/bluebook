@@ -209,6 +209,10 @@ export default function GuestUploadPage() {
   }
 
   const removePhoto = async (photoId: string) => {
+    // El boton ahora esta siempre a la vista en el telefono, donde un toque
+    // al hacer scroll es facil. Borrar no tiene vuelta atras: se pregunta.
+    if (!confirm(isEnglish ? 'Delete this photo from the album?' : 'Eliminar esta foto del album?')) return
+
     const res = await fetch(`/api/albums/${slug}/photos?photoId=${photoId}&token=${token}`, {
       method: 'DELETE',
     })
@@ -218,6 +222,8 @@ export default function GuestUploadPage() {
       // Update invite photos count
       setInvite((prev) => prev ? { ...prev, photos_uploaded: Math.max(0, prev.photos_uploaded - 1) } : null)
       setTotalAlbumPhotos((prev) => Math.max(0, prev - 1))
+    } else {
+      alert(isEnglish ? 'The photo could not be deleted. Try again.' : 'No se pudo eliminar la foto. Intenta de nuevo.')
     }
   }
 
@@ -352,15 +358,21 @@ export default function GuestUploadPage() {
                     className="w-full h-full object-cover"
                   />
 
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <button
-                      onClick={() => removePhoto(photo.id)}
-                      className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {/* EN UN TELEFONO NO HAY HOVER.
+                      El boton vivia dentro de un overlay con opacity-0 que solo
+                      se encendia con group-hover: en el telefono, que es por donde
+                      llega casi todo invitado, no habia forma de borrar una foto
+                      subida por error. Ahora se ve siempre, y solo se esconde en
+                      dispositivos que SI tienen hover (y reaparece con el hover o
+                      con el foco del teclado). */}
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(photo.id)}
+                    aria-label={isEnglish ? `Delete photo ${index + 1}` : `Eliminar foto ${index + 1}`}
+                    className="absolute top-2 right-2 p-2.5 rounded-full bg-black/55 text-white shadow-md transition-[opacity,background-color] hover:bg-red-600 focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>

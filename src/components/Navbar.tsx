@@ -93,6 +93,8 @@ export function Navbar() {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden p-2 text-ink hover:text-ink-muted transition-colors"
             aria-label={isMenuOpen ? (isEnglish ? "Close menu" : "Cerrar menu") : (isEnglish ? "Open menu" : "Abrir menu")}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMenuOpen ? (
               <X className="w-6 h-6" strokeWidth={1.5} />
@@ -102,55 +104,67 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="lg:hidden absolute top-16 left-0 right-0 bg-white border-b border-sand shadow-[0_2px_12px_rgba(29,46,75,0.05)]">
-            <div className="px-4 py-6 space-y-4">
-              <div className="inline-flex items-center gap-1 rounded-full border border-sand bg-white p-1">
-                {(["es", "en"] as const).map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => setLanguage(item)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                      language === item
-                        ? "bg-ink text-white"
-                        : "text-ink-muted hover:bg-bone"
-                    }`}
-                    aria-label={`Switch language to ${getLanguageName(item)}`}
-                  >
-                    {item.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block font-body text-lg font-medium text-ink-muted hover:text-ink transition-colors py-2"
+        {/* Mobile Menu
+            Siempre montado. Con `{isMenuOpen && ...}` React lo desmontaba al
+            cerrar y no habia nada que animar: salia de golpe. Cerrado queda
+            `invisible` (fuera del orden de tabulacion y del arbol de
+            accesibilidad); visibility se transiciona junto con la opacidad, asi
+            que el fundido de salida se ve completo antes de ocultarse.
+            La salida es mas corta que la entrada: al cerrar, el usuario ya
+            decidio y no hay nada que leer. */}
+        <div
+          id="mobile-menu"
+          className={`lg:hidden absolute top-16 left-0 right-0 bg-white border-b border-sand shadow-[0_2px_12px_rgba(29,46,75,0.05)] transition-[opacity,translate,visibility] motion-reduce:translate-none ${
+            isMenuOpen
+              ? "visible opacity-100 translate-y-0 duration-200"
+              : "invisible opacity-0 -translate-y-2 duration-150"
+          }`}
+        >
+          <div className="px-4 py-6 space-y-4">
+            <div className="inline-flex items-center gap-1 rounded-full border border-sand bg-white p-1">
+              {(["es", "en"] as const).map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setLanguage(item)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    language === item
+                      ? "bg-ink text-white"
+                      : "text-ink-muted hover:bg-bone"
+                  }`}
+                  aria-label={`Switch language to ${getLanguageName(item)}`}
                 >
-                  {link.label}
-                </Link>
+                  {item.toUpperCase()}
+                </button>
               ))}
+            </div>
+
+            {navLinks.map((link) => (
               <Link
-                href="/acceso"
+                key={link.href}
+                href={link.href}
                 onClick={() => setIsMenuOpen(false)}
                 className="block font-body text-lg font-medium text-ink-muted hover:text-ink transition-colors py-2"
               >
-                {isEnglish ? "Sign in" : "Acceso"}
+                {link.label}
               </Link>
-              <Link
-                href="/comenzar"
-                onClick={() => setIsMenuOpen(false)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-ink text-white font-body font-semibold rounded-full hover:bg-ink-soft transition-all duration-300 mt-4"
-              >
-                {isEnglish ? "Start planning" : "Comenzar"}
-                <Heart className="w-4 h-4" strokeWidth={1.5} />
-              </Link>
-            </div>
+            ))}
+            <Link
+              href="/acceso"
+              onClick={() => setIsMenuOpen(false)}
+              className="block font-body text-lg font-medium text-ink-muted hover:text-ink transition-colors py-2"
+            >
+              {isEnglish ? "Sign in" : "Acceso"}
+            </Link>
+            <Link
+              href="/comenzar"
+              onClick={() => setIsMenuOpen(false)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-ink text-white font-body font-semibold rounded-full hover:bg-ink-soft transition-all duration-300 mt-4"
+            >
+              {isEnglish ? "Start planning" : "Comenzar"}
+              <Heart className="w-4 h-4" strokeWidth={1.5} />
+            </Link>
           </div>
-        )}
+        </div>
       </nav>
     </header>
   );

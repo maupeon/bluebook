@@ -54,6 +54,11 @@ export function Reveal({ children, className = "", delay = 0, app = false, as = 
       ref={ref as any}
       className={`reveal ${app ? "reveal--app" : ""} ${className}`}
       style={delay ? ({ "--reveal-delay": `${delay}ms` } as React.CSSProperties) : undefined}
+      // Con teclado el foco puede entrar a un bloque que el observer todavia no
+      // revelo (el margen de -80px deja una franja al fondo de la ventana donde
+      // un elemento ya enfocado sigue a opacity 0): el foco desaparecia.
+      // onFocus en React burbujea, asi que cubre cualquier descendiente.
+      onFocus={(e: React.FocusEvent<HTMLElement>) => e.currentTarget.classList.add("is-visible")}
     >
       {children}
     </Tag>
