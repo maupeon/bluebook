@@ -6,7 +6,6 @@ import type {
   BudgetSummary,
   ChecklistItem,
   ChecklistSummary,
-  GuestSummary,
   PanelPayment,
   PanelSeat,
   PanelTable,

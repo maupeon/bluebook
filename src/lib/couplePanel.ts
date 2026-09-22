@@ -387,7 +387,7 @@ type PgError = { code?: string | null; message?: string | null } | null;
  * de Postgres; PGRST205 es el que contesta PostgREST cuando la tabla o la vista
  * no está en su caché de esquema, que es lo que se ve desde el cliente.
  */
-function isMissingRelation(error: PgError, _relation: string): boolean {
+function isMissingRelation(error: PgError): boolean {
   if (!error) return false;
   return error.code === "42P01" || error.code === "PGRST205";
 }
@@ -506,7 +506,7 @@ async function fetchChecklist(
     .order("sort_order", { ascending: true });
 
   if (error) {
-    if (isMissingRelation(error, "v_checklist_pagos")) return emptyChecklist(true);
+    if (isMissingRelation(error)) return emptyChecklist(true);
     // Igual que en el acomodo y en el guion: un fallo que NO es "falta la vista"
     // se registra antes de esconder la sección. Sin esta línea, pedir una columna
     // que no existe se veía idéntico a una migración pendiente, y el checklist
@@ -705,7 +705,7 @@ async function fetchSeating(
   ];
   for (const [error, relation] of lecturas) {
     if (!error) continue;
-    if (isMissingRelation(error, relation)) return emptySeating(true);
+    if (isMissingRelation(error)) return emptySeating(true);
     // Cualquier OTRO fallo de lectura (timeout, 500 de PostgREST, permiso
     // denegado, la red) NO es "la vista está vacía". Devolver emptySeating(false)
     // pintaba la sección con ceros y dejaba a la pareja viendo "0 confirmados"
@@ -875,7 +875,7 @@ async function fetchRunOfShow(
   ];
   for (const [error, relation] of lecturas) {
     if (!error) continue;
-    if (isMissingRelation(error, relation)) return emptyRunOfShow(true);
+    if (isMissingRelation(error)) return emptyRunOfShow(true);
     // Un fallo que NO es "falta la relación" no es un guion vacío. Enseñar el
     // guion a medias el día de la boda es peor que no enseñarlo: se registra y
     // la sección se oculta, igual que en el acomodo de mesas.
@@ -1053,7 +1053,13 @@ export async function coupleOwnsWedding(
  * multiplicaba por pantalla. cache() dedupe por argumento —un string, así que
  * la igualdad es la correcta— y vive lo que dura la petición.
  */
-export const getPanelDataByEmail = cache(async function getPanelDataByEmail(
+/**
+ * Todo lo de la boda. Interna: nadie la llama directo.
+ *
+ * Existe para que las dos entradas públicas de abajo compartan una sola lectura
+ * dentro de la misma petición, vía cache().
+ */
+const datosCompletos = cache(async function datosCompletos(
   email: string
 ): Promise<{
   wedding: CoupleWedding;
@@ -1083,6 +1089,34 @@ export const getPanelDataByEmail = cache(async function getPanelDataByEmail(
     diasRestantes: daysUntil(wedding.weddingDate),
   };
 });
+
+/**
+ * Los datos del panel SIN la lista de invitados.
+ *
+ * La lista son 321 filas con nombre, teléfono y notas, y la usa EXACTAMENTE una
+ * pantalla: /panel/invitados. Pero al ir en el bundle viajaba en el payload RSC
+ * de las cinco — o sea que abrir "La barra", que usa un solo número, le mandaba
+ * al navegador los datos de contacto de todos los invitados de la boda.
+ *
+ * Las filas se siguen LEYENDO en el servidor, porque el resumen (total,
+ * confirmados, pendientes) se cuenta sobre ellas. Lo que cambia es que dejan de
+ * SERIALIZARSE hacia el navegador cuando nadie las va a pintar. Traerlas y
+ * mandarlas no son la misma decisión.
+ */
+export const getPanelDataByEmail = cache(async function getPanelDataByEmail(
+  email: string
+) {
+  const datos = await datosCompletos(email);
+  if (!datos) return null;
+  return { ...datos, bundle: { ...datos.bundle, guestList: [] } };
+});
+
+/** Igual, pero CON la lista. Sólo la pide /panel/invitados. */
+export const getPanelDataConListaByEmail = cache(
+  async function getPanelDataConListaByEmail(email: string) {
+    return datosCompletos(email);
+  }
+);
 
 export async function getPanelBundle(
   wedding: CoupleWedding

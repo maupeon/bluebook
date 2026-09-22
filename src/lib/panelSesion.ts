@@ -2,7 +2,11 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPanelDataByEmail, type PanelBundle } from "@/lib/couplePanel";
+import {
+  getPanelDataByEmail,
+  getPanelDataConListaByEmail,
+  type PanelBundle,
+} from "@/lib/couplePanel";
 
 /**
  * El correo autenticado, UNA vez por petición.
@@ -36,5 +40,22 @@ export async function datosDeLaPantalla(): Promise<{
   if (!email) redirect("/acceso");
 
   const datos = await getPanelDataByEmail(email);
+  return datos ? { bundle: datos.bundle, diasRestantes: datos.diasRestantes } : null;
+}
+
+/**
+ * Igual que datosDeLaPantalla, pero CON la lista de invitados.
+ *
+ * La pide sólo /panel/invitados, que es la única pantalla que la pinta. Las
+ * otras cuatro no reciben en su payload los 321 nombres y teléfonos.
+ */
+export async function datosConListaDeInvitados(): Promise<{
+  bundle: PanelBundle;
+  diasRestantes: number | null;
+} | null> {
+  const email = await correoDelPanel();
+  if (!email) redirect("/acceso");
+
+  const datos = await getPanelDataConListaByEmail(email);
   return datos ? { bundle: datos.bundle, diasRestantes: datos.diasRestantes } : null;
 }
