@@ -488,27 +488,59 @@ export function ChecklistSection({
                                 ) : null}
                               </div>
 
+                              {/* SIN CAPTURAR NO ES CERO, Y "LIQUIDADO" TAMPOCO.
+                                  Una partida cuyo monto nadie ha capturado salía
+                                  aquí como "$0 · Pagado $0 · Liquidado": idéntica
+                                  a una saldada de verdad. Con `saldo` en NULL,
+                                  toNum lo vuelve 0 y la rama del ternario caía
+                                  del lado equivocado. Es la frase que un agente
+                                  repetiría en voz de planner. */}
                               <div className="flex-shrink-0 text-right">
-                                <p className="font-heading text-lg tracking-tight text-ink tabular-nums">
-                                  {formatMXN(item.contracted)}
-                                </p>
-                                <p className="mt-0.5 font-body text-xs tabular-nums text-ink-muted">
-                                  {isEnglish ? "Paid" : "Pagado"}{" "}
-                                  {formatMXN(item.paid)}
-                                </p>
-                                <p
-                                  className={`font-body text-xs tabular-nums ${
-                                    item.balance > 0
-                                      ? "text-terra-deep"
-                                      : "text-ink-soft"
-                                  }`}
-                                >
-                                  {item.balance > 0
-                                    ? `${isEnglish ? "Outstanding" : "Saldo"} ${formatMXN(item.balance)}`
-                                    : isEnglish
-                                      ? "Settled"
-                                      : "Liquidado"}
-                                </p>
+                                {item.montoCapturado ? (
+                                  <>
+                                    <p className="font-heading text-lg tracking-tight text-ink tabular-nums">
+                                      {formatMXN(item.contracted)}
+                                    </p>
+                                    <p className="mt-0.5 font-body text-xs tabular-nums text-ink-muted">
+                                      {isEnglish ? "Paid" : "Pagado"}{" "}
+                                      {formatMXN(item.paid)}
+                                    </p>
+                                    <p
+                                      className={`font-body text-xs tabular-nums ${
+                                        item.balance > 0
+                                          ? "text-terra-deep"
+                                          : "text-ink-soft"
+                                      }`}
+                                    >
+                                      {item.balance > 0
+                                        ? `${isEnglish ? "Outstanding" : "Saldo"} ${formatMXN(item.balance)}`
+                                        : isEnglish
+                                          ? "Settled"
+                                          : "Liquidado"}
+                                    </p>
+                                    {/* Cero pagos registrados con saldo vivo no es
+                                        "no han pagado": es que no hay nada
+                                        capturado. Puede que ya esté pagada. */}
+                                    {item.pagosCapturados === 0 && item.balance > 0 ? (
+                                      <p className="mt-0.5 font-body text-[11px] leading-snug text-ink-muted">
+                                        {isEnglish
+                                          ? "No payments recorded yet"
+                                          : "Sin pagos registrados"}
+                                      </p>
+                                    ) : null}
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="font-heading text-lg tracking-tight text-ink-muted">
+                                      {isEnglish ? "No amount yet" : "Sin monto"}
+                                    </p>
+                                    <p className="mt-0.5 max-w-[16ch] font-body text-xs leading-snug text-ink-muted">
+                                      {isEnglish
+                                        ? "Your planner hasn't set the price of this one."
+                                        : "Su planner todavía no le pone precio a esto."}
+                                    </p>
+                                  </>
+                                )}
                               </div>
                             </li>
                           );

@@ -107,6 +107,19 @@ export interface ChecklistItem {
   concept: string;
   details: string | null;
   contracted: number;
+  /**
+   * false = NADIE ha capturado el monto. No es que cueste cero.
+   *
+   * vendor_items.contracted_amount era NOT NULL DEFAULT 0, así que "sin
+   * capturar" y "gratis" eran la misma fila y la pantalla las pintaba igual:
+   * contratado $0, pagado $0, saldo $0 — idéntico a una partida liquidada.
+   */
+  montoCapturado: boolean;
+  /**
+   * Cuántos pagos hay REGISTRADOS. Cero con saldo pendiente no significa "no
+   * han pagado": significa que no hay ningún pago capturado, y se dice distinto.
+   */
+  pagosCapturados: number;
   /** Cuando la partida es precio x cantidad (el banquete: 400 x $1,175). */
   unitPrice: number | null;
   qty: number | null;
@@ -441,7 +454,7 @@ async function fetchPayments(
 }
 
 const CHECKLIST_COLUMNS =
-  "vendor_item_id, vendor_id, category, vendor_name, concept, details, contracted_amount, unit_price, qty_vigente, qty_source, pagado, saldo, programado_sin_pagar, proximo_vencimiento";
+  "vendor_item_id, vendor_id, category, vendor_name, concept, details, contracted_amount, unit_price, qty_vigente, qty_source, pagado, saldo, programado_sin_pagar, proximo_vencimiento, pagos_capturados, monto_capturado";
 
 type ChecklistRow = {
   vendor_item_id: string;
@@ -458,6 +471,8 @@ type ChecklistRow = {
   saldo: unknown;
   programado_sin_pagar: unknown;
   proximo_vencimiento: string | null;
+  pagos_capturados: unknown;
+  monto_capturado: unknown;
 };
 
 function emptyChecklist(unavailable: boolean): ChecklistSummary {
@@ -518,6 +533,8 @@ async function fetchChecklist(
       concept: row.concept,
       details: row.details ?? null,
       contracted: toNum(row.contracted_amount),
+      montoCapturado: row.monto_capturado === true,
+      pagosCapturados: toNum(row.pagos_capturados),
       unitPrice: toNumOrNull(row.unit_price),
       qty: toNumOrNull(row.qty_vigente),
       qtySource: row.qty_source ?? "fijo",
