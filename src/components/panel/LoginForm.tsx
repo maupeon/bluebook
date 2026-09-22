@@ -6,7 +6,18 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { createClient, createOtpRequestClient } from "@/lib/supabase/client";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const LARGO_CODIGO = 6;
+/**
+ * La longitud del código la decide Supabase (Authentication → Sign In / Up →
+ * Email OTP Length) y va de 6 a 10 dígitos. Este proyecto lo tiene en 8.
+ *
+ * Fijarla a 6 fue el bug que tumbó el acceso: el input truncaba con slice(0, 6)
+ * y las dos últimas cifras no llegaban nunca, así que Supabase contestaba
+ * "token has expired or is invalid" con un código recién emitido. Por eso aquí
+ * hay un RANGO y no un número: si alguien cambia ese ajuste, el formulario
+ * sigue funcionando sin tocar código.
+ */
+const MIN_CODIGO = 6;
+const MAX_CODIGO = 10;
 /** Segundos antes de poder pedir otro código. Supabase limita el envío igual. */
 const ESPERA_REENVIO = 45;
 
@@ -150,11 +161,11 @@ export function LoginForm({
     e.preventDefault();
     if (loading) return;
     const token = codigo.replace(/\D/g, "");
-    if (token.length !== LARGO_CODIGO) {
+    if (token.length < MIN_CODIGO) {
       setError(
         isEnglish
-          ? `The code has ${LARGO_CODIGO} digits.`
-          : `El código tiene ${LARGO_CODIGO} dígitos.`
+          ? `The code has at least ${MIN_CODIGO} digits.`
+          : `El código tiene al menos ${MIN_CODIGO} dígitos.`
       );
       return;
     }
@@ -239,16 +250,16 @@ export function LoginForm({
               inputMode="numeric"
               // one-time-code deja que iOS y Android lo rellenen solos.
               autoComplete="one-time-code"
-              maxLength={LARGO_CODIGO}
+              maxLength={MAX_CODIGO}
               value={codigo}
-              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, LARGO_CODIGO))}
-              placeholder="000000"
+              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, MAX_CODIGO))}
+              placeholder="········"
               disabled={loading}
-              className="w-full rounded-xl border border-sand bg-bone px-4 py-3 text-center font-body text-2xl tracking-[0.4em] text-ink placeholder:text-ink-soft/40 transition-colors focus:border-terra focus:outline-none focus:ring-2 focus:ring-terra/20 disabled:opacity-60"
+              className="w-full rounded-xl border border-sand bg-bone px-4 py-3 text-center font-body text-2xl tracking-[0.25em] text-ink placeholder:text-ink-soft/40 transition-colors focus:border-terra focus:outline-none focus:ring-2 focus:ring-terra/20 disabled:opacity-60"
             />
           </div>
 
-          <button type="submit" disabled={loading || codigo.length !== LARGO_CODIGO} className={claseBoton}>
+          <button type="submit" disabled={loading || codigo.length < MIN_CODIGO} className={claseBoton}>
             {loading ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

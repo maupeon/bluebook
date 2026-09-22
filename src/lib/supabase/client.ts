@@ -21,13 +21,17 @@ export function createClient() {
  * y NUNCA el `code_verifier`. Resultado: el código nace imposible de verificar y
  * Supabase contesta "token has expired or is invalid" aunque sea recién emitido.
  *
- * Medido: un código emitido por admin.generateLink (sin challenge) se verifica a
- * la primera; uno pedido desde el navegador con PKCE falla siempre, incluso a los
- * 48 segundos de pedirlo.
+ * HONESTIDAD SOBRE ESTO: la causa REAL de que el acceso no funcionara resultó
+ * ser otra — el formulario truncaba el código a 6 dígitos y Supabase los emite
+ * de 8. La prueba que "demostraba" lo de PKCE (un código de admin.generateLink
+ * que sí verificaba) funcionaba porque pasaba el código ENTERO, no por no
+ * llevar challenge. No llegué a aislar si el binding de PKCE rompe verifyOtp
+ * por su cuenta.
  *
- * Con flujo implícito no se manda challenge, el código queda limpio y verifyOtp
- * lo consume. La sesión la sigue creando y guardando el cliente de cookies de
- * arriba, así que el servidor la ve igual.
+ * Aun así esto se queda: en el flujo de código no hay redirección, así que PKCE
+ * no aporta nada y sí añade una variable que puede fallar. Quitarla deja el
+ * camino más corto. La sesión la sigue creando el cliente de cookies de arriba,
+ * así que el servidor la ve igual.
  */
 export function createOtpRequestClient() {
   return createRawClient(
