@@ -477,7 +477,7 @@ export async function PUT(req: NextRequest) {
         if (targetPersonId !== membership.person_id) {
           const { error: repointError } = await admin
             .from("memberships")
-            .update({ person_id: targetPersonId })
+            .update({ person_id: targetPersonId, updated_by: "couple" })
             .eq("id", id);
           if (repointError) {
             return NextResponse.json(
@@ -503,7 +503,7 @@ export async function PUT(req: NextRequest) {
         targetPersonId = newPerson.id;
         const { error: repointError } = await admin
           .from("memberships")
-          .update({ person_id: targetPersonId })
+          .update({ person_id: targetPersonId, updated_by: "couple" })
           .eq("id", id);
         if (repointError) {
           return NextResponse.json(
@@ -530,6 +530,10 @@ export async function PUT(req: NextRequest) {
 
   // 7. Aplicar cambios de la membership (si los hay) y devolver el invitado
   if (Object.keys(update).length > 0) {
+    // updated_by importa más que created_by en una fila que vive mucho: lo que
+    // cambia una respuesta de "sin contestar" a "van" lo escribe alguien
+    // distinto de quien dio de alta al invitado.
+    update.updated_by = "couple";
     const { error: updateError } = await admin
       .from("memberships")
       .update(update)
