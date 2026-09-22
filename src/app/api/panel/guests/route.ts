@@ -64,15 +64,46 @@ function parseName(value: unknown): { ok: true; value: string } | { ok: false } 
   return { ok: true, value: trimmed.slice(0, NAME_MAX) };
 }
 
-/** Valida el teléfono según el modelo del admin (last10 >= 8). */
+/**
+ * Valida el teléfono. VACÍO ES VÁLIDO.
+ *
+ * Antes exigía last10 >= 8 siempre, así que no se podía dar de alta a la abuela
+ * que no tiene celular: el formulario bloqueaba el envío y la pareja se
+ * quedaba sin poder capturarla. En la boda piloto hay 22 grupos sin teléfono,
+ * o sea que el modelo de datos ya lo contempla —people.phone es nullable y
+ * phone_last10 sale nulo— y era sólo esta validación la que lo impedía.
+ *
+ * Un teléfono a medias sí se rechaza: escribir cuatro dígitos y guardar es un
+ * error, no una decisión.
+ */
 function parsePhone(
   value: unknown
-): { ok: true; phone: string; last10: string } | { ok: false } {
+): { ok: true; phone: string | null; last10: string | null } | { ok: false } {
+  if (value === undefined || value === null) return { ok: true, phone: null, last10: null };
   if (typeof value !== "string") return { ok: false };
   const phone = value.trim();
+  if (!phone) return { ok: true, phone: null, last10: null };
   const last10 = normalizePhone(phone).slice(-10);
   if (last10.length < 8) return { ok: false };
   return { ok: true, phone, last10 };
+}
+
+/**
+ * Valida la respuesta del invitado.
+ *
+ * Se aceptan sólo tres: van, no pueden, sin contestar. "maybe" existe en la
+ * base porque el webhook de WhatsApp lo detecta, pero no se ofrece desde el
+ * panel: es un estado que la pareja no necesita poder poner a mano.
+ */
+const RESPUESTAS = ["confirmed", "declined", "pending"] as const;
+type Respuesta = (typeof RESPUESTAS)[number];
+
+function parseConfirmation(
+  value: unknown
+): { ok: true; value: Respuesta } | { ok: false } {
+  if (typeof value !== "string") return { ok: false };
+  const v = value.trim() as Respuesta;
+  return RESPUESTAS.includes(v) ? { ok: true, value: v } : { ok: false };
 }
 
 /** Valida los pases/lugares: entero 1..20, default 1. */
@@ -148,7 +179,13 @@ export async function POST(req: NextRequest) {
   }
   const phone = parsePhone(body.phone);
   if (!phone.ok) {
-    return NextResponse.json({ error: "Teléfono inválido." }, { status: 400 });
+    return NextResponse.json(
+      {
+        error:
+          "Ese teléfono no está completo. Si no lo tienen, déjenlo en blanco.",
+      },
+      { status: 400 }
+    );
   }
   const seats = parseSeats(body.seats);
   if (!seats.ok) {
@@ -164,14 +201,22 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient();
 
-  // 4. Encontrar o crear la persona global (dedup por phone_last10)
-  const { data: existingPerson } = await admin
-    .from("people")
-    .select("id")
-    .eq("phone_last10", phone.last10)
-    .maybeSingle();
+  // 4. Encontrar o crear la persona global.
+  //
+  //    La deduplicación es POR TELÉFONO (people.phone_last10). Sin teléfono no
+  //    hay llave, así que no se busca: se crea una persona nueva. Dos invitados
+  //    sin teléfono y con el mismo nombre serían dos personas distintas, y está
+  //    bien — adivinar que son la misma sería peor.
+  let personId: string | undefined;
 
-  let personId = existingPerson?.id as string | undefined;
+  if (phone.last10) {
+    const { data: existingPerson } = await admin
+      .from("people")
+      .select("id")
+      .eq("phone_last10", phone.last10)
+      .maybeSingle();
+    personId = existingPerson?.id as string | undefined;
+  }
 
   if (!personId) {
     const { data: newPerson, error: personError } = await admin
@@ -326,6 +371,43 @@ export async function PUT(req: NextRequest) {
     update.notes = notes.value;
   }
 
+  // CONFIRMAR A MANO.
+  //
+  // Hasta ahora la respuesta sólo podía entrar por WhatsApp, y el panel se lo
+  // decía a la pareja ("las etiquetas se actualizan solas"). Pero un tío que
+  // confirma por teléfono, o en la calle, no tenía dónde apuntarse.
+  //
+  // El desglose manda sobre la etiqueta: v_invitados calcula
+  //   personas_confirmadas = seats_confirmed  (si no es NULL)
+  //                        = derivado de confirmation  (si lo es)
+  // así que cambiar `confirmation` y dejar un desglose viejo debajo no movería
+  // el conteo — es el mismo bug de "el valor derivado se congela" que ya
+  // apareció antes en este proyecto. Por eso se limpia lo que CONTRADICE a la
+  // respuesta nueva, y sólo eso:
+  //   - "van"          -> se borra seats_declined; seats_confirmed se respeta,
+  //                       porque si la planner registró "vienen 3 de 4", esa
+  //                       sigue siendo la respuesta más fina y no la contradice.
+  //   - "no pueden"    -> se borra seats_confirmed: sí la contradice.
+  //   - "sin contestar"-> se borran los dos: no hay respuesta que desglosar.
+  if ("confirmation" in body) {
+    const respuesta = parseConfirmation(body.confirmation);
+    if (!respuesta.ok) {
+      return NextResponse.json(
+        { error: "Esa respuesta no es válida." },
+        { status: 400 }
+      );
+    }
+    update.confirmation = respuesta.value;
+    if (respuesta.value === "confirmed") {
+      update.seats_declined = null;
+    } else if (respuesta.value === "declined") {
+      update.seats_confirmed = null;
+    } else {
+      update.seats_confirmed = null;
+      update.seats_declined = null;
+    }
+  }
+
   // 6. Si cambió el teléfono: NUNCA mutamos en sitio la fila global `people`
   //    cuando es compartida por otras bodas (es deduplicada por phone_last10),
   //    porque eso reescribiría el contacto/destino de invitación de otra pareja.
@@ -335,7 +417,13 @@ export async function PUT(req: NextRequest) {
   if ("phone" in body) {
     const phone = parsePhone(body.phone);
     if (!phone.ok) {
-      return NextResponse.json({ error: "Teléfono inválido." }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            "Ese teléfono no está completo. Si no lo tienen, déjenlo en blanco.",
+        },
+        { status: 400 }
+      );
     }
 
     const currentPhone = (personOf(membership)?.phone ?? "").trim();
@@ -360,21 +448,29 @@ export async function PUT(req: NextRequest) {
       const personIsShared = (otherRefs ?? []).length > 0;
 
       // ¿Existe ya una persona con el nuevo phone_last10? (dedup global)
-      const { data: existingPerson, error: existingError } = await admin
-        .from("people")
-        .select("id")
-        .eq("phone_last10", newLast10)
-        .maybeSingle();
-      if (existingError) {
-        return NextResponse.json(
-          { error: "No pudimos actualizar el teléfono." },
-          { status: 500 }
-        );
-      }
+      //
+      // Sólo tiene sentido buscar si HAY teléfono nuevo. Al borrarlo,
+      // newLast10 es null y `.eq("phone_last10", null)` no casa con las filas
+      // nulas en PostgREST —eso se pide con `is.null`—, así que la consulta
+      // devolvería vacío por el motivo equivocado. Sin llave no hay dedup:
+      // se cae a las ramas de abajo, que crean o actualizan una persona sin
+      // teléfono, que es justo lo que se quiere.
+      let targetPersonId: string | undefined;
 
-      let targetPersonId: string | undefined = existingPerson?.id as
-        | string
-        | undefined;
+      if (newLast10) {
+        const { data: existingPerson, error: existingError } = await admin
+          .from("people")
+          .select("id")
+          .eq("phone_last10", newLast10)
+          .maybeSingle();
+        if (existingError) {
+          return NextResponse.json(
+            { error: "No pudimos actualizar el teléfono." },
+            { status: 500 }
+          );
+        }
+        targetPersonId = existingPerson?.id as string | undefined;
+      }
 
       if (targetPersonId) {
         // (b) Reusar la persona existente del nuevo teléfono y repuntar.

@@ -48,7 +48,62 @@ export function TasksSection({
 }) {
   const [tasks, setTasks] = useState<PanelTask[]>(initialTasks);
   const [error, setError] = useState<string | null>(null);
+  const [nuevo, setNuevo] = useState("");
+  const [guardando, setGuardando] = useState(false);
   const refrescar = useRefrescoDelPanel();
+
+  async function agregar(e: React.FormEvent) {
+    e.preventDefault();
+    const title = nuevo.trim();
+    if (!title || guardando) return;
+    setError(null);
+    setGuardando(true);
+    try {
+      const res = await fetch("/api/panel/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      const { data } = await parseJsonSafe<{ task?: PanelTask; error?: string }>(res);
+      if (!res.ok || !data?.task) {
+        throw new Error(
+          data?.error ||
+            (isEnglish ? "Couldn't save it." : "No pudimos guardarlo.")
+        );
+      }
+      setTasks((prev) => [...prev, data.task!]);
+      setNuevo("");
+      refrescar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : null);
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function quitar(task: PanelTask) {
+    setError(null);
+    const previas = tasks;
+    setTasks((prev) => prev.filter((t) => t.id !== task.id)); // optimista
+    try {
+      const res = await fetch("/api/panel/tasks", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: task.id }),
+      });
+      const { data } = await parseJsonSafe<{ error?: string }>(res);
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            (isEnglish ? "Couldn't remove it." : "No pudimos quitarlo.")
+        );
+      }
+      refrescar();
+    } catch (err) {
+      setTasks(previas); // revertir
+      setError(err instanceof Error ? err.message : null);
+    }
+  }
 
   const sorted = useMemo(() => {
     return [...tasks].sort((a, b) => {
@@ -136,13 +191,13 @@ export function TasksSection({
       ) : null}
 
       {sorted.length === 0 ? (
-        <p className="mt-6">
+        <div className="mt-6">
           <EmptyNote>
             {isEnglish
-              ? "No tasks yet. Your planner will add them here."
-              : "Aún sin tareas. Su planner las irá agregando aquí."}
+              ? "Nothing pending. Write down anything you want to remember, and your planner will add hers."
+              : "Nada pendiente. Apunten lo que quieran recordar, y su planner irá agregando lo suyo."}
           </EmptyNote>
-        </p>
+        </div>
       ) : (
         <ul className="mt-6">
           {sorted.map((task) => (
@@ -152,10 +207,39 @@ export function TasksSection({
               isEnglish={isEnglish}
               onToggle={() => toggleDone(task)}
               onSaveNotes={(notes) => saveNotes(task, notes)}
+              onRemove={task.createdBy === "couple" ? () => quitar(task) : null}
             />
           ))}
         </ul>
       )}
+
+      {/* Apuntar lo suyo. La lista es compartida con la planner: lo que se
+          escribe aquí queda marcado como de la pareja, y sólo eso se puede
+          quitar después. Lo que encarga la planner se marca como hecho, pero
+          no se borra. */}
+      <form onSubmit={agregar} className="mt-6 flex gap-2">
+        <label htmlFor="nueva-tarea" className="sr-only">
+          {isEnglish ? "What do you want to remember?" : "¿Qué quieren recordar?"}
+        </label>
+        <input
+          id="nueva-tarea"
+          value={nuevo}
+          onChange={(e) => setNuevo(e.target.value)}
+          maxLength={200}
+          placeholder={
+            isEnglish ? "Write something down…" : "Apunten algo…"
+          }
+          className="min-h-[2.75rem] flex-1 rounded-xl border border-sand bg-bone px-4 py-2 font-body text-sm text-ink placeholder:text-ink-muted"
+        />
+        <button
+          type="submit"
+          disabled={!nuevo.trim() || guardando}
+          className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl border border-ink bg-ink px-4 py-2 font-body text-sm text-white transition-transform duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <Plus className="h-4 w-4" strokeWidth={1.8} />
+          {isEnglish ? "Add" : "Apuntar"}
+        </button>
+      </form>
     </div>
   );
 }
@@ -165,11 +249,14 @@ function TaskRow({
   isEnglish,
   onToggle,
   onSaveNotes,
+  /** null cuando la tarea la puso la planner: esas no se quitan. */
+  onRemove,
 }: {
   task: PanelTask;
   isEnglish: boolean;
   onToggle: () => void;
   onSaveNotes: (notes: string) => void;
+  onRemove: (() => void) | null;
 }) {
   const done = Boolean(task.doneAt);
   const [showNotes, setShowNotes] = useState(Boolean(task.notes));
@@ -222,6 +309,20 @@ function TaskRow({
             >
               {task.title}
             </p>
+            {onRemove ? (
+              <button
+                type="button"
+                onClick={onRemove}
+                aria-label={
+                  isEnglish
+                    ? `Remove "${task.title}"`
+                    : `Quitar "${task.title}"`
+                }
+                className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-bone hover:text-terra-deep"
+              >
+                <Trash2 className="h-4 w-4" strokeWidth={1.6} />
+              </button>
+            ) : null}
             {task.dueDate && !done ? (
               <span
                 suppressHydrationWarning
@@ -380,13 +481,13 @@ export function MessagesSection({
             style={{ maxHeight: "26rem" }}
           >
             {messages.length === 0 ? (
-              <p>
+              <div>
                 <EmptyNote>
                   {isEnglish
                     ? "No messages yet. Say hi to your planner."
                     : "Aún sin mensajes. Saluden a su planner."}
                 </EmptyNote>
-              </p>
+              </div>
             ) : (
               messages.map((m) => {
                 const mine = m.author === "couple";
@@ -502,38 +603,78 @@ function formatGuestPhone(digits: string): string {
   return parts.filter(Boolean).join(" ");
 }
 
+/**
+ * La respuesta del invitado, y ahora también cómo se cambia.
+ *
+ * Hasta ahora sólo pintaba: la respuesta únicamente podía entrar por WhatsApp,
+ * y el panel se lo prometía a la pareja ("las etiquetas se actualizan solas").
+ * Pero un tío que confirma por teléfono no tenía dónde apuntarse, y la promesa
+ * quedaba a medias.
+ *
+ * Es un <select> nativo a propósito, no un menú propio: en el teléfono abre la
+ * rueda del sistema, funciona con teclado y con lector de pantalla sin que haya
+ * que construir nada, y son 91 filas — cualquier popover propio multiplicado por
+ * 91 es peso y superficie de error a cambio de nada.
+ *
+ * "Tal vez" se pinta si viene de WhatsApp, pero no se ofrece: es un estado que
+ * la pareja no necesita poder poner a mano.
+ */
+const RESPUESTA_ESTILO = {
+  confirmed: "bg-pale-green text-pale-green-ink",
+  declined: "bg-terra-light text-terra-deep",
+  maybe: "bg-pale-blue text-pale-blue-ink",
+  pending: "bg-pale-yellow text-pale-yellow-ink",
+} as const;
+
+function textoRespuesta(
+  valor: PanelGuest["confirmation"],
+  isEnglish: boolean
+): string {
+  if (valor === "confirmed") return isEnglish ? "Coming" : "Van";
+  if (valor === "declined") return isEnglish ? "Can't come" : "No pueden";
+  if (valor === "maybe") return isEnglish ? "Maybe" : "Tal vez";
+  return isEnglish ? "No answer" : "Sin contestar";
+}
+
 function GuestBadge({
   confirmation,
   isEnglish,
+  onChange,
+  nombre,
+  id,
 }: {
   confirmation: PanelGuest["confirmation"];
   isEnglish: boolean;
+  onChange: (valor: "confirmed" | "declined" | "pending") => void;
+  nombre: string;
+  /** El uuid de la membresía. El id del DOM sale de aquí y NO del nombre:
+      dos "Familia López" darían el mismo id y el label apuntaría al select
+      equivocado, además de que un nombre lleva espacios y comillas. */
+  id: string;
 }) {
-  const map = {
-    confirmed: {
-      text: isEnglish ? "Confirmed" : "Confirmado",
-      cls: "bg-pale-green text-pale-green-ink",
-    },
-    declined: {
-      text: isEnglish ? "Not coming" : "No asiste",
-      cls: "bg-terra-light text-terra-deep",
-    },
-    maybe: {
-      text: isEnglish ? "Maybe" : "Tal vez",
-      cls: "bg-pale-blue text-pale-blue-ink",
-    },
-    pending: {
-      text: isEnglish ? "Pending" : "Pendiente",
-      cls: "bg-pale-yellow text-pale-yellow-ink",
-    },
-  } as const;
-  const badge = map[confirmation] ?? map.pending;
+  const cls = RESPUESTA_ESTILO[confirmation] ?? RESPUESTA_ESTILO.pending;
+  const idCampo = `respuesta-${id}`;
   return (
-    <span
-      className={`flex-shrink-0 rounded-full px-3 py-1 font-body text-[11px] uppercase tracking-[0.08em] ${badge.cls}`}
-    >
-      {badge.text}
-    </span>
+    <>
+      <label htmlFor={idCampo} className="sr-only">
+        {isEnglish ? `Answer for ${nombre}` : `Respuesta de ${nombre}`}
+      </label>
+      <select
+        id={idCampo}
+        value={confirmation === "maybe" ? "maybe" : confirmation}
+        onChange={(e) =>
+          onChange(e.target.value as "confirmed" | "declined" | "pending")
+        }
+        className={`min-h-[2.25rem] flex-shrink-0 cursor-pointer appearance-none rounded-full px-3 py-1 text-center font-body text-[11px] uppercase tracking-[0.08em] transition-transform duration-150 active:scale-[0.97] ${cls}`}
+      >
+        {confirmation === "maybe" ? (
+          <option value="maybe">{textoRespuesta("maybe", isEnglish)}</option>
+        ) : null}
+        <option value="confirmed">{textoRespuesta("confirmed", isEnglish)}</option>
+        <option value="declined">{textoRespuesta("declined", isEnglish)}</option>
+        <option value="pending">{textoRespuesta("pending", isEnglish)}</option>
+      </select>
+    </>
   );
 }
 
@@ -614,11 +755,14 @@ export function GuestListSection({
       );
       return;
     }
-    if (digits.length !== expectedDigits) {
+    // El teléfono es OPCIONAL. Antes era obligatorio y no se podía capturar a
+    // quien no tiene celular: en la boda piloto son 22 grupos. Lo que sí se
+    // rechaza es un número a medias, que es un error de dedo y no una decisión.
+    if (digits.length > 0 && digits.length !== expectedDigits) {
       setFormError(
         isEnglish
-          ? `Check the number: it should be ${expectedDigits} digits.`
-          : `Revisen el número: deben ser ${expectedDigits} dígitos.`
+          ? `Check the number: it should be ${expectedDigits} digits. If you don't have it, leave it blank.`
+          : `Revisen el número: deben ser ${expectedDigits} dígitos. Si no lo tienen, déjenlo en blanco.`
       );
       return;
     }
@@ -632,7 +776,7 @@ export function GuestListSection({
       return;
     }
 
-    const fullPhone = `${cc}${digits}`;
+    const fullPhone = digits.length > 0 ? `${cc}${digits}` : "";
     setAdding(true);
 
     try {
@@ -667,6 +811,47 @@ export function GuestListSection({
       setFormError(err instanceof Error ? err.message : null);
     } finally {
       setAdding(false);
+    }
+  }
+
+  /**
+   * Apuntar a mano lo que contestó un invitado.
+   *
+   * Va por su propio camino y no por handleUpdate: ése manda nombre, teléfono,
+   * pases y notas juntos, y mandar los cuatro para cambiar una etiqueta es
+   * pedirle al servidor que reescriba campos que nadie tocó.
+   */
+  async function handleAnswer(
+    guest: PanelGuest,
+    valor: "confirmed" | "declined" | "pending"
+  ) {
+    if (valor === guest.confirmation) return;
+    const previas = guests;
+    setGuests((prev) =>
+      prev.map((g) => (g.id === guest.id ? { ...g, confirmation: valor } : g))
+    );
+    try {
+      const res = await fetch("/api/panel/guests", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: guest.id, confirmation: valor }),
+      });
+      const { data } = await parseJsonSafe<{ guest?: PanelGuest; error?: string }>(res);
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            (isEnglish ? "Couldn't save it." : "No pudimos guardarlo.")
+        );
+      }
+      if (data?.guest) {
+        setGuests((prev) =>
+          prev.map((g) => (g.id === guest.id ? data.guest! : g))
+        );
+      }
+      refrescar();
+    } catch (e) {
+      setGuests(previas); // revertir
+      setFormError(e instanceof Error ? e.message : null);
     }
   }
 
@@ -801,8 +986,8 @@ export function GuestListSection({
 
       <p className="mt-3 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
         {isEnglish
-          ? "Build your list here. Your planner and the assistant send the invitations on WhatsApp and record the replies. The status badges update on their own when guests answer."
-          : "Aquí arman su lista. Su planner y el agente envían las invitaciones por WhatsApp y registran las confirmaciones. Las etiquetas de estado se actualizan solas cuando los invitados responden."}
+          ? "Build your list here. Your planner and the assistant send the invitations on WhatsApp and record the replies on their own. If someone tells you in person, you can set their answer yourself. No phone? Leave it blank."
+          : "Aquí arman su lista. Su planner y el agente mandan las invitaciones por WhatsApp y registran las respuestas solos. Si alguien les dice de viva voz, pueden apuntar su respuesta ustedes. ¿No tienen su teléfono? Déjenlo en blanco."}
       </p>
 
       {/* Formulario de alta */}
@@ -834,7 +1019,10 @@ export function GuestListSection({
               htmlFor="guest-phone"
               className="mb-2 block font-body text-sm font-medium text-ink"
             >
-              WhatsApp
+              WhatsApp{" "}
+              <span className="font-normal normal-case tracking-normal text-ink-muted">
+                ({isEnglish ? "optional" : "opcional"})
+              </span>
             </label>
             <div className="flex gap-2">
               <select
@@ -934,13 +1122,13 @@ export function GuestListSection({
 
       {/* Lista */}
       {guests.length === 0 ? (
-        <p className="mt-7">
+        <div className="mt-7">
           <EmptyNote>
             {isEnglish
               ? "No guests yet. Start by adding your first one."
               : "Aún no han agregado invitados. Empiecen agregando al primero."}
           </EmptyNote>
-        </p>
+        </div>
       ) : (
         <>
           {guests.length > LIMITE_LISTA ? (
@@ -976,13 +1164,13 @@ export function GuestListSection({
           ) : null}
 
           {filtrados.length === 0 ? (
-            <p className="mt-7">
+            <div className="mt-7">
               <EmptyNote>
                 {isEnglish
                   ? "No guest matches that search."
                   : "Ningún invitado coincide con esa búsqueda."}
               </EmptyNote>
-            </p>
+            </div>
           ) : (
             <ul className="mt-7">
               {visibles.map((guest) => (
@@ -992,6 +1180,7 @@ export function GuestListSection({
                   isEnglish={isEnglish}
                   onUpdate={handleUpdate}
                   onDelete={() => handleDelete(guest)}
+                  onAnswer={(valor) => handleAnswer(guest, valor)}
                 />
               ))}
             </ul>
@@ -1019,6 +1208,7 @@ function GuestRow({
   isEnglish,
   onUpdate,
   onDelete,
+  onAnswer,
 }: {
   guest: PanelGuest;
   isEnglish: boolean;
@@ -1027,6 +1217,7 @@ function GuestRow({
     patch: { name: string; phone: string; seats: number; notes: string | null }
   ) => Promise<boolean>;
   onDelete: () => void;
+  onAnswer: (valor: "confirmed" | "declined" | "pending") => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -1135,7 +1326,10 @@ function GuestRow({
               htmlFor={`edit-phone-${guest.id}`}
               className="mb-1.5 block font-body text-xs font-medium uppercase tracking-[0.08em] text-ink-muted"
             >
-              WhatsApp
+              WhatsApp{" "}
+              <span className="font-normal normal-case tracking-normal text-ink-muted">
+                ({isEnglish ? "optional" : "opcional"})
+              </span>
             </label>
             <div className="flex gap-2">
               <select
@@ -1234,7 +1428,13 @@ function GuestRow({
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <p className="font-body text-sm font-medium text-ink">{guest.name}</p>
-          <GuestBadge confirmation={guest.confirmation} isEnglish={isEnglish} />
+          <GuestBadge
+            confirmation={guest.confirmation}
+            isEnglish={isEnglish}
+            nombre={guest.name}
+            id={guest.id}
+            onChange={onAnswer}
+          />
           {guest.seats > 1 ? (
             <span className="font-body text-xs tabular-nums text-ink-muted">
               {guest.seats} {isEnglish ? "passes" : "pases"}

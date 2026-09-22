@@ -138,13 +138,13 @@ export function BudgetSection({
         <SectionTitle>
           {isEnglish ? "Your budget" : "Su presupuesto"}
         </SectionTitle>
-        <p className="mt-5">
+        <div className="mt-5">
           <EmptyNote>
             {isEnglish
               ? "Your planner hasn't set the budget yet."
               : "Su planner aún no define el presupuesto."}
           </EmptyNote>
-        </p>
+        </div>
       </div>
     );
   }
@@ -375,13 +375,13 @@ export function ChecklistSection({
       </p>
 
       {checklist.itemCount === 0 ? (
-        <p className="mt-6">
+        <div className="mt-6">
           <EmptyNote>
             {isEnglish
               ? "No contracted items yet. Your planner will add them here."
               : "Aún sin partidas contratadas. Su planner las irá agregando aquí."}
           </EmptyNote>
-        </p>
+        </div>
       ) : (
         <>
           <div className="mt-7 grid grid-cols-3 gap-4 border-t border-sand pt-6">
@@ -529,13 +529,13 @@ export function GuestsSection({
       <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
         <Eyebrow>{isEnglish ? "Guests" : "Invitados"}</Eyebrow>
         <SectionTitle>{isEnglish ? "Guests" : "Invitados"}</SectionTitle>
-        <p className="mt-5">
+        <div className="mt-5">
           <EmptyNote>
             {isEnglish
               ? "No guests loaded yet."
               : "Aún sin invitados cargados."}
           </EmptyNote>
-        </p>
+        </div>
       </div>
     );
   }
@@ -583,9 +583,9 @@ function SeatList({
 }) {
   if (seats.length === 0) {
     return (
-      <p className="mt-3">
+      <div className="mt-3">
         <EmptyNote>{isEnglish ? "Empty for now." : "Todavía vacía."}</EmptyNote>
-      </p>
+      </div>
     );
   }
   return (
@@ -625,13 +625,13 @@ export function SeatingSection({
       <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
         <Eyebrow>{isEnglish ? "Seating" : "Acomodo"}</Eyebrow>
         <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
-        <p className="mt-5">
+        <div className="mt-5">
           <EmptyNote>
             {isEnglish
               ? "Your planner hasn't laid out the tables yet."
               : "Su planner aún no arma el acomodo de mesas."}
           </EmptyNote>
-        </p>
+        </div>
       </div>
     );
   }
@@ -764,13 +764,13 @@ export function PaymentsSection({
       </p>
 
       {payments.length === 0 ? (
-        <p className="mt-6">
+        <div className="mt-6">
           <EmptyNote>
             {isEnglish
               ? "No payments registered yet."
               : "Aún sin pagos registrados."}
           </EmptyNote>
-        </p>
+        </div>
       ) : (
         <ul className="mt-6">
           {payments.map((payment) => {
@@ -847,13 +847,13 @@ export function VendorsSection({
       <SectionTitle>{isEnglish ? "Vendors" : "Proveedores"}</SectionTitle>
 
       {vendors.length === 0 ? (
-        <p className="mt-6">
+        <div className="mt-6">
           <EmptyNote>
             {isEnglish
               ? "No vendors added yet."
               : "Aún sin proveedores agregados."}
           </EmptyNote>
-        </p>
+        </div>
       ) : (
         <ul className="mt-6">
           {vendors.map((vendor) => {
@@ -951,11 +951,18 @@ function DetailList({
 
         return (
           <li key={detail.id} className="flex items-start gap-3">
+            {/* Un PUNTO, no un cuadrito.
+                Era un cuadrado con borde, idéntico píxel a píxel a la casilla
+                de Tareas —que sí se puede tocar—, y éste no: son las cosas que
+                la PLANNER tiene que llevar (la 0013 define el kind 'pendiente'
+                como "un renglón de la lista DETALLES: material que hay que
+                llevar"). Dos glifos iguales de los que sólo uno responde es
+                prometer algo que no ocurre. */}
             {pendiente ? (
               <span
                 aria-hidden
-                className={`mt-1 h-3.5 w-3.5 flex-shrink-0 rounded border ${
-                  done ? "border-terra bg-terra" : "border-sand bg-white"
+                className={`mt-[7px] h-[6px] w-[6px] flex-shrink-0 rounded-full ${
+                  done ? "bg-pale-green-ink" : "bg-sand"
                 }`}
               />
             ) : null}
@@ -1157,8 +1164,8 @@ export function RunOfShowSection({
       {runOfShow.openTodos > 0 ? (
         <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
           {isEnglish
-            ? `${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "thing" : "things"} on the list still to bring.`
-            : `Quedan ${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "cosa" : "cosas"} de la lista de detalles por llevar.`}
+            ? `Your planner still has ${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "thing" : "things"} to bring. She ticks them off as they're ready.`
+            : `A su planner le quedan ${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "cosa" : "cosas"} por llevar. Ella las va marcando conforme las tiene.`}
         </p>
       ) : null}
 

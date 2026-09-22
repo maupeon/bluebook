@@ -128,6 +128,11 @@ export interface PanelTask {
   dueDate: string | null;
   doneAt: string | null;
   notes: string | null;
+  /**
+   * 'couple' si la apuntó la pareja, 'planner' si se la encargaron.
+   * La lista es compartida: la pareja marca las dos, pero sólo quita las suyas.
+   */
+  createdBy: "couple" | "planner";
 }
 
 /**
@@ -1052,7 +1057,7 @@ export async function getPanelBundle(
       fetchPayments(supabase, weddingId),
       supabase
         .from("tasks")
-        .select("id, title, due_date, done_at, notes")
+        .select("id, title, due_date, done_at, notes, created_by")
         .eq("wedding_id", weddingId)
         .order("due_date", { ascending: true, nullsFirst: false }),
       supabase
@@ -1088,6 +1093,7 @@ export async function getPanelBundle(
     dueDate: t.due_date ?? null,
     doneAt: t.done_at ?? null,
     notes: t.notes ?? null,
+    createdBy: t.created_by === "couple" ? "couple" : "planner",
   }));
 
   // El dinero, con la misma semántica del Checklist:

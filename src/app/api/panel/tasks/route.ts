@@ -1,10 +1,192 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { coupleOwnsWedding } from "@/lib/couplePanel";
+import { coupleOwnsWedding, getCoupleWeddingByEmail } from "@/lib/couplePanel";
 
 const ISO_RE =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/;
+const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TITULO_MAX = 200;
+
+/** La forma en que el panel habla de una tarea. */
+type TareaSalida = {
+  id: string;
+  title: string;
+  dueDate: string | null;
+  doneAt: string | null;
+  notes: string | null;
+  createdBy: string;
+};
+
+const COLUMNAS_TAREA = "id, title, due_date, done_at, notes, created_by";
+
+function aSalida(row: {
+  id: string;
+  title: string;
+  due_date: string | null;
+  done_at: string | null;
+  notes: string | null;
+  created_by: string | null;
+}): TareaSalida {
+  return {
+    id: row.id,
+    title: row.title,
+    dueDate: row.due_date ?? null,
+    doneAt: row.done_at ?? null,
+    notes: row.notes ?? null,
+    createdBy: row.created_by ?? "planner",
+  };
+}
+
+// POST /api/panel/tasks — la pareja apunta un pendiente suyo.
+//
+// La lista es compartida con la planner, así que lo que se crea aquí queda
+// marcado como 'couple': es lo que después permite que la pareja pueda borrar
+// lo suyo sin poder quitar lo que le encargaron.
+export async function POST(req: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.email) {
+    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+  }
+
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  if (!title) {
+    return NextResponse.json(
+      { error: "Escriban qué hay que hacer." },
+      { status: 400 }
+    );
+  }
+
+  let dueDate: string | null = null;
+  if (body.dueDate !== undefined && body.dueDate !== null && body.dueDate !== "") {
+    if (typeof body.dueDate !== "string" || !FECHA_RE.test(body.dueDate)) {
+      return NextResponse.json(
+        { error: "Esa fecha no es válida." },
+        { status: 400 }
+      );
+    }
+    dueDate = body.dueDate;
+  }
+
+  // La boda sale del correo autenticado, NUNCA del body: si viniera de fuera,
+  // cualquiera podría escribirle pendientes a la boda de otra pareja.
+  const wedding = await getCoupleWeddingByEmail(user.email);
+  if (!wedding) {
+    return NextResponse.json(
+      { error: "No encontramos su boda." },
+      { status: 404 }
+    );
+  }
+
+  const admin = createAdminClient();
+  const { data: inserted, error: insertError } = await admin
+    .from("tasks")
+    .insert({
+      wedding_id: wedding.id,
+      title: title.slice(0, TITULO_MAX),
+      due_date: dueDate,
+      created_by: "couple",
+    })
+    .select(COLUMNAS_TAREA)
+    .single();
+
+  if (insertError || !inserted) {
+    return NextResponse.json(
+      { error: "No pudimos guardar el pendiente." },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ task: aSalida(inserted) }, { status: 201 });
+}
+
+// DELETE /api/panel/tasks — la pareja quita un pendiente SUYO.
+//
+// Las de la planner no se tocan: se pueden marcar como hechas, pero quitarlas
+// sería borrar lo que le encargaron a uno. Por eso el borrado filtra por
+// created_by = 'couple' en la propia consulta, no sólo en una comprobación
+// previa: si la fila no cumple, no se borra nada.
+export async function DELETE(req: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.email) {
+    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+  }
+
+  const id = body.id;
+  if (typeof id !== "string" || !id) {
+    return NextResponse.json(
+      { error: "Falta el identificador de la tarea." },
+      { status: 400 }
+    );
+  }
+
+  const admin = createAdminClient();
+  const { data: taskRow, error: lookupError } = await admin
+    .from("tasks")
+    .select("wedding_id, created_by")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (lookupError || !taskRow) {
+    return NextResponse.json(
+      { error: "No encontramos esa tarea." },
+      { status: 404 }
+    );
+  }
+
+  const owns = await coupleOwnsWedding(user.email, taskRow.wedding_id);
+  if (!owns) {
+    return NextResponse.json(
+      { error: "No tienen acceso a esta tarea." },
+      { status: 403 }
+    );
+  }
+
+  if (taskRow.created_by !== "couple") {
+    return NextResponse.json(
+      {
+        error:
+          "Ese pendiente lo puso su planner. Pueden marcarlo como hecho, pero no quitarlo.",
+      },
+      { status: 403 }
+    );
+  }
+
+  const { error: deleteError } = await admin
+    .from("tasks")
+    .delete()
+    .eq("id", id)
+    .eq("created_by", "couple");
+
+  if (deleteError) {
+    return NextResponse.json(
+      { error: "No pudimos quitar el pendiente." },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
+}
 
 // PUT /api/panel/tasks — la pareja marca una tarea o edita su nota.
 export async function PUT(req: NextRequest) {
@@ -94,7 +276,7 @@ export async function PUT(req: NextRequest) {
     .from("tasks")
     .update(update)
     .eq("id", id)
-    .select("id, title, due_date, done_at, notes")
+    .select(COLUMNAS_TAREA)
     .single();
 
   if (updateError || !updated) {
@@ -104,13 +286,5 @@ export async function PUT(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({
-    task: {
-      id: updated.id,
-      title: updated.title,
-      dueDate: updated.due_date ?? null,
-      doneAt: updated.done_at ?? null,
-      notes: updated.notes ?? null,
-    },
-  });
+  return NextResponse.json({ task: aSalida(updated) });
 }
