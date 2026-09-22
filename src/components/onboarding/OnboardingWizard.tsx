@@ -445,9 +445,13 @@ export function OnboardingWizard({
       {/* Progress bar + minimal header */}
       <div className="sticky top-0 z-10 border-b border-sand-soft bg-bone/95 backdrop-blur-sm">
         <div className="h-0.5 w-full bg-sand">
+          {/* scaleX y no width: width recalcula layout en cada fotograma, y
+              transform va en el compositor. Lineal porque una barra de
+              progreso es una medida, no algo que entra o sale: la curva de
+              interfaz (ease-out por defecto en @theme) no le toca. */}
           <div
-            className="h-full bg-terra transition-all duration-500"
-            style={{ width: `${progress}%` }}
+            className="h-full origin-left bg-terra transition-transform duration-300 ease-linear motion-reduce:transition-none"
+            style={{ transform: `scaleX(${progress / 100})` }}
           />
         </div>
         <header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -564,7 +568,9 @@ export function OnboardingWizard({
               <form
                 key={step}
                 ref={formRef}
-                className="animate-fade-in-up"
+                // key={step} remonta el form en cada paso para repetir la
+                // entrada; .animate-step-in la deja en 220ms (ver globals.css).
+                className="animate-step-in"
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleAdvance();

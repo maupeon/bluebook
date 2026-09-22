@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { Collapse } from "@/components/Collapse";
 
 interface FAQItem {
   question: string;
@@ -156,17 +157,13 @@ export function FAQ() {
                 </span>
               </button>
 
-              <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  openIndex === index ? "max-h-96" : "max-h-0"
-                }`}
-              >
+              <Collapse open={openIndex === index}>
                 <div className="px-6 pb-6">
                   <p className="font-body text-secondary leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>
-              </div>
+              </Collapse>
             </div>
           ))}
         </div>

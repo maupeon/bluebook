@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, BookHeart, Minus, Plus } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
+import { Collapse } from "@/components/Collapse";
 import { PathsSection } from "@/components/planner/PathsSection";
 import { ComparisonTable } from "@/components/planner/ComparisonTable";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
@@ -233,15 +234,11 @@ export default function PreciosPage() {
                           )}
                         </span>
                       </button>
-                      <div
-                        className={`overflow-hidden transition-all duration-300 ${
-                          isOpen ? "max-h-96" : "max-h-0"
-                        }`}
-                      >
+                      <Collapse open={isOpen}>
                         <p className="pb-6 font-body text-sm md:text-base text-ink-muted leading-relaxed max-w-[65ch]">
                           {faq.answer}
                         </p>
-                      </div>
+                      </Collapse>
                     </div>
                   </Reveal>
                 );

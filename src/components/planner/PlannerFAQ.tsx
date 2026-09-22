@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
+import { Collapse } from "@/components/Collapse";
 
 interface FAQItem {
   question: string;
@@ -137,15 +138,11 @@ export function PlannerFAQ() {
                         )}
                       </span>
                     </button>
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        isOpen ? "max-h-96" : "max-h-0"
-                      }`}
-                    >
+                    <Collapse open={isOpen}>
                       <p className="pb-6 font-body text-sm md:text-base text-ink-muted leading-relaxed max-w-[65ch]">
                         {faq.answer}
                       </p>
-                    </div>
+                    </Collapse>
                   </div>
                 </Reveal>
               );

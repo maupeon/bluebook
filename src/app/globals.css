@@ -157,11 +157,6 @@ h1, h2, h3, h4, h5, h6 {
   outline-offset: 2px;
 }
 
-/* Smooth transitions */
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 /* Gradient backgrounds */
 .gradient-hero {
   background: linear-gradient(180deg, var(--light) 0%, #eef2f7 100%);
@@ -201,31 +196,6 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Subtle pulse for glowing elements */
-@keyframes pulse-glow {
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-/* Page flip animation for flipbook preview */
-@keyframes page-flip {
-  0% {
-    transform: rotateY(0deg);
-  }
-  50% {
-    transform: rotateY(-90deg);
-  }
-  100% {
-    transform: rotateY(-180deg);
-  }
-}
-
 /* Utility classes for animations */
 .animate-float {
   animation: float 4s ease-in-out infinite;
@@ -235,23 +205,13 @@ h1, h2, h3, h4, h5, h6 {
   animation: gradient 3s ease infinite;
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-/* Scale hover effect */
-.hover-scale-102:hover {
-  transform: scale(1.02);
-}
-
-.hover-scale-105:hover {
-  transform: scale(1.05);
-}
-
-/* Perspective for 3D effects */
-.perspective-1000 {
-  perspective: 1000px;
-}
+/* Fuera, por cero usos en src/ y remotion/: .transition-smooth (el unico
+   "token" de movimiento aparente del repo, y con la curva simetrica que
+   @theme ya reemplazo), pulse-glow y .animate-pulse-glow, page-flip,
+   .hover-scale-102/105, .perspective-1000, y los .delay-100..500 de
+   animation-delay, que ademas se llamaban igual que las utilidades delay-* de
+   Tailwind (transition-delay): quien escribiera delay-200 para una transicion
+   se llevaba tambien un animation-delay que no pidio. */
 
 /* Smooth entrance animations */
 @keyframes fade-in-up {
@@ -269,12 +229,30 @@ h1, h2, h3, h4, h5, h6 {
   animation: fade-in-up 0.6s ease-out forwards;
 }
 
-/* Staggered delay utilities */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
+/* ENTRADA DE CADA PASO DEL WIZARD.
+   Antes el <form key={step}> reusaba .animate-fade-in-up: 600ms y 20px de
+   subida en CADA "Continuar". Esa entrada esta bien para la pantalla final
+   (que se ve una vez y es una celebracion, y la conserva); en un flujo de
+   hasta ocho pasos era esperar 600ms cada vez a que apareciera la siguiente
+   pregunta.
+   Aqui basta confirmar que el paso cambio: 220ms, 8px, ease-out.
+   Sin `to`: el fotograma final es el estilo del elemento. */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes step-in-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.animate-step-in {
+  animation: step-in 220ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)) both;
+}
 
 /* =================================
    EDITORIAL / PLANNER EXPERIENCE
@@ -352,10 +330,15 @@ h1, h2, h3, h4, h5, h6 {
   .animate-float,
   .animate-float-particle,
   .animate-gradient,
-  .animate-pulse-glow,
   .animate-pulse,
   .animate-ping {
     animation: none !important;
+  }
+
+  /* El paso del wizard conserva el fundido, que confirma que la pantalla
+     cambio, y pierde la subida. Reducir movimiento no es quitar la respuesta. */
+  .animate-step-in {
+    animation-name: step-in-fade;
   }
 }
 

@@ -789,10 +789,19 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
         <div className="flex-1 min-w-0">
           <div className={`flex-1 h-2 rounded-full overflow-hidden ${isFullscreen ? 'bg-white/10' : 'bg-gray-200'
             }`}>
+            {/* translateX y no width: width recalcula layout en cada
+                fotograma. Tampoco scaleX, como en la barra del wizard: esta es
+                redondeada, y escalarla aplasta su punta redonda en un filo
+                plano justo cuando la barra es corta. A ancho completo y
+                desplazada, la punta conserva su forma y la pista (overflow-
+                hidden, rounded-full) recorta el resto.
+                Lineal porque es una medida. 300ms y no 700: onFlip llega
+                cuando la pagina ya termino de pasar, y la barra no deberia
+                seguir moviendose casi un segundo despues. */}
             <div
-              className="h-full rounded-full transition-all duration-700 ease-out"
+              className="h-full w-full rounded-full transition-transform duration-300 ease-linear motion-reduce:transition-none"
               style={{
-                width: `${progressPercent}%`,
+                transform: `translateX(${progressPercent - 100}%)`,
                 background: `linear-gradient(90deg, ${styles.accentColor}, ${styles.accentColor}dd)`,
               }}
             />
