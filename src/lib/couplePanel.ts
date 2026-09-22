@@ -133,6 +133,14 @@ export interface PanelTask {
    * La lista es compartida: la pareja marca las dos, pero sólo quita las suyas.
    */
   createdBy: "couple" | "planner";
+  /**
+   * La explicación del renglón del plan ("El contrato lo fija diez días antes").
+   *
+   * Sale de la PLANTILLA, no de la tarea: escribirla en `notes` la metía en el
+   * único campo que la pareja edita, así que su primera anotación la borraba.
+   * Es de solo lectura; `notes` queda para lo que ellos quieran apuntar.
+   */
+  detail: string | null;
 }
 
 /**
@@ -1057,7 +1065,9 @@ export async function getPanelBundle(
       fetchPayments(supabase, weddingId),
       supabase
         .from("tasks")
-        .select("id, title, due_date, done_at, notes, created_by")
+        .select(
+          "id, title, due_date, done_at, notes, created_by, task_templates(detail)"
+        )
         .eq("wedding_id", weddingId)
         .order("due_date", { ascending: true, nullsFirst: false }),
       supabase
@@ -1094,6 +1104,14 @@ export async function getPanelBundle(
     doneAt: t.done_at ?? null,
     notes: t.notes ?? null,
     createdBy: t.created_by === "couple" ? "couple" : "planner",
+    // PostgREST devuelve la relación como objeto o como arreglo según cómo
+    // resuelva la cardinalidad; se aceptan las dos formas.
+    detail: (() => {
+      const rel = (t as { task_templates?: unknown }).task_templates;
+      const fila = Array.isArray(rel) ? rel[0] : rel;
+      const d = (fila as { detail?: string | null } | null | undefined)?.detail;
+      return d ? d : null;
+    })(),
   }));
 
   // El dinero, con la misma semántica del Checklist:

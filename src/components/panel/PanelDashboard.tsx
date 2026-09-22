@@ -105,17 +105,59 @@ export function TasksSection({
     }
   }
 
-  const sorted = useMemo(() => {
-    return [...tasks].sort((a, b) => {
-      const aDone = a.doneAt ? 1 : 0;
-      const bDone = b.doneAt ? 1 : 0;
-      if (aDone !== bDone) return aDone - bDone; // pendientes primero
-      // dentro del mismo grupo, por fecha de vencimiento
-      const ad = a.dueDate ?? "9999-12-31";
-      const bd = b.dueDate ?? "9999-12-31";
-      return ad.localeCompare(bd);
-    });
+  /**
+   * Los pendientes, en bloques de urgencia.
+   *
+   * Una lista plana funcionaba con cero tareas. Ahora que el plan se siembra,
+   * una boda a doce meses trae treinta y tres renglones, y treinta y tres cosas
+   * en fila no dicen qué toca HOY: dicen que hay mucho por hacer, que es justo
+   * la sensación que había que quitar.
+   *
+   * Los bloques salen de lo que una pareja se pregunta —¿se me pasó algo?, ¿qué
+   * hay esta semana?— y no de meses de calendario. Lo lejano va plegado: existe,
+   * se puede abrir, y no pesa.
+   */
+  const bloques = useMemo(() => {
+    const hoy = new Date();
+    const hoyUTC = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+    const enDias = (fecha: string | null): number | null => {
+      if (!fecha) return null;
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+      if (!m) return null;
+      return Math.round(
+        (Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) - hoyUTC) / 86_400_000
+      );
+    };
+
+    const porFecha = (a: PanelTask, b: PanelTask) =>
+      (a.dueDate ?? "9999-12-31").localeCompare(b.dueDate ?? "9999-12-31");
+
+    const pendientes = tasks.filter((t) => !t.doneAt);
+    const hechas = tasks.filter((t) => t.doneAt).sort(porFecha);
+
+    const cubo = (t: PanelTask): "vencida" | "semana" | "mes" | "despues" => {
+      const d = enDias(t.dueDate);
+      if (d == null) return "despues"; // sin fecha: no es urgente, pero existe
+      if (d < 0) return "vencida";
+      if (d <= 7) return "semana";
+      if (d <= 30) return "mes";
+      return "despues";
+    };
+
+    return {
+      vencidas: pendientes.filter((t) => cubo(t) === "vencida").sort(porFecha),
+      semana: pendientes.filter((t) => cubo(t) === "semana").sort(porFecha),
+      mes: pendientes.filter((t) => cubo(t) === "mes").sort(porFecha),
+      despues: pendientes.filter((t) => cubo(t) === "despues").sort(porFecha),
+      hechas,
+    };
   }, [tasks]);
+
+  const totalPendientes =
+    bloques.vencidas.length +
+    bloques.semana.length +
+    bloques.mes.length +
+    bloques.despues.length;
 
   async function patchTask(id: string, payload: Record<string, unknown>) {
     const res = await fetch("/api/panel/tasks", {
@@ -190,7 +232,7 @@ export function TasksSection({
         </div>
       ) : null}
 
-      {sorted.length === 0 ? (
+      {tasks.length === 0 ? (
         <div className="mt-6">
           <EmptyNote>
             {isEnglish
@@ -199,18 +241,58 @@ export function TasksSection({
           </EmptyNote>
         </div>
       ) : (
-        <ul className="mt-6">
-          {sorted.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              isEnglish={isEnglish}
-              onToggle={() => toggleDone(task)}
-              onSaveNotes={(notes) => saveNotes(task, notes)}
-              onRemove={task.createdBy === "couple" ? () => quitar(task) : null}
-            />
-          ))}
-        </ul>
+        <div className="mt-6 space-y-7">
+          <BloqueDeTareas
+            titulo={isEnglish ? "Past due" : "Se les pasó la fecha"}
+            tareas={bloques.vencidas}
+            acento
+            isEnglish={isEnglish}
+            onToggle={toggleDone}
+            onSaveNotes={saveNotes}
+            onRemove={quitar}
+          />
+          <BloqueDeTareas
+            titulo={isEnglish ? "This week" : "Esta semana"}
+            tareas={bloques.semana}
+            isEnglish={isEnglish}
+            onToggle={toggleDone}
+            onSaveNotes={saveNotes}
+            onRemove={quitar}
+          />
+          <BloqueDeTareas
+            titulo={isEnglish ? "This month" : "Este mes"}
+            tareas={bloques.mes}
+            isEnglish={isEnglish}
+            onToggle={toggleDone}
+            onSaveNotes={saveNotes}
+            onRemove={quitar}
+          />
+          <BloqueDeTareas
+            titulo={isEnglish ? "Further out" : "Más adelante"}
+            tareas={bloques.despues}
+            plegado
+            isEnglish={isEnglish}
+            onToggle={toggleDone}
+            onSaveNotes={saveNotes}
+            onRemove={quitar}
+          />
+          <BloqueDeTareas
+            titulo={isEnglish ? "Done" : "Ya está"}
+            tareas={bloques.hechas}
+            plegado
+            isEnglish={isEnglish}
+            onToggle={toggleDone}
+            onSaveNotes={saveNotes}
+            onRemove={quitar}
+          />
+          {totalPendientes === 0 ? (
+            <EmptyNote>
+              {isEnglish
+                ? "Nothing left on the list. Enjoy it."
+                : "No les queda nada en la lista. Que lo disfruten."}
+            </EmptyNote>
+          ) : null}
+        </div>
       )}
 
       {/* Apuntar lo suyo. La lista es compartida con la planner: lo que se
@@ -241,6 +323,81 @@ export function TasksSection({
         </button>
       </form>
     </div>
+  );
+}
+
+/**
+ * Un bloque de urgencia. Los lejanos y los hechos nacen plegados: están, se
+ * abren de un toque, y no compiten por la atención con lo de esta semana.
+ * Un bloque vacío no se pinta — un encabezado sobre la nada es ruido.
+ */
+function BloqueDeTareas({
+  titulo,
+  tareas,
+  isEnglish,
+  onToggle,
+  onSaveNotes,
+  onRemove,
+  acento = false,
+  plegado = false,
+}: {
+  titulo: string;
+  tareas: PanelTask[];
+  isEnglish: boolean;
+  onToggle: (t: PanelTask) => void;
+  onSaveNotes: (t: PanelTask, notes: string) => void;
+  onRemove: (t: PanelTask) => void;
+  acento?: boolean;
+  plegado?: boolean;
+}) {
+  const [abierto, setAbierto] = useState(!plegado);
+  if (tareas.length === 0) return null;
+
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setAbierto((v) => !v)}
+        aria-expanded={abierto}
+        className="flex min-h-[2.25rem] w-full items-center gap-2 text-left"
+      >
+        <span
+          className={`font-body text-[11px] font-semibold uppercase tracking-[0.1em] ${
+            acento ? "text-terra-deep" : "text-ink-muted"
+          }`}
+        >
+          {titulo}
+        </span>
+        <span className="font-body text-[11px] text-ink-muted tabular-nums">
+          {tareas.length}
+        </span>
+        <span
+          aria-hidden="true"
+          className={`ml-auto text-ink-muted transition-transform duration-150 ${
+            abierto ? "rotate-90" : ""
+          }`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </span>
+      </button>
+
+      {abierto ? (
+        <ul className="mt-1">
+          {tareas.map((task) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              isEnglish={isEnglish}
+              onToggle={() => onToggle(task)}
+              onSaveNotes={(notes) => onSaveNotes(task, notes)}
+              onRemove={task.createdBy === "couple" ? () => onRemove(task) : null}
+            />
+          ))}
+        </ul>
+      ) : null}
+    </section>
   );
 }
 
@@ -335,7 +492,16 @@ function TaskRow({
                 {formatShortDate(task.dueDate, isEnglish)}
               </span>
             ) : null}
-          </div>
+            </div>
+
+          {/* La explicación del renglón del plan. Es de la PLANTILLA y de solo
+              lectura: `notes`, que está más abajo, es el campo de la pareja. */}
+          {task.detail ? (
+            <p className="mt-1 font-body text-xs leading-relaxed text-ink-muted">
+              {task.detail}
+            </p>
+          ) : null}
+
 
           <button
             type="button"
