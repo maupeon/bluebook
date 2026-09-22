@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AlertCircle, ArrowLeft, MailCheck } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, createOtpRequestClient } from "@/lib/supabase/client";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LARGO_CODIGO = 6;
@@ -92,7 +92,9 @@ export function LoginForm({
     setError(null);
     setLoading(true);
     try {
-      const supabase = createClient();
+      // Cliente SIN PKCE para pedir el código: con PKCE nace atado a un
+      // code_challenge que verifyOtp nunca completa. Ver createOtpRequestClient.
+      const supabase = createOtpRequestClient();
       // emailRedirectTo SÍ va, aunque el camino bueno sea el código.
       //
       // Quitarlo parecía coherente —el código no necesita redirección— pero
