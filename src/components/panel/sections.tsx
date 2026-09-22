@@ -231,20 +231,36 @@ export function BudgetSection({
               value={formatMXN(Math.abs(balance))}
               dotClass="bg-sand"
             />
-            <BudgetFigure
-              label={
-                over
-                  ? isEnglish
-                    ? "Over budget"
-                    : "Excedido"
-                  : isEnglish
-                    ? "Available"
-                    : "Disponible"
-              }
-              value={available != null ? formatMXN(Math.abs(available)) : "—"}
-              dotClass={over ? "bg-terra-deep" : "bg-pale-green"}
-            />
+            {/* "Disponible" sólo se enseña cuando dice algo.
+                Con el estimado igual a lo contratado daba "Disponible $0" junto
+                a un punto verde, y una pareja lee eso como "nos quedamos sin
+                dinero" cuando en realidad significa "el estimado ya está todo
+                comprometido". Y "Disponible" tampoco era la palabra: ese dinero
+                no está disponible para gastar, está SIN CONTRATAR. */}
+            {available != null && available !== 0 ? (
+              <BudgetFigure
+                label={
+                  over
+                    ? isEnglish
+                      ? "Over budget"
+                      : "Excedido"
+                    : isEnglish
+                      ? "Not committed"
+                      : "Sin contratar"
+                }
+                value={formatMXN(Math.abs(available))}
+                dotClass={over ? "bg-terra-deep" : "bg-pale-green"}
+              />
+            ) : null}
           </div>
+
+          {available === 0 ? (
+            <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+              {isEnglish
+                ? "Everything your planner estimated is already contracted."
+                : "Todo lo que su planner estimó ya está contratado."}
+            </p>
+          ) : null}
 
           {pending > 0 ? (
             <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">

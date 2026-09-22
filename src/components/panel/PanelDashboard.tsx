@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   Check,
-  MapPin,
   MessageCircle,
   Pencil,
   Plus,
@@ -13,161 +12,33 @@ import {
   X,
 } from "lucide-react";
 import type {
-  PanelBundle,
   PanelGuest,
   PanelMessage,
   PanelTask,
 } from "@/lib/couplePanel";
 import { normalizePhone } from "@/lib/phone";
-import { useLanguage } from "@/components/LanguageProvider";
-import { Reveal } from "@/components/Reveal";
 import { parseJsonSafe } from "@/lib/http";
-import { daysUntil, formatLongDate, formatShortDate, formatTime } from "@/components/panel/dates";
+import { daysUntil, formatShortDate, formatTime } from "@/components/panel/dates";
 import {
-  BudgetSection,
-  ChecklistSection,
   EmptyNote,
   Eyebrow,
-  GuestsSection,
-  PaymentsSection,
-  RunOfShowSection,
-  SeatingSection,
   SectionTitle,
-  VendorsSection,
 } from "@/components/panel/sections";
 
-export function PanelDashboard({ bundle }: { bundle: PanelBundle }) {
-  const { isEnglish } = useLanguage();
-  const { wedding } = bundle;
-
-  // El conteo depende del reloj: se calcula solo tras montar para evitar
-  // discrepancias de hidratación entre el reloj/zona horaria del servidor y el del navegador.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  // El guion del día encabeza el panel cuando existe: es lo que la pareja más
-  // quiere ver. Mientras la planner no lo arme (o falte la migración 0013) la
-  // sección no sale y el presupuesto recupera su separación de arriba.
-  const showRunOfShow =
-    !bundle.runOfShow.unavailable && bundle.runOfShow.blocks.length > 0;
-
-  const days = daysUntil(wedding.weddingDate);
-  let countdown: string;
-  if (!mounted) {
-    countdown = isEnglish ? "Your wedding panel" : "Su panel de boda";
-  } else if (days == null) {
-    countdown = isEnglish ? "No date set yet" : "Aún sin fecha";
-  } else if (days > 1) {
-    countdown = isEnglish ? `${days} days to go` : `Faltan ${days} días`;
-  } else if (days === 1) {
-    countdown = isEnglish ? "1 day to go" : "Falta 1 día";
-  } else if (days === 0) {
-    countdown = isEnglish ? "Today is the day" : "Hoy es el gran día";
-  } else {
-    countdown = isEnglish ? "Already married" : "Ya se casaron";
-  }
-
-  return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 md:py-20 lg:px-8">
-      {/* Saludo */}
-      <Reveal>
-        <header>
-          <Eyebrow>{countdown}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-6xl">
-            {isEnglish ? "Hi, " : "Hola, "}
-            <em className="italic text-terra">{wedding.coupleName}</em>
-          </h1>
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 font-body text-sm text-ink-muted">
-            {wedding.weddingDate ? (
-              <span className="tabular-nums">
-                {formatLongDate(wedding.weddingDate, isEnglish)}
-              </span>
-            ) : null}
-            {wedding.venue ? (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 text-terra" strokeWidth={1.5} />
-                {wedding.venue}
-              </span>
-            ) : null}
-          </div>
-        </header>
-      </Reveal>
-
-      {/* El día, hora por hora */}
-      {showRunOfShow ? (
-        <Reveal delay={80} className="mt-12">
-          <RunOfShowSection runOfShow={bundle.runOfShow} isEnglish={isEnglish} />
-        </Reveal>
-      ) : null}
-
-      {/* Presupuesto */}
-      <Reveal delay={80} className={showRunOfShow ? "mt-8" : "mt-12"}>
-        <BudgetSection budget={bundle.budget} isEnglish={isEnglish} />
-      </Reveal>
-
-      {/* Invitados: resumen + lista administrable */}
-      <Reveal delay={80} className="mt-8">
-        <GuestsSection guests={bundle.guests} isEnglish={isEnglish} />
-      </Reveal>
-
-      <Reveal delay={80} className="mt-8">
-        <GuestListSection guests={bundle.guestList} isEnglish={isEnglish} />
-      </Reveal>
-
-      {/* Acomodo: quién se sienta dónde. Sin la migración 0011 las vistas no
-          existen y la sección no sale; se salta el Reveal para no dejar el
-          hueco de 2rem entre la lista de invitados y las tareas. */}
-      {bundle.seating.unavailable ? null : (
-        <Reveal delay={80} className="mt-8">
-          <SeatingSection seating={bundle.seating} isEnglish={isEnglish} />
-        </Reveal>
-      )}
-
-      {/* Tareas (interactivo) + Mensajes en zig-zag asimétrico */}
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <Reveal delay={80}>
-          <TasksSection tasks={bundle.tasks} isEnglish={isEnglish} />
-        </Reveal>
-        <Reveal delay={160}>
-          <MessagesSection
-            initialMessages={bundle.messages}
-            unavailable={Boolean(bundle.messagesUnavailable)}
-            isEnglish={isEnglish}
-          />
-        </Reveal>
-      </div>
-
-      {/* Pagos */}
-      <Reveal delay={80} className="mt-8">
-        <PaymentsSection payments={bundle.payments} isEnglish={isEnglish} />
-      </Reveal>
-
-      {/* Checklist: el desglose del dinero, partida por partida. Sin la vista
-          v_checklist_pagos la sección no existe, y envolverla igual dejaría un
-          hueco de 2rem entre Pagos y Proveedores: por eso se salta el Reveal. */}
-      {bundle.checklist.unavailable ? null : (
-        <Reveal delay={80} className="mt-8">
-          <ChecklistSection
-            checklist={bundle.checklist}
-            unlinkedPaid={bundle.budget.unlinkedPaid}
-            isEnglish={isEnglish}
-          />
-        </Reveal>
-      )}
-
-      {/* Proveedores */}
-      <Reveal delay={80} className="mt-8 mb-4">
-        <VendorsSection vendors={bundle.vendors} isEnglish={isEnglish} />
-      </Reveal>
-    </main>
-  );
-}
+/**
+ * Las secciones INTERACTIVAS del panel: las tres que escriben.
+ *
+ * Antes este archivo tenía además el orquestador que pintaba las nueve
+ * secciones en un solo scroll. Ese orquestador ya no existe: el panel se
+ * reparte en cinco destinos, y cada uno vive en components/panel/pantallas/.
+ * Aquí quedan las piezas que esos destinos componen.
+ */
 
 // =====================================================================
 // Tareas
 // =====================================================================
 
-function TasksSection({
+export function TasksSection({
   tasks: initialTasks,
   isEnglish,
 }: {
@@ -402,7 +273,7 @@ function TaskRow({
 // Mensajes con el planner
 // =====================================================================
 
-function MessagesSection({
+export function MessagesSection({
   initialMessages,
   unavailable,
   isEnglish,
@@ -678,12 +549,15 @@ const LIMITE_LISTA = 25;
 const guestInputClass =
   "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-terra focus:ring-2 focus:ring-terra/20";
 
-function GuestListSection({
+export function GuestListSection({
   guests: initialGuests,
   isEnglish,
+  /** true cuando la pantalla ya puso el título: evita decirlo dos veces. */
+  ocultarEncabezado = false,
 }: {
   guests: PanelGuest[];
   isEnglish: boolean;
+  ocultarEncabezado?: boolean;
 }) {
   const [guests, setGuests] = useState<PanelGuest[]>(initialGuests);
 
@@ -881,10 +755,17 @@ function GuestListSection({
     <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Eyebrow>{isEnglish ? "Your guests" : "Sus invitados"}</Eyebrow>
-          <SectionTitle>
-            {isEnglish ? "Your guests" : "Sus invitados"}
-          </SectionTitle>
+          {/* El encabezado propio de la tarjeta decía "Sus invitados" dos veces
+              —en el Eyebrow y en el título— y desde que la pantalla tiene el
+              suyo eran tres. Cuando la pantalla ya lo dijo, aquí sobra. */}
+          {ocultarEncabezado ? null : (
+            <>
+              <Eyebrow>{isEnglish ? "Your guests" : "Sus invitados"}</Eyebrow>
+              <SectionTitle>
+                {isEnglish ? "Your guests" : "Sus invitados"}
+              </SectionTitle>
+            </>
+          )}
         </div>
         <span className="font-heading text-2xl tracking-tight text-ink tabular-nums">
           {guests.length}{" "}

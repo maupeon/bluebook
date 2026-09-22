@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Re-exportamos el helper puro para no romper a los consumidores de servidor
@@ -916,7 +917,7 @@ function resolveRunOfShowNames(
  * Encuentra la(s) boda(s) cuyo contact_email coincide con el email autenticado.
  * Devuelve la más reciente (por wedding_date / created_at) o null.
  */
-export async function getCoupleWeddingByEmail(
+export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEmail(
   email: string
 ): Promise<CoupleWedding | null> {
   const supabase = createAdminClient();
@@ -968,7 +969,7 @@ export async function getCoupleWeddingByEmail(
     budgetTotal: row.budget_total != null ? toNum(row.budget_total) : null,
     status: row.status ?? "active",
   };
-}
+});
 
 /** Verifica que la boda pertenezca al email autenticado (autorización de escrituras). */
 export async function coupleOwnsWedding(
@@ -986,6 +987,23 @@ export async function coupleOwnsWedding(
 }
 
 /** Carga todo lo que la pareja ve en su panel para una boda dada. */
+/**
+ * Los datos del panel a partir del correo autenticado.
+ *
+ * Existe porque el chrome (la barra lateral) y la pantalla necesitan los
+ * mismos datos dentro de la MISMA petición: sin cache() el layout y cada ruta
+ * hija repetían las consultas, y al partir el panel en cinco destinos eso se
+ * multiplicaba por pantalla. cache() dedupe por argumento —un string, así que
+ * la igualdad es la correcta— y vive lo que dura la petición.
+ */
+export const getPanelDataByEmail = cache(async function getPanelDataByEmail(
+  email: string
+): Promise<{ wedding: CoupleWedding; bundle: PanelBundle } | null> {
+  const wedding = await getCoupleWeddingByEmail(email);
+  if (!wedding) return null;
+  return { wedding, bundle: await getPanelBundle(wedding) };
+});
+
 export async function getPanelBundle(
   wedding: CoupleWedding
 ): Promise<PanelBundle> {
