@@ -3,6 +3,7 @@
 import type { PanelBundle } from "@/lib/couplePanel";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
+import { formatMXN } from "@/lib/weddingPlans";
 import {
   BudgetSection,
   ChecklistSection,
@@ -10,8 +11,6 @@ import {
   PaymentsSection,
   VendorsSection,
 } from "@/components/panel/sections";
-
-const pesos = (n: number) => `$${Math.round(n).toLocaleString("es-MX")}`;
 
 /**
  * Todo el dinero en un solo destino.
@@ -27,8 +26,8 @@ export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
   const { budget } = bundle;
 
   const titular = isEnglish
-    ? `You've paid ${pesos(budget.paid)}`
-    : `Llevan pagado ${pesos(budget.paid)}`;
+    ? `You've paid ${formatMXN(budget.paid)}`
+    : `Llevan pagado ${formatMXN(budget.paid)}`;
 
   const bajada =
     budget.contracted <= 0
@@ -37,15 +36,15 @@ export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
         : "Todavía no hay nada contratado."
       : budget.balance > 0
         ? isEnglish
-          ? `of ${pesos(budget.contracted)} contracted. ${pesos(budget.balance)} left to pay.`
-          : `de ${pesos(budget.contracted)} contratados. Faltan ${pesos(budget.balance)} por pagar.`
+          ? `of ${formatMXN(budget.contracted)} contracted. ${formatMXN(budget.balance)} left to pay.`
+          : `de ${formatMXN(budget.contracted)} contratados. Faltan ${formatMXN(budget.balance)} por pagar.`
         : budget.balance < 0
           ? isEnglish
-            ? `of ${pesos(budget.contracted)} contracted — ${pesos(Math.abs(budget.balance))} more than what's signed.`
-            : `de ${pesos(budget.contracted)} contratados — ${pesos(Math.abs(budget.balance))} más de lo firmado.`
+            ? `of ${formatMXN(budget.contracted)} contracted — ${formatMXN(Math.abs(budget.balance))} more than what's signed.`
+            : `de ${formatMXN(budget.contracted)} contratados — ${formatMXN(Math.abs(budget.balance))} más de lo firmado.`
           : isEnglish
-            ? `of ${pesos(budget.contracted)} contracted. Nothing left to pay.`
-            : `de ${pesos(budget.contracted)} contratados. No falta nada por pagar.`;
+            ? `of ${formatMXN(budget.contracted)} contracted. Nothing left to pay.`
+            : `de ${formatMXN(budget.contracted)} contratados. No falta nada por pagar.`;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">

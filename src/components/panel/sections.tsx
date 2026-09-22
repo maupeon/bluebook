@@ -560,52 +560,6 @@ export function ChecklistSection({
 
 // ----- Invitados -----
 
-export function GuestsSection({
-  guests,
-  isEnglish,
-}: {
-  guests: GuestSummary;
-  isEnglish: boolean;
-}) {
-  if (guests.total === 0) {
-    return (
-      <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
-        <Eyebrow>{isEnglish ? "Guests" : "Invitados"}</Eyebrow>
-        <SectionTitle>{isEnglish ? "Guests" : "Invitados"}</SectionTitle>
-        <div className="mt-5">
-          <EmptyNote>
-            {isEnglish
-              ? "No guests loaded yet."
-              : "Aún sin invitados cargados."}
-          </EmptyNote>
-        </div>
-      </div>
-    );
-  }
-
-  const stats = [
-    { label: isEnglish ? "Confirmed" : "Confirmados", value: guests.confirmed },
-    { label: isEnglish ? "Pending" : "Pendientes", value: guests.pending },
-    { label: isEnglish ? "Declined" : "No asisten", value: guests.declined },
-    {
-      label: isEnglish ? "People attending" : "Personas en total",
-      value: guests.attending,
-    },
-  ];
-
-  return (
-    <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
-      <Eyebrow>{isEnglish ? "Guests" : "Invitados"}</Eyebrow>
-      <SectionTitle>{isEnglish ? "Guests" : "Invitados"}</SectionTitle>
-
-      <StatGrid stats={stats} />
-    </div>
-  );
-}
-
-// ----- Acomodo de mesas -----
-
-/** "8 de 10 lugares", o sólo las personas cuando no se capturó capacidad. */
 function tableOccupancy(table: PanelTable, isEnglish: boolean): string {
   if (table.capacity == null) {
     return isEnglish
@@ -1155,9 +1109,11 @@ function RunOfShowRow({
                 key={child.id}
                 className="mt-5 rounded-xl border border-sand bg-bone px-5 py-4"
               >
-                <h4 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra">
+                {/* h3, no h4: el título de la sección es h2 y saltar un nivel
+                    rompe el índice de encabezados de un lector de pantalla. */}
+                <h3 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra-deep">
                   {child.title}
-                </h4>
+                </h3>
                 {childMeta.length > 0 ? (
                   <p className="mt-1 font-body text-xs text-ink-muted">
                     {childMeta.join(" · ")}

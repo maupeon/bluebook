@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getPanelDataByEmail } from "@/lib/couplePanel";
+import { correoDelPanel } from "@/lib/panelSesion";
 import { ScrollLock } from "@/components/panel/ScrollLock";
 import { ResetScroll } from "@/components/panel/ResetScroll";
 import { PanelTopBar } from "@/components/panel/PanelTopBar";
@@ -21,18 +21,15 @@ export default async function PanelLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   // Belt + suspenders: el middleware ya protege /panel.
-  if (!user?.email) {
+  // correoDelPanel está cacheada por petición, así que la pantalla hija la
+  // vuelve a pedir sin gastar otro viaje a Supabase Auth.
+  const email = await correoDelPanel();
+  if (!email) {
     redirect("/acceso");
   }
 
-  // Cacheado por petición: la pantalla hija pide lo mismo y no se vuelve a consultar.
-  const datos = await getPanelDataByEmail(user.email);
+  const datos = await getPanelDataByEmail(email);
 
   if (!datos) {
     return (
@@ -42,7 +39,7 @@ export default async function PanelLayout({
       >
         <ScrollLock />
         <PanelTopBar coupleName={null} weddingDate={null} />
-        <NoWedding email={user.email} />
+        <NoWedding email={email} />
       </div>
     );
   }

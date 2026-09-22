@@ -1,13 +1,12 @@
-import type { Metadata } from "next";
 import { datosDeLaPantalla } from "@/lib/panelSesion";
+import { tituloDelPanel } from "@/lib/panelTitulo";
 import { PantallaDia } from "@/components/panel/pantallas/PantallaDia";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "El día",
-  robots: { index: false, follow: false },
-};
+export function generateMetadata() {
+  return tituloDelPanel("El día", "The day");
+}
 
 export default async function Pagina() {
   const datos = await datosDeLaPantalla();

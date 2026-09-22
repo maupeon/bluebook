@@ -5,11 +5,10 @@ import { ArrowRight, MapPin } from "lucide-react";
 import type { PanelBundle } from "@/lib/couplePanel";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
+import { formatMXN } from "@/lib/weddingPlans";
 import { Eyebrow } from "@/components/panel/sections";
 import { countdownPhrase, formatLongDate } from "@/components/panel/dates";
 import { TasksSection, MessagesSection } from "@/components/panel/PanelDashboard";
-
-const pesos = (n: number) => `$${Math.round(n).toLocaleString("es-MX")}`;
 
 /**
  * Una tarjeta que RESUME y lleva a su destino. No repite el detalle: dice el
@@ -85,11 +84,11 @@ export function PantallaHoy({
 
   const dineroTitular = paso
     ? isEnglish
-      ? `You paid ${pesos(budget.paid)}`
-      : `Pagaron ${pesos(budget.paid)}`
+      ? `You paid ${formatMXN(budget.paid)}`
+      : `Pagaron ${formatMXN(budget.paid)}`
     : isEnglish
-      ? `You've paid ${pesos(budget.paid)}`
-      : `Llevan pagado ${pesos(budget.paid)}`;
+      ? `You've paid ${formatMXN(budget.paid)}`
+      : `Llevan pagado ${formatMXN(budget.paid)}`;
 
   const dineroDetalle =
     budget.contracted <= 0
@@ -98,11 +97,11 @@ export function PantallaHoy({
         : "Todavía no hay nada contratado. Conforme su planner cierre proveedores van a ir apareciendo aquí."
       : budget.balance > 0
         ? isEnglish
-          ? `of ${pesos(budget.contracted)} contracted. ${pesos(budget.balance)} left to pay.`
-          : `de ${pesos(budget.contracted)} contratados. Faltan ${pesos(budget.balance)} por pagar.`
+          ? `of ${formatMXN(budget.contracted)} contracted. ${formatMXN(budget.balance)} left to pay.`
+          : `de ${formatMXN(budget.contracted)} contratados. Faltan ${formatMXN(budget.balance)} por pagar.`
         : isEnglish
-          ? `of ${pesos(budget.contracted)} contracted. Nothing left to pay.`
-          : `de ${pesos(budget.contracted)} contratados. No falta nada por pagar.`;
+          ? `of ${formatMXN(budget.contracted)} contracted. Nothing left to pay.`
+          : `de ${formatMXN(budget.contracted)} contratados. No falta nada por pagar.`;
 
   const invitadosTitular = isEnglish
     ? `${guests.attending} people coming`
