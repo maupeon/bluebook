@@ -31,7 +31,7 @@ export default async function PanelLayout({
         coupleName={wedding?.coupleName ?? null}
         weddingDate={wedding?.weddingDate ?? null}
       />
-      {wedding ? children : <NoWedding />}
+      {wedding ? children : <NoWedding email={user.email} />}
     </div>
   );
 }

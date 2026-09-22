@@ -25,7 +25,7 @@ export default async function PanelPage() {
   const wedding = await getCoupleWeddingByEmail(user.email);
   if (!wedding) {
     // El layout ya muestra este estado, pero lo mantenemos coherente por si acaso.
-    return <NoWedding />;
+    return <NoWedding email={user.email} />;
   }
 
   const bundle = await getPanelBundle(wedding);

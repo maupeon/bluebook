@@ -4,7 +4,13 @@ import { ArrowUpRight, Clock } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { CONTACT_INFO } from "@/lib/language";
 
-export function NoWedding() {
+/**
+ * Estado "no encontramos tu boda". Recibe el correo con el que se entró porque
+ * hay DOS causas distintas y antes las dos decían lo mismo: que la planner no
+ * había activado la boda. Cuando la causa real es haber entrado con otro correo,
+ * eso es falso y manda a la pareja a reclamarle algo que sí está hecho.
+ */
+export function NoWedding({ email }: { email?: string | null }) {
   const { isEnglish } = useLanguage();
 
   return (
@@ -18,9 +24,18 @@ export function NoWedding() {
         </h1>
         <p className="mx-auto mt-4 max-w-[48ch] font-body text-sm leading-relaxed text-ink-muted">
           {isEnglish
-            ? "Your planner hasn't activated your wedding yet. As soon as they do, everything will show up right here."
-            : "Su planner aún no ha activado su boda. En cuanto lo haga, aquí verán todo."}
+            ? "We couldn't find a wedding registered to this email. Either your planner hasn't activated it yet, or it's registered under a different address."
+            : "No encontramos ninguna boda registrada con este correo. O su planner aún no la ha activado, o está registrada con otra dirección."}
         </p>
+        {email ? (
+          <p className="mx-auto mt-4 max-w-[48ch] font-body text-sm leading-relaxed text-ink-soft">
+            {isEnglish ? "You're signed in as " : "Entraron como "}
+            <span className="font-medium text-ink">{email}</span>
+            {isEnglish
+              ? ". If your planner used another one, sign in with that."
+              : ". Si su planner registró otro, entren con ese."}
+          </p>
+        ) : null}
         <a
           href={CONTACT_INFO.whatsappUrl}
           target="_blank"
@@ -30,6 +45,14 @@ export function NoWedding() {
           {isEnglish ? "Message your planner" : "Escribir a su planner"}
           <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} />
         </a>
+        <p className="mt-5">
+          <a
+            href="/auth/signout"
+            className="font-body text-sm font-medium text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+          >
+            {isEnglish ? "Sign in with another email" : "Entrar con otro correo"}
+          </a>
+        </p>
       </div>
     </div>
   );

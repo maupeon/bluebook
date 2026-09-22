@@ -1,12 +1,33 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AlertCircle, ArrowLeft, MailCheck } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LARGO_CODIGO = 6;
+/** Segundos antes de poder pedir otro código. Supabase limita el envío igual. */
+const ESPERA_REENVIO = 45;
 
+/**
+ * Acceso al panel en dos pasos: correo y luego código de seis dígitos.
+ *
+ * Antes era un enlace mágico, y fallaba de una forma que no se veía venir: el
+ * `code_verifier` de PKCE vive en una cookie del navegador que PIDIÓ el enlace,
+ * así que abrir el correo en el móvil, en el visor de Gmail o en otro navegador
+ * —que es como lo abre casi todo el mundo— dejaba la sesión sin crear. En los
+ * logs se veía el /verify correcto y ninguna llamada a /token.
+ *
+ * El código no tiene ese problema: se teclea en la misma pestaña donde se pidió,
+ * no hay redirección ni cookie previa, y funciona desde cualquier aparato.
+ *
+ * TRANSICIÓN: mientras la plantilla de correo de Supabase siga mandando solo
+ * `{{ .ConfirmationURL }}`, lo que llega es un enlace y no un código. El paso 2
+ * lo dice y el enlace sigue funcionando (/auth/callback no se ha tocado), así
+ * que nadie se queda fuera. Cuando la plantilla incluya `{{ .Token }}`, el
+ * código aparece en el correo y este formulario ya lo espera.
+ */
 export function LoginForm({
   next,
   hadError = false,
@@ -16,73 +37,79 @@ export function LoginForm({
 }) {
   const { isEnglish } = useLanguage();
   const [email, setEmail] = useState("");
+  const [codigo, setCodigo] = useState("");
+  const [paso, setPaso] = useState<"correo" | "codigo">("correo");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [espera, setEspera] = useState(0);
   const [error, setError] = useState<string | null>(
     hadError
       ? isEnglish
-        ? "We couldn't sign you in with that link. Please request a new one."
-        : "No pudimos entrar con ese enlace. Pidan uno nuevo, por favor."
+        ? "We couldn't sign you in with that link. Request a new code below."
+        : "No pudimos entrar con ese enlace. Pidan un código nuevo aquí abajo."
       : null
   );
+  const inputCodigo = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const trimmed = email.trim().toLowerCase();
+  const correo = email.trim().toLowerCase();
+  const destino = next && next.startsWith("/") ? next : "/panel";
 
-    if (!EMAIL_RE.test(trimmed)) {
-      setError(
-        isEnglish
-          ? "Please enter a valid email address."
-          : "Escriban un correo electrónico válido."
-      );
-      return;
+  // Cuenta atrás del reenvío.
+  useEffect(() => {
+    if (espera <= 0) return;
+    const t = setTimeout(() => setEspera((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [espera]);
+
+  // Al llegar al paso 2, el foco va al código: en móvil abre el teclado numérico.
+  useEffect(() => {
+    if (paso === "codigo") inputCodigo.current?.focus();
+  }, [paso]);
+
+  /** Traduce los fallos de Supabase a algo que una pareja entienda. */
+  function mensajeDeEnvio(e: { status?: number; code?: string; message?: string }) {
+    const msg = e.message || "";
+    if (e.status === 429 || e.code === "over_email_send_rate_limit" || /rate limit/i.test(msg)) {
+      return isEnglish
+        ? "Too many attempts. Please wait a few minutes and try again."
+        : "Demasiados intentos. Esperen unos minutos e inténtenlo de nuevo.";
     }
+    if (
+      e.code === "otp_disabled" ||
+      e.code === "signup_disabled" ||
+      /signups? not allowed|not allowed for otp/i.test(msg)
+    ) {
+      return isEnglish
+        ? "Email sign-in is disabled on the server. Please contact us."
+        : "El acceso por correo está deshabilitado. Escríbannos, por favor.";
+    }
+    return isEnglish
+      ? "We couldn't send the code. Please try again in a moment."
+      : "No pudimos enviar el código. Inténtenlo de nuevo en un momento.";
+  }
 
+  async function enviarCodigo(reenvio = false) {
     setError(null);
     setLoading(true);
-
     try {
       const supabase = createClient();
+      // Sin emailRedirectTo a propósito, pero ojo con por qué: NO es lo que
+      // hace aparecer el código —eso lo decide la plantilla de correo—, sino
+      // que evita mandar a la pareja a un callback atado a ESTE navegador.
+      // Lo que de verdad arregla el problema es el paso 2: verifyOtp con el
+      // token no necesita el code_verifier, así que vale desde cualquier
+      // aparato. El código sale en el correo en cuanto la plantilla lleve
+      // {{ .Token }}.
       const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: trimmed,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-            next || "/panel"
-          )}`,
-        },
+        email: correo,
+        options: { shouldCreateUser: true },
       });
-
       if (otpError) {
-        // Límite de envío de correos de Supabase (demasiados intentos seguidos).
-        const rateLimited =
-          otpError.status === 429 ||
-          otpError.code === "over_email_send_rate_limit" ||
-          /rate limit/i.test(otpError.message);
-        // Signups deshabilitados en Supabase Auth (el enlace no puede crear la cuenta).
-        const signupBlocked =
-          otpError.code === "otp_disabled" ||
-          otpError.code === "signup_disabled" ||
-          /signups? not allowed|not allowed for otp/i.test(otpError.message);
-        setError(
-          rateLimited
-            ? isEnglish
-              ? "Too many attempts. Please wait a few minutes and try again."
-              : "Demasiados intentos. Esperen unos minutos e inténtenlo de nuevo."
-            : signupBlocked
-              ? isEnglish
-                ? "Email sign-in is disabled on the server. Please contact us."
-                : "El acceso por correo está deshabilitado. Escríbannos, por favor."
-              : isEnglish
-                ? "We couldn't send the link. Please try again in a moment."
-                : "No pudimos enviar el enlace. Inténtenlo de nuevo en un momento."
-        );
-        setLoading(false);
+        setError(mensajeDeEnvio(otpError));
         return;
       }
-
-      setSent(true);
+      setPaso("codigo");
+      setEspera(ESPERA_REENVIO);
+      if (reenvio) setCodigo("");
     } catch {
       setError(
         isEnglish
@@ -92,39 +119,168 @@ export function LoginForm({
     } finally {
       setLoading(false);
     }
+  }
+
+  const pedirCodigo = async (e: FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+    if (!EMAIL_RE.test(correo)) {
+      setError(
+        isEnglish
+          ? "Please enter a valid email address."
+          : "Escriban un correo electrónico válido."
+      );
+      return;
+    }
+    await enviarCodigo();
   };
 
-  if (sent) {
+  const entrar = async (e: FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+    const token = codigo.replace(/\D/g, "");
+    if (token.length !== LARGO_CODIGO) {
+      setError(
+        isEnglish
+          ? `The code has ${LARGO_CODIGO} digits.`
+          : `El código tiene ${LARGO_CODIGO} dígitos.`
+      );
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: correo,
+        token,
+        type: "email",
+      });
+      if (verifyError) {
+        const msg = verifyError.message || "";
+        const caducado = /expired|invalid/i.test(msg);
+        setError(
+          caducado
+            ? isEnglish
+              ? "That code is wrong or has expired. Request a new one."
+              : "Ese código no es correcto o ya caducó. Pidan uno nuevo."
+            : isEnglish
+              ? "We couldn't sign you in. Please try again."
+              : "No pudimos entrar. Inténtenlo de nuevo."
+        );
+        setLoading(false);
+        return;
+      }
+      // Navegación dura y no router.push: la sesión se acaba de escribir en las
+      // cookies y el panel se renderiza en el servidor, que tiene que leerlas.
+      window.location.assign(destino);
+    } catch {
+      setError(
+        isEnglish
+          ? "Something went wrong. Please try again."
+          : "Algo salió mal. Inténtenlo de nuevo."
+      );
+      setLoading(false);
+    }
+  };
+
+  const aviso = error ? (
+    <div className="mt-6 flex items-start gap-3 rounded-xl bg-terra-light px-4 py-3">
+      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep" strokeWidth={1.5} />
+      <p className="font-body text-sm leading-relaxed text-terra-deep">{error}</p>
+    </div>
+  ) : null;
+
+  const claseBoton =
+    "inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-7 py-3.5 font-body text-sm font-semibold text-white transition-all hover:bg-ink-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70";
+
+  if (paso === "codigo") {
     return (
-      <div className="text-center">
+      <div>
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-pale-green">
-          <MailCheck
-            className="h-7 w-7 text-pale-green-ink"
-            strokeWidth={1.5}
-          />
+          <MailCheck className="h-7 w-7 text-pale-green-ink" strokeWidth={1.5} />
         </div>
-        <h2 className="font-heading text-2xl tracking-tight text-ink">
+        <h2 className="text-center font-heading text-2xl tracking-tight text-ink">
           {isEnglish ? "Check your email" : "Revisen su correo"}
         </h2>
-        <p className="mx-auto mt-3 max-w-[40ch] font-body text-sm leading-relaxed text-ink-muted">
+        <p className="mx-auto mt-3 max-w-[42ch] text-center font-body text-sm leading-relaxed text-ink-muted">
+          {isEnglish ? "We sent a code to " : "Enviamos un código a "}
+          <span className="font-medium text-ink">{correo}</span>
           {isEnglish
-            ? "We sent you a link to sign in. It went to "
-            : "Les enviamos un enlace para entrar. Lo mandamos a "}
-          <span className="font-medium text-ink">{email.trim().toLowerCase()}</span>
-          {isEnglish ? "." : "."}
+            ? ". Type it below. If you got a link instead, opening it also works."
+            : ". Escríbanlo aquí abajo. Si les llegó un enlace, también sirve abrirlo."}
         </p>
-        <button
-          type="button"
-          onClick={() => {
-            setSent(false);
-            setEmail("");
-            setError(null);
-          }}
-          className="mt-7 inline-flex items-center gap-2 font-body text-sm font-medium text-terra transition-colors hover:text-terra-deep"
-        >
-          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
-          {isEnglish ? "Use another email" : "Usar otro correo"}
-        </button>
+
+        {aviso}
+
+        <form onSubmit={entrar} className="mt-7 space-y-5">
+          <div>
+            <label
+              htmlFor="codigo"
+              className="mb-2 block font-body text-sm font-medium text-ink"
+            >
+              {isEnglish ? "Code" : "Código"}
+            </label>
+            <input
+              ref={inputCodigo}
+              id="codigo"
+              name="codigo"
+              type="text"
+              inputMode="numeric"
+              // one-time-code deja que iOS y Android lo rellenen solos.
+              autoComplete="one-time-code"
+              maxLength={LARGO_CODIGO}
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, LARGO_CODIGO))}
+              placeholder="000000"
+              disabled={loading}
+              className="w-full rounded-xl border border-sand bg-bone px-4 py-3 text-center font-body text-2xl tracking-[0.4em] text-ink placeholder:text-ink-soft/40 transition-colors focus:border-terra focus:outline-none focus:ring-2 focus:ring-terra/20 disabled:opacity-60"
+            />
+          </div>
+
+          <button type="submit" disabled={loading || codigo.length !== LARGO_CODIGO} className={claseBoton}>
+            {loading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                {isEnglish ? "Signing in..." : "Entrando..."}
+              </>
+            ) : isEnglish ? (
+              "Enter"
+            ) : (
+              "Entrar"
+            )}
+          </button>
+        </form>
+
+        <div className="mt-7 flex flex-col items-center gap-3">
+          <button
+            type="button"
+            disabled={loading || espera > 0}
+            onClick={() => enviarCodigo(true)}
+            className="font-body text-sm font-medium text-terra transition-colors hover:text-terra-deep disabled:cursor-not-allowed disabled:text-ink-soft"
+          >
+            {espera > 0
+              ? isEnglish
+                ? `Resend code in ${espera}s`
+                : `Reenviar código en ${espera}s`
+              : isEnglish
+                ? "Resend code"
+                : "Reenviar código"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPaso("correo");
+              setCodigo("");
+              setError(null);
+            }}
+            className="inline-flex items-center gap-2 font-body text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
+            {isEnglish ? "Use another email" : "Usar otro correo"}
+          </button>
+        </div>
       </div>
     );
   }
@@ -140,24 +296,11 @@ export function LoginForm({
           : "Entren con el correo que registraron con su planner."}
       </p>
 
-      {error ? (
-        <div className="mt-6 flex items-start gap-3 rounded-xl bg-terra-light px-4 py-3">
-          <AlertCircle
-            className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep"
-            strokeWidth={1.5}
-          />
-          <p className="font-body text-sm leading-relaxed text-terra-deep">
-            {error}
-          </p>
-        </div>
-      ) : null}
+      {aviso}
 
-      <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+      <form onSubmit={pedirCodigo} className="mt-7 space-y-5">
         <div>
-          <label
-            htmlFor="email"
-            className="mb-2 block font-body text-sm font-medium text-ink"
-          >
+          <label htmlFor="email" className="mb-2 block font-body text-sm font-medium text-ink">
             {isEnglish ? "Email" : "Correo electrónico"}
           </label>
           <input
@@ -174,20 +317,16 @@ export function LoginForm({
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-7 py-3.5 font-body text-sm font-semibold text-white transition-all hover:bg-ink-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
-        >
+        <button type="submit" disabled={loading} className={claseBoton}>
           {loading ? (
             <>
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               {isEnglish ? "Sending..." : "Enviando..."}
             </>
           ) : isEnglish ? (
-            "Send me the link"
+            "Send me the code"
           ) : (
-            "Enviarme el enlace"
+            "Enviarme el código"
           )}
         </button>
       </form>
