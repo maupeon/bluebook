@@ -18,6 +18,7 @@ import type {
 } from "@/lib/couplePanel";
 import { normalizePhone } from "@/lib/phone";
 import { parseJsonSafe } from "@/lib/http";
+import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { daysUntil, formatShortDate, formatTime } from "@/components/panel/dates";
 import {
   EmptyNote,
@@ -47,6 +48,7 @@ export function TasksSection({
 }) {
   const [tasks, setTasks] = useState<PanelTask[]>(initialTasks);
   const [error, setError] = useState<string | null>(null);
+  const refrescar = useRefrescoDelPanel();
 
   const sorted = useMemo(() => {
     return [...tasks].sort((a, b) => {
@@ -87,6 +89,7 @@ export function TasksSection({
 
     try {
       await patchTask(task.id, { doneAt: nextDoneAt });
+      refrescar();
     } catch (e) {
       // revertir
       setTasks((prev) =>
@@ -108,6 +111,7 @@ export function TasksSection({
 
     try {
       await patchTask(task.id, { notes: value ?? "" });
+      refrescar();
     } catch (e) {
       setTasks((prev) =>
         prev.map((t) => (t.id === task.id ? { ...t, notes: previous } : t))
@@ -136,7 +140,7 @@ export function TasksSection({
           <EmptyNote>
             {isEnglish
               ? "No tasks yet. Your planner will add them here."
-              : "Aún sin tareas. Tu planner las irá agregando aquí."}
+              : "Aún sin tareas. Su planner las irá agregando aquí."}
           </EmptyNote>
         </p>
       ) : (
@@ -283,6 +287,7 @@ export function MessagesSection({
   isEnglish: boolean;
 }) {
   const [messages, setMessages] = useState<PanelMessage[]>(initialMessages);
+  const refrescar = useRefrescoDelPanel();
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -330,6 +335,7 @@ export function MessagesSection({
           prev.map((m) => (m.id === optimistic.id ? data.message! : m))
         );
       }
+      refrescar();
 
       requestAnimationFrame(() => {
         threadRef.current?.scrollTo({
@@ -351,7 +357,7 @@ export function MessagesSection({
     <div className="flex h-full flex-col rounded-2xl border border-sand bg-cream p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Messages" : "Mensajes"}</Eyebrow>
       <SectionTitle>
-        {isEnglish ? "Your planner" : "Tu planner"}
+        {isEnglish ? "Your planner" : "Su planner"}
       </SectionTitle>
 
       {unavailable ? (
@@ -363,7 +369,7 @@ export function MessagesSection({
           <p className="font-body text-sm leading-relaxed text-ink-muted">
             {isEnglish
               ? "Chat with your planner will be available very soon."
-              : "El chat con tu planner estará disponible muy pronto."}
+              : "El chat con su planner estará disponible muy pronto."}
           </p>
         </div>
       ) : (
@@ -560,6 +566,7 @@ export function GuestListSection({
   ocultarEncabezado?: boolean;
 }) {
   const [guests, setGuests] = useState<PanelGuest[]>(initialGuests);
+  const refrescar = useRefrescoDelPanel();
 
   // Formulario de alta
   const [name, setName] = useState("");
@@ -654,6 +661,7 @@ export function GuestListSection({
       }
 
       setGuests((prev) => [...prev, data.guest!]);
+      refrescar();
       resetForm();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : null);
@@ -702,6 +710,7 @@ export function GuestListSection({
       }
       // confirmar con la versión del servidor
       setGuests((prev) => prev.map((g) => (g.id === id ? data.guest! : g)));
+      refrescar();
       return true;
     } catch {
       setGuests(previous); // revertir
@@ -730,6 +739,7 @@ export function GuestListSection({
       if (!res.ok) {
         throw new Error(data?.error || "");
       }
+      refrescar();
     } catch {
       setGuests(previous); // revertir
     }
@@ -758,7 +768,15 @@ export function GuestListSection({
           {/* El encabezado propio de la tarjeta decía "Sus invitados" dos veces
               —en el Eyebrow y en el título— y desde que la pantalla tiene el
               suyo eran tres. Cuando la pantalla ya lo dijo, aquí sobra. */}
-          {ocultarEncabezado ? null : (
+          {ocultarEncabezado ? (
+            // Visualmente fuera, pero PRESENTE. La primera versión lo borraba,
+            // y con eso la lista —que es el 80% de /panel/invitados— desaparecía
+            // del rotor de encabezados de un lector de pantalla: quien navega
+            // por encabezados saltaba del título de la pantalla a "Sus mesas".
+            <h2 className="sr-only">
+              {isEnglish ? "Your guest list" : "Su lista de invitados"}
+            </h2>
+          ) : (
             <>
               <Eyebrow>{isEnglish ? "Your guests" : "Sus invitados"}</Eyebrow>
               <SectionTitle>

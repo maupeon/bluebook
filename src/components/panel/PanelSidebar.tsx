@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarClock, Home, Users, Wallet, Wine } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { countdownPhrase } from "@/components/panel/dates";
 
 /**
  * Lo que el menú necesita saber para GUIAR, no sólo para enlazar.
@@ -38,14 +39,7 @@ type Destino = {
 function destinos(e: EstadoDelMenu, isEnglish: boolean): Destino[] {
   const paso = e.diasRestantes == null || e.diasRestantes >= 0;
 
-  const pistaHoy = (() => {
-    if (e.diasRestantes == null) return isEnglish ? "No date yet" : "Aún sin fecha";
-    if (e.diasRestantes > 1)
-      return isEnglish ? `${e.diasRestantes} days to go` : `Faltan ${e.diasRestantes} días`;
-    if (e.diasRestantes === 1) return isEnglish ? "1 day to go" : "Falta 1 día";
-    if (e.diasRestantes === 0) return isEnglish ? "Today is the day" : "Hoy es el día";
-    return isEnglish ? "Your memory" : "Su recuerdo";
-  })();
+  const pistaHoy = countdownPhrase(e.diasRestantes, isEnglish);
 
   return [
     {
@@ -145,7 +139,7 @@ export function PanelSidebar({ estado }: { estado: EstadoDelMenu }) {
               }`}
             >
               <Icono
-                className={`h-[18px] w-[18px] shrink-0 ${activo ? "text-terra" : "text-ink-muted"}`}
+                className={`h-[18px] w-[18px] shrink-0 ${activo ? "text-terra-deep" : "text-ink-muted"}`}
                 strokeWidth={1.6}
               />
               <span className="flex min-w-0 flex-col">
@@ -174,7 +168,7 @@ export function PanelSidebar({ estado }: { estado: EstadoDelMenu }) {
         aria-label={isEnglish ? "Panel sections" : "Secciones del panel"}
         className="fixed inset-x-0 bottom-0 z-20 flex gap-1 border-t border-sand bg-sand-soft/85 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden"
       >
-        {items.map(({ href, nombre, Icono, llama }) => {
+        {items.map(({ href, nombre, pista, Icono, llama }) => {
           const activo = esActivo(pathname, href);
           return (
             <Link
@@ -186,7 +180,7 @@ export function PanelSidebar({ estado }: { estado: EstadoDelMenu }) {
               }`}
             >
               <Icono
-                className={`h-[18px] w-[18px] ${activo ? "text-terra" : "text-ink-muted"}`}
+                className={`h-[18px] w-[18px] ${activo ? "text-terra-deep" : "text-ink-muted"}`}
                 strokeWidth={1.6}
               />
               <span
@@ -195,10 +189,16 @@ export function PanelSidebar({ estado }: { estado: EstadoDelMenu }) {
                 {nombre}
               </span>
               {llama ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute right-3 top-2 h-[6px] w-[6px] rounded-full bg-terra"
-                />
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-3 top-2 h-[6px] w-[6px] rounded-full bg-terra-deep"
+                  />
+                  {/* En escritorio la pista ("36 sin contestar") se lee sola.
+                      Aquí no cabe, así que el punto era la única señal — y era
+                      aria-hidden, o sea que para un lector no existía. */}
+                  <span className="sr-only">{pista}</span>
+                </>
               ) : null}
             </Link>
           );

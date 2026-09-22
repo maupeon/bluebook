@@ -23,7 +23,11 @@ import { formatShortDate, daysUntil } from "@/components/panel/dates";
 
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra">
+    // terra (#c96f5a) da 3.36:1 sobre bone y 2.89:1 sobre sand-soft: no
+    // llega al 4.5:1 de texto en ningún fondo del panel. terra-deep da 5.11.
+    // Es el renglón que encabeza las cinco pantallas, en 12 px y versalitas
+    // con tracking amplio, que es justo la combinación que más contraste pide.
+    <p className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra-deep">
       {children}
     </p>
   );
@@ -138,7 +142,7 @@ export function BudgetSection({
           <EmptyNote>
             {isEnglish
               ? "Your planner hasn't set the budget yet."
-              : "Tu planner aún no define el presupuesto."}
+              : "Su planner aún no define el presupuesto."}
           </EmptyNote>
         </p>
       </div>
@@ -191,8 +195,8 @@ export function BudgetSection({
               role="img"
               aria-label={
                 isEnglish
-                  ? `Paid ${formatMXN(paid)}, ${balance < 0 ? "overpaid" : "outstanding"} ${formatMXN(Math.abs(balance))}, available ${formatMXN(available ?? 0)}`
-                  : `Pagado ${formatMXN(paid)}, ${balance < 0 ? "pagado de más" : "saldo"} ${formatMXN(Math.abs(balance))}, disponible ${formatMXN(available ?? 0)}`
+                  ? `Paid ${formatMXN(paid)}, ${balance < 0 ? "overpaid" : "outstanding"} ${formatMXN(Math.abs(balance))}${available ? `, not committed ${formatMXN(Math.abs(available))}` : ""}`
+                  : `Pagado ${formatMXN(paid)}, ${balance < 0 ? "pagado de más" : "saldo"} ${formatMXN(Math.abs(balance))}${available ? `, sin contratar ${formatMXN(Math.abs(available))}` : ""}`
               }
             >
               <div className="h-full bg-terra" style={{ width: `${paidPct}%` }} />
@@ -277,7 +281,7 @@ export function BudgetSection({
         <div className="mt-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-4 rounded-xl border border-sand bg-bone px-5 py-4">
           <div>
             <p className="font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
-              {isEnglish ? "Planner fees" : "Honorarios de tu planner"}
+              {isEnglish ? "Planner fees" : "Honorarios de su planner"}
             </p>
             <p className="mt-1 font-body text-xs text-ink-soft">
               {isEnglish
@@ -375,7 +379,7 @@ export function ChecklistSection({
           <EmptyNote>
             {isEnglish
               ? "No contracted items yet. Your planner will add them here."
-              : "Aún sin partidas contratadas. Tu planner las irá agregando aquí."}
+              : "Aún sin partidas contratadas. Su planner las irá agregando aquí."}
           </EmptyNote>
         </p>
       ) : (
@@ -625,7 +629,7 @@ export function SeatingSection({
           <EmptyNote>
             {isEnglish
               ? "Your planner hasn't laid out the tables yet."
-              : "Tu planner aún no arma el acomodo de mesas."}
+              : "Su planner aún no arma el acomodo de mesas."}
           </EmptyNote>
         </p>
       </div>
@@ -756,7 +760,7 @@ export function PaymentsSection({
       <Eyebrow>{isEnglish ? "Payments" : "Pagos"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Payments" : "Pagos"}</SectionTitle>
       <p className="mt-3 font-body text-sm text-ink-muted">
-        {isEnglish ? "Marked by your planner." : "Marcado por tu planner."}
+        {isEnglish ? "Marked by your planner." : "Marcado por su planner."}
       </p>
 
       {payments.length === 0 ? (

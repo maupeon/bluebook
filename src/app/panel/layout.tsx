@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPanelDataByEmail } from "@/lib/couplePanel";
-import { daysUntil } from "@/components/panel/dates";
 import { ScrollLock } from "@/components/panel/ScrollLock";
 import { ResetScroll } from "@/components/panel/ResetScroll";
 import { PanelTopBar } from "@/components/panel/PanelTopBar";
@@ -37,7 +36,10 @@ export default async function PanelLayout({
 
   if (!datos) {
     return (
-      <div className="fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-bone">
+      <div
+        data-panel-overlay
+        className="fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-bone"
+      >
         <ScrollLock />
         <PanelTopBar coupleName={null} weddingDate={null} />
         <NoWedding email={user.email} />
@@ -45,10 +47,10 @@ export default async function PanelLayout({
     );
   }
 
-  const { wedding, bundle } = datos;
+  const { wedding, bundle, diasRestantes } = datos;
 
   return (
-    <div className="fixed inset-0 z-[55] flex flex-col bg-bone">
+    <div data-panel-overlay className="fixed inset-0 z-[55] flex flex-col bg-bone">
       <ScrollLock />
       <ResetScroll targetId={ID_SCROLLER} />
       <PanelTopBar
@@ -58,7 +60,7 @@ export default async function PanelLayout({
       <div className="flex min-h-0 flex-1">
         <PanelSidebar
           estado={{
-            diasRestantes: daysUntil(wedding.weddingDate),
+            diasRestantes,
             invitadosPendientes: bundle.guests.pending,
             personasConfirmadas: bundle.guests.attending,
             dineroPorPagar: bundle.budget.balance,

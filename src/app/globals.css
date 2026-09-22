@@ -124,8 +124,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Focus styles */
+/* terra daba 2.89:1 sobre sand-soft, el fondo de la barra inferior del panel:
+   por debajo del 3:1 que piden los indicadores no textuales. terra-deep da
+   4.39 ahí y 5.11 sobre bone. */
 :focus-visible {
-  outline: 2px solid var(--terra);
+  outline: 2px solid var(--terra-deep);
   outline-offset: 2px;
 }
 
@@ -276,6 +279,17 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  /* Los toques del panel encogen el elemento entre 1% y 3%. Es poco, pero es
+     justo la clase de micro-movimiento que "Reducir movimiento" pide quitar, y
+     ocurre en cada toque del menú. El resto del feedback (color y borde) se
+     queda: reducir movimiento no es quitar la respuesta. */
+  .active\:scale-\[0\.985\]:active,
+  .active\:scale-\[0\.97\]:active,
+  .active\:scale-\[0\.98\]:active,
+  .active\:scale-\[0\.99\]:active {
+    transform: none;
   }
 }
 

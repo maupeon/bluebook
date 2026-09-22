@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { daysUntil } from "@/components/panel/dates";
 
 // Re-exportamos el helper puro para no romper a los consumidores de servidor
 // que lo importan desde aquí. La definición vive en @/lib/phone (sin
@@ -998,10 +999,33 @@ export async function coupleOwnsWedding(
  */
 export const getPanelDataByEmail = cache(async function getPanelDataByEmail(
   email: string
-): Promise<{ wedding: CoupleWedding; bundle: PanelBundle } | null> {
+): Promise<{
+  wedding: CoupleWedding;
+  bundle: PanelBundle;
+  /**
+   * Los días que faltan, resueltos UNA VEZ en el servidor.
+   *
+   * daysUntil compara una fecha en UTC contra el "hoy" LOCAL de quien lo
+   * ejecuta, así que servidor y navegador contestan distinto siempre que no
+   * compartan zona horaria: con el servidor en UTC y la pareja en CDMX, desde
+   * las 18:00 el servidor ya está en el día siguiente. Calcularlo en el
+   * cliente daba un error de hidratación y el número saltaba al hidratar; y
+   * como el menú se renderiza en el servidor y no se vuelve a renderizar al
+   * navegar, menú y encabezado se quedaban discrepando en uno.
+   *
+   * Un solo reloj, el del servidor, y todos leen de aquí. Es la misma regla
+   * que ya se aplicó a los números de dinero y de pax: si dos pantallas
+   * enseñan el mismo dato, se calcula una vez.
+   */
+  diasRestantes: number | null;
+} | null> {
   const wedding = await getCoupleWeddingByEmail(email);
   if (!wedding) return null;
-  return { wedding, bundle: await getPanelBundle(wedding) };
+  return {
+    wedding,
+    bundle: await getPanelBundle(wedding),
+    diasRestantes: daysUntil(wedding.weddingDate),
+  };
 });
 
 export async function getPanelBundle(

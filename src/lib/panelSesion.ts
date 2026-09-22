@@ -11,7 +11,10 @@ import { getPanelDataByEmail, type PanelBundle } from "@/lib/couplePanel";
  * no tiene boda: el layout ya pinta NoWedding, así que la pantalla sólo tiene
  * que no reventar.
  */
-export async function bundleDeLaPantalla(): Promise<PanelBundle | null> {
+export async function datosDeLaPantalla(): Promise<{
+  bundle: PanelBundle;
+  diasRestantes: number | null;
+} | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -20,5 +23,5 @@ export async function bundleDeLaPantalla(): Promise<PanelBundle | null> {
   if (!user?.email) redirect("/acceso");
 
   const datos = await getPanelDataByEmail(user.email);
-  return datos ? datos.bundle : null;
+  return datos ? { bundle: datos.bundle, diasRestantes: datos.diasRestantes } : null;
 }

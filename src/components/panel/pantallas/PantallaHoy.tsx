@@ -6,7 +6,7 @@ import type { PanelBundle } from "@/lib/couplePanel";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
-import { daysUntil, formatLongDate } from "@/components/panel/dates";
+import { countdownPhrase, formatLongDate } from "@/components/panel/dates";
 import { TasksSection, MessagesSection } from "@/components/panel/PanelDashboard";
 
 const pesos = (n: number) => `$${Math.round(n).toLocaleString("es-MX")}`;
@@ -63,20 +63,19 @@ function Resumen({
   );
 }
 
-export function PantallaHoy({ bundle }: { bundle: PanelBundle }) {
+export function PantallaHoy({
+  bundle,
+  diasRestantes,
+}: {
+  bundle: PanelBundle;
+  /** Resuelto en el servidor. Aquí NO se mira el reloj: ver getPanelDataByEmail. */
+  diasRestantes: number | null;
+}) {
   const { isEnglish } = useLanguage();
   const { wedding, budget, guests } = bundle;
 
-  const dias = daysUntil(wedding.weddingDate);
-  const paso = dias != null && dias < 0;
-
-  const cuenta = (() => {
-    if (dias == null) return isEnglish ? "No date set yet" : "Aún sin fecha";
-    if (dias > 1) return isEnglish ? `${dias} days to go` : `Faltan ${dias} días`;
-    if (dias === 1) return isEnglish ? "1 day to go" : "Falta 1 día";
-    if (dias === 0) return isEnglish ? "Today is the day" : "Hoy es el gran día";
-    return isEnglish ? "Already married" : "Ya se casaron";
-  })();
+  const paso = diasRestantes != null && diasRestantes < 0;
+  const cuenta = countdownPhrase(diasRestantes, isEnglish);
 
   // El dinero se cuenta desde lo PAGADO, que es la buena noticia, y nunca se
   // enseña un "Disponible" suelto: cuando el estimado coincide con lo

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { bundleDeLaPantalla } from "@/lib/panelSesion";
+import { datosDeLaPantalla } from "@/lib/panelSesion";
 import { PantallaDia } from "@/components/panel/pantallas/PantallaDia";
 
 export const dynamic = "force-dynamic";
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Pagina() {
-  const bundle = await bundleDeLaPantalla();
+  const datos = await datosDeLaPantalla();
   // Sin boda el layout ya enseña NoWedding; aquí no hay nada que pintar.
-  if (!bundle) return null;
-  return <PantallaDia bundle={bundle} />;
+  if (!datos) return null;
+  return <PantallaDia bundle={datos.bundle} />;
 }

@@ -79,3 +79,25 @@ export function formatTime(iso: string): string {
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
+
+/**
+ * La cuenta regresiva, en palabras. UNA definición.
+ *
+ * Estaba escrita dos veces —en el encabezado de Hoy y en el menú— y las dos
+ * versiones no coincidían: el menú decía "Su recuerdo" y el encabezado "Ya se
+ * casaron" para la misma boda. Un mismo hecho contado con dos voces distintas
+ * a diez centímetros de distancia.
+ *
+ * Recibe los días ya calculados; nunca mira el reloj. El reloj es uno solo y
+ * vive en el servidor (getPanelDataByEmail).
+ */
+export function countdownPhrase(
+  days: number | null,
+  isEnglish: boolean
+): string {
+  if (days == null) return isEnglish ? "No date set yet" : "Aún sin fecha";
+  if (days > 1) return isEnglish ? `${days} days to go` : `Faltan ${days} días`;
+  if (days === 1) return isEnglish ? "1 day to go" : "Falta 1 día";
+  if (days === 0) return isEnglish ? "Today is the day" : "Hoy es el gran día";
+  return isEnglish ? "Already married" : "Ya se casaron";
+}
