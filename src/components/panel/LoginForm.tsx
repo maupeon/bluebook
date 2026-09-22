@@ -92,16 +92,24 @@ export function LoginForm({
     setLoading(true);
     try {
       const supabase = createClient();
-      // Sin emailRedirectTo a propósito, pero ojo con por qué: NO es lo que
-      // hace aparecer el código —eso lo decide la plantilla de correo—, sino
-      // que evita mandar a la pareja a un callback atado a ESTE navegador.
-      // Lo que de verdad arregla el problema es el paso 2: verifyOtp con el
-      // token no necesita el code_verifier, así que vale desde cualquier
-      // aparato. El código sale en el correo en cuanto la plantilla lleve
-      // {{ .Token }}.
+      // emailRedirectTo SÍ va, aunque el camino bueno sea el código.
+      //
+      // Quitarlo parecía coherente —el código no necesita redirección— pero
+      // dejaba el enlace del correo apuntando al Site URL, que es la portada y
+      // no tiene manejador: quien pulsara el enlace acababa en
+      // /?error=access_denied&error_code=otp_expired. Mientras la plantilla no
+      // lleve {{ .Token }}, el enlace es lo ÚNICO que llega, así que tiene que
+      // seguir funcionando.
+      //
+      // Con esto hay dos caminos y ninguno depende del otro:
+      //   código (paso 2) -> verifyOtp, vale desde cualquier aparato
+      //   enlace          -> /auth/callback, vale en el navegador que lo pidió
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: correo,
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destino)}`,
+        },
       });
       if (otpError) {
         setError(mensajeDeEnvio(otpError));
