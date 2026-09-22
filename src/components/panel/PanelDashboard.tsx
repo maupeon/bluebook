@@ -672,6 +672,9 @@ function ErrorBanner({ message }: { message: string }) {
   );
 }
 
+/** Cuántos invitados se pintan antes de pedir que se despliegue el resto. */
+const LIMITE_LISTA = 25;
+
 const guestInputClass =
   "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-terra focus:ring-2 focus:ring-terra/20";
 
@@ -691,6 +694,11 @@ function GuestListSection({
   const [seats, setSeats] = useState("1");
   const [notes, setNotes] = useState("");
   const [adding, setAdding] = useState(false);
+  // La lista completa se volcaba entera: con los 321 grupos de una boda real
+  // son 27.000 px de scroll de filas idénticas, y desde el panel se lee como
+  // "no hay nada". Se busca y se corta.
+  const [filtro, setFiltro] = useState("");
+  const [verTodos, setVerTodos] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const expectedDigits = guestPhoneDigitsFor(cc);
@@ -852,6 +860,22 @@ function GuestListSection({
       setGuests(previous); // revertir
     }
   }
+
+  const termino = filtro.trim().toLowerCase();
+  // Los dígitos solo se comparan si el término TIENE dígitos: includes("") es
+  // true para cualquier cadena, así que buscar "zzz" casaba con los 321.
+  const digitos = termino.replace(/\D/g, "");
+  const filtrados = termino
+    ? guests.filter(
+        (g) =>
+          g.name.toLowerCase().includes(termino) ||
+          (g.notes || "").toLowerCase().includes(termino) ||
+          (digitos.length > 0 &&
+            (g.phone || "").replace(/\D/g, "").includes(digitos))
+      )
+    : guests;
+  const visibles = verTodos ? filtrados : filtrados.slice(0, LIMITE_LISTA);
+  const ocultos = filtrados.length - visibles.length;
 
   return (
     <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
@@ -1019,17 +1043,73 @@ function GuestListSection({
           </EmptyNote>
         </p>
       ) : (
-        <ul className="mt-7">
-          {guests.map((guest) => (
-            <GuestRow
-              key={guest.id}
-              guest={guest}
-              isEnglish={isEnglish}
-              onUpdate={handleUpdate}
-              onDelete={() => handleDelete(guest)}
-            />
-          ))}
-        </ul>
+        <>
+          {guests.length > LIMITE_LISTA ? (
+            <div className="mt-7">
+              <label htmlFor="guest-search" className="sr-only">
+                {isEnglish ? "Search guests" : "Buscar invitados"}
+              </label>
+              <input
+                id="guest-search"
+                type="search"
+                value={filtro}
+                onChange={(e) => {
+                  setFiltro(e.target.value);
+                  setVerTodos(false);
+                }}
+                placeholder={
+                  isEnglish
+                    ? "Search by name, phone or note"
+                    : "Buscar por nombre, teléfono o nota"
+                }
+                className={guestInputClass}
+              />
+              <p className="mt-2 font-body text-xs text-ink-soft">
+                {termino
+                  ? isEnglish
+                    ? `${filtrados.length} of ${guests.length}`
+                    : `${filtrados.length} de ${guests.length}`
+                  : isEnglish
+                    ? `Showing ${visibles.length} of ${guests.length}`
+                    : `Mostrando ${visibles.length} de ${guests.length}`}
+              </p>
+            </div>
+          ) : null}
+
+          {filtrados.length === 0 ? (
+            <p className="mt-7">
+              <EmptyNote>
+                {isEnglish
+                  ? "No guest matches that search."
+                  : "Ningún invitado coincide con esa búsqueda."}
+              </EmptyNote>
+            </p>
+          ) : (
+            <ul className="mt-7">
+              {visibles.map((guest) => (
+                <GuestRow
+                  key={guest.id}
+                  guest={guest}
+                  isEnglish={isEnglish}
+                  onUpdate={handleUpdate}
+                  onDelete={() => handleDelete(guest)}
+                />
+              ))}
+            </ul>
+          )}
+
+          {ocultos > 0 ? (
+            <button
+              type="button"
+              onClick={() => setVerTodos(true)}
+              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-sand bg-bone px-6 py-3 font-body text-sm font-medium text-ink transition-colors hover:border-terra hover:text-terra"
+            >
+              {isEnglish
+                ? `Show ${ocultos} more`
+                : `Ver ${ocultos} más`}
+            </button>
+          ) : null}
+        </>
       )}
     </div>
   );
