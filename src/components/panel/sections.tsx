@@ -22,11 +22,11 @@ import { formatShortDate, daysUntil } from "@/components/panel/dates";
 
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    // terra (#c96f5a) da 3.36:1 sobre bone y 2.89:1 sobre sand-soft: no
-    // llega al 4.5:1 de texto en ningún fondo del panel. terra-deep da 5.11.
-    // Es el renglón que encabeza las cinco pantallas, en 12 px y versalitas
-    // con tracking amplio, que es justo la combinación que más contraste pide.
-    <p className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra-deep">
+    // Igual que el Eyebrow del sitio (marketing/ui.tsx). azul-deep y no azul:
+    // azul da 4.4:1 sobre papel, solo apto para texto grande, y este renglón
+    // va en 12 px y versalitas con tracking amplio, la combinación que más
+    // contraste pide. azul-deep da 6.1.
+    <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-azul-deep">
       {children}
     </p>
   );
@@ -34,7 +34,7 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
 
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-2 font-heading text-3xl tracking-tight text-ink md:text-4xl">
+    <h2 className="mt-2 font-heading text-3xl font-medium tracking-[-0.015em] text-ink md:text-4xl">
       {children}
     </h2>
   );
@@ -143,7 +143,7 @@ export function BudgetSection({
 
   if (budgetTotal == null && !hasMoney) {
     return (
-      <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+      <div className="panel-card p-6 sm:p-8 md:p-10">
         <Eyebrow>{isEnglish ? "Budget" : "Presupuesto"}</Eyebrow>
         <SectionTitle>
           {isEnglish ? "Your budget" : "Su presupuesto"}
@@ -176,15 +176,20 @@ export function BudgetSection({
   const over = available != null && available < 0;
 
   return (
-    <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+    <div className="panel-card p-6 sm:p-8 md:p-10">
       <div className="grid gap-8 md:grid-cols-[1fr_1.4fr] md:gap-12">
         <div>
           <Eyebrow>{isEnglish ? "Budget" : "Presupuesto"}</Eyebrow>
           <SectionTitle>
             {isEnglish ? "Your budget" : "Su presupuesto"}
           </SectionTitle>
-          <p className="mt-5 font-heading text-5xl tracking-tight text-ink tabular-nums">
-            {formatMXN(budgetTotal ?? contracted)}
+          <p className="mt-5 font-heading text-5xl font-medium tracking-tight text-ink tabular-nums">
+            <span className="whitespace-nowrap">
+              {formatMXN(budgetTotal ?? contracted).replace(/ MXN$/, "")}
+            </span>
+            <span className="ml-2 font-body text-sm font-normal tracking-[0.08em] text-ink-muted">
+              MXN
+            </span>
           </p>
           <p className="mt-2 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
             {budgetTotal != null
@@ -209,25 +214,25 @@ export function BudgetSection({
                   : `Pagado ${formatMXN(paid)}, ${balance < 0 ? "pagado de más" : "saldo"} ${formatMXN(Math.abs(balance))}${available ? `, sin contratar ${formatMXN(Math.abs(available))}` : ""}`
               }
             >
-              <div className="h-full bg-terra" style={{ width: `${paidPct}%` }} />
-              <div className="h-full bg-sand" style={{ width: `${balancePct}%` }} />
+              <div className="h-full bg-navy" style={{ width: `${paidPct}%` }} />
+              <div className="h-full bg-azul" style={{ width: `${balancePct}%` }} />
               <div
-                className="h-full bg-pale-green"
+                className="h-full bg-wash-deep"
                 style={{ width: `${availablePct}%` }}
               />
             </div>
           ) : null}
 
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="mt-6 flex flex-wrap gap-x-8 gap-y-5">
             <BudgetFigure
               label={isEnglish ? "Contracted" : "Contratado"}
               value={formatMXN(contracted)}
-              dotClass="bg-ink"
+              dotClass="border-[1.5px] border-navy"
             />
             <BudgetFigure
               label={isEnglish ? "Paid" : "Pagado"}
               value={formatMXN(paid)}
-              dotClass="bg-terra"
+              dotClass="bg-navy"
             />
             <BudgetFigure
               label={
@@ -243,7 +248,7 @@ export function BudgetSection({
               // Imprimir "-$185,000" al lado de una barra que lo esconde con
               // Math.max(0,...) hacía que la misma tarjeta se contradijera.
               value={formatMXN(Math.abs(balance))}
-              dotClass="bg-sand"
+              dotClass="bg-azul"
             />
             {/* "Disponible" sólo se enseña cuando dice algo.
                 Con el estimado igual a lo contratado daba "Disponible $0" junto
@@ -263,7 +268,7 @@ export function BudgetSection({
                       : "Sin contratar"
                 }
                 value={formatMXN(Math.abs(available))}
-                dotClass={over ? "bg-terra-deep" : "bg-pale-green"}
+                dotClass={over ? "bg-terra-deep" : "bg-wash-deep"}
               />
             ) : null}
           </div>
@@ -303,12 +308,12 @@ export function BudgetSection({
             <BudgetFigure
               label={isEnglish ? "Paid" : "Pagado"}
               value={formatMXN(feesPaid)}
-              dotClass="bg-terra"
+              dotClass="bg-navy"
             />
             <BudgetFigure
               label={isEnglish ? "Due" : "Por pagar"}
               value={formatMXN(feesPending)}
-              dotClass="bg-sand"
+              dotClass="bg-azul"
             />
           </div>
         </div>
@@ -326,16 +331,24 @@ function BudgetFigure({
   value: string;
   dotClass: string;
 }) {
+  const [cifra, moneda] = value.endsWith(" MXN") ? [value.slice(0, -4), "MXN"] : [value, null];
   return (
     <div>
       <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${dotClass}`} />
-        <span className="font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+        <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
+        <span className="whitespace-nowrap font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
           {label}
         </span>
       </div>
-      <p className="mt-1.5 font-heading text-xl tracking-tight text-ink tabular-nums">
-        {value}
+      {/* La cifra no se parte: "MXN" va aparte y chico, y es lo único que
+          puede bajar de renglón cuando la columna es angosta. */}
+      <p className="mt-1.5 font-heading text-xl font-medium tracking-tight text-ink tabular-nums">
+        <span className="whitespace-nowrap">{cifra}</span>
+        {moneda ? (
+          <span className="ml-1 font-body text-[11px] font-normal tracking-[0.08em] text-ink-muted">
+            {moneda}
+          </span>
+        ) : null}
       </p>
     </div>
   );
@@ -373,7 +386,7 @@ export function ChecklistSection({
   if (checklist.unavailable) return null;
 
   return (
-    <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+    <div className="panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Transparency" : "Transparencia"}</Eyebrow>
       <SectionTitle>
         {isEnglish ? "Payment checklist" : "Checklist de pagos"}
@@ -394,21 +407,21 @@ export function ChecklistSection({
         </div>
       ) : (
         <>
-          <div className="mt-7 grid grid-cols-3 gap-4 border-t border-sand pt-6">
+          <div className="mt-7 flex flex-wrap gap-x-10 gap-y-5 border-t border-sand pt-6">
             <BudgetFigure
               label={isEnglish ? "Contracted" : "Contratado"}
               value={formatMXN(checklist.contracted)}
-              dotClass="bg-ink"
+              dotClass="border-[1.5px] border-navy"
             />
             <BudgetFigure
               label={isEnglish ? "Paid" : "Pagado"}
               value={formatMXN(checklist.paid)}
-              dotClass="bg-terra"
+              dotClass="bg-navy"
             />
             <BudgetFigure
               label={isEnglish ? "Outstanding" : "Saldo"}
               value={formatMXN(checklist.balance)}
-              dotClass="bg-sand"
+              dotClass="bg-azul"
             />
           </div>
 
@@ -424,7 +437,7 @@ export function ChecklistSection({
             {checklist.categories.map((category) => (
               <section key={category.category}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-sand pb-2">
-                  <h3 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra">
+                  <h3 className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-azul-deep">
                     {humanizeCategory(category.category, isEnglish)}
                   </h3>
                   <p className="font-body text-xs tabular-nums text-ink-muted">
@@ -507,7 +520,7 @@ export function ChecklistSection({
                                     <p
                                       className={`font-body text-xs tabular-nums ${
                                         item.balance > 0
-                                          ? "text-terra-deep"
+                                          ? "text-azul-deep"
                                           : "text-ink-soft"
                                       }`}
                                     >
@@ -752,7 +765,7 @@ export function PaymentsSection({
   isEnglish: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+    <div className="panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Payments" : "Pagos"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Payments" : "Pagos"}</SectionTitle>
       <p className="mt-3 font-body text-sm text-ink-muted">
@@ -863,7 +876,7 @@ export function VendorsSection({
                 : status === "descartado" || status === "declined"
                   ? {
                       text: isEnglish ? "Dropped" : "Descartado",
-                      cls: "bg-terra-light text-terra-deep",
+                      cls: "bg-sand-soft text-ink-muted",
                     }
                   : {
                       text: isEnglish ? "In review" : "En revisión",
@@ -1045,7 +1058,7 @@ function RunOfShowRow({
         onClick={() => setOpen((o) => !o)}
         disabled={inside === 0}
         aria-expanded={inside === 0 ? undefined : open}
-        className="flex w-full items-start gap-4 py-4 text-left transition-colors hover:text-terra disabled:cursor-default"
+        className="flex w-full items-start gap-4 py-4 text-left transition-colors hover:text-azul-deep disabled:cursor-default"
       >
         <span className="w-24 flex-shrink-0">
           <span className="block font-heading text-lg tracking-tight text-ink tabular-nums">
@@ -1054,7 +1067,7 @@ function RunOfShowRow({
           {/* El evento cruza medianoche: el fin a la 1:00 a.m. es del día
               siguiente y la vista ya lo ordenó así. Aquí sólo se nombra. */}
           {block.dayOffset > 0 ? (
-            <span className="mt-0.5 block font-body text-[11px] uppercase tracking-[0.08em] text-terra">
+            <span className="mt-0.5 block font-body text-[11px] uppercase tracking-[0.08em] text-azul-deep">
               {isEnglish ? "next day" : "madrugada"}
             </span>
           ) : null}
@@ -1110,7 +1123,7 @@ function RunOfShowRow({
               >
                 {/* h3, no h4: el título de la sección es h2 y saltar un nivel
                     rompe el índice de encabezados de un lector de pantalla. */}
-                <h3 className="font-body text-xs font-medium uppercase tracking-[0.2em] text-terra-deep">
+                <h3 className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-azul-deep">
                   {child.title}
                 </h3>
                 {childMeta.length > 0 ? (
@@ -1148,7 +1161,7 @@ export function RunOfShowSection({
   if (runOfShow.unavailable || runOfShow.blocks.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+    <div className="panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "The day" : "El día"}</Eyebrow>
       <SectionTitle>
         {isEnglish ? "Your run of show" : "Su guion del día"}

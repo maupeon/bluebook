@@ -25,9 +25,9 @@ interface Lote {
 }
 
 const botonPrincipal =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50";
 const botonSecundario =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone disabled:opacity-50";
 
 /**
  * Mandar la invitación elegida a los invitados, por WhatsApp.
@@ -131,7 +131,7 @@ export function EnvioDeInvitaciones({ elegidaId }: { elegidaId: string }) {
           {revision.rechazo.motivo === "faltan_datos" ? (
             <>
               {" "}
-              <Link href="/panel" className="text-terra-deep underline underline-offset-4 hover:text-ink">
+              <Link href="/panel" className="text-azul-deep underline underline-offset-4 hover:text-ink">
                 {isEnglish ? "Go to Today" : "Ir a Hoy"}
               </Link>
             </>
@@ -159,7 +159,7 @@ export function EnvioDeInvitaciones({ elegidaId }: { elegidaId: string }) {
           {isEnglish ? "Missing WhatsApp: " : "Les falta el WhatsApp: "}
           {(revision.sinTelefonoNombres ?? []).join(", ")}
           {sinTelefono > (revision.sinTelefonoNombres?.length ?? 0) ? "…" : ""}{" "}
-          <Link href="/panel/invitados" className="text-terra-deep underline underline-offset-4 hover:text-ink">
+          <Link href="/panel/invitados" className="text-azul-deep underline underline-offset-4 hover:text-ink">
             {isEnglish ? "Add it in Guests" : "Agréguenlo en Invitados"}
           </Link>
         </p>

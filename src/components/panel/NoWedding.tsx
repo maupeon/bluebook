@@ -15,11 +15,11 @@ export function NoWedding({ email }: { email?: string | null }) {
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-20 sm:px-6">
-      <div className="w-full max-w-xl rounded-2xl border border-sand bg-white p-8 text-center md:p-10">
+      <div className="w-full max-w-xl panel-card p-8 text-center md:p-10">
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-pale-yellow">
           <Clock className="h-7 w-7 text-pale-yellow-ink" strokeWidth={1.5} />
         </div>
-        <h1 className="font-heading text-3xl tracking-tight text-ink">
+        <h1 className="font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
           {isEnglish ? "We're setting up your panel" : "Estamos preparando su panel"}
         </h1>
         {/* Desde la 0022 el pago crea la boda al momento, así que "su planner
@@ -40,7 +40,7 @@ export function NoWedding({ email }: { email?: string | null }) {
           href={CONTACT_INFO.whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-terra px-7 py-3.5 font-body text-sm font-semibold text-white transition-all hover:bg-terra-deep active:scale-[0.98]"
+          className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-navy px-7 py-3.5 font-body text-sm font-semibold text-white transition-all hover:bg-navy-soft active:scale-[0.98]"
         >
           {isEnglish ? "Message your planner" : "Escribir a su planner"}
           <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} />

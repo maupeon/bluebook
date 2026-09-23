@@ -36,7 +36,7 @@ export default async function PanelLayout({
     return (
       <div
         data-panel-overlay
-        className="fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-bone"
+        className="sb panel-sb fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-bone"
       >
         <ScrollLock />
         <PanelTopBar coupleName={null} weddingDate={null} />
@@ -48,7 +48,9 @@ export default async function PanelLayout({
   const { wedding, bundle, diasRestantes } = datos;
 
   return (
-    <div data-panel-overlay className="fixed inset-0 z-[55] flex flex-col bg-bone">
+    // sb: la tipografía del sitio (sin ella los títulos caían en la fuente del
+    // sistema, ver globals.css). panel-sb: sus colores (tokens redefinidos).
+    <div data-panel-overlay className="sb panel-sb fixed inset-0 z-[55] flex flex-col bg-bone">
       <ScrollLock />
       <ResetScroll targetId={ID_SCROLLER} />
       <PanelTopBar

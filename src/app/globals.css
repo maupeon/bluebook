@@ -562,3 +562,44 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--wash-deep);
   color: var(--navy);
 }
+
+/* =================================
+   PANEL — EL MISMO "SOMETHING BLUE"
+================================= */
+
+/* El panel hereda el sistema del sitio público sin reescribir sus ~350
+   clases de neutros: aquí se REDEFINEN sus tokens dentro de .panel-sb.
+   Funciona porque @theme inline compila cada utilidad a la variable
+   (.bg-bone { background-color: var(--bone) }, comprobado en el CSS
+   generado), así que cambiar --bone dentro del panel cambia todo bg-bone
+   del panel y nada fuera de él.
+
+   Terra NO se redefine: en el panel tiene significado (error, vencido, no
+   asiste, sobrecupo, borrar) y en el sistema azul es justo lo que tiene que
+   destacar. Sus usos decorativos se cambiaron a azul/marino en cada
+   componente. Tampoco pale-yellow: "por vencer" y "tal vez" siguen siendo
+   un aviso suave.
+
+   Los éxitos (confirmado, pagado, contratado) pasan del verde al azul de las
+   maquetas del sitio (Mockups.tsx: chip "done" = wash / azul-deep). */
+.panel-sb {
+  --bone: var(--paper);
+  --cream: var(--paper-warm);
+  --ink: var(--navy);
+  --ink-soft: var(--navy-soft);
+  --ink-muted: var(--navy-muted);
+  --sand: var(--hairline);
+  --sand-soft: var(--wash-soft);
+  --pale-green: var(--wash);
+  --pale-green-ink: var(--azul-deep);
+  --pale-blue: var(--wash-soft);
+  --pale-blue-ink: var(--azul-deep);
+}
+
+/* La superficie de las tarjetas del panel, la misma de MockCard. */
+.panel-card {
+  border-radius: 1rem;
+  border: 1px solid var(--hairline);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(28, 45, 79, 0.04), 0 12px 32px -16px rgba(28, 45, 79, 0.22);
+}

@@ -8,7 +8,7 @@ import { parseJsonSafe } from "@/lib/http";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 
 const inputClass =
-  "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-terra focus:ring-2 focus:ring-terra/20";
+  "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20";
 
 /**
  * La fecha y el lugar de la boda, editables por la pareja.
@@ -78,14 +78,14 @@ export function DatosDeLaBoda({
         ) : null}
         {venue ? (
           <span className="flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-terra" strokeWidth={1.5} />
+            <MapPin className="h-4 w-4 text-azul" strokeWidth={1.5} />
             {venue}
           </span>
         ) : null}
         <button
           type="button"
           onClick={abrir}
-          className="inline-flex items-center gap-1.5 font-body text-sm text-terra-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+          className="inline-flex items-center gap-1.5 font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
         >
           <Pencil className="h-3.5 w-3.5" strokeWidth={1.6} />
           {faltaAlgo
@@ -103,7 +103,7 @@ export function DatosDeLaBoda({
   return (
     <form
       onSubmit={guardar}
-      className="mt-5 grid max-w-xl gap-4 rounded-2xl border border-sand bg-white p-5 sm:grid-cols-2"
+      className="mt-5 grid max-w-xl gap-4 panel-card p-5 sm:grid-cols-2"
     >
       <div>
         <label htmlFor="boda-fecha" className="mb-2 block font-body text-sm font-medium text-ink">
@@ -145,7 +145,7 @@ export function DatosDeLaBoda({
         <button
           type="submit"
           disabled={guardando}
-          className="inline-flex min-h-[2.75rem] items-center rounded-xl border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50"
+          className="inline-flex min-h-[2.75rem] items-center rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50"
         >
           {guardando ? (isEnglish ? "Saving…" : "Guardando…") : isEnglish ? "Save" : "Guardar"}
         </button>
@@ -153,7 +153,7 @@ export function DatosDeLaBoda({
           type="button"
           onClick={() => setEditando(false)}
           disabled={guardando}
-          className="inline-flex min-h-[2.75rem] items-center rounded-xl border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone"
+          className="inline-flex min-h-[2.75rem] items-center rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone"
         >
           {isEnglish ? "Cancel" : "Cancelar"}
         </button>

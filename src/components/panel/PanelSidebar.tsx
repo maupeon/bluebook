@@ -166,7 +166,7 @@ export function PanelSidebar({
               }`}
             >
               <Icono
-                className={`h-[18px] w-[18px] shrink-0 ${activo ? "text-terra-deep" : "text-ink-muted"}`}
+                className={`h-[18px] w-[18px] shrink-0 ${activo ? "text-navy" : "text-ink-muted"}`}
                 strokeWidth={1.6}
               />
               <span className="flex min-w-0 flex-col">
@@ -182,7 +182,7 @@ export function PanelSidebar({
               {llama ? (
                 <span
                   aria-hidden="true"
-                  className="ml-auto h-[7px] w-[7px] shrink-0 rounded-full bg-terra"
+                  className="ml-auto h-[7px] w-[7px] shrink-0 rounded-full bg-azul"
                 />
               ) : null}
             </Link>
@@ -193,7 +193,7 @@ export function PanelSidebar({
       {/* Teléfono: el mismo menú, abajo. No cabe una columna en 375 px. */}
       <nav
         aria-label={isEnglish ? "Panel sections" : "Secciones del panel"}
-        className="fixed inset-x-0 bottom-0 z-20 flex gap-1 border-t border-sand bg-sand-soft/85 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 flex gap-1 border-t border-sand bg-white/90 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden"
       >
         {items.map(({ href, nombre, pista, Icono, llama }) => {
           const activo = esActivo(pathname, href);
@@ -203,12 +203,12 @@ export function PanelSidebar({
               href={href}
               aria-current={activo ? "page" : undefined}
               className={`relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] ${
-                activo ? "border-sand bg-white" : "border-transparent"
+                activo ? "border-transparent bg-wash-soft" : "border-transparent"
               }`}
             >
               <Icono
-                className={`h-[18px] w-[18px] ${activo ? "text-terra-deep" : "text-ink-muted"}`}
-                strokeWidth={1.6}
+                className={`h-[18px] w-[18px] ${activo ? "text-navy" : "text-ink-muted"}`}
+                strokeWidth={activo ? 2 : 1.6}
               />
               <span
                 className={`font-body text-[10.5px] leading-none ${activo ? "font-semibold text-ink" : "text-ink-muted"}`}
@@ -219,7 +219,7 @@ export function PanelSidebar({
                 <>
                   <span
                     aria-hidden="true"
-                    className="absolute right-3 top-2 h-[6px] w-[6px] rounded-full bg-terra-deep"
+                    className="absolute right-3 top-2 h-[6px] w-[6px] rounded-full bg-azul"
                   />
                   {/* En escritorio la pista ("36 sin contestar") se lee sola.
                       Aquí no cabe, así que el punto era la única señal — y era

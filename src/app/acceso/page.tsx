@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
@@ -31,21 +32,23 @@ export default async function AccesoPage({
   }
 
   return (
-    <div className="fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-bone">
+    <div className="sb panel-sb fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-x-hidden overflow-y-auto bg-bone">
       <div
         aria-hidden="true"
-        className="animate-drift pointer-events-none absolute -top-40 -right-40 h-[34rem] w-[34rem] rounded-full bg-terra-light opacity-[0.07] blur-3xl"
+        className="animate-drift pointer-events-none absolute -top-40 -right-40 h-[34rem] w-[34rem] rounded-full bg-wash opacity-[0.55] blur-3xl"
       />
 
       <div className="relative flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
         <div className="w-full max-w-md">
-          <div className="mb-10 text-center">
-            <span className="font-heading text-2xl tracking-tight text-ink">
+          {/* La misma marca que la barra del sitio y la del panel. */}
+          <div className="mb-10 flex items-center justify-center gap-3">
+            <Image src="/icon.png" alt="" width={36} height={36} />
+            <span className="font-round text-xl uppercase leading-none tracking-[0.04em] text-ink">
               Blue Book
             </span>
           </div>
 
-          <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+          <div className="panel-card p-6 sm:p-8 md:p-10">
             <LoginForm next={next} hadError={params.error === "1"} />
           </div>
         </div>

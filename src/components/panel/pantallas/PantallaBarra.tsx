@@ -106,9 +106,9 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "The bar" : "La barra"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
+          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
             {isEnglish ? "What to buy for " : "Qué comprar para "}
-            <em className="italic text-terra">{isEnglish ? "the bar" : "la barra"}</em>
+            <em className="italic text-azul">{isEnglish ? "the bar" : "la barra"}</em>
           </h1>
           <p className="mt-4 max-w-2xl font-body text-sm leading-relaxed text-ink-muted">
             {isEnglish
@@ -119,7 +119,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
       </Reveal>
 
       <Reveal app className="mt-10">
-        <div className="rounded-2xl border border-sand bg-white p-6 sm:p-7">
+        <div className="panel-card p-6 sm:p-7">
           <label
             htmlFor="personas-barra"
             className="block font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted"
@@ -179,7 +179,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
             aria-valuetext={
               isEnglish ? `${personas} people` : `${personas} personas`
             }
-            className="mt-4 h-11 w-full cursor-pointer accent-terra"
+            className="mt-4 h-11 w-full cursor-pointer accent-azul"
           />
 
           <fieldset className="mt-6">
@@ -220,7 +220,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
 
       {tipo === "sin_alcohol" ? (
         <Reveal app className="mt-8">
-          <div className="rounded-2xl border border-sand bg-white p-7">
+          <div className="panel-card p-7">
             <EmptyNote>
               {isEnglish
                 ? "Nothing to buy here, then. Your planner works out the soft drinks and water straight with the caterer."
@@ -233,7 +233,7 @@ export function PantallaBarra({ bundle }: { bundle: PanelBundle }) {
           {/* aria-live: mover el control reescribe las once cantidades, y sin
               esto un lector de pantalla sólo anuncia el número del control. */}
           <div
-            className="overflow-hidden rounded-2xl border border-sand bg-white"
+            className="overflow-hidden panel-card"
             aria-live="polite"
           >
             <ul>

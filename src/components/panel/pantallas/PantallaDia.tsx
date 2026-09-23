@@ -15,9 +15,9 @@ export function PantallaDia({ bundle }: { bundle: PanelBundle }) {
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "The day" : "El día"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
+          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
             {isEnglish ? "Your day, " : "Su día, "}
-            <em className="italic text-terra">
+            <em className="italic text-azul">
               {isEnglish ? "hour by hour" : "hora por hora"}
             </em>
           </h1>
@@ -37,7 +37,7 @@ export function PantallaDia({ bundle }: { bundle: PanelBundle }) {
         </Reveal>
       ) : (
         <Reveal app className="mt-10">
-          <div className="rounded-2xl border border-sand bg-white p-7">
+          <div className="panel-card p-7">
             <EmptyNote>
               {isEnglish
                 ? "Your planner hasn't put the timeline together yet. When she does, the whole day shows up here, hour by hour."

@@ -218,7 +218,7 @@ export function TasksSection({
   }
 
   return (
-    <div className="h-full rounded-2xl border border-sand bg-white p-8 md:p-10">
+    <div className="h-full panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Checklist" : "Pendientes"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Tasks" : "Tareas"}</SectionTitle>
 
@@ -316,7 +316,7 @@ export function TasksSection({
         <button
           type="submit"
           disabled={!nuevo.trim() || guardando}
-          className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl border border-ink bg-ink px-4 py-2 font-body text-sm text-white transition-transform duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full border border-ink bg-ink px-4 py-2 font-body text-sm text-white transition-transform duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus className="h-4 w-4" strokeWidth={1.8} />
           {isEnglish ? "Add" : "Apuntar"}
@@ -448,8 +448,8 @@ function TaskRow({
           }
           className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] disabled:opacity-50 ${
             done
-              ? "border-terra bg-terra text-white"
-              : "border-sand bg-white hover:border-terra"
+              ? "border-azul bg-azul text-white"
+              : "border-sand bg-white hover:border-azul"
           }`}
         >
           {/* La palomita se ANIMA, no aparece de la nada.
@@ -517,7 +517,7 @@ function TaskRow({
           <button
             type="button"
             onClick={() => setShowNotes((s) => !s)}
-            className="mt-1.5 font-body text-xs font-medium text-terra transition-colors hover:text-terra-deep"
+            className="mt-1.5 font-body text-xs font-medium text-azul-deep transition-colors hover:text-navy"
           >
             {showNotes
               ? isEnglish
@@ -542,7 +542,7 @@ function TaskRow({
               placeholder={
                 isEnglish ? "Write a note..." : "Escriban una nota..."
               }
-              className="mt-2 w-full resize-y rounded-xl border border-sand bg-bone px-3 py-2 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-terra focus:outline-none focus:ring-2 focus:ring-terra/20"
+              className="mt-2 w-full resize-y rounded-xl border border-sand bg-bone px-3 py-2 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20"
             />
           ) : null}
         </div>
@@ -641,7 +641,7 @@ export function MessagesSection({
       {unavailable ? (
         <div className="mt-6 flex items-start gap-3 rounded-xl border border-sand bg-white px-4 py-4">
           <MessageCircle
-            className="mt-0.5 h-5 w-5 flex-shrink-0 text-terra"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 text-azul"
             strokeWidth={1.5}
           />
           <p className="font-body text-sm leading-relaxed text-ink-muted">
@@ -723,7 +723,7 @@ export function MessagesSection({
               placeholder={
                 isEnglish ? "Write a message..." : "Escriban un mensaje..."
               }
-              className="min-h-[2.75rem] flex-1 resize-y rounded-2xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-terra focus:outline-none focus:ring-2 focus:ring-terra/20"
+              className="min-h-[2.75rem] flex-1 resize-y panel-card px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20"
             />
             <button
               type="button"
@@ -871,7 +871,7 @@ function ErrorBanner({ message }: { message: string }) {
 const LIMITE_LISTA = 25;
 
 const guestInputClass =
-  "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-terra focus:ring-2 focus:ring-terra/20";
+  "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20";
 
 export function GuestListSection({
   guests: initialGuests,
@@ -1124,7 +1124,7 @@ export function GuestListSection({
   const ocultos = filtrados.length - visibles.length;
 
   return (
-    <div className="rounded-2xl border border-sand bg-white p-8 md:p-10">
+    <div className="panel-card p-6 sm:p-8 md:p-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           {/* El encabezado propio de la tarjeta decía "Sus invitados" dos veces
@@ -1147,7 +1147,7 @@ export function GuestListSection({
             </>
           )}
         </div>
-        <span className="font-heading text-2xl tracking-tight text-ink tabular-nums">
+        <span className="font-heading text-2xl font-medium tracking-[-0.015em] text-ink tabular-nums">
           {guests.length}{" "}
           <span className="font-body text-sm uppercase tracking-[0.08em] text-ink-muted">
             {isEnglish
@@ -1210,7 +1210,7 @@ export function GuestListSection({
                   setCc(next);
                   setDigits((d) => d.slice(0, guestPhoneDigitsFor(next)));
                 }}
-                className="w-24 shrink-0 rounded-xl border border-sand bg-white px-2 py-3 font-body text-sm text-ink outline-none transition-colors focus:border-terra"
+                className="w-24 shrink-0 rounded-xl border border-sand bg-white px-2 py-3 font-body text-sm text-ink outline-none transition-colors focus:border-azul"
               >
                 {GUEST_COUNTRY_CODES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -1280,7 +1280,7 @@ export function GuestListSection({
         <button
           type="submit"
           disabled={adding}
-          className="mt-5 inline-flex items-center gap-2 rounded-full bg-terra px-5 py-2.5 font-body text-sm font-medium text-white transition-all hover:bg-terra-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-navy px-5 py-2.5 font-body text-sm font-medium text-white transition-all hover:bg-navy-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {adding ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -1367,7 +1367,7 @@ export function GuestListSection({
             <button
               type="button"
               onClick={() => setVerTodos(true)}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-sand bg-bone px-6 py-3 font-body text-sm font-medium text-ink transition-colors hover:border-terra hover:text-terra"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-sand bg-bone px-6 py-3 font-body text-sm font-medium text-ink transition-colors hover:border-azul hover:text-azul-deep"
             >
               {isEnglish
                 ? `Show ${ocultos} more`
@@ -1517,7 +1517,7 @@ function GuestRow({
                   setCc(next);
                   setDigits((d) => d.slice(0, guestPhoneDigitsFor(next)));
                 }}
-                className="w-24 shrink-0 rounded-xl border border-sand bg-white px-2 py-3 font-body text-sm text-ink outline-none transition-colors focus:border-terra"
+                className="w-24 shrink-0 rounded-xl border border-sand bg-white px-2 py-3 font-body text-sm text-ink outline-none transition-colors focus:border-azul"
               >
                 {GUEST_COUNTRY_CODES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -1623,7 +1623,7 @@ function GuestRow({
             href={`https://wa.me/${waNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-flex items-center gap-1.5 font-body text-xs text-ink-muted tabular-nums transition-colors hover:text-terra"
+            className="mt-1 inline-flex items-center gap-1.5 font-body text-xs text-ink-muted tabular-nums transition-colors hover:text-azul-deep"
           >
             <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.5} />
             {guest.phone}

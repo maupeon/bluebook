@@ -18,9 +18,9 @@ const BUCKET = "invitaciones";
 const MAX_BYTES = 5 * 1024 * 1024;
 
 const botonPrincipal =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50";
 const botonSecundario =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone disabled:opacity-50";
 
 /**
  * La invitación que reciben los invitados: UNA imagen por boda, y los pases en
@@ -169,9 +169,9 @@ export function PantallaInvitacion({
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your invitation" : "Su invitación"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
+          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
             {isEnglish ? "What your guests " : "Lo que van a "}
-            <em className="italic text-terra">{isEnglish ? "will receive" : "recibir sus invitados"}</em>
+            <em className="italic text-azul">{isEnglish ? "will receive" : "recibir sus invitados"}</em>
           </h1>
           <p className="mt-4 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
             {isEnglish
@@ -190,7 +190,7 @@ export function PantallaInvitacion({
       {/* La elegida, como la verá un invitado */}
       <Reveal app className="mt-10">
         {elegida ? (
-          <section className="grid gap-6 rounded-2xl border border-sand bg-white p-6 md:grid-cols-[minmax(0,18rem)_1fr]">
+          <section className="grid gap-6 panel-card p-6 md:grid-cols-[minmax(0,18rem)_1fr]">
             {/* eslint-disable-next-line @next/next/no-img-element -- URL de Storage, dinámica */}
             <img
               src={elegida.url}
@@ -201,7 +201,7 @@ export function PantallaInvitacion({
               <p className="font-body text-xs font-medium uppercase tracking-[0.2em] text-pale-green-ink">
                 {isEnglish ? "Chosen" : "Elegida"}
               </p>
-              <p className="mt-2 font-heading text-2xl tracking-tight text-ink">
+              <p className="mt-2 font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
                 {isEnglish ? "This is how it arrives" : "Así les llega"}
               </p>
               <div className="mt-4 max-w-md whitespace-pre-line rounded-2xl rounded-tl-sm bg-pale-green px-4 py-3 font-body text-sm leading-relaxed text-ink">
@@ -225,8 +225,8 @@ export function PantallaInvitacion({
 
       {elegida ? (
         <Reveal app className="mt-8">
-          <section className="rounded-2xl border border-sand bg-white p-6">
-            <h2 className="font-heading text-2xl tracking-tight text-ink">
+          <section className="panel-card p-6">
+            <h2 className="font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
               {isEnglish ? "Send it to your guests" : "Mándenla a sus invitados"}
             </h2>
             <p className="mt-2 mb-5 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
@@ -242,9 +242,9 @@ export function PantallaInvitacion({
       {/* Los dos caminos */}
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <Reveal app>
-          <section className="h-full rounded-2xl border border-sand bg-white p-6">
-            <ImageUp className="h-6 w-6 text-terra" strokeWidth={1.5} />
-            <h2 className="mt-3 font-heading text-2xl tracking-tight text-ink">
+          <section className="h-full panel-card p-6">
+            <ImageUp className="h-6 w-6 text-azul" strokeWidth={1.5} />
+            <h2 className="mt-3 font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
               {isEnglish ? "We already have one" : "Ya la tenemos"}
             </h2>
             <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
@@ -277,15 +277,15 @@ export function PantallaInvitacion({
         </Reveal>
 
         <Reveal app>
-          <section className="rounded-2xl border border-sand bg-white p-6">
-            <Sparkles className="h-6 w-6 text-terra" strokeWidth={1.5} />
-            <h2 className="mt-3 font-heading text-2xl tracking-tight text-ink">
+          <section className="panel-card p-6">
+            <Sparkles className="h-6 w-6 text-azul" strokeWidth={1.5} />
+            <h2 className="mt-3 font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
               {isEnglish ? "Create it with AI" : "Háganla con IA"}
             </h2>
             {!fecha ? (
               <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
                 {isEnglish ? "The date is printed on the invitation. " : "La fecha va impresa en la invitación. "}
-                <Link href="/panel" className="text-terra-deep underline underline-offset-4 hover:text-ink">
+                <Link href="/panel" className="text-azul-deep underline underline-offset-4 hover:text-ink">
                   {isEnglish ? "Add your wedding date first" : "Pongan primero la fecha de la boda"}
                 </Link>
                 .
@@ -356,7 +356,7 @@ export function PantallaInvitacion({
                     placeholder={
                       isEnglish ? "e.g. lilac and gold, with marigolds" : "p. ej. lila y dorado, con cempasúchil"
                     }
-                    className="mt-2 w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink outline-none transition-colors placeholder:text-ink-soft/60 focus:border-terra focus:ring-2 focus:ring-terra/20"
+                    className="mt-2 w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink outline-none transition-colors placeholder:text-ink-soft/60 focus:border-azul focus:ring-2 focus:ring-azul/20"
                   />
                 </fieldset>
 
@@ -384,12 +384,12 @@ export function PantallaInvitacion({
       {/* Borradores */}
       {invitaciones.length > 0 ? (
         <Reveal app className="mt-10">
-          <h2 className="font-heading text-2xl tracking-tight text-ink">
+          <h2 className="font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
             {isEnglish ? "Your drafts" : "Sus borradores"}
           </h2>
           <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {invitaciones.map((inv) => (
-              <li key={inv.id} className="flex flex-col rounded-2xl border border-sand bg-white p-3">
+              <li key={inv.id} className="flex flex-col panel-card p-3">
                 {/* eslint-disable-next-line @next/next/no-img-element -- URL de Storage, dinámica */}
                 <img
                   src={inv.url}

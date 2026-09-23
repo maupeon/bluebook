@@ -223,7 +223,7 @@ export function LoginForm({
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-pale-green">
           <MailCheck className="h-7 w-7 text-pale-green-ink" strokeWidth={1.5} />
         </div>
-        <h2 className="text-center font-heading text-2xl tracking-tight text-ink">
+        <h2 className="text-center font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
           {isEnglish ? "Check your email" : "Revisen su correo"}
         </h2>
         <p className="mx-auto mt-3 max-w-[42ch] text-center font-body text-sm leading-relaxed text-ink-muted">
@@ -255,7 +255,7 @@ export function LoginForm({
               onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, MAX_CODIGO))}
               placeholder="········"
               disabled={loading}
-              className="w-full rounded-xl border border-sand bg-bone px-4 py-3 text-center font-body text-2xl tracking-[0.25em] text-ink placeholder:text-ink-soft/40 transition-colors focus:border-terra focus:outline-none focus:ring-2 focus:ring-terra/20 disabled:opacity-60"
+              className="w-full rounded-xl border border-sand bg-bone px-4 py-3 text-center font-body text-2xl tracking-[0.25em] text-ink placeholder:text-ink-soft/40 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20 disabled:opacity-60"
             />
           </div>
 
@@ -278,7 +278,7 @@ export function LoginForm({
             type="button"
             disabled={loading || espera > 0}
             onClick={() => enviarCodigo(true)}
-            className="font-body text-sm font-medium text-terra transition-colors hover:text-terra-deep disabled:cursor-not-allowed disabled:text-ink-soft"
+            className="font-body text-sm font-medium text-azul-deep transition-colors hover:text-navy disabled:cursor-not-allowed disabled:text-ink-soft"
           >
             {espera > 0
               ? isEnglish
@@ -307,7 +307,7 @@ export function LoginForm({
 
   return (
     <div>
-      <h2 className="font-heading text-3xl tracking-tight text-ink">
+      <h2 className="font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
         {isEnglish ? "Your wedding panel" : "Su panel de boda"}
       </h2>
       <p className="mt-3 font-body text-sm leading-relaxed text-ink-muted">
@@ -333,7 +333,7 @@ export function LoginForm({
             onChange={(e) => setEmail(e.target.value)}
             placeholder={isEnglish ? "you@email.com" : "ustedes@correo.com"}
             disabled={loading}
-            className="w-full rounded-xl border border-sand bg-bone px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-terra focus:outline-none focus:ring-2 focus:ring-terra/20 disabled:opacity-60"
+            className="w-full rounded-xl border border-sand bg-bone px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20 disabled:opacity-60"
           />
         </div>
 

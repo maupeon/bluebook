@@ -40,7 +40,7 @@ export function PantallaInvitados({ bundle }: { bundle: PanelBundle }) {
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your guests" : "Sus invitados"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
+          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
             {titular}
           </h1>
           <p className="mt-4 font-body text-sm text-ink-muted">{bajada}</p>

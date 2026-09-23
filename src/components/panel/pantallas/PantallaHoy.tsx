@@ -36,7 +36,7 @@ function Resumen({
   return (
     <Link
       href={href}
-      className="group flex flex-col rounded-2xl border border-sand bg-white p-6 transition-[scale,box-shadow] duration-150 hover:shadow-[0_2px_10px_rgba(29,46,75,0.06)] active:scale-[0.99] sm:p-7"
+      className="group flex flex-col panel-card p-6 transition-[scale,box-shadow] duration-150 hover:shadow-[0_2px_10px_rgba(29,46,75,0.06)] active:scale-[0.99] sm:p-7"
     >
       <Eyebrow>{eyebrow}</Eyebrow>
       <p className="mt-2 font-heading text-[28px] leading-tight tracking-tight text-ink sm:text-[32px]">
@@ -48,12 +48,12 @@ function Resumen({
       {progreso != null ? (
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-sand-soft">
           <div
-            className={`h-full rounded-full ${tono === "terra" ? "bg-terra" : "bg-pale-green-ink/70"}`}
+            className={`h-full rounded-full ${tono === "terra" ? "bg-navy" : "bg-azul"}`}
             style={{ width: `${Math.max(0, Math.min(100, progreso))}%` }}
           />
         </div>
       ) : null}
-      <span className="mt-5 inline-flex items-center gap-1.5 font-body text-sm text-terra-deep">
+      <span className="mt-5 inline-flex items-center gap-1.5 font-body text-sm text-azul-deep">
         {cta}
         <ArrowRight
           className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5"
@@ -61,6 +61,38 @@ function Resumen({
         />
       </span>
     </Link>
+  );
+}
+
+/**
+ * La cuenta regresiva, como en las maquetas del sitio (Mockups.tsx, PhoneHoy):
+ * lavado azul, "faltan" en la manuscrita del Instagram y el número grande.
+ * La manuscrita es decorativa: el número y la unidad se leen solos, y el
+ * lector de pantalla recibe la frase completa.
+ */
+function CuentaRegresiva({ dias, isEnglish }: { dias: number; isEnglish: boolean }) {
+  const hoy = dias === 0;
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-wash px-6 py-5 md:min-w-[15rem]">
+      <p className="sr-only">{countdownPhrase(dias, isEnglish)}</p>
+      <div aria-hidden="true">
+        <p className="font-script text-[34px] leading-none text-line">
+          {hoy ? (isEnglish ? "today" : "hoy es") : dias === 1 ? (isEnglish ? "only" : "falta") : isEnglish ? "only" : "faltan"}
+        </p>
+        <p className="mt-1 font-heading text-[3.4rem] font-medium leading-[0.95] tracking-[-0.02em] text-ink tabular-nums">
+          {hoy ? (
+            isEnglish ? "the day" : "el día"
+          ) : (
+            <>
+              {dias}{" "}
+              <span className="text-[1.9rem]">
+                {dias === 1 ? (isEnglish ? "day" : "día") : isEnglish ? "days" : "días"}
+              </span>
+            </>
+          )}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -77,6 +109,9 @@ export function PantallaHoy({
 
   const paso = diasRestantes != null && diasRestantes < 0;
   const cuenta = countdownPhrase(diasRestantes, isEnglish);
+  // La tarjeta de la cuenta regresiva solo tiene sentido con días por delante
+  // (o el mismo día). Sin fecha o ya casados, lo dice el renglón de arriba.
+  const faltanDias = diasRestantes != null && diasRestantes >= 0;
   // La misma regla que el menú y las rutas: sin planner y sin nada capturado,
   // la tarjeta de dinero solo diría "su planner aún no…" a quien no tiene una.
   const { dinero: mostrarDinero } = seccionesDelPanel(bundle);
@@ -127,13 +162,17 @@ export function PantallaHoy({
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
       <Reveal app>
-        <header>
-          <Eyebrow>{cuenta}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl tracking-tight text-ink md:text-5xl">
-            {isEnglish ? "Hi, " : "Hola, "}
-            <em className="italic text-terra">{wedding.coupleName}</em>
-          </h1>
-          <DatosDeLaBoda weddingDate={wedding.weddingDate} venue={wedding.venue} />
+        <header className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
+          <div>
+            {/* Con cuenta regresiva a la vista, el renglón no la repite. */}
+            <Eyebrow>{faltanDias ? (isEnglish ? "Your wedding" : "Su boda") : cuenta}</Eyebrow>
+            <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+              {isEnglish ? "Hi, " : "Hola, "}
+              <em className="italic text-azul">{wedding.coupleName}</em>
+            </h1>
+            <DatosDeLaBoda weddingDate={wedding.weddingDate} venue={wedding.venue} />
+          </div>
+          {faltanDias ? <CuentaRegresiva dias={diasRestantes!} isEnglish={isEnglish} /> : null}
         </header>
       </Reveal>
 
