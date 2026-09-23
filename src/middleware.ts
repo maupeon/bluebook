@@ -27,9 +27,28 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // VERIFICAR LA SESION SIN SALIR A LA RED.
+  //
+  // getUser() pregunta al servidor de Auth en CADA request. Medido desde aquí
+  // son ~130 ms, y el layout hacía otra igual: dos idas y vueltas en serie
+  // antes de que empezara la primera consulta de datos, en cada navegación del
+  // panel.
+  //
+  // Este proyecto firma los tokens con ES256 y publica su JWKS, así que
+  // getClaims() valida la firma en local con WebCrypto —la clave se cachea tras
+  // la primera vez— y no toca la red. Sólo se cae a getUser() cuando el token
+  // ya expiró, que es una vez por hora y además es la llamada que REFRESCA la
+  // cookie, que es el otro trabajo de este middleware.
+  let email: string | undefined;
+  const { data: verificado } = await supabase.auth.getClaims();
+  email = verificado?.claims?.email as string | undefined;
+  if (!email) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    email = user?.email ?? undefined;
+  }
+  const user = email ? { email } : null;
 
   const { pathname } = request.nextUrl;
 

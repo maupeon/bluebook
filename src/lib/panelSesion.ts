@@ -18,6 +18,13 @@ import {
  */
 export const correoDelPanel = cache(async function correoDelPanel(): Promise<string | null> {
   const supabase = await createClient();
+  // Misma razón que en el middleware: el proyecto firma con ES256 y publica su
+  // JWKS, así que getClaims() verifica la firma en local y no gasta una ida y
+  // vuelta a Auth. getUser() queda de reserva para cuando el token ya expiró.
+  const { data: verificado } = await supabase.auth.getClaims();
+  const email = verificado?.claims?.email as string | undefined;
+  if (email) return email;
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
