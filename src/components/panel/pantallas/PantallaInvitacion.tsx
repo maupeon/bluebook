@@ -6,6 +6,7 @@ import { Check, ImageUp, Sparkles } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
+import { EnvioDeInvitaciones } from "@/components/panel/EnvioDeInvitaciones";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { createClient } from "@/lib/supabase/client";
 import { parseJsonSafe } from "@/lib/http";
@@ -208,8 +209,8 @@ export function PantallaInvitacion({
               </div>
               <p className="mt-3 max-w-md font-body text-xs leading-relaxed text-ink-muted">
                 {isEnglish
-                  ? "Example for a guest with 2 passes. Sending from your panel is coming next."
-                  : "Ejemplo para una invitada con 2 pases. El envío desde su panel llega en el siguiente paso."}
+                  ? "Example for a guest with 2 passes. Each guest sees their own name and passes."
+                  : "Ejemplo para una invitada con 2 pases. Cada invitado ve su nombre y sus pases."}
               </p>
             </div>
           </section>
@@ -221,6 +222,22 @@ export function PantallaInvitacion({
           </section>
         )}
       </Reveal>
+
+      {elegida ? (
+        <Reveal app className="mt-8">
+          <section className="rounded-2xl border border-sand bg-white p-6">
+            <h2 className="font-heading text-2xl tracking-tight text-ink">
+              {isEnglish ? "Send it to your guests" : "Mándenla a sus invitados"}
+            </h2>
+            <p className="mt-2 mb-5 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+              {isEnglish
+                ? "It goes out on WhatsApp from Blue Book's number, only to guests who haven't received it. Their replies show up in Guests."
+                : "Sale por WhatsApp desde el número de Blue Book, solo a quien todavía no la ha recibido. Sus respuestas aparecen en Invitados."}
+            </p>
+            <EnvioDeInvitaciones elegidaId={elegida.id} />
+          </section>
+        </Reveal>
+      ) : null}
 
       {/* Los dos caminos */}
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
