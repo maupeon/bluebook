@@ -539,3 +539,104 @@ export async function sendContactMessageEmail(contact: ContactMessage) {
     return { success: false as const, error }
   }
 }
+
+/**
+ * Un aviso de la app: el mismo marco azul para todos (mensajes de la pareja,
+ * cobros de la suscripción). Todo lo que entra es texto plano y se escapa
+ * aquí; nadie arma HTML con datos de la base por fuera.
+ */
+export interface AvisoEmail {
+  to: string[]
+  subject: string
+  /** La etiqueta chica de arriba ("Mensaje de la pareja"). */
+  eyebrow: string
+  titulo: string
+  parrafos: string[]
+  /** Un texto citado tal cual, con sus saltos de línea (el mensaje de la pareja). */
+  cita?: string
+  filas?: Array<[string, string]>
+  boton?: { texto: string; url: string }
+  /** Letra chica al final. */
+  pie?: string
+  replyTo?: string
+}
+
+/** El HTML del aviso. Aparte para poder verlo sin mandarlo. */
+export function htmlDelAviso(aviso: AvisoEmail): string {
+  const filas = (aviso.filas ?? [])
+    .map(
+      ([etiqueta, valor]) => `
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #56657F; font-size: 13px; white-space: nowrap;">${escapeHtml(etiqueta)}</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #1C2D4F; font-size: 14px;">${escapeHtml(valor)}</td>
+          </tr>`
+    )
+    .join('')
+
+  return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F6F5F2; margin: 0; padding: 40px 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #DDE2EA; border-radius: 16px; overflow: hidden;">
+            <div style="padding: 28px 30px 8px;">
+              <p style="margin: 0; color: #345E8F; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">${escapeHtml(aviso.eyebrow)}</p>
+              <h1 style="margin: 8px 0 0; color: #1C2D4F; font-size: 22px; font-weight: 600;">${escapeHtml(aviso.titulo)}</h1>
+            </div>
+            <div style="padding: 8px 30px 4px;">
+              ${aviso.parrafos
+                .map((p) => `<p style="margin: 12px 0 0; color: #1C2D4F; font-size: 15px; line-height: 1.6;">${escapeHtml(p)}</p>`)
+                .join('')}
+              ${
+                aviso.cita
+                  ? `<div style="margin: 18px 0 0; padding: 14px 18px; background: #EDF2F9; border-radius: 12px; color: #1C2D4F; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(aviso.cita)}</div>`
+                  : ''
+              }
+            </div>
+            ${filas ? `<div style="padding: 14px 14px 0;"><table style="width: 100%; border-collapse: collapse;">${filas}</table></div>` : ''}
+            <div style="padding: 22px 30px 28px;">
+              ${
+                aviso.boton
+                  ? `<a href="${escapeHtml(aviso.boton.url)}" style="display: inline-block; background: #1C2D4F; color: white; text-decoration: none; padding: 12px 22px; border-radius: 999px; font-size: 14px; font-weight: 600;">${escapeHtml(aviso.boton.texto)}</a>`
+                  : ''
+              }
+              ${aviso.pie ? `<p style="margin: 18px 0 0; color: #56657F; font-size: 12px; line-height: 1.5;">${escapeHtml(aviso.pie)}</p>` : ''}
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+}
+
+export async function sendAvisoEmail(aviso: AvisoEmail) {
+  const to = [...new Set(aviso.to.map((c) => c.trim().toLowerCase()).filter(Boolean))]
+  if (to.length === 0) return { success: false as const, error: 'Sin destinatarios' }
+  const resend = getResendClient()
+  if (!resend) {
+    // En desarrollo sin RESEND_API_KEY (la config bluebook-sin-correo) queda
+    // en el log qué aviso habría salido y a quién: así se prueba sin mandar nada.
+    if (process.env.NODE_ENV !== 'production') console.info('[aviso sin enviar]', aviso.subject, '→', to.join(', '))
+    return { success: false as const, error: 'Email service not configured' }
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'Blue Book <hola@bluebook.mx>',
+      replyTo: aviso.replyTo ?? SUPPORT_EMAIL,
+      to,
+      subject: aviso.subject,
+      html: htmlDelAviso(aviso),
+    })
+    if (error) {
+      console.error('Error sending aviso email:', aviso.subject, error)
+      return { success: false as const, error }
+    }
+    return { success: true as const, data }
+  } catch (error) {
+    console.error('Error sending aviso email:', aviso.subject, error)
+    return { success: false as const, error }
+  }
+}

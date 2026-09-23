@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid'
 import { sendAdminEmail } from '@/lib/email'
 import { getAlbumPlan, UNLIMITED_PHOTO_LIMIT } from '@/lib/albumPlans'
 import { registrarPagoDeBoda } from '@/lib/bodaPagada'
+import { EVENTOS_DE_SUSCRIPCION, atenderEventoDeSuscripcion } from '@/lib/suscripcion'
 
 const getStripeClient = (): Stripe | null => {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -136,6 +137,20 @@ export async function POST(req: NextRequest) {
         console.error('Error registrando pago de boda:', session.id, error)
         return NextResponse.json({ error: 'Failed to register wedding payment' }, { status: 500 })
       }
+    }
+  }
+
+  // La suscripción mensual del plan Planner: renovaciones, cobros rechazados,
+  // cancelaciones. Antes no se escuchaba nada de esto y un cobro rechazado no
+  // llegaba a nadie. Hay que suscribir estos eventos en el endpoint del
+  // webhook en Stripe (ver EVENTOS_DE_SUSCRIPCION).
+  if (EVENTOS_DE_SUSCRIPCION.has(event.type)) {
+    try {
+      await atenderEventoDeSuscripcion(stripe, event)
+    } catch (error) {
+      // 500 a propósito: Stripe reintenta, y volver a sincronizar es seguro.
+      console.error('Error atendiendo evento de suscripción:', event.type, event.id, error)
+      return NextResponse.json({ error: 'Failed to sync subscription' }, { status: 500 })
     }
   }
 

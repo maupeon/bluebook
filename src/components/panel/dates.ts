@@ -64,6 +64,20 @@ export function formatLongDate(value: string | null, isEnglish: boolean): string
     : `${parts.d} ${month} ${parts.y}`;
 }
 
+/**
+ * "23 oct 2026" a partir de un INSTANTE (timestamptz, ISO con hora), leído en
+ * la hora de CDMX. La zona va explícita: sin ella, un cobro a las 20:00 de
+ * CDMX ya es "mañana" para un servidor en UTC, y servidor y navegador
+ * pintarían días distintos.
+ */
+export function formatInstantDate(iso: string | null, isEnglish: boolean): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City" }).format(d);
+  return formatLongDate(ymd, isEnglish);
+}
+
 /** "12 ene" / "Jan 12" (sin año, para badges de vencimiento). */
 export function formatShortDate(value: string | null, isEnglish: boolean): string {
   if (!value) return "";

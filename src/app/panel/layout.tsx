@@ -7,6 +7,8 @@ import { PanelTopBar } from "@/components/panel/PanelTopBar";
 import { PanelSidebar } from "@/components/panel/PanelSidebar";
 import { NoWedding } from "@/components/panel/NoWedding";
 import { seccionesDelPanel } from "@/lib/seccionesDelPanel";
+import { leerSuscripcion } from "@/lib/suscripcion";
+import { AvisoDePago } from "@/components/panel/SuPlan";
 
 /** El id del div que scrollea. Lo comparten el layout y ResetScroll. */
 const ID_SCROLLER = "panel-scroll";
@@ -46,6 +48,8 @@ export default async function PanelLayout({
   }
 
   const { wedding, bundle, diasRestantes } = datos;
+  // Cacheada por petición: Hoy la vuelve a pedir para su tarjeta sin otra consulta.
+  const suscripcion = await leerSuscripcion(wedding.id);
 
   return (
     // sb: la tipografía del sitio (sin ella los títulos caían en la fuente del
@@ -77,6 +81,7 @@ export default async function PanelLayout({
           id={ID_SCROLLER}
           className="min-w-0 flex-1 overflow-y-auto overscroll-contain pb-24 md:pb-0"
         >
+          {suscripcion ? <AvisoDePago suscripcion={suscripcion} /> : null}
           {children}
         </div>
       </div>

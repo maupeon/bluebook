@@ -8,6 +8,8 @@ import { DatosDeLaBoda } from "@/components/panel/DatosDeLaBoda";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { ArchivosParaProveedores } from "@/components/panel/ArchivosParaProveedores";
+import { SuPlan } from "@/components/panel/SuPlan";
+import type { SuscripcionDeLaBoda } from "@/lib/suscripcion";
 import { formatMXN } from "@/lib/weddingPlans";
 import { Eyebrow } from "@/components/panel/sections";
 import { countdownPhrase } from "@/components/panel/dates";
@@ -100,10 +102,13 @@ function CuentaRegresiva({ dias, isEnglish }: { dias: number; isEnglish: boolean
 export function PantallaHoy({
   bundle,
   diasRestantes,
+  suscripcion = null,
 }: {
   bundle: PanelBundle;
   /** Resuelto en el servidor. Aquí NO se mira el reloj: ver getPanelDataByEmail. */
   diasRestantes: number | null;
+  /** Sólo las bodas del plan mensual; las de pago único no tienen tarjeta. */
+  suscripcion?: SuscripcionDeLaBoda | null;
 }) {
   const { isEnglish } = useLanguage();
   const { wedding, budget, guests } = bundle;
@@ -218,6 +223,12 @@ export function PantallaHoy({
       <Reveal app className="mt-8">
         <ArchivosParaProveedores bundle={bundle} />
       </Reveal>
+
+      {suscripcion ? (
+        <Reveal app className="mt-8">
+          <SuPlan suscripcion={suscripcion} />
+        </Reveal>
+      ) : null}
     </div>
   );
 }

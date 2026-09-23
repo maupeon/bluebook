@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPaymentNotificationEmail } from "@/lib/email";
 import { AGENT_PLAN, getInvitationTier } from "@/lib/weddingPlans";
+import { sincronizarSuscripcion, stripeServidor } from "@/lib/suscripcion";
 
 export interface BodaPagada {
   weddingId: string;
@@ -80,6 +81,19 @@ export async function registrarPagoDeBoda(
     wedding_id: string;
     ya_existia: boolean;
   };
+
+  // La suscripción queda ligada a la boda desde el primer pago. Sus propios
+  // eventos pueden haber llegado antes de que la boda existiera y guardarla
+  // sin boda; aquí ya la hay. Best-effort: el siguiente evento de Stripe
+  // también la liga, y no vale tumbar la página de gracias por esto.
+  if (productType === "planner" && typeof session.subscription === "string") {
+    try {
+      const stripe = stripeServidor();
+      if (stripe) await sincronizarSuscripcion(stripe, session.subscription);
+    } catch (err) {
+      console.error("No se pudo sincronizar la suscripción del pago", session.id, err);
+    }
+  }
 
   // Aviso a la planner solo de quien CREÓ la boda: el webhook y la página
   // pueden pasar los dos por aquí y el candado deja crear a uno solo.

@@ -71,6 +71,10 @@ export async function POST(request: NextRequest) {
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: { productType: "planner", leadId },
+        // También en la suscripción: sus eventos (renovación, cobro rechazado,
+        // cancelación) no traen la metadata de la sesión, y con esto el
+        // webhook encuentra la boda aunque lleguen antes que el primer pago.
+        subscription_data: { metadata: { productType: "planner", leadId } },
         customer_email: customerEmail,
       });
 

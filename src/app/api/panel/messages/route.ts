@@ -1,7 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
+import { avisarMensajeALaPlanner } from "@/lib/avisos";
 
 // POST /api/panel/messages — la pareja le escribe a su planner.
 export async function POST(req: NextRequest) {
@@ -64,6 +65,10 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  // 5. Avisarle a la planner, sin hacer esperar a la pareja: after() corre
+  // cuando la respuesta ya salió.
+  after(() => avisarMensajeALaPlanner(wedding.id, inserted.id, wedding.coupleName, raw));
 
   return NextResponse.json(
     {
