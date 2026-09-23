@@ -22,18 +22,18 @@ export function NoWedding({ email }: { email?: string | null }) {
         <h1 className="font-heading text-3xl tracking-tight text-ink">
           {isEnglish ? "We're setting up your panel" : "Estamos preparando su panel"}
         </h1>
+        {/* Desde la 0022 el pago crea la boda al momento, así que "su planner
+            aún no la activa" ya solo aplica a las cotizaciones sin pago en
+            línea. Lo más probable ahora es haber entrado con otro correo. */}
         <p className="mx-auto mt-4 max-w-[48ch] font-body text-sm leading-relaxed text-ink-muted">
           {isEnglish
-            ? "We couldn't find a wedding registered to this email. Either your planner hasn't activated it yet, or it's registered under a different address."
-            : "No encontramos ninguna boda registrada con este correo. O su planner aún no la ha activado, o está registrada con otra dirección."}
+            ? "We couldn't find a wedding registered to this email. If you already paid, sign in with the email you used when you signed up. If you asked for a quote, your planner activates it when she confirms it."
+            : "No encontramos ninguna boda registrada con este correo. Si ya pagaron, entren con el correo que pusieron al contratar. Si pidieron cotización, su planner la activa al confirmarla."}
         </p>
         {email ? (
           <p className="mx-auto mt-4 max-w-[48ch] font-body text-sm leading-relaxed text-ink-soft">
             {isEnglish ? "You're signed in as " : "Entraron como "}
-            <span className="font-medium text-ink">{email}</span>
-            {isEnglish
-              ? ". If your planner used another one, sign in with that."
-              : ". Si su planner registró otro, entren con ese."}
+            <span className="font-medium text-ink">{email}</span>.
           </p>
         ) : null}
         <a
@@ -45,14 +45,17 @@ export function NoWedding({ email }: { email?: string | null }) {
           {isEnglish ? "Message your planner" : "Escribir a su planner"}
           <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} />
         </a>
-        <p className="mt-5">
-          <a
-            href="/auth/signout"
+        {/* Formulario POST y no <a>: /auth/signout solo acepta POST (un GET
+            daba 405 y este botón no hacía nada). ?a=acceso lo devuelve a la
+            pantalla de entrada en vez de al inicio. */}
+        <form action="/auth/signout?a=acceso" method="post" className="mt-5">
+          <button
+            type="submit"
             className="font-body text-sm font-medium text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
           >
             {isEnglish ? "Sign in with another email" : "Entrar con otro correo"}
-          </a>
-        </p>
+          </button>
+        </form>
       </div>
     </div>
   );

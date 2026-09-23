@@ -969,8 +969,15 @@ function resolveRunOfShowNames(
 }
 
 /**
- * Encuentra la(s) boda(s) cuyo contact_email coincide con el email autenticado.
- * Devuelve la más reciente (por wedding_date / created_at) o null.
+ * Las dos columnas por las que entra la pareja. contact_email_2 existe desde la
+ * 0022: antes solo había una llave y el segundo de la pareja, con otro correo,
+ * no podía entrar a su propio panel.
+ */
+const COLUMNAS_DE_ACCESO = ["contact_email", "contact_email_2"] as const;
+
+/**
+ * Encuentra la(s) boda(s) cuyo contact_email o contact_email_2 coincide con el
+ * email autenticado. Devuelve la más reciente (por wedding_date / created_at) o null.
  */
 export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEmail(
   email: string
@@ -978,15 +985,35 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
   const supabase = createAdminClient();
   const normalized = email.trim().toLowerCase();
 
-  const { data, error } = await supabase
-    .from("weddings")
-    .select(
-      "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, contact_email, created_at"
+  // Una consulta por columna y no un .or(): el correo viene de la sesión y
+  // meterlo en la cadena del filtro .or() obligaría a escaparlo a mano.
+  const resultados = await Promise.all(
+    COLUMNAS_DE_ACCESO.map((columna) =>
+      supabase
+        .from("weddings")
+        .select(
+          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, contact_email, created_at"
+        )
+        .eq(columna, normalized)
     )
-    .eq("contact_email", normalized)
-    .order("created_at", { ascending: false });
+  );
+  const [porCorreo1, porCorreo2] = resultados;
+  if (porCorreo1.error) return null;
+  // Si falla solo la del segundo correo (p. ej. el código llegó antes que la
+  // 0022), la llave de siempre sigue abriendo: nadie se queda fuera por eso.
+  if (porCorreo2.error) {
+    console.error("getCoupleWeddingByEmail: contact_email_2 no disponible:", porCorreo2.error.message);
+  }
+  // La misma boda puede salir por las dos columnas: una sola vez cada una.
+  // Orden de captura descendente, como la consulta original, para desempatar
+  // las que no tienen fecha.
+  const data = [
+    ...new Map(
+      [...(porCorreo1.data ?? []), ...(porCorreo2.data ?? [])].map((row) => [row.id, row])
+    ).values(),
+  ].sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0));
 
-  if (error || !data || data.length === 0) return null;
+  if (data.length === 0) return null;
 
   // Un mismo correo puede tener más de una boda. Ordenar por created_at y
   // quedarse con el primero elegía la fila capturada más tarde, que no tiene
@@ -1034,13 +1061,16 @@ export async function coupleOwnsWedding(
   weddingId: string
 ): Promise<boolean> {
   const supabase = createAdminClient();
+  const normalized = email.trim().toLowerCase();
+  // `*` y no las dos columnas por nombre: si el código llega antes que la 0022,
+  // pedir contact_email_2 por nombre haría fallar la consulta entera.
   const { data } = await supabase
     .from("weddings")
-    .select("id")
+    .select("*")
     .eq("id", weddingId)
-    .eq("contact_email", email.trim().toLowerCase())
-    .maybeSingle();
-  return Boolean(data);
+    .maybeSingle<Record<string, unknown>>();
+  if (!data) return false;
+  return COLUMNAS_DE_ACCESO.some((columna) => data[columna] === normalized);
 }
 
 /** Carga todo lo que la pareja ve en su panel para una boda dada. */

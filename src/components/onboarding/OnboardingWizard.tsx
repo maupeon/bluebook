@@ -75,7 +75,9 @@ function isStepValid(step: StepId, data: WizardData): boolean {
       ) {
         return false;
       }
-      if (data.email.trim() && !EMAIL_RE.test(data.email.trim())) return false;
+      // El correo es la llave del panel (weddings.contact_email): obligatorio.
+      if (!EMAIL_RE.test(data.email.trim())) return false;
+      if (data.partner2Email.trim() && !EMAIL_RE.test(data.partner2Email.trim())) return false;
       return true;
     }
     case "budget":
@@ -111,6 +113,7 @@ export function OnboardingWizard({
     partner2Cc: "+52",
     partner2Digits: "",
     email: "",
+    partner2Email: "",
   });
   const [includeServiceStep, setIncludeServiceStep] = useState(initialService === null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -267,7 +270,8 @@ export function OnboardingWizard({
           partner2Phone: data.partner2Digits
             ? `${data.partner2Cc}${data.partner2Digits}`
             : null,
-          email: data.email.trim() || null,
+          email: data.email.trim(),
+          partner2Email: data.partner2Email.trim() || null,
           weddingDate: data.noDateYet || !data.weddingDate ? null : data.weddingDate,
           noDateYet: data.noDateYet,
           city: data.city.trim() || null,

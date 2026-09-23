@@ -333,6 +333,8 @@ interface PaymentNotificationParams {
   partner2Name: string | null
   email: string | null
   amountMx: number | null
+  /** true cuando el pago ya creó la boda (0022): no hay nada que activar. */
+  bodaCreada?: boolean
 }
 
 export async function sendPaymentNotificationEmail({
@@ -341,6 +343,7 @@ export async function sendPaymentNotificationEmail({
   partner2Name,
   email,
   amountMx,
+  bodaCreada = false,
 }: PaymentNotificationParams) {
   const resend = getResendClient()
   if (!resend) {
@@ -397,7 +400,11 @@ export async function sendPaymentNotificationEmail({
                 ${tableRows}
               </table>
               <p style="margin: 20px 16px 0; color: #5A6A84; font-size: 13px;">
-                Activa la boda en el panel (sección Clientes).
+                ${
+                  bodaCreada
+                    ? 'La boda ya está creada y la pareja puede entrar a su panel. Nace sin planner asignada: asígnasela en Planners.'
+                    : 'Activa la boda en el panel (sección Clientes).'
+                }
               </p>
             </div>
           </div>

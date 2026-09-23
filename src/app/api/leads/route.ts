@@ -63,9 +63,18 @@ export async function POST(req: NextRequest) {
   }
 
   // --- Email ---
+  // Obligatorio: es la llave del panel. Pagar sin correo dejaba a la pareja
+  // sin forma de entrar (weddings.contact_email sale de aquí, ver 0022).
   const email = cleanString(body.email, 160);
-  if (email && !EMAIL_RE.test(email)) {
+  if (!email) {
+    return badRequest("Necesitamos un correo: con él entran a su panel.");
+  }
+  if (!EMAIL_RE.test(email)) {
     return badRequest("Revisen el correo electrónico.");
+  }
+  const partner2Email = cleanString(body.partner2Email, 160);
+  if (partner2Email && !EMAIL_RE.test(partner2Email)) {
+    return badRequest("Revisen el segundo correo electrónico.");
   }
 
   // --- Wedding date ---
@@ -125,6 +134,7 @@ export async function POST(req: NextRequest) {
     partner2Name,
     partner2Phone,
     email,
+    partner2Email,
     weddingDate,
     noDateYet,
     city,
@@ -150,6 +160,7 @@ export async function POST(req: NextRequest) {
       partner2_name: validated.partner2Name,
       partner2_phone: validated.partner2Phone,
       email: validated.email,
+      partner2_email: validated.partner2Email,
       wedding_date: validated.weddingDate,
       no_date_yet: validated.noDateYet,
       city: validated.city,

@@ -42,7 +42,10 @@ export interface WizardData {
   partner1Digits: string;
   partner2Cc: string;
   partner2Digits: string;
+  /** Obligatorio: es la llave del panel (weddings.contact_email). */
   email: string;
+  /** Opcional: el segundo de la pareja también entra (weddings.contact_email_2). */
+  partner2Email: string;
 }
 
 export interface ChoiceOption {
@@ -656,14 +659,27 @@ export function PhonesStep({
         data.partner2Digits.length !== partner2Expected))
       ? phoneMessage(partner2Expected)
       : null;
-  const emailError =
-    attempted &&
-    data.email.trim().length > 0 &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailError = !attempted
+    ? null
+    : !data.email.trim()
+      ? isEnglish
+        ? "We need an email: it's how you sign in to your panel"
+        : "Necesitamos un correo: con él entran a su panel"
+      : !emailRe.test(data.email.trim())
+        ? isEnglish
+          ? "Check the email address"
+          : "Revisen el correo"
+        : null;
+  const partner2EmailError =
+    attempted && data.partner2Email.trim().length > 0 && !emailRe.test(data.partner2Email.trim())
       ? isEnglish
         ? "Check the email address"
         : "Revisen el correo"
       : null;
+
+  const partner1FirstName = data.partner1Name.trim();
+  const partner2FirstName = data.partner2Name.trim();
 
   const partner1Label = data.partner1Name.trim()
     ? isEnglish
@@ -726,19 +742,28 @@ export function PhonesStep({
           error={partner2Error}
           isEnglish={isEnglish}
         />
+        {/* El correo era "para enviarles el resumen (opcional)", pero es la
+            ÚNICA llave del panel: sin él, una pareja que pagaba no tenía con
+            qué entrar. Ahora es obligatorio y lo dice. El segundo es opcional
+            y deja entrar también al otro de la pareja. */}
         <div>
           <label htmlFor="email" className={labelClass}>
-            {isEnglish ? "Email" : "Correo"}
+            {partner1FirstName
+              ? isEnglish
+                ? `${partner1FirstName}'s email`
+                : `Correo de ${partner1FirstName}`
+              : isEnglish
+                ? "Email"
+                : "Correo"}
             <span className="ml-1 font-normal text-ink-muted">
-              {isEnglish
-                ? "To send you the summary (optional)"
-                : "Para enviarles el resumen (opcional)"}
+              {isEnglish ? "To sign in to your panel" : "Con él entran a su panel"}
             </span>
           </label>
           <input
             id="email"
             type="email"
             autoComplete="email"
+            aria-required="true"
             maxLength={160}
             value={data.email}
             onChange={(e) => update({ email: e.target.value })}
@@ -748,6 +773,33 @@ export function PhonesStep({
             className={inputClass}
           />
           <FieldError id="email-error" message={emailError} />
+        </div>
+        <div>
+          <label htmlFor="partner2Email" className={labelClass}>
+            {partner2FirstName
+              ? isEnglish
+                ? `${partner2FirstName}'s email`
+                : `Correo de ${partner2FirstName}`
+              : isEnglish
+                ? "Your partner's email"
+                : "Correo de su pareja"}
+            <span className="ml-1 font-normal text-ink-muted">
+              {isEnglish ? "So both of you can sign in (optional)" : "Para que entren los dos (opcional)"}
+            </span>
+          </label>
+          <input
+            id="partner2Email"
+            type="email"
+            autoComplete="off"
+            maxLength={160}
+            value={data.partner2Email}
+            onChange={(e) => update({ partner2Email: e.target.value })}
+            placeholder={isEnglish ? "partner@email.com" : "pareja@correo.com"}
+            aria-invalid={Boolean(partner2EmailError)}
+            aria-describedby={partner2EmailError ? "partner2-email-error" : undefined}
+            className={inputClass}
+          />
+          <FieldError id="partner2-email-error" message={partner2EmailError} />
         </div>
       </div>
     </div>
@@ -810,6 +862,10 @@ export function ReviewStep({
     .filter(Boolean)
     .join(" · ");
 
+  // Se revisa antes de pagar porque es la llave del panel: una errata aquí es
+  // una pareja que paga y no puede entrar.
+  const emails = [data.email.trim(), data.partner2Email.trim()].filter(Boolean).join(" · ");
+
   let serviceValue: string;
   if (isPlanner) {
     serviceValue = `${isEnglish ? AGENT_PLAN.en.name : AGENT_PLAN.es.name} — ${formatMXN(
@@ -854,6 +910,11 @@ export function ReviewStep({
         ]
       : []),
     { label: isEnglish ? "WhatsApp" : "WhatsApp", value: phones, step: "phones" },
+    {
+      label: isEnglish ? "Panel sign-in" : "Entran al panel con",
+      value: emails,
+      step: "phones",
+    },
     { label: isEnglish ? "Service" : "Servicio", value: serviceValue, step: "service" },
   ];
 
