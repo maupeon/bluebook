@@ -7,6 +7,7 @@ import { seccionesDelPanel } from "@/lib/seccionesDelPanel";
 import { DatosDeLaBoda } from "@/components/panel/DatosDeLaBoda";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
+import { ArchivosParaProveedores } from "@/components/panel/ArchivosParaProveedores";
 import { formatMXN } from "@/lib/weddingPlans";
 import { Eyebrow } from "@/components/panel/sections";
 import { countdownPhrase } from "@/components/panel/dates";
@@ -213,6 +214,10 @@ export function PantallaHoy({
           />
         </Reveal>
       </div>
+
+      <Reveal app className="mt-8">
+        <ArchivosParaProveedores bundle={bundle} />
+      </Reveal>
     </div>
   );
 }
