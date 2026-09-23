@@ -256,7 +256,11 @@ export async function POST(req: NextRequest) {
       wedding_id: wedding.id,
       guest_name: name.value,
       seats: seats.value,
-      plus_ones_allowed: 0,
+      // seats - 1, la misma regla que el admin (lib/sheets.ts, importadores).
+      // Aquí se guardaba 0: un invitado con 4 pases que agregaba la pareja
+      // salía con 0 acompañantes en el admin y en la plantilla de WhatsApp de
+      // los recordatorios, que leen plus_ones_confirmed ?? plus_ones_allowed.
+      plus_ones_allowed: seats.value - 1,
       notes: notes.value,
       confirmation: "pending",
       send_status: "pending",
@@ -358,6 +362,8 @@ export async function PUT(req: NextRequest) {
       );
     }
     update.seats = seats.value;
+    // El cupo de acompañantes se mueve con los pases (misma regla que el alta).
+    update.plus_ones_allowed = seats.value - 1;
   }
 
   if ("notes" in body) {

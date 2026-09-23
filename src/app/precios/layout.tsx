@@ -3,17 +3,17 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Su wedding planner por $1,000 MXN al mes: un asistente 24/7 en WhatsApp más una planner real supervisando su boda. Invitaciones y confirmaciones incluidas. Cancelan cuando quieran.",
+    "Toda tu boda en una plataforma y una wedding planner real por $1,000 MXN al mes, sin porcentajes ni plazos forzosos. Invitaciones con confirmaciones desde $990 MXN en un solo pago.",
   keywords: [
     "precio wedding planner",
     "cuánto cuesta una wedding planner",
-    "wedding planner con IA",
-    "planner de bodas WhatsApp",
+    "wedding planner en línea",
+    "precio wedding planner méxico",
   ],
   openGraph: {
     title: "Precios | Blue Book",
     description:
-      "Una wedding planner real más un asistente 24/7 por $1,000 MXN al mes. Una fracción de lo que cobra una planner tradicional.",
+      "Una plataforma para toda tu boda más una wedding planner real por $1,000 MXN al mes: una fracción de lo que cobra una planner presencial.",
     url: "https://bluebook.mx/precios",
   },
 };
@@ -22,9 +22,9 @@ const productSchemas = [
   {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: "Planner con IA - Blue Book",
+    name: "Planner completo - Blue Book",
     description:
-      "Wedding planner por WhatsApp: invitaciones y confirmaciones incluidas, presupuesto, pagos, tareas y recordatorios, con una wedding planner real supervisando. Disponible 24/7.",
+      "Plataforma para organizar tu boda (proveedores, presupuesto y pagos, pendientes, invitaciones, confirmaciones y el guion del día) con una wedding planner real.",
     brand: { "@type": "Brand", name: "Blue Book" },
     offers: {
       "@type": "Offer",
@@ -62,15 +62,15 @@ const faqSchema = {
       name: "¿Qué incluye el plan de $1,000 al mes?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Invitaciones y confirmaciones incluidas, seguimiento de tareas, control de presupuesto y fechas de pago, recordatorios para ustedes y sus invitados, y respuestas 24/7 en WhatsApp, con una wedding planner real supervisando su boda.",
+        text: "Tu panel con proveedores, pagos, pendientes y el guion del día; invitaciones y confirmaciones; la calculadora de la barra; y una wedding planner real cuidando tu boda.",
       },
     },
     {
       "@type": "Question",
-      name: "¿Por qué cuesta menos que una planner tradicional?",
+      name: "¿Por qué cuesta tanto menos que una planner presencial?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "El asistente con IA se encarga del volumen del día a día y la planner real concentra su tiempo en lo que necesita criterio humano. Llevamos presupuesto, pagos, tareas y confirmaciones; no atendemos la boda físicamente ni negociamos contratos en persona.",
+        text: "La plataforma hace el trabajo repetitivo y la planner dedica su tiempo a lo que necesita criterio. No estamos físicamente en tu boda ni negociamos contratos en persona.",
       },
     },
     {
@@ -78,7 +78,7 @@ const faqSchema = {
       name: "¿Hay plazos forzosos?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. El plan es mes a mes y lo cancelan cuando quieran, con un mensaje.",
+        text: "No. Es mes a mes y lo cancelas cuando quieras, con un mensaje.",
       },
     },
   ],

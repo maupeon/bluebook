@@ -4,17 +4,19 @@ import { ServiciosContent } from "./ServiciosContent";
 export const metadata: Metadata = {
   title: "Servicios",
   description:
-    "Su wedding planner con IA: invitaciones y confirmaciones, presupuesto y pagos, tareas y proveedores, recordatorios y disponibilidad 24/7 en WhatsApp, con una wedding planner real supervisando su boda.",
+    "Proveedores, presupuesto y pagos, pendientes, invitaciones por WhatsApp, confirmaciones, el guion del día y la calculadora de la barra, en un solo panel que compartes con tu pareja. Con una wedding planner real cuidando tu boda.",
   keywords: [
-    "wedding planner con IA",
-    "servicios wedding planner",
-    "planner de bodas WhatsApp",
-    "asistente para boda 24/7",
+    "wedding planner en línea",
+    "organizar boda",
+    "presupuesto de boda",
+    "invitaciones digitales boda",
+    "confirmación de invitados",
+    "checklist de boda",
   ],
   openGraph: {
     title: "Servicios | Blue Book",
     description:
-      "Un asistente que lleva el día a día de su boda por WhatsApp, con una wedding planner real supervisando cada paso.",
+      "Todo lo de tu boda en un solo panel: proveedores, pagos, pendientes, invitaciones, confirmaciones y el guion del día, con una wedding planner real.",
     url: "https://bluebook.mx/servicios",
   },
 };

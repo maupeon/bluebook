@@ -1,29 +1,37 @@
 import type { Metadata } from "next";
-import { PlannerHero } from "@/components/planner/PlannerHero";
-import { CapabilitiesSection } from "@/components/planner/CapabilitiesSection";
-import { HowItWorksSection } from "@/components/planner/HowItWorksSection";
-import { PathsSection } from "@/components/planner/PathsSection";
-import { HumanSection } from "@/components/planner/HumanSection";
-import { PlannerFAQ } from "@/components/planner/PlannerFAQ";
-import { FinalCTA } from "@/components/planner/FinalCTA";
+import { HomeHero } from "@/components/home/HomeHero";
+import { ChaosToOrder } from "@/components/home/ChaosToOrder";
+import { AllInOne } from "@/components/home/AllInOne";
+import { Steps } from "@/components/home/Steps";
+import { RealPlanner } from "@/components/home/RealPlanner";
+import { HomeFaq } from "@/components/home/HomeFaq";
+import { Versus } from "@/components/marketing/Versus";
+import { Plans } from "@/components/marketing/Plans";
+import { ClosingCTA } from "@/components/marketing/ClosingCTA";
 
 export const metadata: Metadata = {
-  title: { absolute: "Blue Book | Tu wedding planner en WhatsApp" },
+  title: { absolute: "Blue Book | Toda tu boda en un solo lugar" },
   description:
-    "Blue Book es su wedding planner en WhatsApp: envía las invitaciones, confirma invitados, vigila el presupuesto y las fechas de pago, y les recuerda cada pendiente. IA supervisada por una wedding planner real, desde $1,000 MXN al mes. Invitaciones con confirmaciones desde $990 MXN por evento.",
+    "Proveedores, pagos, pendientes, invitaciones y confirmaciones en una plataforma que compartes con tu pareja, con una wedding planner real revisando cada detalle. $1,000 MXN al mes, sin plazos forzosos. Invitaciones con confirmaciones desde $990 MXN.",
 };
 
+// El orden sigue lo que ella necesita oír: qué es (hero), qué le quita de
+// encima (el caos), cómo se ve (todo en un lugar), por qué no una planner
+// presencial (lado a lado), qué tan fácil es empezar, quién está detrás,
+// cuánto cuesta, sus dudas y la decisión.
 // La página anterior del álbum digital vive en /album-digital.
 export default function Home() {
   return (
-    <div className="bg-bone">
-      <PlannerHero />
-      <CapabilitiesSection />
-      <HowItWorksSection />
-      <PathsSection />
-      <HumanSection />
-      <PlannerFAQ />
-      <FinalCTA />
+    <div className="sb bg-paper">
+      <HomeHero />
+      <ChaosToOrder />
+      <AllInOne />
+      <Versus id="diferencia" />
+      <Steps />
+      <RealPlanner />
+      <Plans id="precios-boda" />
+      <HomeFaq />
+      <ClosingCTA />
     </div>
   );
 }

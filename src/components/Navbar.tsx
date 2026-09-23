@@ -2,170 +2,194 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { Menu, X, Heart } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { getLanguageName } from "@/lib/language";
+import { ButtonLink } from "@/components/marketing/ui";
 
-export function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { language, setLanguage, isEnglish } = useLanguage();
-
-  const navLinks = [
-    { href: "/", label: isEnglish ? "Home" : "Inicio" },
-    { href: "/servicios", label: isEnglish ? "Services" : "Servicios" },
-    { href: "/precios", label: isEnglish ? "Pricing" : "Precios" },
-    { href: "/contacto", label: isEnglish ? "Contact" : "Contacto" },
-  ];
-
+function LanguageSwitch({ className = "" }: { className?: string }) {
+  const { language, setLanguage } = useLanguage();
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-bone/95 backdrop-blur-sm border-b border-sand">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <Image
-              src="/icon.png"
-              alt="Blue Book"
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
-            <span className="font-heading text-2xl font-semibold tracking-tight text-ink">
-              Blue Book
-            </span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="font-body text-sm font-medium text-ink-muted hover:text-ink transition-colors duration-200 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-terra after:transition-transform after:duration-200 hover:after:scale-x-100"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Sign in (subtle) */}
-          <div className="hidden lg:block">
-            <Link
-              href="/acceso"
-              className="font-body text-sm font-medium text-ink-muted hover:text-ink transition-colors duration-300"
-            >
-              {isEnglish ? "Sign in" : "Acceso"}
-            </Link>
-          </div>
-
-          {/* Language Switch */}
-          <div className="hidden lg:flex items-center gap-1 rounded-full border border-sand bg-white p-1">
-            {(["es", "en"] as const).map((item) => (
-              <button
-                key={item}
-                onClick={() => setLanguage(item)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  language === item
-                    ? "bg-ink text-white"
-                    : "text-ink-muted hover:bg-bone"
-                }`}
-                aria-label={`Switch language to ${getLanguageName(item)}`}
-              >
-                {item.toUpperCase()}
-              </button>
-            ))}
-          </div>
-
-          {/* CTA Button */}
-          <div className="hidden lg:block">
-            <Link
-              href="/comenzar"
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-ink text-white font-body font-semibold text-sm rounded-full hover:bg-ink-soft transition-[background-color,scale] duration-150 active:scale-[0.98]"
-            >
-              {isEnglish ? "Start planning" : "Comenzar"}
-              <Heart className="w-4 h-4" strokeWidth={1.5} />
-            </Link>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden p-2 text-ink hover:text-ink-muted transition-colors"
-            aria-label={isMenuOpen ? (isEnglish ? "Close menu" : "Cerrar menu") : (isEnglish ? "Open menu" : "Abrir menu")}
-            aria-expanded={isMenuOpen}
-            aria-controls="mobile-menu"
-          >
-            {isMenuOpen ? (
-              <X className="w-6 h-6" strokeWidth={1.5} />
-            ) : (
-              <Menu className="w-6 h-6" strokeWidth={1.5} />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile Menu
-            Siempre montado. Con `{isMenuOpen && ...}` React lo desmontaba al
-            cerrar y no habia nada que animar: salia de golpe. Cerrado queda
-            `invisible` (fuera del orden de tabulacion y del arbol de
-            accesibilidad); visibility se transiciona junto con la opacidad, asi
-            que el fundido de salida se ve completo antes de ocultarse.
-            La salida es mas corta que la entrada: al cerrar, el usuario ya
-            decidio y no hay nada que leer. */}
-        <div
-          id="mobile-menu"
-          className={`lg:hidden absolute top-16 left-0 right-0 bg-white border-b border-sand shadow-[0_2px_12px_rgba(29,46,75,0.05)] transition-[opacity,translate,visibility] motion-reduce:translate-none ${
-            isMenuOpen
-              ? "visible opacity-100 translate-y-0 duration-200"
-              : "invisible opacity-0 -translate-y-2 duration-150"
+    <div
+      role="group"
+      aria-label="Idioma / Language"
+      className={`inline-flex items-center rounded-full border border-hairline bg-white/70 p-0.5 ${className}`}
+    >
+      {(["es", "en"] as const).map((item) => (
+        <button
+          key={item}
+          type="button"
+          onClick={() => setLanguage(item)}
+          aria-pressed={language === item}
+          aria-label={getLanguageName(item)}
+          className={`rounded-full px-2.5 py-1 font-body text-[11px] font-bold tracking-wide transition-colors duration-150 ${
+            language === item ? "bg-navy text-white" : "text-navy-muted hover:text-navy"
           }`}
         >
-          <div className="px-4 py-6 space-y-4">
-            <div className="inline-flex items-center gap-1 rounded-full border border-sand bg-white p-1">
-              {(["es", "en"] as const).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setLanguage(item)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    language === item
-                      ? "bg-ink text-white"
-                      : "text-ink-muted hover:bg-bone"
-                  }`}
-                  aria-label={`Switch language to ${getLanguageName(item)}`}
-                >
-                  {item.toUpperCase()}
-                </button>
-              ))}
-            </div>
+          {item.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMenuOpen(false)}
-                className="block font-body text-lg font-medium text-ink-muted hover:text-ink transition-colors py-2"
-              >
-                {link.label}
-              </Link>
-            ))}
+export function Navbar() {
+  const pathname = usePathname();
+  const { isEnglish: en } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const links = [
+    { href: "/servicios", label: en ? "Services" : "Servicios" },
+    { href: "/precios", label: en ? "Pricing" : "Precios" },
+    { href: "/contacto", label: en ? "Contact" : "Contacto" },
+  ];
+
+  // La línea de abajo sólo aparece cuando hay contenido pasando por debajo:
+  // arriba del todo la barra se funde con la página (borde de scroll, no un
+  // divisor fijo).
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Cambiar de página cierra el menú.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Esc cierra y devuelve el foco al botón que lo abrió.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+  return (
+    <header className="sb fixed inset-x-0 top-0 z-50">
+      <div
+        className={`nav-material border-b transition-[border-color,box-shadow] duration-200 ${
+          scrolled || open ? "border-hairline shadow-[0_1px_12px_-6px_rgba(28,45,79,0.12)]" : "border-transparent"
+        }`}
+      >
+        <nav
+          aria-label={en ? "Main" : "Principal"}
+          className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8"
+        >
+          <Link href="/" className="flex items-center gap-2.5" aria-label={en ? "Blue Book, home" : "Blue Book, inicio"}>
+            <Image src="/icon.png" alt="" width={34} height={34} priority />
+            <span className="font-round text-[19px] uppercase leading-none tracking-[0.04em] text-navy">Blue Book</span>
+          </Link>
+
+          <ul className="hidden items-center gap-1 lg:flex">
+            {links.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`rounded-full px-4 py-2 font-body text-sm font-medium transition-colors duration-150 ${
+                      active ? "bg-wash text-navy" : "text-navy-muted hover:bg-white/70 hover:text-navy"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="hidden items-center gap-4 lg:flex">
+            <LanguageSwitch />
             <Link
               href="/acceso"
-              onClick={() => setIsMenuOpen(false)}
-              className="block font-body text-lg font-medium text-ink-muted hover:text-ink transition-colors py-2"
+              className="font-body text-sm font-medium text-navy-muted transition-colors hover:text-navy"
             >
-              {isEnglish ? "Sign in" : "Acceso"}
+              {en ? "Sign in" : "Acceso"}
             </Link>
-            <Link
-              href="/comenzar"
-              onClick={() => setIsMenuOpen(false)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-ink text-white font-body font-semibold rounded-full hover:bg-ink-soft transition-all duration-300 mt-4"
-            >
-              {isEnglish ? "Start planning" : "Comenzar"}
-              <Heart className="w-4 h-4" strokeWidth={1.5} />
-            </Link>
+            <ButtonLink href="/comenzar" size="md">
+              {en ? "Start your wedding" : "Empieza tu boda"}
+            </ButtonLink>
           </div>
+
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-navy transition-colors hover:bg-white/70 active:scale-95 lg:hidden"
+            aria-label={open ? (en ? "Close menu" : "Cerrar menú") : en ? "Open menu" : "Abrir menú"}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+          >
+            {open ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
+          </button>
+        </nav>
+      </div>
+
+      {/* Menú móvil: una hoja que baja desde la barra que lo abrió, con velo
+          detrás. Siempre montado para poder animar la salida; cerrado queda
+          invisible (fuera del tabulador y del árbol de accesibilidad). Sale
+          más rápido de lo que entra: al cerrar ya no hay nada que leer. */}
+      <div
+        className={`fixed inset-0 top-16 -z-10 bg-navy/25 transition-opacity lg:hidden motion-reduce:transition-none ${
+          open ? "opacity-100 duration-200" : "pointer-events-none opacity-0 duration-150"
+        }`}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+      <div
+        id="mobile-menu"
+        className={`absolute inset-x-0 top-16 origin-top border-b border-hairline bg-paper shadow-[0_24px_40px_-24px_rgba(28,45,79,0.35)] transition-[opacity,translate,visibility] lg:hidden motion-reduce:translate-y-0 ${
+          open ? "visible translate-y-0 opacity-100 duration-250" : "invisible -translate-y-3 opacity-0 duration-150"
+        }`}
+      >
+        <div className="px-4 pb-7 pt-3 sm:px-6">
+          <ul className="divide-y divide-hairline">
+            {links.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={isActive(link.href) ? "page" : undefined}
+                  className="flex items-center justify-between py-4 font-heading text-[1.7rem] font-medium text-navy"
+                >
+                  {link.label}
+                  {isActive(link.href) && <span className="h-1.5 w-1.5 rounded-full bg-azul" aria-hidden="true" />}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                href="/acceso"
+                onClick={() => setOpen(false)}
+                className="block py-4 font-heading text-[1.7rem] font-medium text-navy"
+              >
+                {en ? "Sign in" : "Acceso"}
+              </Link>
+            </li>
+          </ul>
+          <div className="mt-5 flex items-center justify-between gap-4">
+            <LanguageSwitch />
+          </div>
+          <ButtonLink href="/comenzar" onClick={() => setOpen(false)} arrow className="mt-6 w-full">
+            {en ? "Start your wedding" : "Empieza tu boda"}
+          </ButtonLink>
         </div>
-      </nav>
+      </div>
     </header>
   );
 }

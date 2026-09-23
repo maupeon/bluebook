@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { PanelBundle } from "@/lib/couplePanel";
+import { seccionesDelPanel } from "@/lib/seccionesDelPanel";
+import { DatosDeLaBoda } from "@/components/panel/DatosDeLaBoda";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { formatMXN } from "@/lib/weddingPlans";
 import { Eyebrow } from "@/components/panel/sections";
-import { countdownPhrase, formatLongDate } from "@/components/panel/dates";
+import { countdownPhrase } from "@/components/panel/dates";
 import { TasksSection, MessagesSection } from "@/components/panel/PanelDashboard";
 
 /**
@@ -75,6 +77,9 @@ export function PantallaHoy({
 
   const paso = diasRestantes != null && diasRestantes < 0;
   const cuenta = countdownPhrase(diasRestantes, isEnglish);
+  // La misma regla que el menú y las rutas: sin planner y sin nada capturado,
+  // la tarjeta de dinero solo diría "su planner aún no…" a quien no tiene una.
+  const { dinero: mostrarDinero } = seccionesDelPanel(bundle);
 
   // El dinero se cuenta desde lo PAGADO, que es la buena noticia, y nunca se
   // enseña un "Disponible" suelto: cuando el estimado coincide con lo
@@ -128,33 +133,23 @@ export function PantallaHoy({
             {isEnglish ? "Hi, " : "Hola, "}
             <em className="italic text-terra">{wedding.coupleName}</em>
           </h1>
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 font-body text-sm text-ink-muted">
-            {wedding.weddingDate ? (
-              <span className="tabular-nums">
-                {formatLongDate(wedding.weddingDate, isEnglish)}
-              </span>
-            ) : null}
-            {wedding.venue ? (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 text-terra" strokeWidth={1.5} />
-                {wedding.venue}
-              </span>
-            ) : null}
-          </div>
+          <DatosDeLaBoda weddingDate={wedding.weddingDate} venue={wedding.venue} />
         </header>
       </Reveal>
 
       <Reveal app className="mt-10">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Resumen
-            eyebrow={isEnglish ? "Your money" : "Su dinero"}
-            titular={dineroTitular}
-            detalle={dineroDetalle}
-            progreso={porcentajePagado}
-            tono="terra"
-            href="/panel/dinero"
-            cta={isEnglish ? "See it vendor by vendor" : "Ver proveedor por proveedor"}
-          />
+        <div className={`grid gap-5 ${mostrarDinero ? "sm:grid-cols-2" : ""}`}>
+          {mostrarDinero ? (
+            <Resumen
+              eyebrow={isEnglish ? "Your money" : "Su dinero"}
+              titular={dineroTitular}
+              detalle={dineroDetalle}
+              progreso={porcentajePagado}
+              tono="terra"
+              href="/panel/dinero"
+              cta={isEnglish ? "See it vendor by vendor" : "Ver proveedor por proveedor"}
+            />
+          ) : null}
           <Resumen
             eyebrow={isEnglish ? "Your guests" : "Sus invitados"}
             titular={invitadosTitular}

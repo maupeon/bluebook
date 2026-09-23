@@ -6,12 +6,13 @@ import { ResetScroll } from "@/components/panel/ResetScroll";
 import { PanelTopBar } from "@/components/panel/PanelTopBar";
 import { PanelSidebar } from "@/components/panel/PanelSidebar";
 import { NoWedding } from "@/components/panel/NoWedding";
+import { seccionesDelPanel } from "@/lib/seccionesDelPanel";
 
 /** El id del div que scrollea. Lo comparten el layout y ResetScroll. */
 const ID_SCROLLER = "panel-scroll";
 
 // Chrome enfocado del panel: un overlay fijo que reemplaza visualmente el chrome
-// de marketing (Navbar / PromoBanner / Footer del root layout siguen montados detrás).
+// de marketing (Navbar / Footer del root layout siguen montados detrás).
 //
 // El que scrollea es el div de contenido, NO el overlay: así la barra lateral se
 // queda quieta mientras la pantalla se desplaza, que es como se comporta el
@@ -65,7 +66,9 @@ export default async function PanelLayout({
             momentos: bundle.runOfShow.blocks.length,
             hayGuion:
               !bundle.runOfShow.unavailable && bundle.runOfShow.blocks.length > 0,
+            invitacionLista: wedding.invitacionId != null,
           }}
+          secciones={seccionesDelPanel(bundle)}
         />
         {/* pb para que la barra inferior del teléfono no tape el final. */}
         <div

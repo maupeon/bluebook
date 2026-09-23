@@ -138,7 +138,7 @@ export default async function TerminosPage() {
   const isEnglish = parseLanguage(cookieStore.get(LANGUAGE_COOKIE)?.value) === "en";
 
   return (
-    <div className="pt-20">
+    <div className="pt-16">
       <section className="py-16 lg:py-24 bg-gradient-to-b from-light via-muted/30 to-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="font-heading text-4xl sm:text-5xl font-semibold text-dark mb-6 text-center">

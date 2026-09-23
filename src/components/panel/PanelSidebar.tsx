@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, Home, Users, Wallet, Wine } from "lucide-react";
+import { CalendarClock, Home, Mail, Users, Wallet, Wine } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { countdownPhrase } from "@/components/panel/dates";
+import type { SeccionesDelPanel } from "@/lib/seccionesDelPanel";
 
 /**
  * Lo que el menú necesita saber para GUIAR, no sólo para enlazar.
@@ -22,6 +23,8 @@ export interface EstadoDelMenu {
   dineroContratado: number;
   momentos: number;
   hayGuion: boolean;
+  /** true si la pareja ya eligió su invitación (weddings.invitacion_id). */
+  invitacionLista: boolean;
 }
 
 const pesos = (n: number) =>
@@ -62,6 +65,19 @@ function destinos(e: EstadoDelMenu, isEnglish: boolean): Destino[] {
             : `Van ${e.personasConfirmadas} personas`,
       Icono: Users,
       llama: paso && e.invitadosPendientes > 0,
+    },
+    {
+      href: "/panel/invitacion",
+      nombre: isEnglish ? "Invitation" : "Invitación",
+      pista: e.invitacionLista
+        ? isEnglish
+          ? "Ready to send"
+          : "Lista para enviar"
+        : isEnglish
+          ? "Not chosen yet"
+          : "Aún sin elegir",
+      Icono: Mail,
+      llama: paso && !e.invitacionLista,
     },
     {
       href: "/panel/dinero",
@@ -113,10 +129,21 @@ function esActivo(pathname: string, href: string): boolean {
   return href === "/panel" ? pathname === "/panel" : pathname.startsWith(href);
 }
 
-export function PanelSidebar({ estado }: { estado: EstadoDelMenu }) {
+export function PanelSidebar({
+  estado,
+  secciones,
+}: {
+  estado: EstadoDelMenu;
+  /** Qué destinos se enseñan. Ver seccionesDelPanel: la misma regla que Hoy y las rutas. */
+  secciones: SeccionesDelPanel;
+}) {
   const { isEnglish } = useLanguage();
   const pathname = usePathname();
-  const items = destinos(estado, isEnglish);
+  const items = destinos(estado, isEnglish).filter(
+    ({ href }) =>
+      (href !== "/panel/dinero" || secciones.dinero) &&
+      (href !== "/panel/dia" || secciones.dia)
+  );
 
   return (
     <>

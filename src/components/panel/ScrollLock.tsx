@@ -16,7 +16,7 @@ import { useEffect } from "react";
  *    cuando el dedo agarraba la de abajo, se desplazaba por detrás del panel y
  *    no se veía nada.
  *
- * 2. SACA EL MARKETING DEL ORDEN DE TABULACIÓN. Navbar, PromoBanner y Footer
+ * 2. SACA EL MARKETING DEL ORDEN DE TABULACIÓN. Navbar y Footer
  *    siguen en el DOM, tapados pero enfocables: desde el botón "Salir", Tab
  *    mandaba el foco a enlaces invisibles y había que pulsarlo una quincena de
  *    veces a ciegas para volver a ver dónde estaba. `inert` los apaga enteros

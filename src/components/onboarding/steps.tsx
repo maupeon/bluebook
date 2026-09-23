@@ -962,9 +962,17 @@ export function ReviewStep({
       </dl>
       {express && (
         <p className="mt-6 font-body text-sm leading-relaxed text-ink-muted">
-          {isEnglish
-            ? "You can add the rest (date, style, budget) later in your panel."
-            : "Lo demás (fecha, estilo, presupuesto) lo agregan después en su panel."}
+          {/* Decía que fecha, estilo y presupuesto "los agregan después en su
+              panel", y el panel no dejaba poner ninguno. Desde que el panel
+              edita fecha y lugar, se promete solo eso; estilo y presupuesto
+              los lleva la planner, y solo existen en el servicio con planner. */}
+          {isPlanner
+            ? isEnglish
+              ? "You can add your date and venue later in your panel. Style and budget you'll go over with your planner."
+              : "La fecha y el lugar los pueden poner después en su panel. Estilo y presupuesto los ven con su planner."
+            : isEnglish
+              ? "You can add your date and venue later in your panel."
+              : "La fecha y el lugar los pueden poner después en su panel."}
         </p>
       )}
     </div>

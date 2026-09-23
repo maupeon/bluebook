@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Montserrat } from "next/font/google";
+import { Cormorant_Garamond, Montserrat, Sacramento, Sniglet } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
-import { PromoBanner } from "@/components/PromoBanner";
 import { CONTACT_INFO, LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 
 // Structured Data - Organization Schema
@@ -16,7 +15,7 @@ const organizationSchema = {
   url: "https://bluebook.mx",
   logo: "https://bluebook.mx/icon.png",
   description:
-    "Crea álbumes digitales interactivos para tu boda. Comparte tus recuerdos con un flipbook elegante.",
+    "Toda tu boda en un solo lugar: proveedores, pagos, tareas, invitaciones y confirmaciones, con una wedding planner real.",
   contactPoint: {
     "@type": "ContactPoint",
     telephone: CONTACT_INFO.whatsappNumber,
@@ -40,7 +39,7 @@ const websiteSchema = {
   name: "Blue Book",
   url: "https://bluebook.mx",
   description:
-    "Álbumes digitales interactivos para bodas. Crea un flipbook con las fotos de tu boda.",
+    "Wedding planner en línea: toda tu boda en una plataforma, con una wedding planner real revisando cada detalle.",
 };
 
 const cormorant = Cormorant_Garamond({
@@ -57,23 +56,42 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
+// Acentos del sitio público, tomados del Instagram: la manuscrita de
+// "Something blue." y la redonda de "BLUE BOOK". Un solo peso cada una.
+const sacramento = Sacramento({
+  variable: "--font-sacramento",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+const sniglet = Sniglet({
+  variable: "--font-sniglet",
+  subsets: ["latin"],
+  weight: "800",
+  display: "swap",
+});
+
+const DEFAULT_TITLE = "Blue Book | Toda tu boda en un solo lugar";
+const DEFAULT_DESCRIPTION =
+  "Proveedores, pagos, tareas, invitaciones y confirmaciones en una plataforma que compartes con tu pareja, con una wedding planner real revisando cada detalle. Desde $1,000 MXN al mes.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://bluebook.mx"),
   title: {
-    default: "Blue Book | Álbumes Digitales para Bodas",
+    default: DEFAULT_TITLE,
     template: "%s | Blue Book",
   },
-  description:
-    "Crea un álbum digital interactivo con las fotos de tu boda. Flipbook elegante para compartir con familia y amigos. Planes desde $200 MXN.",
+  description: DEFAULT_DESCRIPTION,
   keywords: [
-    "álbum digital boda",
-    "flipbook boda",
-    "fotos boda digital",
-    "álbum fotos boda",
-    "recuerdos boda",
-    "galería boda",
+    "wedding planner",
+    "wedding planner en línea",
+    "organizar boda",
+    "plataforma para bodas",
+    "invitaciones digitales boda",
+    "confirmación de invitados",
+    "presupuesto de boda",
     "bodas méxico",
-    "álbum interactivo",
   ],
   authors: [{ name: "Blue Book" }],
   creator: "Blue Book",
@@ -82,24 +100,14 @@ export const metadata: Metadata = {
     locale: "es_MX",
     url: "https://bluebook.mx",
     siteName: "Blue Book",
-    title: "Blue Book | Álbumes Digitales para Bodas",
-    description:
-      "Crea un álbum digital interactivo con las fotos de tu boda. Flipbook elegante para compartir con familia y amigos.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Blue Book - Álbumes Digitales para Bodas",
-      },
-    ],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    // La imagen la genera app/opengraph-image.tsx: /og-image.jpg nunca existió.
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blue Book | Álbumes Digitales para Bodas",
-    description:
-      "Crea un flipbook digital interactivo con las fotos de tu boda. Compártelo con un solo link.",
-    images: ["/og-image.jpg"],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
   },
   robots: {
     index: true,
@@ -143,11 +151,10 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${cormorant.variable} ${montserrat.variable} antialiased bg-light text-dark`}
+        className={`${cormorant.variable} ${montserrat.variable} ${sacramento.variable} ${sniglet.variable} antialiased bg-light text-dark`}
       >
         <LanguageProvider initialLanguage={language}>
           <Navbar />
-          <PromoBanner />
           <main>{children}</main>
           <Footer />
         </LanguageProvider>

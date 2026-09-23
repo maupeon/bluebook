@@ -21,6 +21,10 @@ export interface CoupleWedding {
   /** Honorarios CONTRATADOS de la planner (weddings.planner_fee_total). */
   plannerFeeTotal: number | null;
   status: string;
+  /** "full" = con planner; "invitations" = solo invitaciones (weddings.tier). */
+  tier: "invitations" | "full";
+  /** La invitación elegida (weddings.invitacion_id, 0025). null = aún no hay. */
+  invitacionId: string | null;
 }
 
 export interface BudgetSummary {
@@ -992,7 +996,7 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
       supabase
         .from("weddings")
         .select(
-          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, contact_email, created_at"
+          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, tier, invitacion_id, contact_email, created_at"
         )
         .eq(columna, normalized)
     )
@@ -1052,6 +1056,8 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
     plannerFeeTotal:
       row.planner_fee_total != null ? toNum(row.planner_fee_total) : null,
     status: row.status ?? "active",
+    tier: row.tier === "full" ? "full" : "invitations",
+    invitacionId: row.invitacion_id ?? null,
   };
 });
 

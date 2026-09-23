@@ -4,25 +4,25 @@ import { CONTACT_INFO } from "@/lib/language";
 export const metadata: Metadata = {
   title: "Contacto",
   description:
-    "Contacta con Blue Book para resolver tus dudas sobre nuestros álbumes digitales para bodas. Respuesta en menos de 24 horas.",
+    "Escríbenos por WhatsApp, Instagram o correo, o déjanos un mensaje. Te contesta una persona en menos de 24 horas.",
   openGraph: {
     title: "Contacto | Blue Book",
     description:
-      "Contáctanos para crear tu álbum digital de boda. Respuesta en menos de 24 horas.",
+      "Hablemos de tu boda: WhatsApp, Instagram o correo. Te contesta una persona en menos de 24 horas.",
     url: "https://bluebook.mx/contacto",
   },
 };
 
-// LocalBusiness Schema for contact page
+// Sin horario de atención ni rango de precios del álbum: el horario no se
+// sostenía en ningún lado y los precios eran los de 2025.
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   name: "Blue Book",
   description:
-    "Crea álbumes digitales interactivos para tu boda. Comparte tus recuerdos con un flipbook elegante.",
+    "Wedding planner en línea: toda tu boda en una plataforma, con una wedding planner real.",
   url: "https://bluebook.mx",
   logo: "https://bluebook.mx/icon.png",
-  image: "https://bluebook.mx/og-image.jpg",
   telephone: CONTACT_INFO.whatsappNumber,
   email: CONTACT_INFO.email,
   address: {
@@ -31,30 +31,8 @@ const localBusinessSchema = {
     addressRegion: "CDMX",
     addressCountry: "MX",
   },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: "19.4326",
-    longitude: "-99.1332",
-  },
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens: "09:00",
-      closes: "19:00",
-    },
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Saturday"],
-      opens: "10:00",
-      closes: "14:00",
-    },
-  ],
-  priceRange: "$100 - $500 MXN",
-  sameAs: [
-    CONTACT_INFO.instagramUrl,
-    CONTACT_INFO.whatsappUrl,
-  ],
+  priceRange: "$990–$2,490 MXN",
+  sameAs: [CONTACT_INFO.instagramUrl, CONTACT_INFO.whatsappUrl],
 };
 
 export default function ContactoLayout({

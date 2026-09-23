@@ -425,3 +425,117 @@ export async function sendPaymentNotificationEmail({
     return { success: false, error }
   }
 }
+
+export type ContactInterest = 'planner' | 'invitations' | 'album' | 'questions'
+
+export interface ContactMessage {
+  name: string
+  email: string
+  phone: string | null
+  weddingDate: string | null
+  noDateYet: boolean
+  interest: ContactInterest
+  message: string
+  language: 'es' | 'en'
+}
+
+const CONTACT_INTEREST_LABELS: Record<ContactInterest, string> = {
+  planner: 'Planner completo',
+  invitations: 'Solo invitaciones',
+  album: 'Álbum digital',
+  questions: 'Solo tiene dudas',
+}
+
+// Todo lo que llega del formulario público se escapa antes de entrar al HTML
+// del correo: el nombre o el mensaje podrían traer etiquetas.
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/**
+ * El formulario de /contacto. Llega a la bandeja del equipo con replyTo = la
+ * persona que escribió: contestar el correo le contesta a ella.
+ */
+export async function sendContactMessageEmail(contact: ContactMessage) {
+  const resend = getResendClient()
+  if (!resend) {
+    return { success: false as const, error: 'Email service not configured' }
+  }
+
+  try {
+    const rows: Array<[string, string]> = [
+      ['Nombre', escapeHtml(contact.name)],
+      ['Correo', `<a href="mailto:${escapeHtml(contact.email)}" style="color: #345E8F;">${escapeHtml(contact.email)}</a>`],
+      [
+        'WhatsApp',
+        contact.phone
+          ? `<a href="https://wa.me/${contact.phone.replace(/\D/g, '')}" style="color: #345E8F;">${escapeHtml(contact.phone)}</a>`
+          : '—',
+      ],
+      ['Fecha', contact.weddingDate ? escapeHtml(contact.weddingDate) : contact.noDateYet ? 'Aún sin fecha' : '—'],
+      ['Le interesa', CONTACT_INTEREST_LABELS[contact.interest]],
+      ['Idioma', contact.language === 'en' ? 'Inglés' : 'Español'],
+    ]
+
+    const tableRows = rows
+      .map(
+        ([label, value]) => `
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #56657F; font-size: 13px; white-space: nowrap;">${label}</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #1C2D4F; font-size: 14px;">${value}</td>
+          </tr>`
+      )
+      .join('')
+
+    const { data, error } = await resend.emails.send({
+      from: 'Blue Book <hola@bluebook.mx>',
+      replyTo: contact.email,
+      to: [CONTACT_INFO.email],
+      subject: `Mensaje de ${contact.name} — ${CONTACT_INTEREST_LABELS[contact.interest]}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F6F5F2; margin: 0; padding: 40px 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #DDE2EA; border-radius: 16px; overflow: hidden;">
+            <div style="padding: 28px 30px 12px;">
+              <p style="margin: 0; color: #345E8F; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Formulario de contacto</p>
+              <h1 style="margin: 8px 0 0; color: #1C2D4F; font-size: 22px; font-weight: 600;">
+                ${escapeHtml(contact.name)}
+              </h1>
+            </div>
+            <div style="padding: 16px 14px 8px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                ${tableRows}
+              </table>
+            </div>
+            <div style="padding: 8px 30px 28px;">
+              <p style="margin: 0 0 6px; color: #56657F; font-size: 13px;">Mensaje</p>
+              <p style="margin: 0; color: #1C2D4F; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(contact.message)}</p>
+              <p style="margin: 24px 0 0; color: #56657F; font-size: 13px;">Responde a este correo para contestarle directamente.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    })
+
+    if (error) {
+      console.error('Error sending contact message email:', error)
+      return { success: false as const, error }
+    }
+
+    return { success: true as const, data }
+  } catch (error) {
+    console.error('Error sending contact message email:', error)
+    return { success: false as const, error }
+  }
+}

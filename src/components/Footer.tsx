@@ -2,163 +2,123 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, Mail, Phone, MapPin, Instagram, MessageCircle } from "lucide-react";
+import { Instagram, Mail, MessageCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { CONTACT_INFO } from "@/lib/language";
+import { Sparkle, Star } from "@/components/marketing/Ink";
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
-  const { isEnglish } = useLanguage();
+  const year = new Date().getFullYear();
+  const { isEnglish: en } = useLanguage();
 
-  const footerLinks = {
-    product: [
-      { href: "/servicios", label: isEnglish ? "AI Wedding Planner" : "Planner con IA" },
-      { href: "/precios", label: isEnglish ? "Pricing" : "Precios" },
-      { href: "/acceso", label: isEnglish ? "Dashboard sign in" : "Acceso al panel" },
-      { href: "/album-digital", label: isEnglish ? "Digital Album" : "Álbum Digital" },
-    ],
-    company: [
-      { href: "/precios", label: isEnglish ? "Pricing" : "Precios" },
-      { href: "/contacto", label: isEnglish ? "Contact" : "Contacto" },
-      { href: "/terminos", label: isEnglish ? "Terms and Conditions" : "Términos y Condiciones" },
-      { href: "/privacidad", label: isEnglish ? "Privacy Policy" : "Política de Privacidad" },
-    ],
-  };
+  const columns = [
+    {
+      title: "Blue Book",
+      links: [
+        { href: "/servicios", label: en ? "Services" : "Servicios" },
+        { href: "/precios", label: en ? "Pricing" : "Precios" },
+        { href: "/#como-funciona", label: en ? "How it works" : "Cómo funciona" },
+        { href: "/album-digital", label: en ? "Digital album" : "Álbum digital" },
+      ],
+    },
+    {
+      title: en ? "Your wedding" : "Tu boda",
+      links: [
+        { href: "/comenzar", label: en ? "Start your wedding" : "Empieza tu boda" },
+        { href: "/acceso", label: en ? "Sign in to your dashboard" : "Entra a tu panel" },
+        { href: "/contacto", label: en ? "Contact" : "Contacto" },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { href: "/terminos", label: en ? "Terms and conditions" : "Términos y condiciones" },
+        { href: "/privacidad", label: en ? "Privacy policy" : "Aviso de privacidad" },
+      ],
+    },
+  ];
+
+  const socials = [
+    { href: CONTACT_INFO.whatsappUrl, label: "WhatsApp", Icon: MessageCircle },
+    { href: CONTACT_INFO.instagramUrl, label: "Instagram", Icon: Instagram },
+    { href: `mailto:${CONTACT_INFO.email}`, label: en ? "Email" : "Correo", Icon: Mail },
+  ];
 
   return (
-    <footer className="bg-ink text-white">
-      {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Brand Column */}
-          <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <Image
-                src="/icon.png"
-                alt="Blue Book"
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-              <span className="font-heading text-2xl font-semibold text-white">
-                Blue Book
+    <footer className="sb-dark relative overflow-hidden bg-navy text-white">
+      <Sparkle className="absolute right-[6%] top-8 h-7 w-7 text-wash-deep/50" />
+      <Star className="absolute bottom-24 left-[46%] hidden h-5 w-5 text-wash-deep/40 lg:block" />
+
+      <div className="mx-auto max-w-6xl px-4 pb-10 pt-20 sm:px-6 lg:px-8">
+        <div className="grid gap-14 lg:grid-cols-[1.3fr_2fr]">
+          <div>
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                <Image src="/icon.png" alt="" width={30} height={30} />
               </span>
+              <span className="font-round text-xl uppercase tracking-[0.04em]">Blue Book</span>
             </Link>
-            <p className="font-body text-sm text-white/70 leading-relaxed mb-6">
-              {isEnglish
-                ? "A wedding planner with a WhatsApp assistant that keeps your day-to-day organized, from budget to guest list."
-                : "Una wedding planner con asistente en WhatsApp que lleva el día a día de su boda, del presupuesto a la lista de invitados."}
+            <p className="mt-6 font-script text-[40px] leading-[1.05] text-wash" aria-hidden="true">
+              Something blue.
+              <br />
+              For good luck.
             </p>
-            <div className="flex gap-4">
-              <a
-                href={CONTACT_INFO.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-terra transition-colors duration-300"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-5 h-5" strokeWidth={1.5} />
-              </a>
-              <a
-                href={CONTACT_INFO.whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-terra transition-colors duration-300"
-                aria-label="WhatsApp"
-              >
-                <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-              </a>
-            </div>
-          </div>
-
-          {/* Product Links */}
-          <div>
-            <h3 className="font-heading text-lg font-semibold text-white mb-6">
-              {isEnglish ? "Product" : "Producto"}
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.product.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
+            <p className="mt-5 max-w-sm font-body text-sm leading-relaxed text-white/70">
+              {en
+                ? "Your whole wedding in one place, with a real wedding planner looking after every detail."
+                : "Toda tu boda en un solo lugar, con una wedding planner real cuidando cada detalle."}
+            </p>
+            <ul className="mt-7 flex gap-2.5">
+              {socials.map(({ href, label, Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target={href.startsWith("http") ? "_blank" : undefined}
+                    rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                    aria-label={label}
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors duration-150 hover:bg-white/20"
                   >
-                    {link.label}
-                  </Link>
+                    <Icon className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden="true" />
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Company Links */}
-          <div>
-            <h3 className="font-heading text-lg font-semibold text-white mb-6">
-              {isEnglish ? "Company" : "Empresa"}
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h3 className="font-heading text-lg font-semibold text-white mb-6">
-              {isEnglish ? "Contact" : "Contacto"}
-            </h3>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-terra mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                <a
-                  href={`mailto:${CONTACT_INFO.email}`}
-                  className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
-                >
-                  {CONTACT_INFO.email}
-                </a>
-              </li>
-              <li className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-terra mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                <a
-                  href={`tel:${CONTACT_INFO.whatsappNumber}`}
-                  className="font-body text-sm text-white/70 hover:text-terra-light transition-colors duration-300"
-                >
-                  {CONTACT_INFO.whatsappDisplay}
-                </a>
-              </li>
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-terra mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                <span className="font-body text-sm text-white/70">
-                  {isEnglish ? CONTACT_INFO.cityEn : CONTACT_INFO.cityEs}
-                </span>
-              </li>
-            </ul>
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
+            {columns.map((column) => (
+              <nav key={column.title} aria-label={column.title}>
+                <h2 className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-wash-deep">{column.title}</h2>
+                <ul className="mt-5 space-y-3">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="font-body text-sm text-white/75 transition-colors duration-150 hover:text-white"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="font-body text-sm text-white/50">
-              {isEnglish
-                ? `© ${currentYear} Blue Book. All rights reserved.`
-                : `© ${currentYear} Blue Book. Todos los derechos reservados.`}
-            </p>
-            <p className="font-body text-sm text-white/50 flex items-center gap-1">
-              {isEnglish ? "Made with" : "Hecho con"}{" "}
-              <Heart className="w-4 h-4 text-terra fill-terra" strokeWidth={1.5} />{" "}
-              {isEnglish ? "for unforgettable couples" : "para parejas especiales"}
-            </p>
-          </div>
+        <div className="mt-16 flex flex-col gap-3 border-t border-white/10 pt-8 font-body text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {year} Blue Book · {en ? CONTACT_INFO.cityEn : CONTACT_INFO.cityEs}
+          </p>
+          <p>
+            <a href={`mailto:${CONTACT_INFO.email}`} className="transition-colors hover:text-white">
+              {CONTACT_INFO.email}
+            </a>
+            <span className="mx-2" aria-hidden="true">·</span>
+            <a href={CONTACT_INFO.whatsappUrl} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">
+              {CONTACT_INFO.whatsappDisplay}
+            </a>
+          </p>
         </div>
       </div>
     </footer>

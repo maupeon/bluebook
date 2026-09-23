@@ -36,6 +36,26 @@
   --pale-blue-ink: #1f6c9f;
   --pale-yellow: #fbf3db;
   --pale-yellow-ink: #956400;
+
+  /* "Something blue": la paleta del Instagram, para el sitio público.
+     Hueso frío de fondo, lavados de acuarela azul y la tinta marino de las
+     ilustraciones. Sin terracota: el panel y el onboarding siguen usando
+     terra con significado (errores, "no asiste"), por eso estos tokens son
+     aparte y no una redefinición de los de arriba.
+     Contraste medido sobre --paper: navy 13.6:1, navy-muted 5.3:1,
+     azul-deep 6.1:1 (texto chico), azul 4.4:1 (sólo texto grande). */
+  --paper: #f6f5f2;
+  --paper-warm: #fbfaf7;
+  --wash: #e1e9f5;
+  --wash-soft: #edf2f9;
+  --wash-deep: #c8d6ec;
+  --line: #3a5282;
+  --navy: #1c2d4f;
+  --navy-soft: #34466b;
+  --navy-muted: #56657f;
+  --azul: #4a76a8;
+  --azul-deep: #345e8f;
+  --hairline: #dde2ea;
 }
 
 @theme inline {
@@ -91,9 +111,27 @@
   --color-pale-yellow: var(--pale-yellow);
   --color-pale-yellow-ink: var(--pale-yellow-ink);
 
+  /* Something blue */
+  --color-paper: var(--paper);
+  --color-paper-warm: var(--paper-warm);
+  --color-wash: var(--wash);
+  --color-wash-soft: var(--wash-soft);
+  --color-wash-deep: var(--wash-deep);
+  --color-line: var(--line);
+  --color-navy: var(--navy);
+  --color-navy-soft: var(--navy-soft);
+  --color-navy-muted: var(--navy-muted);
+  --color-azul: var(--azul);
+  --color-azul-deep: var(--azul-deep);
+  --color-hairline: var(--hairline);
+
   /* Fonts */
   --font-heading: var(--font-cormorant);
   --font-body: var(--font-montserrat);
+  /* La manuscrita de "Something blue. For good luck." y la redonda de
+     "BLUE BOOK" en el Instagram. Sólo acentos: nunca un párrafo. */
+  --font-script: var(--font-sacramento);
+  --font-round: var(--font-sniglet);
 }
 
 * {
@@ -405,3 +443,122 @@ h1, h2, h3, h4, h5, h6 {
   animation: drift 22s ease-in-out infinite;
 }
 
+
+/* =================================
+   SITIO PÚBLICO — "SOMETHING BLUE"
+================================= */
+
+/* Slider de invitados. El nativo con accent-color pintaba el riel gris del
+   sistema; aquí el riel se llena en azul hasta el valor (--fill lo pone el
+   componente) y el pulgar es un círculo de tinta con halo al tocarlo. */
+.range-blue {
+  appearance: none;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.range-blue::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--azul) 0 var(--fill, 50%), var(--wash) var(--fill, 50%) 100%);
+}
+.range-blue::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--azul) 0 var(--fill, 50%), var(--wash) var(--fill, 50%) 100%);
+}
+.range-blue::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -9px;
+  height: 24px;
+  width: 24px;
+  border-radius: 999px;
+  background: var(--navy);
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(28, 45, 79, 0.35);
+  transition: box-shadow 150ms var(--ease-out, ease-out), scale 150ms var(--ease-out, ease-out);
+}
+.range-blue::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 999px;
+  background: var(--navy);
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(28, 45, 79, 0.35);
+}
+/* Respuesta al presionar, no al soltar: el pulgar crece un poco y gana halo. */
+.range-blue:active::-webkit-slider-thumb {
+  scale: 1.12;
+  box-shadow: 0 0 0 7px rgba(74, 118, 168, 0.18), 0 1px 3px rgba(28, 45, 79, 0.35);
+}
+.range-blue:focus-visible {
+  outline: none;
+}
+.range-blue:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--azul-deep);
+}
+.range-blue:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--azul-deep);
+}
+
+/* La barra de navegación es un material: papel translúcido con el contenido
+   pasando por debajo. Quien pidió reducir transparencias la recibe sólida. */
+.nav-material {
+  background-color: rgb(246 245 242 / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(20px) saturate(170%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .nav-material {
+    background-color: var(--paper);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more) {
+  .nav-material {
+    background-color: var(--paper);
+    border-bottom-color: var(--navy-muted) !important;
+  }
+}
+
+/* LA TIPOGRAFÍA DEL SITIO PÚBLICO, que nunca se había aplicado.
+   Las reglas globales de body y h1–h6 (arriba) piden var(--font-body) y
+   var(--font-heading), pero @theme inline no publica esas variables: las
+   incrusta en las utilidades. La declaración queda inválida y el navegador
+   cae en la fuente del sistema. Y como esas reglas no están en ninguna capa,
+   le ganan a las utilidades de Tailwind (que sí lo están): la clase
+   font-heading y los font-medium/leading-* de los títulos se ignoraban.
+   Resultado medido: todo h1–h3 del sitio salía en ui-sans-serif a peso 600.
+   Aquí, sólo dentro de .sb: el cuerpo toma Montserrat de verdad y los
+   títulos devuelven family, peso e interlineado a las utilidades
+   (revert-layer desde fuera de capa regresa a lo que declararon las capas).
+   El panel no se toca: allá el cambio de aspecto es otra decisión. */
+.sb,
+.sb-dark {
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+}
+.sb :is(h1, h2, h3, h4, h5, h6),
+.sb-dark :is(h1, h2, h3, h4, h5, h6) {
+  font-family: revert-layer;
+  font-weight: revert-layer;
+  line-height: revert-layer;
+}
+
+/* Foco y selección en azul dentro del sitio público (clase .sb en cada página,
+   el navbar y el footer). El panel conserva terra-deep, elegido por contraste
+   sobre sus fondos arena. Sobre tinta marino el anillo va en blanco: azul
+   sobre marino no llega a 3:1. */
+.sb :focus-visible {
+  outline-color: var(--azul-deep);
+}
+.sb-dark :focus-visible,
+.sb .sb-dark :focus-visible {
+  outline-color: #fff;
+}
+.sb ::selection,
+.sb-dark ::selection {
+  background: var(--wash-deep);
+  color: var(--navy);
+}
