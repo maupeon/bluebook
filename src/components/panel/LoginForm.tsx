@@ -53,6 +53,7 @@ export function LoginForm({
   const [paso, setPaso] = useState<"correo" | "codigo">("correo");
   const [loading, setLoading] = useState(false);
   const [espera, setEspera] = useState(0);
+  const [conGoogle, setConGoogle] = useState(false);
   const [error, setError] = useState<string | null>(
     hadError
       ? isEnglish
@@ -64,6 +65,19 @@ export function LoginForm({
 
   const correo = email.trim().toLowerCase();
   const destino = next && next.startsWith("/") ? next : "/panel";
+
+  /**
+   * El botón de Google solo aparece si el proveedor ya está dado de alta en
+   * Supabase (NEXT_PUBLIC_GOOGLE_LOGIN=1 en el entorno).
+   *
+   * No es cautela de más: cuando el proveedor está apagado, Supabase NO
+   * devuelve a la app con un error que podamos enseñar bonito. Contesta un 400
+   * en crudo —{"msg":"Unsupported provider: provider is not enabled"}— sobre
+   * fondo negro, fuera de nuestro dominio y sin manera de volver. Comprobado en
+   * local. Un botón que hace eso es peor que no tener botón, así que nace
+   * apagado y se enciende el día que el proveedor esté listo.
+   */
+  const googleActivo = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
 
   // Cuenta atrás del reenvío.
   useEffect(() => {
@@ -207,6 +221,42 @@ export function LoginForm({
     }
   };
 
+  /**
+   * Google usa PKCE igual que el enlace mágico, pero aquí NO tiene el problema
+   * que tumbó aquel: el `code_verifier` se escribe y se lee en el mismo
+   * navegador, porque la vuelta de Google cae en esta misma pestaña. Por eso
+   * /auth/callback ya sabe atender `?code=` con exchangeCodeForSession.
+   *
+   * `prompt: "select_account"` es a propósito: una boda son dos personas y
+   * muchas veces una computadora compartida. Sin eso, Google entra solo con la
+   * cuenta que ya estaba abierta y la pareja no entiende por qué ve otro panel.
+   */
+  const entrarConGoogle = async () => {
+    if (loading || conGoogle) return;
+    setError(null);
+    setConGoogle(true);
+    try {
+      const supabase = createClient();
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destino)}`,
+          queryParams: { prompt: "select_account" },
+        },
+      });
+      if (oauthError) throw oauthError;
+      // Si no hubo error, el navegador ya se está yendo a Google. No se apaga
+      // el spinner: dejarlo encendido evita el parpadeo del botón al salir.
+    } catch {
+      setError(
+        isEnglish
+          ? "We couldn't open Google. Try the code instead."
+          : "No pudimos abrir Google. Prueben con el código."
+      );
+      setConGoogle(false);
+    }
+  };
+
   const aviso = error ? (
     <div className="mt-6 flex items-start gap-3 rounded-xl bg-terra-light px-4 py-3">
       <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep" strokeWidth={1.5} />
@@ -216,6 +266,9 @@ export function LoginForm({
 
   const claseBoton =
     "inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-7 py-3.5 font-body text-sm font-semibold text-white transition-all hover:bg-ink-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70";
+
+  const claseBotonNeutro =
+    "inline-flex w-full items-center justify-center gap-2.5 rounded-full border border-sand bg-white px-7 py-3.5 font-body text-sm font-semibold text-ink transition-all hover:border-ink-soft/30 hover:bg-bone active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70";
 
   if (paso === "codigo") {
     return (
@@ -318,7 +371,36 @@ export function LoginForm({
 
       {aviso}
 
-      <form onSubmit={pedirCodigo} className="mt-7 space-y-5">
+      {googleActivo ? (
+        <>
+          <button
+            type="button"
+            onClick={entrarConGoogle}
+            disabled={loading || conGoogle}
+            className={`mt-7 ${claseBotonNeutro}`}
+          >
+            {conGoogle ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/20 border-t-ink" />
+            ) : (
+              <LogoGoogle />
+            )}
+            {isEnglish ? "Continue with Google" : "Continuar con Google"}
+          </button>
+
+          <div className="mt-6 flex items-center gap-4" aria-hidden="true">
+            <span className="h-px flex-1 bg-sand" />
+            {/* En la serif y no en la de cuerpo: Montserrat es geométrica y su
+                "o" minúscula es un círculo perfecto, así que sola entre dos
+                rayas se lee como un símbolo y no como la palabra "o". */}
+            <span className="font-heading text-lg leading-none text-ink-muted">
+              {isEnglish ? "or" : "o"}
+            </span>
+            <span className="h-px flex-1 bg-sand" />
+          </div>
+        </>
+      ) : null}
+
+      <form onSubmit={pedirCodigo} className={`${googleActivo ? "mt-6" : "mt-7"} space-y-5`}>
         <div>
           <label htmlFor="email" className="mb-2 block font-body text-sm font-medium text-ink">
             {isEnglish ? "Email" : "Correo electrónico"}
@@ -351,5 +433,32 @@ export function LoginForm({
         </button>
       </form>
     </div>
+  );
+}
+
+/**
+ * La "G" de Google, tal cual. Los cuatro colores y las proporciones son parte
+ * de sus condiciones de marca: no se tiñe con currentColor ni se recorta.
+ */
+function LogoGoogle() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden="true" focusable="false">
+      <path
+        fill="#4285F4"
+        d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.46a5.52 5.52 0 0 1-2.4 3.62v3.01h3.88c2.27-2.09 3.58-5.17 3.58-8.82Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.96-1.08 7.94-2.91l-3.88-3.01c-1.08.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.95H1.26v3.11A12 12 0 0 0 12 24Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27 14.28a7.21 7.21 0 0 1 0-4.56V6.61H1.26a12 12 0 0 0 0 10.78l4.01-3.11Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.76 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.26 6.61l4.01 3.11C6.22 6.88 8.87 4.75 12 4.75Z"
+      />
+    </svg>
   );
 }

@@ -1,0 +1,141 @@
+<!--
+  CÓDIGO DE ACCESO AL PANEL — plantilla de correo de Blue Book.
+
+  DÓNDE SE PEGA
+  Supabase → Authentication → Emails → Templates. Hay que pegarlo en DOS:
+    · "Magic Link"      → lo recibe quien ya tiene usuario
+    · "Confirm signup"  → lo recibe quien entra por primera vez
+  LoginForm manda shouldCreateUser: true, así que las dos se usan de verdad.
+  Si solo se pega en una, la mitad de las parejas recibe el correo gris de
+  Supabase y la otra mitad este. El asunto (Subject) también se cambia ahí:
+    Su código para entrar a Blue Book
+
+  LO QUE NO PUEDE LLEVAR
+  {{ .ConfirmationURL }}. Ni como extra ni "por comodidad". El enlace y el
+  código son EL MISMO token de un solo uso, así que el escáner de enlaces de
+  Gmail abre el enlace y gasta el código antes de que nadie lo teclee. Está
+  medido en los logs de Supabase: /verify ocho segundos después del envío y el
+  código de la pareja llegando después a "token has expired". Por eso aquí no
+  hay ni un solo <a href>.
+
+  LARGO DEL CÓDIGO
+  Lo decide Supabase (Sign In / Up → Email OTP Length), hoy en 8. La plantilla
+  no lo fija: {{ .Token }} imprime los que sean.
+
+  SIN IMÁGENES a propósito. Casi todos los clientes de correo bloquean las
+  imágenes de un remitente nuevo, y un correo cuya marca es una imagen llega
+  roto justo la primera vez, que es la que importa.
+-->
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>Su código para entrar a Blue Book</title>
+    <style>
+      /* Apple Mail y clientes que respetan el modo oscuro. Gmail invierte por
+         su cuenta y no lee esto; por eso los colores de abajo también se leen
+         bien invertidos. */
+      @media (prefers-color-scheme: dark) {
+        .bb-fondo { background-color: #14202f !important; }
+        .bb-tarjeta { background-color: #1b2838 !important; border-color: #2c3d52 !important; }
+        .bb-tinta { color: #eef2f7 !important; }
+        .bb-tinta-suave { color: #b3c0d1 !important; }
+        .bb-codigo { background-color: #14202f !important; border-color: #4a76a8 !important; color: #eef2f7 !important; }
+        .bb-pie { color: #8a99ad !important; }
+      }
+      /* Teléfonos: el código no cabe con 8px de tracking en pantallas chicas. */
+      @media only screen and (max-width: 480px) {
+        .bb-codigo { font-size: 27px !important; letter-spacing: 5px !important; text-indent: 5px !important; }
+        .bb-relleno { padding: 32px 24px !important; }
+      }
+    </style>
+  </head>
+  <body class="bb-fondo" style="margin:0; padding:0; background-color:#fbf8f5; -webkit-text-size-adjust:100%;">
+    <!-- Línea de vista previa: el código se ve desde la notificación, sin abrir
+         el correo. Si prefieren que no aparezca ahí, borren este bloque. -->
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+      Su código es {{ .Token }} &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bb-fondo" style="background-color:#fbf8f5;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+
+            <!-- Marca -->
+            <tr>
+              <td align="center" style="padding-bottom:28px;">
+                <span class="bb-tinta" style="font-family:Georgia,'Times New Roman',serif; font-size:23px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:#1d2e4b;">
+                  Blue Book
+                </span>
+              </td>
+            </tr>
+
+            <!-- Tarjeta -->
+            <tr>
+              <td class="bb-tarjeta" style="background-color:#ffffff; border:1px solid #e4d8cf; border-radius:16px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td class="bb-relleno" align="center" style="padding:40px 40px 36px 40px;">
+
+                      <h1 class="bb-tinta" style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:27px; font-weight:400; line-height:1.25; letter-spacing:-0.01em; color:#1d2e4b;">
+                        Su código para entrar
+                      </h1>
+
+                      <p class="bb-tinta-suave" style="margin:14px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:15px; line-height:1.6; color:#5a6a84;">
+                        Escríbanlo en la pantalla donde lo pidieron.
+                      </p>
+
+                      <!-- El código -->
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:30px auto 0 auto;">
+                        <tr>
+                          <td class="bb-codigo" align="center" style="background-color:#fbf8f5; border:1.5px solid #4a76a8; border-radius:12px; padding:22px 30px; font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,'Courier New',monospace; font-size:33px; font-weight:600; letter-spacing:8px; text-indent:8px; line-height:1.1; color:#1d2e4b; white-space:nowrap;">
+                            {{ .Token }}
+                          </td>
+                        </tr>
+                      </table>
+
+                      <p class="bb-pie" style="margin:18px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:13px; line-height:1.6; color:#5a6a84;">
+                        Caduca en una hora y solo sirve una vez.
+                      </p>
+
+                      <!-- Separador -->
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 0 0;">
+                        <tr><td style="height:1px; background-color:#efe6e0; line-height:1px; font-size:0;">&nbsp;</td></tr>
+                      </table>
+
+                      <p class="bb-pie" style="margin:22px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:13px; line-height:1.65; color:#5a6a84;">
+                        Si no fueron ustedes quienes lo pidieron, pueden ignorar este correo: sin el código nadie entra.
+                      </p>
+
+                      <p class="bb-pie" style="margin:14px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:12px; line-height:1.6; color:#8a99ad;">
+                        <em>Your Blue Book sign-in code. Type it on the screen where you asked for it — it expires in one hour.</em>
+                      </p>
+
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Pie -->
+            <tr>
+              <td align="center" style="padding:24px 16px 0 16px;">
+                <p class="bb-pie" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:12px; line-height:1.7; color:#8a99ad;">
+                  Blue Book · bluebook.mx<br />
+                  Su boda, organizada.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

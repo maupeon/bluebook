@@ -2,10 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
-// Callback de Supabase para el magic link. Soporta los dos formatos de enlace que
-// puede generar la plantilla de correo:
-//  - PKCE: ?code=...           (exchangeCodeForSession)
-//  - OTP:  ?token_hash=&type=  (verifyOtp)
+// Callback de Supabase. Atiende las tres vueltas posibles:
+//  - PKCE:  ?code=...           (exchangeCodeForSession) — Google y magic link
+//  - OTP:   ?token_hash=&type=  (verifyOtp)
+//  - Fallo: ?error=...          (Google cuando cancelan o niegan el permiso)
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -13,6 +13,23 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const nextParam = searchParams.get("next");
   const next = nextParam && nextParam.startsWith("/") ? nextParam : "/panel";
+
+  // Google no manda `code` si la persona le dio a "Cancelar" en su pantalla de
+  // cuentas. Eso no es un fallo: es alguien que se arrepintió. Mandarlo a
+  // /acceso?error=1 le diría "no pudimos entrar con ese enlace", que además de
+  // falso lo deja pensando que algo se rompió.
+  const oauthError = searchParams.get("error");
+  if (oauthError) {
+    if (oauthError === "access_denied") {
+      return NextResponse.redirect(`${origin}/acceso`);
+    }
+    console.error(
+      "[auth/callback] el proveedor devolvió un error:",
+      oauthError,
+      searchParams.get("error_description") ?? ""
+    );
+    return NextResponse.redirect(`${origin}/acceso?error=1`);
+  }
 
   const supabase = await createClient();
 
