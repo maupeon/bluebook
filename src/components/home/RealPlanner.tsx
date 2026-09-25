@@ -49,8 +49,8 @@ export function RealPlanner() {
             <Reveal delay={160}>
               <Lead className="mt-5 max-w-xl">
                 {en
-                  ? "Blue Book isn't an app that leaves you alone with a list. A professional wedding planner looks after your wedding, and she's one message away."
-                  : "Blue Book no es una app que te deja sola con una lista. Una wedding planner profesional cuida tu boda, y está a un mensaje de distancia."}
+                  ? "Blue Book isn't an app that leaves you alone with a list. With the monthly plan, a professional wedding planner looks after your wedding, and she's one message away."
+                  : "Blue Book no es una app que te deja sola con una lista. Con el plan mensual, una wedding planner profesional cuida tu boda, y está a un mensaje de distancia."}
               </Lead>
             </Reveal>
 
@@ -68,11 +68,14 @@ export function RealPlanner() {
             </ul>
 
             <Reveal delay={420}>
+              {/* Antes decía que nada le llegaba a los invitados sin revisión: la
+                  invitación de autoservicio (solo invitaciones) sale sin pasar
+                  por una planner, así que la frase ya no era cierta para todas. */}
               <blockquote className="mt-10 border-l-2 border-wash-deep pl-5">
                 <p className="font-heading text-2xl font-medium italic leading-snug tracking-[-0.01em] text-navy sm:text-[1.7rem]">
                   {en
-                    ? "Nothing reaches your guests without someone reviewing it first."
-                    : "Nada le llega a tus invitados sin que alguien lo haya revisado antes."}
+                    ? "On the other side of every message, a person."
+                    : "Del otro lado de cada mensaje, una persona."}
                 </p>
               </blockquote>
             </Reveal>

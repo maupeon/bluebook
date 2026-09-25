@@ -4,15 +4,30 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { Faq, type FaqItem } from "@/components/marketing/Faq";
 import { Em } from "@/components/marketing/ui";
 import { CONTACT_INFO } from "@/lib/language";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
 
 const price = formatMXN(AGENT_PLAN.priceMxMonthly);
 
+// La prueba se explica igual en inicio y en precios. Dice lo que se queda
+// fuera (el envío por WhatsApp) y qué pasa si no elige, porque es lo primero
+// que alguien desconfiada pregunta de un «gratis».
+export const FAQ_PRUEBA_ES: FaqItem = {
+  q: "¿Cómo funciona la prueba gratis?",
+  a: `Son ${DIAS_DE_PRUEBA} días con tu panel completo y no te pedimos tarjeta. Puedes armar tu invitación desde el primer día; el envío por WhatsApp se activa cuando eliges tu plan. Al séptimo día eliges: el plan mensual de ${price} o un solo pago por tus invitaciones. Si todavía no eliges, tu panel se queda para consulta y nada se borra.`,
+};
+
+export const FAQ_PRUEBA_EN: FaqItem = {
+  q: "How does the free trial work?",
+  a: `${DIAS_DE_PRUEBA} days with your whole dashboard, and we don't ask for a card. You can put your invitation together from day one; sending it on WhatsApp opens up when you choose your plan. On day ${DIAS_DE_PRUEBA} you choose: the ${price} monthly plan or a single payment for your invitations. If you don't choose yet, your dashboard stays open to read and nothing is deleted.`,
+};
+
 export const HOME_FAQ_ES: FaqItem[] = [
   {
     q: "¿Qué es Blue Book, exactamente?",
-    a: "Una plataforma donde vive toda tu boda (proveedores, pagos, pendientes, invitaciones, confirmaciones y el guion del día) y una wedding planner real que la cuida contigo. Tú y tu pareja entran con su correo y ven exactamente lo mismo.",
+    a: "Una plataforma donde vive toda tu boda (proveedores, pagos, pendientes, invitaciones, confirmaciones y el guion del día) y, con el plan mensual, una wedding planner real que la cuida contigo. Tú y tu pareja entran con su correo y ven exactamente lo mismo.",
   },
+  FAQ_PRUEBA_ES,
   {
     q: "¿En qué es distinta de una wedding planner presencial?",
     a: `Una planner presencial suele cobrar entre 10 y 15% de tu presupuesto y está contigo el día de la boda. Blue Book cuesta ${price} al mes y tiene todo a la vista en tu panel, con una planner real revisando. No estamos físicamente en tu evento: te dejamos el guion listo para quien coordine ese día.`,
@@ -31,7 +46,7 @@ export const HOME_FAQ_ES: FaqItem[] = [
   },
   {
     q: "¿Puedo empezar si todavía no tengo fecha?",
-    a: "Sí, y es buen momento: tu planner te ayuda a ordenar presupuesto, invitados y decisiones grandes antes de fijarla. Cuando la tengas, lo demás ya va avanzado.",
+    a: "Sí, y es buen momento. La fecha se puede quedar en «todavía no sé»: tu panel arranca con lo que ya sepas y la agregas cuando la tengan. Para entonces, lo demás ya va avanzado.",
   },
   {
     q: "¿Cómo cancelo?",
@@ -42,8 +57,9 @@ export const HOME_FAQ_ES: FaqItem[] = [
 export const HOME_FAQ_EN: FaqItem[] = [
   {
     q: "What is Blue Book, exactly?",
-    a: "A platform where your whole wedding lives (vendors, payments, to-dos, invitations, RSVPs and the day's run-of-show) and a real wedding planner who looks after it with you. You and your partner sign in with your email and see exactly the same thing.",
+    a: "A platform where your whole wedding lives (vendors, payments, to-dos, invitations, RSVPs and the day's run-of-show) and, with the monthly plan, a real wedding planner who looks after it with you. You and your partner sign in with your email and see exactly the same thing.",
   },
+  FAQ_PRUEBA_EN,
   {
     q: "How is it different from an in-person wedding planner?",
     a: `An in-person planner usually charges 10–15% of your budget and is with you on the wedding day. Blue Book costs ${price} a month and keeps everything in sight on your dashboard, with a real planner reviewing it. We're not physically at your event: we leave the run-of-show ready for whoever coordinates that day.`,
@@ -62,7 +78,7 @@ export const HOME_FAQ_EN: FaqItem[] = [
   },
   {
     q: "Can I start if I don't have a date yet?",
-    a: "Yes, and it's a good time to: your planner helps you sort the budget, the guest list and the big decisions before you set it. By the time you have it, the rest is already moving.",
+    a: "Yes, and it's a good time to. The date can stay as \"not sure yet\": your dashboard starts with whatever you already know and you add it once you have it. By then, the rest is already moving.",
   },
   {
     q: "How do I cancel?",

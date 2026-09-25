@@ -89,14 +89,14 @@ const SERVICES: Service[] = [
       eyebrow: "Invitaciones",
       title: <>Invitaciones que <Em>llegan solas.</Em></>,
       body: "Tu invitación digital, con la fecha, el lugar y los nombres de los dos, le llega a cada invitado por WhatsApp. Sin imprimir, sin reenviar, sin perseguir direcciones.",
-      bullets: ["Enviada por WhatsApp a cada invitado", "Con la fecha, el lugar y la pregunta de si viene", "Revisada por una persona antes de salir"],
+      bullets: ["Enviada por WhatsApp a cada invitado", "Con la fecha, el lugar y la pregunta de si viene", "Con tu propio diseño o uno de nuestros estilos"],
     },
     en: {
       nav: "Invitations",
       eyebrow: "Invitations",
       title: <>Invitations that <Em>send themselves.</Em></>,
       body: "Your digital invitation, with the date, the venue and both your names, reaches every guest on WhatsApp. No printing, no forwarding, no chasing addresses.",
-      bullets: ["Sent on WhatsApp to every guest", "With the date, the venue and the RSVP question", "Reviewed by a person before it goes out"],
+      bullets: ["Sent on WhatsApp to every guest", "With the date, the venue and the RSVP question", "With your own design or one of our styles"],
     },
     visual: (en) => <InvitationMock en={en} />,
   },
@@ -160,14 +160,14 @@ const SERVICES: Service[] = [
       nav: "Tu planner",
       eyebrow: "Tu planner",
       title: <>Y una planner real, <Em>contigo.</Em></>,
-      body: "Detrás de la plataforma hay una wedding planner profesional: revisa tu presupuesto, te orienta con proveedores y tiempos, arma contigo el guion del día y revisa cada invitación antes de que salga.",
+      body: "Con el plan mensual, detrás de la plataforma hay una wedding planner profesional: revisa tu presupuesto, te orienta con proveedores y tiempos, arma contigo el guion del día y revisa cada invitación antes de que salga.",
       bullets: ["Revisa tu boda de verdad", "Te orienta cuando no sabes qué sigue", "Está a un mensaje de distancia"],
     },
     en: {
       nav: "Your planner",
       eyebrow: "Your planner",
       title: <>And a real planner, <Em>with you.</Em></>,
-      body: "Behind the platform there's a professional wedding planner: she reviews your budget, guides you on vendors and timing, builds the run-of-show with you and checks every invitation before it goes out.",
+      body: "With the monthly plan, there's a professional wedding planner behind the platform: she reviews your budget, guides you on vendors and timing, builds the run-of-show with you and checks every invitation before it goes out.",
       bullets: ["Really reviews your wedding", "Guides you when you don't know what's next", "One message away"],
     },
     visual: (en) => (
@@ -208,8 +208,8 @@ export function ServiciosContent() {
               <Reveal delay={160}>
                 <Lead className="mt-6 max-w-xl">
                   {en
-                    ? "Eight things that usually live in twenty places, together in one dashboard you share with your partner and your planner."
-                    : "Ocho cosas que normalmente viven en veinte lugares, juntas en un panel que compartes con tu pareja y con tu planner."}
+                    ? "Eight things that usually live in twenty places, together in one dashboard you share with your partner."
+                    : "Ocho cosas que normalmente viven en veinte lugares, juntas en un panel que compartes con tu pareja."}
                 </Lead>
               </Reveal>
             </div>
@@ -324,8 +324,8 @@ export function ServiciosContent() {
                 </h2>
                 <p className="mt-3 max-w-[56ch] font-body text-[15px] leading-relaxed text-navy-muted">
                   {en
-                    ? "You, your partner and your planner see the same thing. You sign in with your email and a code: no passwords to remember, from your phone or your laptop."
-                    : "Tú, tu pareja y tu planner ven lo mismo. Entras con tu correo y un código: sin contraseñas que recordar, desde el celular o la compu."}
+                    ? "You and your partner see the same thing and, with the monthly plan, so does your planner. You sign in with your email and a code: no passwords to remember, from your phone or your laptop."
+                    : "Tú y tu pareja ven lo mismo y, con el plan mensual, también tu planner. Entras con tu correo y un código: sin contraseñas que recordar, desde el celular o la compu."}
                 </p>
               </div>
               <Link

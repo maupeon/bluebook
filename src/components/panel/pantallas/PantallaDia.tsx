@@ -39,9 +39,15 @@ export function PantallaDia({ bundle }: { bundle: PanelBundle }) {
         <Reveal app className="mt-10">
           <div className="panel-card p-7">
             <EmptyNote>
-              {isEnglish
-                ? "Your planner hasn't put the timeline together yet. When she does, the whole day shows up here, hour by hour."
-                : "Su planner todavía no arma el guion del día. Cuando lo haga, aquí va a aparecer el día completo, hora por hora."}
+              {/* Sin planner nadie tiene encargado el guion: el vacío dice
+                  qué va a haber aquí sin prometer quién lo arma. */}
+              {bundle.wedding.tienePlanner
+                ? isEnglish
+                  ? "Your planner hasn't put the timeline together yet. When she does, the whole day shows up here, hour by hour."
+                  : "Su planner todavía no arma el guion del día. Cuando lo haga, aquí va a aparecer el día completo, hora por hora."
+                : isEnglish
+                  ? "There's no timeline for the day yet. Once there is, the whole day shows up here, hour by hour."
+                  : "Todavía no hay guion del día. Cuando exista, aquí va a aparecer el día completo, hora por hora."}
             </EmptyNote>
           </div>
         </Reveal>

@@ -7,6 +7,7 @@ import { Reveal } from "@/components/Reveal";
 import { DiscoBall, Sparkle, Star } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { ButtonAnchor, ButtonLink, Container } from "@/components/marketing/ui";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { CONTACT_INFO } from "@/lib/language";
 
 /*
@@ -45,14 +46,17 @@ export function ClosingCTA({ title, body }: { title?: ReactNode; body?: string }
                   ))}
               </h2>
               <p className="mx-auto mt-5 max-w-lg font-body text-base leading-relaxed text-white/75">
+                {/* Antes prometía «tu planner te escribe en menos de 24 horas»: en
+                    la prueba la boda no tiene planner, y lo que sí pasa al momento
+                    es que el panel ya está armado. */}
                 {body ??
                   (en
-                    ? "Tell us about your wedding in five minutes and your planner will reach out within 24 hours."
-                    : "Cuéntanos de tu boda en cinco minutos y tu planner te escribe en menos de 24 horas.")}
+                    ? `Tell us about your wedding in two minutes and your dashboard is ready right away. ${DIAS_DE_PRUEBA} days free, no card.`
+                    : `Cuéntanos de tu boda en dos minutos y tu panel queda listo al momento. ${DIAS_DE_PRUEBA} días gratis, sin tarjeta.`)}
               </p>
               <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <ButtonLink href="/comenzar" variant="light" arrow>
-                  {en ? "Start your wedding" : "Empieza tu boda"}
+                  {en ? "Start free" : "Empieza gratis"}
                 </ButtonLink>
                 <ButtonAnchor
                   href={CONTACT_INFO.whatsappUrl}

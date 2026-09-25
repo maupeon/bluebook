@@ -1,31 +1,32 @@
 import type { Metadata } from "next";
-import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
-import type { CoupleService } from "@/lib/weddingPlans";
+import { redirect } from "next/navigation";
+import { Onboarding } from "@/components/onboarding/Onboarding";
+import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
+import { sesionDeComenzar } from "./sesion";
 
 export const metadata: Metadata = {
-  title: { absolute: "Comenzar | Blue Book" },
+  title: { absolute: "Empieza tu boda | Blue Book" },
   description:
-    "Cuéntennos de su boda en dos minutos y su planner les escribe por WhatsApp en menos de 24 horas.",
+    "Cuéntanos de tu boda en dos minutos y prueba tu panel siete días gratis, sin tarjeta.",
   robots: { index: false },
 };
 
-export default async function ComenzarPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const { servicio, express } = await searchParams;
-  const value = Array.isArray(servicio) ? servicio[0] : servicio;
+// Los enlaces viejos traen ?servicio= y ?express= (Plans.tsx, correos ya
+// enviados). Ya no eligen nada: el plan se decide al terminar la prueba. Se
+// ignoran sin romper la página.
+export default async function ComenzarPage() {
+  const sesion = await sesionDeComenzar();
 
-  const initialService: CoupleService | null =
-    value === "planner"
-      ? "planner"
-      : value === "invitaciones" || value === "invitations"
-        ? "invitations"
-        : null;
+  // Quien ya tiene boda no vuelve a contarla: entra a la suya.
+  if (sesion && (await getCoupleWeddingByEmail(sesion.correo))) {
+    redirect("/panel");
+  }
 
-  const expressValue = Array.isArray(express) ? express[0] : express;
-  const isExpress = expressValue === "1" || expressValue === "true";
-
-  return <OnboardingWizard initialService={initialService} express={isExpress} />;
+  return (
+    <Onboarding
+      modo="nuevo"
+      correoDeSesion={sesion?.correo ?? null}
+      nombreDeGoogle={sesion?.nombreDeGoogle ?? null}
+    />
+  );
 }

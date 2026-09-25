@@ -256,7 +256,7 @@ export default function ContactoPage() {
                     href="/comenzar"
                     className="font-semibold text-azul-deep underline decoration-wash-deep underline-offset-4 transition-colors hover:text-navy"
                   >
-                    {en ? "Tell us about your wedding in five minutes." : "Cuéntanos de tu boda en cinco minutos."}
+                    {en ? "Try it free for 7 days, no card." : "Pruébalo 7 días gratis, sin tarjeta."}
                   </Link>
                 </p>
               </Reveal>

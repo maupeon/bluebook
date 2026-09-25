@@ -5,20 +5,24 @@ import type { Language } from "@/lib/language";
 
 export type CoupleService = "planner" | "invitations";
 
+// El nombre viaja a los checkouts nuevos de Stripe (checkoutDeBoda) y al resumen
+// del onboarding. Antes decía «Planner con IA» y «Tu wedding planner en
+// WhatsApp»: no hay IA que planee ni una planner que conteste por WhatsApp, y
+// el nombre de lo que se cobra no puede prometer lo que no existe.
 export const AGENT_PLAN = {
   id: "planner_monthly",
   priceMxMonthly: 1000,
   es: {
-    name: "Planner con IA",
+    name: "Planner completo",
     period: "al mes",
     description:
-      "Tu wedding planner en WhatsApp: invitaciones, tareas, presupuesto y recordatorios, con una planner real detrás.",
+      "Toda tu boda en un panel que compartes con tu pareja: proveedores, pagos, pendientes, invitaciones y confirmaciones, con una wedding planner real cuidándola contigo.",
   },
   en: {
-    name: "AI Planner",
+    name: "Full planner",
     period: "per month",
     description:
-      "Your wedding planner on WhatsApp: invitations, tasks, budget and reminders, with a real planner behind it.",
+      "Your whole wedding in one dashboard you share with your partner: vendors, payments, to-dos, invitations and RSVPs, with a real wedding planner looking after it with you.",
   },
 } as const;
 

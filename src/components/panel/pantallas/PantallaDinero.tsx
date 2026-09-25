@@ -24,10 +24,29 @@ import {
 export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
   const { isEnglish } = useLanguage();
   const { budget } = bundle;
+  const conPlanner = bundle.wedding.tienePlanner;
 
-  const titular = isEnglish
-    ? `You've paid ${formatMXN(budget.paid)}`
-    : `Llevan pagado ${formatMXN(budget.paid)}`;
+  // Con nada contratado ni pagado, "Llevan pagado $0" era el titular de la
+  // pantalla: un cero de entrada. Si ya hay presupuesto (lo dijeron en el
+  // onboarding o lo puso la planner), ése es el dato que tienen.
+  const sinMovimientos = budget.paid <= 0 && budget.contracted <= 0;
+  const titular =
+    sinMovimientos && budget.budgetTotal != null
+      ? isEnglish
+        ? `A budget of ${formatMXN(budget.budgetTotal)}`
+        : `Un presupuesto de ${formatMXN(budget.budgetTotal)}`
+      : isEnglish
+        ? `You've paid ${formatMXN(budget.paid)}`
+        : `Llevan pagado ${formatMXN(budget.paid)}`;
+
+  // Sin planner, pagos, partidas y proveedores sólo los captura el admin: sus
+  // tres vacíos seguidos eran tres tarjetas de "aún no hay" que nadie va a
+  // llenar. Se enseñan en cuanto alguna tenga algo.
+  const hayDesglose =
+    bundle.payments.length > 0 ||
+    bundle.vendors.length > 0 ||
+    (!bundle.checklist.unavailable && bundle.checklist.itemCount > 0);
+  const verDesglose = conPlanner || hayDesglose;
 
   const bajada =
     budget.contracted <= 0
@@ -59,26 +78,35 @@ export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
       </Reveal>
 
       <Reveal app className="mt-10">
-        <BudgetSection budget={budget} isEnglish={isEnglish} />
+        <BudgetSection budget={budget} isEnglish={isEnglish} conPlanner={conPlanner} />
       </Reveal>
 
-      <Reveal app className="mt-8">
-        <PaymentsSection payments={bundle.payments} isEnglish={isEnglish} />
-      </Reveal>
+      {verDesglose ? (
+        <>
+          <Reveal app className="mt-8">
+            <PaymentsSection
+              payments={bundle.payments}
+              isEnglish={isEnglish}
+              conPlanner={conPlanner}
+            />
+          </Reveal>
 
-      {bundle.checklist.unavailable ? null : (
-        <Reveal app className="mt-8">
-          <ChecklistSection
-            checklist={bundle.checklist}
-            unlinkedPaid={budget.unlinkedPaid}
-            isEnglish={isEnglish}
-          />
-        </Reveal>
-      )}
+          {bundle.checklist.unavailable ? null : (
+            <Reveal app className="mt-8">
+              <ChecklistSection
+                checklist={bundle.checklist}
+                unlinkedPaid={budget.unlinkedPaid}
+                isEnglish={isEnglish}
+                conPlanner={conPlanner}
+              />
+            </Reveal>
+          )}
 
-      <Reveal app className="mt-8 mb-4">
-        <VendorsSection vendors={bundle.vendors} isEnglish={isEnglish} />
-      </Reveal>
+          <Reveal app className="mt-8 mb-4">
+            <VendorsSection vendors={bundle.vendors} isEnglish={isEnglish} />
+          </Reveal>
+        </>
+      ) : null}
     </div>
   );
 }

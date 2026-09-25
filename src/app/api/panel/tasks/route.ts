@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { coupleOwnsWedding, getCoupleWeddingByEmail } from "@/lib/couplePanel";
+import { exigirEdicion } from "@/lib/acceso";
 
 const ISO_RE =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/;
@@ -88,6 +89,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
+
   const admin = createAdminClient();
   const { data: inserted, error: insertError } = await admin
     .from("tasks")
@@ -161,6 +165,11 @@ export async function DELETE(req: NextRequest) {
       { status: 403 }
     );
   }
+
+  // La boda sale de la fila, no de la sesión: el candado va después de saber
+  // que es suya para no revelar el estado de una boda ajena.
+  const cerrado = await exigirEdicion(taskRow.wedding_id);
+  if (cerrado) return cerrado;
 
   if (taskRow.created_by !== "couple") {
     return NextResponse.json(
@@ -270,6 +279,11 @@ export async function PUT(req: NextRequest) {
       { status: 403 }
     );
   }
+
+  // La boda sale de la fila, no de la sesión: el candado va después de saber
+  // que es suya para no revelar el estado de una boda ajena.
+  const cerrado = await exigirEdicion(taskRow.wedding_id);
+  if (cerrado) return cerrado;
 
   // 5. Actualizar
   const { data: updated, error: updateError } = await admin

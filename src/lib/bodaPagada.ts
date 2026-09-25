@@ -2,8 +2,9 @@ import "server-only";
 import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPaymentNotificationEmail } from "@/lib/email";
-import { AGENT_PLAN, getInvitationTier } from "@/lib/weddingPlans";
+import { AGENT_PLAN, INVITATION_TIERS, getInvitationTier } from "@/lib/weddingPlans";
 import { sincronizarSuscripcion, stripeServidor } from "@/lib/suscripcion";
+import { avisarConversion } from "@/lib/avisosDePrueba";
 
 export interface BodaPagada {
   weddingId: string;
@@ -58,19 +59,45 @@ export async function registrarPagoDeBoda(
   // solicitudes de antes no lo traían y en ese caso Stripe sí lo pidió.
   const email = lead.email || session.customer_details?.email || session.customer_email || null;
 
+  // Marcar el pago UNA vez por sesión. El filtro va en el UPDATE y no solo en
+  // el if: el webhook y la página de gracias pueden leer la solicitud a la vez,
+  // y así solo uno de los dos ve su fila actualizada. De eso depende que el
+  // aviso de «convirtió» salga una sola vez. (session.id viene de Stripe:
+  // cs_… sin comas ni paréntesis, se puede meter en el filtro.)
+  //
+  // La solicitud queda con lo que DE VERDAD se pagó (productType y el tramo de
+  // la metadata de la sesión), no con lo último que se eligió: en la prueba se
+  // elige plan antes de pagar, y con dos pestañas lo elegido y lo pagado podían
+  // ser distintos. quoted_price_mx es el precio de lista de lo comprado, no lo
+  // cobrado: con un código de promoción son cosas distintas.
+  // Los ids de Stripe solo se escriben si vienen: un pago de invitaciones
+  // (sin suscripción) no debe borrar la suscripción que ya estaba ligada.
+  const tramoPagado =
+    productType === "invitations" && typeof metadata.tramo === "string"
+      ? INVITATION_TIERS.find((t) => t.id === metadata.tramo) ?? null
+      : null;
+  const precioDeLista =
+    productType === "planner" ? AGENT_PLAN.priceMxMonthly : tramoPagado?.priceMx ?? null;
+  let primeraVezDeEstaSesion = false;
   if (lead.stripe_session_id !== session.id) {
-    const { error: updateError } = await supabase
+    const { data: marcadas, error: updateError } = await supabase
       .from("couple_leads")
       .update({
         paid_at: new Date().toISOString(),
         stripe_session_id: session.id,
-        stripe_customer_id: typeof session.customer === "string" ? session.customer : null,
-        stripe_subscription_id:
-          typeof session.subscription === "string" ? session.subscription : null,
+        service: productType,
+        ...(precioDeLista != null ? { quoted_price_mx: precioDeLista } : {}),
+        ...(typeof session.customer === "string" ? { stripe_customer_id: session.customer } : {}),
+        ...(typeof session.subscription === "string"
+          ? { stripe_subscription_id: session.subscription }
+          : {}),
         ...(lead.email ? {} : { email }),
       })
-      .eq("id", leadId);
+      .eq("id", leadId)
+      .or(`stripe_session_id.is.null,stripe_session_id.neq.${session.id}`)
+      .select("id");
     if (updateError) throw new Error(`No se pudo marcar el pago: ${updateError.message}`);
+    primeraVezDeEstaSesion = (marcadas?.length ?? 0) > 0;
   }
 
   const { data: activada, error: rpcError } = await supabase.rpc("activar_solicitud", {
@@ -93,6 +120,33 @@ export async function registrarPagoDeBoda(
     } catch (err) {
       console.error("No se pudo sincronizar la suscripción del pago", session.id, err);
     }
+  }
+
+  // Una boda que ya existía y paga está eligiendo su plan: sobre todo una
+  // prueba que convierte (0030). El tier sigue a lo que pagó. Para las bodas
+  // que nacieron aquí mismo no hace falta: activar_solicitud ya lo puso con el
+  // service de la solicitud.
+  //
+  // Nunca hacia abajo con una suscripción viva: si pagaron el mensual y luego
+  // (otra pestaña, otra sesión) unas invitaciones, el mensual sigue cobrando y
+  // su panel no puede quedar como de solo invitaciones.
+  if (yaExistia) {
+    let tier: "full" | "invitations" = productType === "planner" ? "full" : "invitations";
+    if (tier === "invitations") {
+      const { data: sub } = await supabase
+        .from("v_suscripciones")
+        .select("situacion")
+        .eq("wedding_id", weddingId)
+        .maybeSingle();
+      if (sub && ["al_corriente", "termina", "pago_pendiente"].includes(sub.situacion as string)) {
+        tier = "full";
+      }
+    }
+    const { error: tierError } = await supabase
+      .from("weddings")
+      .update({ tier })
+      .eq("id", weddingId);
+    if (tierError) console.error("No se pudo ajustar el tier tras el pago", weddingId, tierError.message);
   }
 
   // Aviso a la planner solo de quien CREÓ la boda: el webhook y la página
@@ -121,9 +175,23 @@ export async function registrarPagoDeBoda(
   // planner la activó antes a mano, pudo haberle puesto otro.
   const { data: boda } = await supabase
     .from("weddings")
-    .select("contact_email")
+    .select("contact_email, couple_name, prueba_termina_en")
     .eq("id", weddingId)
     .maybeSingle();
+
+  // Una prueba que convierte. Sin esto el equipo no se entera: el aviso de
+  // arriba solo sale cuando el pago crea la boda, y aquí la boda ya existía.
+  if (yaExistia && primeraVezDeEstaSesion && boda?.prueba_termina_en) {
+    const importe =
+      typeof session.amount_total === "number" ? session.amount_total / 100 : null;
+    await avisarConversion({
+      weddingId,
+      pareja: boda.couple_name || lead.partner1_name || "Una pareja",
+      email,
+      plan: productType,
+      importeMx: importe,
+    });
+  }
 
   return { weddingId, email: boda?.contact_email ?? null };
 }

@@ -114,9 +114,16 @@ function humanizeCategory(category: string, isEnglish: boolean): string {
 export function BudgetSection({
   budget,
   isEnglish,
+  conPlanner = true,
 }: {
   budget: BudgetSummary;
   isEnglish: boolean;
+  /**
+   * false en una boda sin planner (la prueba nace así). Los textos que dicen
+   * "su planner estimó…" le prometían a alguien que no existe; sin ella el
+   * presupuesto es el que la pareja nos contó en el onboarding.
+   */
+  conPlanner?: boolean;
 }) {
   const {
     budgetTotal,
@@ -150,10 +157,57 @@ export function BudgetSection({
         </SectionTitle>
         <div className="mt-5">
           <EmptyNote>
-            {isEnglish
-              ? "Your planner hasn't set the budget yet."
-              : "Su planner aún no define el presupuesto."}
+            {conPlanner
+              ? isEnglish
+                ? "Your planner hasn't set the budget yet."
+                : "Su planner aún no define el presupuesto."
+              : isEnglish
+                ? "There's no budget here yet."
+                : "Todavía no hay un presupuesto aquí."}
           </EmptyNote>
+        </div>
+      </div>
+    );
+  }
+
+  // Un presupuesto y nada más: lo normal el primer día, sobre todo si la cifra
+  // la dijeron en el onboarding. La versión completa pintaba aquí una barra
+  // entera de "sin contratar" y tres cifras en $0 (Contratado, Pagado, Saldo):
+  // tres ceros que no informan nada y se leen como "no han hecho nada".
+  if (budgetTotal != null && !hasMoney) {
+    return (
+      <div className="panel-card p-6 sm:p-8 md:p-10">
+        <div className="grid gap-6 md:grid-cols-[1fr_1.4fr] md:items-end md:gap-12">
+          <div>
+            <Eyebrow>{isEnglish ? "Budget" : "Presupuesto"}</Eyebrow>
+            <SectionTitle>{isEnglish ? "Your budget" : "Su presupuesto"}</SectionTitle>
+            <p className="mt-5 font-heading text-5xl font-medium tracking-tight text-ink tabular-nums">
+              <span className="whitespace-nowrap">
+                {formatMXN(budgetTotal).replace(/ MXN$/, "")}
+              </span>
+              <span className="ml-2 font-body text-sm font-normal tracking-[0.08em] text-ink-muted">
+                MXN
+              </span>
+            </p>
+            <p className="mt-2 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+              {conPlanner
+                ? isEnglish
+                  ? "Estimated"
+                  : "Estimado"
+                : isEnglish
+                  ? "What you have in mind"
+                  : "Lo que tienen pensado"}
+            </p>
+          </div>
+          <p className="max-w-[46ch] font-body text-sm leading-relaxed text-ink-muted">
+            {conPlanner
+              ? isEnglish
+                ? "Nothing is contracted yet. As your planner signs vendors, you'll see here what's paid and what's still free."
+                : "Todavía no hay nada contratado. Conforme su planner cierre proveedores, aquí van a ver lo pagado y lo que queda libre."
+              : isEnglish
+                ? "It's the figure you told us. Nothing is contracted or paid yet, so all of it is still free."
+                : "Es la cifra que nos contaron. Todavía no hay nada contratado ni pagado, así que está completa."}
+          </p>
         </div>
       </div>
     );
@@ -275,9 +329,13 @@ export function BudgetSection({
 
           {available === 0 ? (
             <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
-              {isEnglish
-                ? "Everything your planner estimated is already contracted."
-                : "Todo lo que su planner estimó ya está contratado."}
+              {conPlanner
+                ? isEnglish
+                  ? "Everything your planner estimated is already contracted."
+                  : "Todo lo que su planner estimó ya está contratado."
+                : isEnglish
+                  ? "Your whole budget is already contracted."
+                  : "Todo su presupuesto ya está contratado."}
             </p>
           ) : null}
 
@@ -376,11 +434,14 @@ export function ChecklistSection({
   checklist,
   unlinkedPaid,
   isEnglish,
+  conPlanner = true,
 }: {
   checklist: ChecklistSummary;
   /** Pagado a proveedores fuera de toda partida: lo que no cuadra, dicho. */
   unlinkedPaid: number;
   isEnglish: boolean;
+  /** false sin planner: nadie va a "ir agregando" partidas. */
+  conPlanner?: boolean;
 }) {
   // Sin la migración 0010 la vista no existe: la sección simplemente no sale.
   if (checklist.unavailable) return null;
@@ -400,9 +461,13 @@ export function ChecklistSection({
       {checklist.itemCount === 0 ? (
         <div className="mt-6">
           <EmptyNote>
-            {isEnglish
-              ? "No contracted items yet. Your planner will add them here."
-              : "Aún sin partidas contratadas. Su planner las irá agregando aquí."}
+            {conPlanner
+              ? isEnglish
+                ? "No contracted items yet. Your planner will add them here."
+                : "Aún sin partidas contratadas. Su planner las irá agregando aquí."
+              : isEnglish
+                ? "No contracted items yet."
+                : "Aún sin partidas contratadas."}
           </EmptyNote>
         </div>
       ) : (
@@ -547,9 +612,13 @@ export function ChecklistSection({
                                       {isEnglish ? "No amount yet" : "Sin monto"}
                                     </p>
                                     <p className="mt-0.5 max-w-[16ch] font-body text-xs leading-snug text-ink-muted">
-                                      {isEnglish
-                                        ? "Your planner hasn't set the price of this one."
-                                        : "Su planner todavía no le pone precio a esto."}
+                                      {conPlanner
+                                        ? isEnglish
+                                          ? "Your planner hasn't set the price of this one."
+                                          : "Su planner todavía no le pone precio a esto."
+                                        : isEnglish
+                                          ? "No price on this one yet."
+                                          : "Todavía no tiene precio."}
                                     </p>
                                   </>
                                 )}
@@ -620,9 +689,12 @@ function SeatList({
 export function SeatingSection({
   seating,
   isEnglish,
+  conPlanner = true,
 }: {
   seating: SeatingSummary;
   isEnglish: boolean;
+  /** false sin planner: el vacío no le promete a nadie que las va a armar. */
+  conPlanner?: boolean;
 }) {
   // Sin la migración 0011 no hay mesas que enseñar: la sección no sale.
   if (seating.unavailable) return null;
@@ -636,9 +708,13 @@ export function SeatingSection({
         <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
         <div className="mt-5">
           <EmptyNote>
-            {isEnglish
-              ? "Your planner hasn't laid out the tables yet."
-              : "Su planner aún no arma el acomodo de mesas."}
+            {conPlanner
+              ? isEnglish
+                ? "Your planner hasn't laid out the tables yet."
+                : "Su planner aún no arma el acomodo de mesas."
+              : isEnglish
+                ? "No tables laid out yet. Once there are, you'll see here who sits where."
+                : "Todavía no hay mesas acomodadas. Cuando las haya, aquí van a ver quién se sienta dónde."}
           </EmptyNote>
         </div>
       </div>
@@ -760,17 +836,22 @@ export function SeatingSection({
 export function PaymentsSection({
   payments,
   isEnglish,
+  conPlanner = true,
 }: {
   payments: PanelPayment[];
   isEnglish: boolean;
+  /** false sin planner: "Marcado por su planner" sería falso. */
+  conPlanner?: boolean;
 }) {
   return (
     <div className="panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Payments" : "Pagos"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Payments" : "Pagos"}</SectionTitle>
-      <p className="mt-3 font-body text-sm text-ink-muted">
-        {isEnglish ? "Marked by your planner." : "Marcado por su planner."}
-      </p>
+      {conPlanner ? (
+        <p className="mt-3 font-body text-sm text-ink-muted">
+          {isEnglish ? "Marked by your planner." : "Marcado por su planner."}
+        </p>
+      ) : null}
 
       {payments.length === 0 ? (
         <div className="mt-6">

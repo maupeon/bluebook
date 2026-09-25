@@ -6,6 +6,7 @@ import { CalendarClock, Home, Mail, Users, Wallet, Wine } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { countdownPhrase } from "@/components/panel/dates";
 import type { SeccionesDelPanel } from "@/lib/seccionesDelPanel";
+import { textoDeDias, type AccesoDeLaBoda } from "@/lib/accesoDeLaBoda";
 
 /**
  * Lo que el menú necesita saber para GUIAR, no sólo para enlazar.
@@ -17,6 +18,8 @@ import type { SeccionesDelPanel } from "@/lib/seccionesDelPanel";
 export interface EstadoDelMenu {
   diasRestantes: number | null;
   invitadosPendientes: number;
+  /** Cuántos hay en la lista. Cero = lo primero que les toca es hacerla. */
+  invitadosTotales: number;
   personasConfirmadas: number;
   dineroPorPagar: number;
   /** Lo contratado. Sin esto no se distingue "todo pagado" de "nada contratado". */
@@ -56,15 +59,22 @@ function destinos(e: EstadoDelMenu, isEnglish: boolean): Destino[] {
       href: "/panel/invitados",
       nombre: isEnglish ? "Guests" : "Invitados",
       pista:
-        e.invitadosPendientes > 0
+        e.invitadosTotales === 0
           ? isEnglish
-            ? `${e.invitadosPendientes} haven't replied`
-            : `${e.invitadosPendientes} sin contestar`
-          : isEnglish
-            ? `${e.personasConfirmadas} people coming`
-            : `Van ${e.personasConfirmadas} personas`,
+            ? "No list yet"
+            : "Aún sin lista"
+          : e.invitadosPendientes > 0
+            ? isEnglish
+              ? `${e.invitadosPendientes} haven't replied`
+              : `${e.invitadosPendientes} sin contestar`
+            : isEnglish
+              ? `${e.personasConfirmadas} people coming`
+              : `Van ${e.personasConfirmadas} personas`,
       Icono: Users,
-      llama: paso && e.invitadosPendientes > 0,
+      // Una lista vacía también llama: en una boda recién nacida (una prueba)
+      // es lo primero que hay que hacer, y sin el punto Invitados era el único
+      // destino que no decía nada.
+      llama: paso && (e.invitadosTotales === 0 || e.invitadosPendientes > 0),
     },
     {
       href: "/panel/invitacion",
@@ -129,13 +139,52 @@ function esActivo(pathname: string, href: string): boolean {
   return href === "/panel" ? pathname === "/panel" : pathname.startsWith(href);
 }
 
+/**
+ * La pista de la prueba, al pie del menú de escritorio. Discreta a propósito:
+ * la franja de arriba ya lo dice en todas las pantallas (y en el teléfono es
+ * la única, porque la barra de abajo no tiene lugar para un séptimo destino).
+ */
+function PistaDePrueba({
+  acceso,
+  activo,
+  isEnglish,
+}: {
+  acceso: AccesoDeLaBoda;
+  activo: boolean;
+  isEnglish: boolean;
+}) {
+  const vencida = acceso.acceso === "prueba_vencida";
+  const estado = vencida
+    ? isEnglish
+      ? "Read-only"
+      : "Solo lectura"
+    : textoDeDias(acceso, isEnglish);
+  return (
+    <div className="mt-auto border-t border-sand px-3 pt-3">
+      <p className="font-body text-[11.5px] leading-snug text-ink-muted">{estado}</p>
+      <Link
+        href="/panel/plan"
+        aria-current={activo ? "page" : undefined}
+        className={`inline-flex min-h-[2.75rem] items-center font-body text-sm underline-offset-4 transition-colors duration-150 hover:underline ${
+          activo ? "font-semibold text-ink" : "text-azul-deep"
+        }`}
+      >
+        {isEnglish ? "Choose a plan" : "Elegir plan"}
+      </Link>
+    </div>
+  );
+}
+
 export function PanelSidebar({
   estado,
   secciones,
+  acceso = null,
 }: {
   estado: EstadoDelMenu;
   /** Qué destinos se enseñan. Ver seccionesDelPanel: la misma regla que Hoy y las rutas. */
   secciones: SeccionesDelPanel;
+  /** De v_acceso_de_la_boda (leerAcceso). Solo pinta algo en prueba o vencida. */
+  acceso?: AccesoDeLaBoda | null;
 }) {
   const { isEnglish } = useLanguage();
   const pathname = usePathname();
@@ -188,6 +237,13 @@ export function PanelSidebar({
             </Link>
           );
         })}
+        {acceso && (acceso.acceso === "prueba" || acceso.acceso === "prueba_vencida") ? (
+          <PistaDePrueba
+            acceso={acceso}
+            activo={pathname.startsWith("/panel/plan")}
+            isEnglish={isEnglish}
+          />
+        ) : null}
       </nav>
 
       {/* Teléfono: el mismo menú, abajo. No cabe una columna en 375 px. */}

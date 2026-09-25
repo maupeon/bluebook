@@ -5,6 +5,7 @@ import { Check, Minus, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Container, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
 
 type Tone = "win" | "meh" | "lose";
@@ -30,7 +31,7 @@ const ROWS: Row[] = [
   {
     es: "Cuánto cuesta",
     en: "What it costs",
-    bluebook: { es: `${price} al mes`, en: `${price} a month`, tone: "win" },
+    bluebook: { es: `${price} al mes, tras ${DIAS_DE_PRUEBA} días gratis`, en: `${price} a month, after ${DIAS_DE_PRUEBA} free days`, tone: "win" },
     planner: { es: "10–15% de tu presupuesto", en: "10–15% of your budget", tone: "lose" },
     diy: { es: "$0, y muchas horas tuyas", en: "$0, and many hours of yours", tone: "meh" },
   },

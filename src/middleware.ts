@@ -65,5 +65,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Corre en /panel, /acceso y /auth para mantener la sesión fresca; ignora estáticos.
-  matcher: ["/panel/:path*", "/acceso", "/auth/:path*"],
+  // /comenzar también: el onboarding lee la sesión desde un Server Component
+  // (para saltarse el acceso si ya entró, o mandarla a su panel si ya tiene
+  // boda), y un Server Component no puede escribir cookies. Si el token venció,
+  // Supabase lo refrescaría allí sin poder guardar el nuevo. Aquí no protege
+  // nada: sin sesión, /comenzar se abre igual.
+  matcher: ["/panel/:path*", "/acceso", "/auth/:path*", "/comenzar/:path*"],
 };

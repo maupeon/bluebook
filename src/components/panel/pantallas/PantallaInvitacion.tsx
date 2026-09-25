@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { Check, ImageUp, Sparkles } from "lucide-react";
+import { Check, ImageUp, Palette } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
@@ -10,6 +10,8 @@ import { EnvioDeInvitaciones } from "@/components/panel/EnvioDeInvitaciones";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { createClient } from "@/lib/supabase/client";
 import { parseJsonSafe } from "@/lib/http";
+import { LIMITE_IA_PAGADA, MENSAJE_SOLO_LECTURA } from "@/lib/accesoDeLaBoda";
+import { formatLongDate } from "@/components/panel/dates";
 import { ESTILOS_DE_INVITACION, estiloPorId } from "@/lib/invitacionEstilos";
 import { fechaDeInvitacion, mensajeDeInvitacion } from "@/lib/invitacionTexto";
 import type { InvitacionDeLaBoda } from "@/lib/invitaciones";
@@ -31,6 +33,10 @@ const botonSecundario =
  * eligen una. Una hecha por IA solo se puede elegir después de confirmar que
  * nombres, fecha y lugar están bien escritos: el modelo todavía puede fallar
  * al escribir texto, y esa imagen le llega a todos sus invitados.
+ *
+ * En la prueba se pueden crear menos con IA y no se envía. Con la prueba
+ * vencida (soloLectura) se ve todo pero no se crea, sube ni elige: los
+ * botones se apagan con una nota, y las rutas lo rechazan igual (402).
  */
 export function PantallaInvitacion({
   pareja,
@@ -39,6 +45,9 @@ export function PantallaInvitacion({
   invitacionesIniciales,
   generadasConIA,
   limiteIA,
+  enPrueba,
+  puedeEnviar,
+  soloLectura,
 }: {
   pareja: string;
   fecha: string | null;
@@ -46,6 +55,9 @@ export function PantallaInvitacion({
   invitacionesIniciales: InvitacionDeLaBoda[];
   generadasConIA: number;
   limiteIA: number;
+  enPrueba: boolean;
+  puedeEnviar: boolean;
+  soloLectura: boolean;
 }) {
   const { isEnglish } = useLanguage();
   const refrescar = useRefrescoDelPanel();
@@ -58,11 +70,15 @@ export function PantallaInvitacion({
   const [error, setError] = useState<string | null>(null);
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [revisado, setRevisado] = useState(false);
+  // La fecha que pusieron aquí mismo, mientras el refresco trae la del servidor.
+  const [fechaNueva, setFechaNueva] = useState<string | null>(null);
   const archivoRef = useRef<HTMLInputElement>(null);
 
+  const fechaDeLaBoda = fecha ?? fechaNueva;
   const elegida = invitaciones.find((i) => i.elegida) ?? null;
   const quedan = Math.max(0, limiteIA - generadas);
   const ocupado = generando || subiendo;
+  const apagado = ocupado || soloLectura;
 
   async function elegir(id: string, conRevision: boolean) {
     setError(null);
@@ -181,6 +197,18 @@ export function PantallaInvitacion({
         </header>
       </Reveal>
 
+      {soloLectura ? (
+        <p className="mt-6 max-w-[60ch] rounded-xl bg-wash-soft px-4 py-3 font-body text-sm leading-relaxed text-ink">
+          {isEnglish ? MENSAJE_SOLO_LECTURA.en : MENSAJE_SOLO_LECTURA.es}{" "}
+          <Link
+            href="/panel/plan"
+            className="font-medium text-azul-deep underline underline-offset-4 transition-colors hover:text-ink"
+          >
+            {isEnglish ? "See the plans" : "Ver los planes"}
+          </Link>
+        </p>
+      ) : null}
+
       {error ? (
         <p role="alert" className="mt-6 rounded-xl border border-terra-light bg-white px-4 py-3 font-body text-sm text-terra-deep">
           {error}
@@ -205,7 +233,7 @@ export function PantallaInvitacion({
                 {isEnglish ? "This is how it arrives" : "Así les llega"}
               </p>
               <div className="mt-4 max-w-md whitespace-pre-line rounded-2xl rounded-tl-sm bg-pale-green px-4 py-3 font-body text-sm leading-relaxed text-ink">
-                {mensajeDeInvitacion({ invitado: "María", pareja, fecha, lugar, pases: 2 })}
+                {mensajeDeInvitacion({ invitado: "María", pareja, fecha: fechaDeLaBoda, lugar, pases: 2 })}
               </div>
               <p className="mt-3 max-w-md font-body text-xs leading-relaxed text-ink-muted">
                 {isEnglish
@@ -216,9 +244,13 @@ export function PantallaInvitacion({
           </section>
         ) : (
           <section className="rounded-2xl border border-dashed border-sand bg-white p-6 font-body text-sm text-ink-muted">
-            {isEnglish
-              ? "You haven't chosen your invitation yet. Upload yours or create one with AI below."
-              : "Aún no eligen su invitación. Suban la suya o créenla con IA aquí abajo."}
+            {soloLectura
+              ? isEnglish
+                ? "You didn't choose an invitation during the trial."
+                : "En la prueba no eligieron invitación."
+              : isEnglish
+                ? "You haven't chosen your invitation yet. Upload yours or create one with AI below."
+                : "Aún no eligen su invitación. Suban la suya o créenla con IA aquí abajo."}
           </section>
         )}
       </Reveal>
@@ -234,7 +266,12 @@ export function PantallaInvitacion({
                 ? "It goes out on WhatsApp from Blue Book's number, only to guests who haven't received it. Their replies show up in Guests."
                 : "Sale por WhatsApp desde el número de Blue Book, solo a quien todavía no la ha recibido. Sus respuestas aparecen en Invitados."}
             </p>
-            <EnvioDeInvitaciones elegidaId={elegida.id} />
+            <EnvioDeInvitaciones
+              elegidaId={elegida.id}
+              puedeEnviar={puedeEnviar}
+              fecha={fechaDeLaBoda}
+              lugar={lugar}
+            />
           </section>
         </Reveal>
       ) : null}
@@ -262,9 +299,15 @@ export function PantallaInvitacion({
                 const archivo = e.target.files?.[0];
                 if (archivo) void subir(archivo);
               }}
-              disabled={ocupado}
+              disabled={apagado}
             />
-            <label htmlFor="invitacion-archivo" className={`${botonSecundario} mt-5 cursor-pointer`}>
+            {/* Es un label, no un botón: `disabled` no lo apaga. Se apaga a mano,
+                y el input de arriba ya está deshabilitado de verdad. */}
+            <label
+              htmlFor="invitacion-archivo"
+              aria-disabled={apagado || undefined}
+              className={`${botonSecundario} mt-5 ${apagado ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
+            >
               {subiendo
                 ? isEnglish
                   ? "Uploading…"
@@ -278,18 +321,31 @@ export function PantallaInvitacion({
 
         <Reveal app>
           <section className="panel-card p-6">
-            <Sparkles className="h-6 w-6 text-azul" strokeWidth={1.5} />
+            <Palette className="h-6 w-6 text-azul" strokeWidth={1.5} />
             <h2 className="mt-3 font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
               {isEnglish ? "Create it with AI" : "Háganla con IA"}
             </h2>
-            {!fecha ? (
-              <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
-                {isEnglish ? "The date is printed on the invitation. " : "La fecha va impresa en la invitación. "}
-                <Link href="/panel" className="text-azul-deep underline underline-offset-4 hover:text-ink">
-                  {isEnglish ? "Add your wedding date first" : "Pongan primero la fecha de la boda"}
-                </Link>
-                .
-              </p>
+            {/* Siempre montado: un aviso que aparece junto con su región no
+                siempre lo lee el lector de pantalla. */}
+            <div role="status">
+              {fechaNueva ? (
+                <p className="mt-2 font-body text-sm leading-relaxed text-ink">
+                  {isEnglish
+                    ? `Saved: ${formatLongDate(fechaNueva, true)}. Your plan's dates moved with it.`
+                    : `Guardada: ${formatLongDate(fechaNueva, false)}. Las fechas de su plan ya se acomodaron.`}
+                </p>
+              ) : null}
+            </div>
+            {!fechaDeLaBoda ? (
+              soloLectura ? (
+                <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+                  {isEnglish
+                    ? "It needs the wedding date, which is printed on the invitation."
+                    : "Necesita la fecha de la boda, que va impresa en la invitación."}
+                </p>
+              ) : (
+                <FechaAquiMismo alGuardar={setFechaNueva} />
+              )
             ) : (
               <>
                 <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
@@ -299,13 +355,13 @@ export function PantallaInvitacion({
                   <span className="text-ink">
                     {pareja}
                     {" · "}
-                    {fechaDeInvitacion(fecha)}
+                    {fechaDeInvitacion(fechaDeLaBoda)}
                     {lugar ? ` · ${lugar}` : ""}
                   </span>
                   .
                 </p>
 
-                <fieldset className="mt-5" disabled={ocupado}>
+                <fieldset className="mt-5" disabled={apagado}>
                   <legend className="sr-only">{isEnglish ? "Style" : "Estilo"}</legend>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {ESTILOS_DE_INVITACION.map((e) => {
@@ -361,8 +417,7 @@ export function PantallaInvitacion({
                 </fieldset>
 
                 <div className="mt-5 flex flex-wrap items-center gap-4">
-                  <button type="button" onClick={generar} disabled={ocupado || quedan === 0} className={botonPrincipal}>
-                    <Sparkles className="h-4 w-4" strokeWidth={1.6} />
+                  <button type="button" onClick={generar} disabled={apagado || quedan === 0} className={botonPrincipal}>
                     {generando
                       ? isEnglish
                         ? "Creating… (up to 2 minutes)"
@@ -373,8 +428,29 @@ export function PantallaInvitacion({
                   </button>
                   <span className="font-body text-xs text-ink-muted">
                     {isEnglish ? `${quedan} of ${limiteIA} left` : `Les quedan ${quedan} de ${limiteIA}`}
+                    {enPrueba ? (isEnglish ? " in the trial" : " en la prueba") : null}
                   </span>
                 </div>
+                {/* En la prueba el tope es más bajo; se dice cuánto sube, sin apurar. */}
+                {enPrueba && !soloLectura ? (
+                  <p className="mt-3 max-w-[60ch] font-body text-xs leading-relaxed text-ink-muted">
+                    {quedan === 0
+                      ? isEnglish
+                        ? `You used the ones included in the trial. With your plan you can create up to ${LIMITE_IA_PAGADA}; meanwhile, choose one of your drafts or upload yours.`
+                        : `Ya usaron las de la prueba. Con su plan pueden crear hasta ${LIMITE_IA_PAGADA}; mientras, elijan uno de sus borradores o suban la suya.`
+                      : isEnglish
+                        ? `With your plan, up to ${LIMITE_IA_PAGADA}.`
+                        : `Con su plan, hasta ${LIMITE_IA_PAGADA}.`}{" "}
+                    {quedan === 0 ? (
+                      <Link
+                        href="/panel/plan"
+                        className="text-azul-deep underline underline-offset-4 transition-colors hover:text-ink"
+                      >
+                        {isEnglish ? "See the plans" : "Ver los planes"}
+                      </Link>
+                    ) : null}
+                  </p>
+                ) : null}
               </>
             )}
           </section>
@@ -416,6 +492,7 @@ export function PantallaInvitacion({
                       <input
                         type="checkbox"
                         checked={revisado}
+                        disabled={soloLectura}
                         onChange={(e) => setRevisado(e.target.checked)}
                         className="mt-0.5"
                       />
@@ -425,14 +502,14 @@ export function PantallaInvitacion({
                     </label>
                     <button
                       type="button"
-                      disabled={!revisado}
+                      disabled={!revisado || soloLectura}
                       onClick={() => elegir(inv.id, true)}
                       className={`${botonPrincipal} w-full`}
                     >
                       {isEnglish ? "Choose this one" : "Elegir esta"}
                     </button>
                   </div>
-                ) : (
+                ) : soloLectura ? null : (
                   <button
                     type="button"
                     onClick={() => {
@@ -454,5 +531,82 @@ export function PantallaInvitacion({
         </Reveal>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * La fecha de la boda, pedida donde hace falta.
+ *
+ * Antes era un enlace a Hoy que no abría nada: la pareja llegaba con ganas de
+ * ver su invitación y se quedaba buscando dónde se ponía la fecha. Es la misma
+ * PUT /api/panel/boda que usa DatosDeLaBoda, solo con la fecha: el lugar no
+ * es necesario para crearla, y preguntar una cosa a la vez cuesta menos.
+ */
+function FechaAquiMismo({ alGuardar }: { alGuardar: (fecha: string) => void }) {
+  const { isEnglish } = useLanguage();
+  const refrescar = useRefrescoDelPanel();
+  const [valor, setValor] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!valor) return;
+    setGuardando(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/panel/boda", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weddingDate: valor }),
+      });
+      const { data } = await parseJsonSafe<{ error?: string }>(res);
+      if (!res.ok) {
+        throw new Error(data?.error || (isEnglish ? "Couldn't save it." : "No pudimos guardarla."));
+      }
+      alGuardar(valor);
+      // La fecha también vive en la barra de arriba y en las tareas del plan.
+      refrescar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : null);
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  return (
+    <form onSubmit={guardar} className="mt-2">
+      <p className="font-body text-sm leading-relaxed text-ink-muted">
+        {isEnglish
+          ? "The date is printed on the invitation, so it goes first."
+          : "La fecha va impresa en la invitación, así que va primero."}
+      </p>
+      <label htmlFor="invitacion-fecha" className="mt-5 block font-body text-sm font-medium text-ink">
+        {isEnglish ? "When is the wedding?" : "¿Qué día es la boda?"}
+      </label>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <input
+          id="invitacion-fecha"
+          type="date"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          aria-describedby="invitacion-fecha-nota"
+          className="min-h-[2.75rem] rounded-xl border border-sand bg-white px-4 py-2 font-body text-sm text-ink outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20"
+        />
+        <button type="submit" disabled={!valor || guardando} className={botonPrincipal}>
+          {guardando ? (isEnglish ? "Saving…" : "Guardando…") : isEnglish ? "Save date" : "Guardar fecha"}
+        </button>
+      </div>
+      <p id="invitacion-fecha-nota" className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+        {isEnglish
+          ? "Not sure yet? No problem: you can upload the one you have, or come back when you know."
+          : "¿Todavía no la saben? No pasa nada: pueden subir la que ya tienen, o volver cuando la sepan."}
+      </p>
+      {error ? (
+        <p role="alert" className="mt-2 font-body text-sm text-terra-deep">
+          {error}
+        </p>
+      ) : null}
+    </form>
   );
 }

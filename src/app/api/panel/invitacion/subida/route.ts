@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BUCKET_INVITACIONES, bodaDeLaSesion } from "@/lib/invitaciones";
+import { exigirEdicion } from "@/lib/acceso";
 
 const TIPOS = { "image/jpeg": "jpg", "image/png": "png" } as const;
 
@@ -15,6 +16,10 @@ const TIPOS = { "image/jpeg": "jpg", "image/png": "png" } as const;
 export async function POST(req: NextRequest) {
   const sesion = await bodaDeLaSesion();
   if (!sesion.ok) return sesion.respuesta;
+  // Sin esto una prueba vencida seguiría llenando el bucket aunque el alta
+  // (POST /api/panel/invitacion) ya no la registre.
+  const cerrado = await exigirEdicion(sesion.wedding.id);
+  if (cerrado) return cerrado;
 
   let body: Record<string, unknown>;
   try {

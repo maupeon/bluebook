@@ -4,8 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Send } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { DatosDeLaBoda } from "@/components/panel/DatosDeLaBoda";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { parseJsonSafe } from "@/lib/http";
+import { MENSAJE_ENVIO_EN_PRUEBA } from "@/lib/accesoDeLaBoda";
 
 interface Revision {
   puede: boolean;
@@ -39,8 +41,69 @@ const botonSecundario =
  * Se envía por lotes (40 por petición): la pantalla vuelve a pedir hasta que
  * no quede nadie, y así puede enseñar el avance. Se detiene si un lote no
  * avanza, para no quedarse dando vueltas con números que siempre fallan.
+ *
+ * En la prueba no se envía (cada mensaje cuesta en Meta): en vez de la
+ * interfaz de envío va un aviso tranquilo. La ruta igual lo rechaza con 402.
  */
-export function EnvioDeInvitaciones({ elegidaId }: { elegidaId: string }) {
+export function EnvioDeInvitaciones({
+  elegidaId,
+  puedeEnviar,
+  fecha,
+  lugar,
+}: {
+  elegidaId: string;
+  puedeEnviar: boolean;
+  fecha: string | null;
+  lugar: string | null;
+}) {
+  if (!puedeEnviar) return <EnvioEnPrueba />;
+  return <EnvioActivo elegidaId={elegidaId} fecha={fecha} lugar={lugar} />;
+}
+
+/**
+ * Lo que ven en la prueba. Informa y señala el camino, sin candado ni culpa:
+ * la invitación ya está hecha y el trabajo que sí pueden adelantar es tener a
+ * cada invitado con su WhatsApp, para que el día que la manden salga a todos.
+ */
+function EnvioEnPrueba() {
+  const { isEnglish } = useLanguage();
+  return (
+    <div className="rounded-xl bg-wash-soft px-5 py-4">
+      <p className="font-body text-sm leading-relaxed text-ink">
+        {isEnglish ? MENSAJE_ENVIO_EN_PRUEBA.en : MENSAJE_ENVIO_EN_PRUEBA.es}
+      </p>
+      <p className="mt-1 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+        {isEnglish
+          ? "Meanwhile, make sure each guest has their WhatsApp in Guests: when you send it, it reaches everyone at once."
+          : "Mientras, dejen a cada invitado con su WhatsApp en Invitados: el día que la manden, les llega a todos de una vez."}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1">
+        <Link
+          href="/panel/plan"
+          className="inline-flex min-h-[2.75rem] items-center font-body text-sm font-medium text-azul-deep underline underline-offset-4 transition-colors hover:text-ink"
+        >
+          {isEnglish ? "See the plans" : "Ver los planes"}
+        </Link>
+        <Link
+          href="/panel/invitados"
+          className="inline-flex min-h-[2.75rem] items-center font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+        >
+          {isEnglish ? "Go to Guests" : "Ir a Invitados"}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function EnvioActivo({
+  elegidaId,
+  fecha,
+  lugar,
+}: {
+  elegidaId: string;
+  fecha: string | null;
+  lugar: string | null;
+}) {
   const { isEnglish } = useLanguage();
   const refrescar = useRefrescoDelPanel();
   const [revision, setRevision] = useState<Revision | null>(null);
@@ -65,10 +128,11 @@ export function EnvioDeInvitaciones({ elegidaId }: { elegidaId: string }) {
     setRevision(data);
   }, [isEnglish]);
 
-  // Se revisa otra vez al cambiar de invitación: la regla "hay invitación" cambió.
+  // Se revisa otra vez al cambiar de invitación ("hay invitación") o al poner
+  // fecha y lugar aquí mismo ("faltan datos"): las dos reglas las decide el servidor.
   useEffect(() => {
     void revisar();
-  }, [revisar, elegidaId]);
+  }, [revisar, elegidaId, fecha, lugar]);
 
   async function enviar(accion: "enviar" | "reintentar", total: number) {
     setConfirmando(false);
@@ -126,17 +190,14 @@ export function EnvioDeInvitaciones({ elegidaId }: { elegidaId: string }) {
   return (
     <div className="space-y-4">
       {revision.rechazo ? (
-        <p className="rounded-xl border border-sand bg-bone px-4 py-3 font-body text-sm text-ink">
-          {revision.rechazo.mensaje}
+        <div className="rounded-xl border border-sand bg-bone px-4 py-3 font-body text-sm text-ink">
+          <p>{revision.rechazo.mensaje}</p>
+          {/* Aquí mismo, no en Hoy: mandarlas a otra pantalla cortaba el envío
+              justo cuando ya tenían la invitación elegida. */}
           {revision.rechazo.motivo === "faltan_datos" ? (
-            <>
-              {" "}
-              <Link href="/panel" className="text-azul-deep underline underline-offset-4 hover:text-ink">
-                {isEnglish ? "Go to Today" : "Ir a Hoy"}
-              </Link>
-            </>
+            <DatosDeLaBoda weddingDate={fecha} venue={lugar} />
           ) : null}
-        </p>
+        </div>
       ) : null}
 
       <ul className="grid gap-2 font-body text-sm text-ink sm:grid-cols-3">

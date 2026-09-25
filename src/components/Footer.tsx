@@ -24,7 +24,7 @@ export function Footer() {
     {
       title: en ? "Your wedding" : "Tu boda",
       links: [
-        { href: "/comenzar", label: en ? "Start your wedding" : "Empieza tu boda" },
+        { href: "/comenzar", label: en ? "Start free" : "Empieza gratis" },
         { href: "/acceso", label: en ? "Sign in to your dashboard" : "Entra a tu panel" },
         { href: "/contacto", label: en ? "Contact" : "Contacto" },
       ],

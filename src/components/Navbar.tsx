@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { getLanguageName } from "@/lib/language";
 import { ButtonLink } from "@/components/marketing/ui";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 
 function LanguageSwitch({ className = "" }: { className?: string }) {
   const { language, setLanguage } = useLanguage();
@@ -122,7 +123,7 @@ export function Navbar() {
               {en ? "Sign in" : "Acceso"}
             </Link>
             <ButtonLink href="/comenzar" size="md">
-              {en ? "Start your wedding" : "Empieza tu boda"}
+              {en ? "Start free" : "Empieza gratis"}
             </ButtonLink>
           </div>
 
@@ -186,8 +187,13 @@ export function Navbar() {
             <LanguageSwitch />
           </div>
           <ButtonLink href="/comenzar" onClick={() => setOpen(false)} arrow className="mt-6 w-full">
-            {en ? "Start your wedding" : "Empieza tu boda"}
+            {en ? "Start free" : "Empieza gratis"}
           </ButtonLink>
+          {/* En el teléfono cabe la letra chica que la barra de escritorio no
+              tiene lugar para decir. */}
+          <p className="mt-3 text-center font-body text-xs text-navy-muted">
+            {en ? `${DIAS_DE_PRUEBA} days, no card` : `${DIAS_DE_PRUEBA} días, sin tarjeta`}
+          </p>
         </div>
       </div>
     </header>

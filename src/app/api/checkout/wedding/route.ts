@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { AGENT_PLAN, getInvitationTier } from "@/lib/weddingPlans";
+import { crearCheckoutDeBoda, urlBaseDeLaApp } from "@/lib/checkoutDeBoda";
+
+// El checkout del asistente viejo, que pagaba antes de tener panel. El
+// onboarding de la prueba (0030) ya no pasa por aquí: la pareja paga desde su
+// panel, en /api/panel/plan. Se queda para las sesiones y enlaces que sigan
+// abiertos. La sesión de Stripe se arma en @/lib/checkoutDeBoda, igual que la
+// del panel.
 
 const getStripeClient = (): Stripe | null => {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -32,7 +38,7 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     const { data: lead, error: leadError } = await supabase
       .from("couple_leads")
-      .select("service, guest_count, email, partner1_name, partner2_name")
+      .select("service, guest_count, email")
       .eq("id", leadId)
       .maybeSingle();
 
@@ -40,80 +46,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Solicitud no encontrada." }, { status: 404 });
     }
 
-    // Base URL idéntico a la ruta del álbum.
-    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
-    if (baseUrl && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-      baseUrl = `https://${baseUrl}`;
-    }
-    if (!baseUrl) {
-      baseUrl = request.nextUrl.origin;
+    if (lead.service !== "planner" && lead.service !== "invitations") {
+      return NextResponse.json({ error: "Servicio no válido." }, { status: 400 });
     }
 
-    const successUrl = `${baseUrl}/checkout/success-wedding?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${baseUrl}/comenzar`;
-    const customerEmail = lead.email || undefined;
+    const base = urlBaseDeLaApp(request.nextUrl.origin);
+    const resultado = await crearCheckoutDeBoda(stripe, {
+      leadId,
+      plan: lead.service,
+      invitados: lead.guest_count ?? null,
+      email: lead.email || null,
+      successUrl: `${base}/checkout/success-wedding?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${base}/comenzar`,
+    });
 
-    if (lead.service === "planner") {
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        line_items: [
-          {
-            price_data: {
-              currency: "mxn",
-              product_data: { name: "Blue Book — Planner con IA" },
-              unit_amount: AGENT_PLAN.priceMxMonthly * 100,
-              recurring: { interval: "month" },
-            },
-            quantity: 1,
-          },
-        ],
-        allow_promotion_codes: true,
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        metadata: { productType: "planner", leadId },
-        // También en la suscripción: sus eventos (renovación, cobro rechazado,
-        // cancelación) no traen la metadata de la sesión, y con esto el
-        // webhook encuentra la boda aunque lleguen antes que el primer pago.
-        subscription_data: { metadata: { productType: "planner", leadId } },
-        customer_email: customerEmail,
-      });
-
-      return NextResponse.json({ url: session.url });
-    }
-
-    if (lead.service === "invitations") {
-      const tier = getInvitationTier(lead.guest_count ?? 0);
-
-      // Tier sin precio = cotización personalizada: sin pago en línea.
-      if (tier.priceMx == null) {
-        return NextResponse.json({ customQuote: true });
-      }
-
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        line_items: [
-          {
-            price_data: {
-              currency: "mxn",
-              product_data: {
-                name: `Blue Book — Invitaciones (hasta ${tier.maxGuests} invitados)`,
-              },
-              unit_amount: tier.priceMx * 100,
-            },
-            quantity: 1,
-          },
-        ],
-        allow_promotion_codes: true,
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        metadata: { productType: "invitations", leadId },
-        customer_email: customerEmail,
-      });
-
-      return NextResponse.json({ url: session.url });
-    }
-
-    return NextResponse.json({ error: "Servicio no válido." }, { status: 400 });
+    return resultado.tipo === "cotizacion"
+      ? NextResponse.json({ customQuote: true })
+      : NextResponse.json({ url: resultado.url });
   } catch (error) {
     console.error("Error creando sesión de Stripe (wedding):", error);
     return NextResponse.json({ error: "Error al procesar el pago." }, { status: 500 });

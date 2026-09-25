@@ -11,11 +11,14 @@ import { Savings } from "@/components/marketing/Savings";
 import { Versus } from "@/components/marketing/Versus";
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { Arrow, Container, Display, Em, Eyebrow, Lead } from "@/components/marketing/ui";
+import { FAQ_PRUEBA_EN, FAQ_PRUEBA_ES } from "@/components/home/HomeFaq";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
 
 const price = formatMXN(AGENT_PLAN.priceMxMonthly);
 
 const FAQ_ES: FaqItem[] = [
+  FAQ_PRUEBA_ES,
   {
     q: `¿Qué incluye el plan de ${price} al mes?`,
     a: "Todo: tu panel con proveedores, pagos, pendientes y el guion del día; invitaciones y confirmaciones; la calculadora de la barra; y una wedding planner real cuidando tu boda.",
@@ -34,11 +37,12 @@ const FAQ_ES: FaqItem[] = [
   },
   {
     q: "¿Cómo pago?",
-    a: "Con tarjeta, en un pago seguro con Stripe, al terminar de contarnos de tu boda.",
+    a: "Con tarjeta, en un pago seguro con Stripe, cuando eliges tu plan desde tu panel. La prueba no pide tarjeta.",
   },
 ];
 
 const FAQ_EN: FaqItem[] = [
+  FAQ_PRUEBA_EN,
   {
     q: `What does the ${price} a month plan include?`,
     a: "Everything: your dashboard with vendors, payments, to-dos and the run-of-show; invitations and RSVPs; the bar calculator; and a real wedding planner looking after your wedding.",
@@ -57,7 +61,7 @@ const FAQ_EN: FaqItem[] = [
   },
   {
     q: "How do I pay?",
-    a: "By card, through a secure Stripe checkout, once you finish telling us about your wedding.",
+    a: "By card, through a secure Stripe checkout, when you choose your plan from your dashboard. The trial doesn't ask for a card.",
   },
 ];
 
@@ -88,8 +92,8 @@ export default function PreciosPage() {
           <Reveal delay={160}>
             <Lead className="mt-6 max-w-2xl">
               {en
-                ? `${price} a month for the platform and a real planner, or a single payment if you only want invitations. No lock-in, no surprises.`
-                : `${price} al mes por la plataforma y una planner real, o un solo pago si solo quieres invitaciones. Sin plazos forzosos y sin sorpresas.`}
+                ? `${DIAS_DE_PRUEBA} days free, no card. Then ${price} a month for the platform and a real planner, or a single payment if you only want invitations. No lock-in, no surprises.`
+                : `${DIAS_DE_PRUEBA} días gratis, sin tarjeta. Después, ${price} al mes por la plataforma y una planner real, o un solo pago si solo quieres invitaciones. Sin plazos forzosos y sin sorpresas.`}
             </Lead>
           </Reveal>
         </Container>
@@ -152,18 +156,18 @@ export default function PreciosPage() {
         title={
           en ? (
             <>
-              Start with <em className="block italic text-wash">the first month.</em>
+              Start with <em className="block italic text-wash">{DIAS_DE_PRUEBA} free days.</em>
             </>
           ) : (
             <>
-              Empieza con <em className="block italic text-wash">el primer mes.</em>
+              Empieza con <em className="block italic text-wash">{DIAS_DE_PRUEBA} días gratis.</em>
             </>
           )
         }
         body={
           en
-            ? "Tell us about your wedding and we'll set everything up with you. Cancel whenever you want."
-            : "Cuéntanos de tu boda y lo dejamos listo contigo. Cancelas cuando quieras."
+            ? "Tell us about your wedding and your dashboard is ready today. You choose your plan on day 7, and until then we don't ask for a card."
+            : "Cuéntanos de tu boda y tu panel queda listo hoy. Eliges tu plan al séptimo día y hasta entonces no te pedimos tarjeta."
         }
       />
     </div>

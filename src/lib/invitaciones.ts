@@ -11,11 +11,12 @@ import { fechaDeInvitacion } from "@/lib/invitacionTexto";
 export const BUCKET_INVITACIONES = "invitaciones";
 
 /**
- * Cuántas invitaciones puede generar con IA una boda. Cada una cuesta dinero
- * en OpenAI y tarda hasta dos minutos; sin tope, una pareja indecisa (o un
- * script) genera sin fin. Las subidas no cuentan.
+ * Cuántas invitaciones puede generar con IA una boda PAGADA. Cada una cuesta
+ * dinero en OpenAI y tarda hasta dos minutos; sin tope, una pareja indecisa (o
+ * un script) genera sin fin. Las subidas no cuentan. En la prueba el tope es
+ * otro: el de una boda concreta lo da limiteDeInvitacionesIA(acceso).
  */
-export const LIMITE_DE_INVITACIONES_IA = 12;
+export { LIMITE_IA_PAGADA as LIMITE_DE_INVITACIONES_IA } from "@/lib/accesoDeLaBoda";
 
 /** Lo que la pantalla sabe de cada invitación. */
 export interface InvitacionDeLaBoda {

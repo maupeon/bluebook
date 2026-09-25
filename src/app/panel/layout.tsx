@@ -9,6 +9,8 @@ import { NoWedding } from "@/components/panel/NoWedding";
 import { seccionesDelPanel } from "@/lib/seccionesDelPanel";
 import { leerSuscripcion } from "@/lib/suscripcion";
 import { AvisoDePago } from "@/components/panel/SuPlan";
+import { leerAcceso } from "@/lib/acceso";
+import { FranjaDePrueba } from "@/components/panel/FranjaDePrueba";
 
 /** El id del div que scrollea. Lo comparten el layout y ResetScroll. */
 const ID_SCROLLER = "panel-scroll";
@@ -48,8 +50,12 @@ export default async function PanelLayout({
   }
 
   const { wedding, bundle, diasRestantes } = datos;
-  // Cacheada por petición: Hoy la vuelve a pedir para su tarjeta sin otra consulta.
-  const suscripcion = await leerSuscripcion(wedding.id);
+  // Las dos cacheadas por petición: Hoy las vuelve a pedir para sus tarjetas
+  // sin otra consulta. En paralelo porque no dependen una de la otra.
+  const [suscripcion, acceso] = await Promise.all([
+    leerSuscripcion(wedding.id),
+    leerAcceso(wedding.id),
+  ]);
 
   return (
     // sb: la tipografía del sitio (sin ella los títulos caían en la fuente del
@@ -66,6 +72,7 @@ export default async function PanelLayout({
           estado={{
             diasRestantes,
             invitadosPendientes: bundle.guests.pending,
+            invitadosTotales: bundle.guests.total,
             personasConfirmadas: bundle.guests.attending,
             dineroPorPagar: bundle.budget.balance,
             dineroContratado: bundle.budget.contracted,
@@ -75,12 +82,17 @@ export default async function PanelLayout({
             invitacionLista: wedding.invitacionId != null,
           }}
           secciones={seccionesDelPanel(bundle)}
+          acceso={acceso}
         />
         {/* pb para que la barra inferior del teléfono no tape el final. */}
         <div
           id={ID_SCROLLER}
           className="min-w-0 flex-1 overflow-y-auto overscroll-contain pb-24 md:pb-0"
         >
+          {/* La franja decide sola si sale (solo en prueba o vencida, y no en
+              /panel/plan). Va antes del aviso de pago: nunca salen los dos,
+              porque una boda con suscripción ya no está en prueba. */}
+          <FranjaDePrueba acceso={acceso} />
           {suscripcion ? <AvisoDePago suscripcion={suscripcion} /> : null}
           {children}
         </div>

@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Toda tu boda en una plataforma y una wedding planner real por $1,000 MXN al mes, sin porcentajes ni plazos forzosos. Invitaciones con confirmaciones desde $990 MXN en un solo pago.",
+    "Pruébalo 7 días gratis, sin tarjeta. Después, toda tu boda en una plataforma y una wedding planner real por $1,000 MXN al mes, sin porcentajes ni plazos forzosos, o invitaciones con confirmaciones desde $990 MXN en un solo pago.",
   keywords: [
     "precio wedding planner",
     "cuánto cuesta una wedding planner",
@@ -57,6 +57,14 @@ const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
+    {
+      "@type": "Question",
+      name: "¿Cómo funciona la prueba gratis?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Son 7 días con el panel completo y sin tarjeta. Al séptimo día eliges el plan mensual de $1,000 MXN o un solo pago por tus invitaciones. Si todavía no eliges, el panel se queda para consulta y nada se borra.",
+      },
+    },
     {
       "@type": "Question",
       name: "¿Qué incluye el plan de $1,000 al mes?",

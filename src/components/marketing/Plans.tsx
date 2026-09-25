@@ -6,7 +6,8 @@ import { Check } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Watercolor } from "@/components/marketing/Watercolor";
-import { ButtonLink, Container, Em, Eyebrow, Heading } from "@/components/marketing/ui";
+import { ButtonLink, Container, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import {
   AGENT_PLAN,
   MAX_GUESTS_SLIDER,
@@ -19,6 +20,10 @@ import {
 /*
  * Los dos caminos, con los precios de lib/weddingPlans (la única fuente: la
  * misma que usan el onboarding y el checkout).
+ *
+ * Los dos botones llevan a la misma prueba: nadie elige plan al registrarse,
+ * se elige al séptimo día desde el panel. Por eso ya no viajan ?servicio= ni
+ * el número de la calculadora: la calculadora solo informa el precio.
  */
 export function Plans({
   id = "planes",
@@ -64,7 +69,7 @@ export function Plans({
       <Container>
         <div className="max-w-3xl">
           <Reveal>
-            <Eyebrow>{en ? "Two ways to start" : "Dos formas de empezar"}</Eyebrow>
+            <Eyebrow>{en ? "Two ways to go on" : "Dos formas de seguir"}</Eyebrow>
           </Reveal>
           <Reveal delay={80}>
             <Heading as={headingAs} className="mt-4">
@@ -78,6 +83,13 @@ export function Plans({
                 </>
               )}
             </Heading>
+          </Reveal>
+          <Reveal delay={160}>
+            <Lead className="mt-5 max-w-2xl">
+              {en
+                ? `The first ${DIAS_DE_PRUEBA} days are free, with no card and your whole dashboard open. On day ${DIAS_DE_PRUEBA} you pick one of these two.`
+                : `Los primeros ${DIAS_DE_PRUEBA} días son gratis, sin tarjeta y con tu panel completo. Al séptimo día eliges uno de estos dos.`}
+            </Lead>
           </Reveal>
         </div>
 
@@ -134,8 +146,8 @@ export function Plans({
               </p>
 
               <div className="relative pt-7">
-                <ButtonLink href="/comenzar?servicio=planner&express=1" variant="light" arrow className="w-full sm:w-auto">
-                  {en ? "I want the full planner" : "Quiero el planner completo"}
+                <ButtonLink href="/comenzar" variant="light" arrow className="w-full sm:w-auto">
+                  {en ? `Try it free for ${DIAS_DE_PRUEBA} days` : `Pruébalo ${DIAS_DE_PRUEBA} días gratis`}
                 </ButtonLink>
               </div>
             </article>
@@ -214,8 +226,8 @@ export function Plans({
               </ul>
 
               <div className="mt-auto pt-10">
-                <ButtonLink href="/comenzar?servicio=invitaciones&express=1" variant="secondary" arrow className="w-full">
-                  {en ? "I only want invitations" : "Solo quiero invitaciones"}
+                <ButtonLink href="/comenzar" variant="secondary" arrow className="w-full">
+                  {en ? "Start free" : "Empieza gratis"}
                 </ButtonLink>
               </div>
             </article>
@@ -224,12 +236,12 @@ export function Plans({
 
         <Reveal delay={160}>
           <p className="mt-8 font-body text-sm text-navy-muted">
-            {en ? "Not sure which one? " : "¿No sabes cuál? "}
+            {en ? "Not sure which one? You don't have to decide today. " : "¿No sabes cuál? No tienes que decidirlo hoy. "}
             <Link
               href="/comenzar"
               className="font-semibold text-azul-deep underline decoration-wash-deep underline-offset-4 transition-colors hover:text-navy"
             >
-              {en ? "Start and we'll help you choose." : "Empieza y te ayudamos a elegir."}
+              {en ? "Start free and choose on day 7." : "Empieza gratis y eliges al séptimo día."}
             </Link>
           </p>
         </Reveal>

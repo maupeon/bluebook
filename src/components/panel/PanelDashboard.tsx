@@ -42,9 +42,12 @@ import {
 export function TasksSection({
   tasks: initialTasks,
   isEnglish,
+  conPlanner = true,
 }: {
   tasks: PanelTask[];
   isEnglish: boolean;
+  /** false sin planner: nadie va a "ir agregando lo suyo". */
+  conPlanner?: boolean;
 }) {
   const [tasks, setTasks] = useState<PanelTask[]>(initialTasks);
   const [error, setError] = useState<string | null>(null);
@@ -235,9 +238,13 @@ export function TasksSection({
       {tasks.length === 0 ? (
         <div className="mt-6">
           <EmptyNote>
-            {isEnglish
-              ? "Nothing pending. Write down anything you want to remember, and your planner will add hers."
-              : "Nada pendiente. Apunten lo que quieran recordar, y su planner irá agregando lo suyo."}
+            {conPlanner
+              ? isEnglish
+                ? "Nothing pending. Write down anything you want to remember, and your planner will add hers."
+                : "Nada pendiente. Apunten lo que quieran recordar, y su planner irá agregando lo suyo."
+              : isEnglish
+                ? "Nothing pending. Write down anything you want to remember."
+                : "Nada pendiente. Apunten lo que quieran recordar."}
           </EmptyNote>
         </div>
       ) : (
@@ -559,10 +566,18 @@ export function MessagesSection({
   initialMessages,
   unavailable,
   isEnglish,
+  conPlanner = true,
 }: {
   initialMessages: PanelMessage[];
   unavailable: boolean;
   isEnglish: boolean;
+  /**
+   * false cuando la boda no tiene planner asignada (una prueba nace así). El
+   * chat no cambia de lugar ni de forma: cambia quién contesta. Los mensajes
+   * le llegan al correo del equipo, así que prometer "su planner" era
+   * mandarlos a saludar a alguien que no existe.
+   */
+  conPlanner?: boolean;
 }) {
   const [messages, setMessages] = useState<PanelMessage[]>(initialMessages);
   const refrescar = useRefrescoDelPanel();
@@ -635,8 +650,21 @@ export function MessagesSection({
     <div className="flex h-full flex-col rounded-2xl border border-sand bg-cream p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Messages" : "Mensajes"}</Eyebrow>
       <SectionTitle>
-        {isEnglish ? "Your planner" : "Su planner"}
+        {conPlanner
+          ? isEnglish
+            ? "Your planner"
+            : "Su planner"
+          : isEnglish
+            ? "The Blue Book team"
+            : "Equipo Blue Book"}
       </SectionTitle>
+      {conPlanner ? null : (
+        <p className="mt-3 max-w-[46ch] font-body text-sm leading-relaxed text-ink-muted">
+          {isEnglish
+            ? "Write to us about anything you need, however small. A person from the team replies."
+            : "Escríbannos lo que necesiten, por pequeño que sea. Les contesta una persona del equipo."}
+        </p>
+      )}
 
       {unavailable ? (
         <div className="mt-6 flex items-start gap-3 rounded-xl border border-sand bg-white px-4 py-4">
@@ -645,9 +673,13 @@ export function MessagesSection({
             strokeWidth={1.5}
           />
           <p className="font-body text-sm leading-relaxed text-ink-muted">
-            {isEnglish
-              ? "Chat with your planner will be available very soon."
-              : "El chat con su planner estará disponible muy pronto."}
+            {conPlanner
+              ? isEnglish
+                ? "Chat with your planner will be available very soon."
+                : "El chat con su planner estará disponible muy pronto."
+              : isEnglish
+                ? "Chat with the team will be available very soon."
+                : "El chat con el equipo estará disponible muy pronto."}
           </p>
         </div>
       ) : (
@@ -660,9 +692,13 @@ export function MessagesSection({
             {messages.length === 0 ? (
               <div>
                 <EmptyNote>
-                  {isEnglish
-                    ? "No messages yet. Say hi to your planner."
-                    : "Aún sin mensajes. Saluden a su planner."}
+                  {conPlanner
+                    ? isEnglish
+                      ? "No messages yet. Say hi to your planner."
+                      : "Aún sin mensajes. Saluden a su planner."
+                    : isEnglish
+                      ? "No messages yet."
+                      : "Aún sin mensajes."}
                 </EmptyNote>
               </div>
             ) : (
@@ -878,10 +914,13 @@ export function GuestListSection({
   isEnglish,
   /** true cuando la pantalla ya puso el título: evita decirlo dos veces. */
   ocultarEncabezado = false,
+  conPlanner = true,
 }: {
   guests: PanelGuest[];
   isEnglish: boolean;
   ocultarEncabezado?: boolean;
+  /** false sin planner: la explicación no le atribuye el envío a nadie. */
+  conPlanner?: boolean;
 }) {
   const [guests, setGuests] = useState<PanelGuest[]>(initialGuests);
   const refrescar = useRefrescoDelPanel();
@@ -1162,9 +1201,13 @@ export function GuestListSection({
       </div>
 
       <p className="mt-3 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
-        {isEnglish
-          ? "Build your list here. Your planner and the assistant send the invitations on WhatsApp and record the replies on their own. If someone tells you in person, you can set their answer yourself. No phone? Leave it blank."
-          : "Aquí arman su lista. Su planner y el agente mandan las invitaciones por WhatsApp y registran las respuestas solos. Si alguien les dice de viva voz, pueden apuntar su respuesta ustedes. ¿No tienen su teléfono? Déjenlo en blanco."}
+        {conPlanner
+          ? isEnglish
+            ? "Build your list here. Your planner and the assistant send the invitations on WhatsApp and record the replies on their own. If someone tells you in person, you can set their answer yourself. No phone? Leave it blank."
+            : "Aquí arman su lista. Su planner y el agente mandan las invitaciones por WhatsApp y registran las respuestas solos. Si alguien les dice de viva voz, pueden apuntar su respuesta ustedes. ¿No tienen su teléfono? Déjenlo en blanco."
+          : isEnglish
+            ? "Build your list here. The invitations go out on WhatsApp and the replies land here on their own. If someone tells you in person, you can set their answer yourself. No phone? Leave it blank."
+            : "Aquí arman su lista. Las invitaciones salen por WhatsApp y las respuestas llegan aquí solas. Si alguien les dice de viva voz, pueden apuntar su respuesta ustedes. ¿No tienen su teléfono? Déjenlo en blanco."}
       </p>
 
       {/* Formulario de alta */}

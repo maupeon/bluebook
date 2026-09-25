@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
+import { exigirEdicion } from "@/lib/acceso";
 
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
 const LUGAR_MAX = 160;
@@ -72,6 +73,9 @@ export async function PUT(req: NextRequest) {
   if (!wedding) {
     return NextResponse.json({ error: "No encontramos su boda." }, { status: 404 });
   }
+
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
 
   const { data, error } = await createAdminClient()
     .from("weddings")

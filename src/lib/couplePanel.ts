@@ -25,6 +25,17 @@ export interface CoupleWedding {
   tier: "invitations" | "full";
   /** La invitación elegida (weddings.invitacion_id, 0025). null = aún no hay. */
   invitacionId: string | null;
+  /**
+   * Los invitados que la pareja IMAGINA, dicho en el onboarding (0030). No es
+   * la lista ni el pax contratado: es el punto de partida de la barra y la meta
+   * de Invitados mientras la lista no existe. null = no lo dijo.
+   */
+  invitadosEstimados: number | null;
+  /**
+   * Si la boda tiene planner asignada (weddings.owner_id). Una prueba nace sin
+   * ella: el chat es del equipo y las tareas de honorarios no se enseñan.
+   */
+  tienePlanner: boolean;
 }
 
 export interface BudgetSummary {
@@ -996,7 +1007,7 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
       supabase
         .from("weddings")
         .select(
-          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, tier, invitacion_id, contact_email, created_at"
+          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, tier, invitacion_id, contact_email, created_at, owner_id, invitados_estimados"
         )
         .eq(columna, normalized)
     )
@@ -1058,6 +1069,9 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
     status: row.status ?? "active",
     tier: row.tier === "full" ? "full" : "invitations",
     invitacionId: row.invitacion_id ?? null,
+    invitadosEstimados:
+      row.invitados_estimados != null ? Number(row.invitados_estimados) : null,
+    tienePlanner: row.owner_id != null,
   };
 });
 
@@ -1179,7 +1193,7 @@ export async function getPanelBundle(
       supabase
         .from("tasks")
         .select(
-          "id, title, due_date, done_at, notes, created_by, task_templates(detail)"
+          "id, title, due_date, done_at, notes, created_by, task_templates(detail, solo_con_planner)"
         )
         .eq("wedding_id", weddingId)
         .order("due_date", { ascending: true, nullsFirst: false }),
@@ -1210,21 +1224,27 @@ export async function getPanelBundle(
       v.contracted_amount != null ? toNum(v.contracted_amount) : null,
   }));
 
-  const tasks: PanelTask[] = (tasksRes.data ?? []).map((t) => ({
+  // PostgREST devuelve la relación como objeto o como arreglo según cómo
+  // resuelva la cardinalidad; se aceptan las dos formas.
+  const plantillaDe = (t: unknown) => {
+    const rel = (t as { task_templates?: unknown }).task_templates;
+    const fila = Array.isArray(rel) ? rel[0] : rel;
+    return (fila ?? null) as { detail?: string | null; solo_con_planner?: boolean } | null;
+  };
+
+  // «Liquidar el resto de los honorarios de su planner» en una boda sin planner
+  // es un error, no una tarea (0030). La tarea existe; se enseña el día que la
+  // boda tenga planner.
+  const tasks: PanelTask[] = (tasksRes.data ?? [])
+    .filter((t) => wedding.tienePlanner || !plantillaDe(t)?.solo_con_planner)
+    .map((t) => ({
     id: t.id,
     title: t.title,
     dueDate: t.due_date ?? null,
     doneAt: t.done_at ?? null,
     notes: t.notes ?? null,
     createdBy: t.created_by === "couple" ? "couple" : "planner",
-    // PostgREST devuelve la relación como objeto o como arreglo según cómo
-    // resuelva la cardinalidad; se aceptan las dos formas.
-    detail: (() => {
-      const rel = (t as { task_templates?: unknown }).task_templates;
-      const fila = Array.isArray(rel) ? rel[0] : rel;
-      const d = (fila as { detail?: string | null } | null | undefined)?.detail;
-      return d ? d : null;
-    })(),
+    detail: plantillaDe(t)?.detail || null,
   }));
 
   // El dinero, con la misma semántica del Checklist:

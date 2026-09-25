@@ -72,8 +72,8 @@ export function AllInOne() {
           <Reveal delay={160}>
             <Lead className="mt-5 max-w-2xl">
               {en
-                ? "You, your partner and your planner sign in with your email and see exactly the same thing, from your phone or your laptop. No passwords, no forwarding screenshots."
-                : "Tú, tu pareja y tu planner entran con su correo y ven exactamente lo mismo, desde el celular o la compu. Sin contraseñas y sin reenviar capturas."}
+                ? "You and your partner sign in with your email and see exactly the same thing, from your phone or your laptop. No passwords, no forwarding screenshots."
+                : "Tú y tu pareja entran con su correo y ven exactamente lo mismo, desde el celular o la compu. Sin contraseñas y sin reenviar capturas."}
             </Lead>
           </Reveal>
         </div>

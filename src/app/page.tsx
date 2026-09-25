@@ -12,7 +12,7 @@ import { ClosingCTA } from "@/components/marketing/ClosingCTA";
 export const metadata: Metadata = {
   title: { absolute: "Blue Book | Toda tu boda en un solo lugar" },
   description:
-    "Proveedores, pagos, pendientes, invitaciones y confirmaciones en una plataforma que compartes con tu pareja, con una wedding planner real revisando cada detalle. $1,000 MXN al mes, sin plazos forzosos. Invitaciones con confirmaciones desde $990 MXN.",
+    "Proveedores, pagos, pendientes, invitaciones y confirmaciones en una plataforma que compartes con tu pareja. Pruébalo 7 días gratis, sin tarjeta; después, $1,000 MXN al mes con una wedding planner real, o invitaciones con confirmaciones desde $990 MXN en un solo pago.",
 };
 
 // El orden sigue lo que ella necesita oír: qué es (hero), qué le quita de

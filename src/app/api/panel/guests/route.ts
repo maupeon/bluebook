@@ -6,6 +6,7 @@ import {
   type GuestConfirmation,
   type PanelGuest,
 } from "@/lib/couplePanel";
+import { exigirEdicion } from "@/lib/acceso";
 import { normalizePhone } from "@/lib/phone";
 
 // ---------------------------------------------------------------------------
@@ -164,6 +165,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
+
   // 3. Body
   const body = await readBody(req);
   if (!body) {
@@ -305,6 +309,9 @@ export async function PUT(req: NextRequest) {
       { status: 404 }
     );
   }
+
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
 
   // 3. Body
   const body = await readBody(req);
@@ -590,6 +597,9 @@ export async function DELETE(req: NextRequest) {
       { status: 404 }
     );
   }
+
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
 
   // 3. Body
   const body = await readBody(req);

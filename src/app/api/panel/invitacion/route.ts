@@ -6,6 +6,7 @@ import {
   invitacionesDeLaBoda,
   urlPublicaDeInvitacion,
 } from "@/lib/invitaciones";
+import { exigirEdicion } from "@/lib/acceso";
 
 // GET /api/panel/invitacion — las invitaciones de la boda y cuál es la elegida.
 export async function GET() {
@@ -24,6 +25,8 @@ export async function POST(req: NextRequest) {
   const sesion = await bodaDeLaSesion();
   if (!sesion.ok) return sesion.respuesta;
   const { wedding } = sesion;
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
 
   let body: Record<string, unknown>;
   try {
@@ -83,6 +86,8 @@ export async function PUT(req: NextRequest) {
   const sesion = await bodaDeLaSesion();
   if (!sesion.ok) return sesion.respuesta;
   const { wedding } = sesion;
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
 
   let body: Record<string, unknown>;
   try {

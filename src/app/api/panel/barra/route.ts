@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
+import { exigirEdicion } from "@/lib/acceso";
 import { normalizarPlan } from "@/lib/barra";
 import { guardarPlanBarra } from "@/lib/barraGuardada";
 
@@ -34,6 +35,9 @@ export async function PUT(req: NextRequest) {
   if (!wedding) {
     return NextResponse.json({ error: "No encontramos su boda." }, { status: 404 });
   }
+
+  const cerrado = await exigirEdicion(wedding.id);
+  if (cerrado) return cerrado;
 
   const res = await guardarPlanBarra(wedding.id, limpio.plan);
   if ("error" in res) {

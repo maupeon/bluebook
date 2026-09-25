@@ -15,6 +15,12 @@ interface Archivo {
   para: string;
   /** null = se puede bajar. Si no, por qué todavía no. */
   falta: string | null;
+  /**
+   * Lo que la pareja puede hacer para destrabarlo, cuando está en su mano.
+   * Un "aparece cuando agreguen invitados" sin camino era un callejón: la
+   * pareja leía la condición y tenía que ir a buscar dónde cumplirla.
+   */
+  destrabar?: { href: string; texto: string };
 }
 
 /**
@@ -37,6 +43,12 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
     (bundle.seating.tables.length > 0 || bundle.seating.unassigned.length > 0);
   const hayMinuta = !bundle.runOfShow.unavailable && bundle.runOfShow.blocks.length > 0;
   const sinInvitados = isEnglish ? "Shows up once you add guests." : "Aparece cuando agreguen invitados.";
+  const agregarInvitados = hayInvitados
+    ? undefined
+    : {
+        href: "/panel/invitados",
+        texto: isEnglish ? "Add guests" : "Agregar invitados",
+      };
 
   const archivos: Archivo[] = [
     {
@@ -46,6 +58,7 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
         ? "Headcount, tables and special meals. No phone numbers."
         : "El número de personas, las mesas y los menús especiales. Sin teléfonos.",
       falta: hayInvitados ? null : sinInvitados,
+      destrabar: agregarInvitados,
     },
     {
       tipo: "mesas",
@@ -65,11 +78,17 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
       para: isEnglish
         ? "Hour by hour, with vendor and place. For the DJ, photo and catering."
         : "Hora por hora, con proveedor y lugar. Para el DJ, la foto y el banquete.",
+      // Sin planner nadie tiene encargado el guion: se dice de dónde sale el
+      // archivo, sin prometer quién lo va a armar.
       falta: hayMinuta
         ? null
-        : isEnglish
-          ? "Shows up once your planner builds the schedule."
-          : "Aparece cuando su planner arme el guion.",
+        : bundle.wedding.tienePlanner
+          ? isEnglish
+            ? "Shows up once your planner builds the schedule."
+            : "Aparece cuando su planner arme el guion."
+          : isEnglish
+            ? "It comes from the day's schedule, which doesn't exist yet."
+            : "Sale del guion del día, que todavía no existe.",
     },
     {
       tipo: "invitados",
@@ -78,6 +97,7 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
         ? "For your coordinator: replies, table, diet and WhatsApp."
         : "Para su coordinación: respuesta, mesa, dieta y WhatsApp.",
       falta: hayInvitados ? null : sinInvitados,
+      destrabar: agregarInvitados,
     },
     {
       tipo: "barra",
@@ -133,7 +153,20 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
               </div>
               <div className="mt-4 flex flex-1 flex-wrap items-end gap-x-4 gap-y-2">
                 {apagado ? (
-                  <p className="font-body text-xs text-ink-muted">{a.falta}</p>
+                  <p className="font-body text-xs text-ink-muted">
+                    {a.falta}
+                    {a.destrabar ? (
+                      <>
+                        {" "}
+                        <Link
+                          href={a.destrabar.href}
+                          className="inline-block py-2 font-medium text-azul-deep underline underline-offset-4 hover:text-ink"
+                        >
+                          {a.destrabar.texto}
+                        </Link>
+                      </>
+                    ) : null}
+                  </p>
                 ) : (
                   <button
                     type="button"

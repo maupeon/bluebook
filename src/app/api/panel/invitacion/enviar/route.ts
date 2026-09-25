@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { bodaDeLaSesion } from "@/lib/invitaciones";
+import { leerAcceso } from "@/lib/acceso";
+import { MENSAJE_ENVIO_EN_PRUEBA, puedeEnviarInvitaciones } from "@/lib/accesoDeLaBoda";
 import { fechaDeInvitacion } from "@/lib/invitacionTexto";
 
 // Un lote del admin tarda poco, pero esta ruta espera a que termine.
@@ -20,6 +22,18 @@ export async function POST(req: NextRequest) {
   const sesion = await bodaDeLaSesion();
   if (!sesion.ok) return sesion.respuesta;
   const { wedding } = sesion;
+
+  // Cada mensaje cuesta en Meta: en la prueba no sale ninguno, ni siquiera se
+  // le pregunta al admin. Va en 'revisar' también para que la pantalla no
+  // enseñe conteos de un envío que no puede hacer. La forma { puede, rechazo }
+  // es la misma que ya entiende EnvioDeInvitaciones.
+  if (!puedeEnviarInvitaciones(await leerAcceso(wedding.id))) {
+    const mensaje = MENSAJE_ENVIO_EN_PRUEBA.es;
+    return NextResponse.json(
+      { error: mensaje, puede: false, rechazo: { motivo: "en_prueba", mensaje } },
+      { status: 402 }
+    );
+  }
 
   let body: Record<string, unknown>;
   try {
@@ -46,7 +60,7 @@ export async function POST(req: NextRequest) {
   if (!wedding.venue || !eventDate) {
     const rechazo = {
       motivo: "faltan_datos",
-      mensaje: "Pongan la fecha y el lugar de la boda (en Hoy): van en el mensaje de cada invitado.",
+      mensaje: "Pongan la fecha y el lugar de la boda: van en el mensaje de cada invitado.",
     };
     return NextResponse.json({ puede: false, rechazo }, { status: accion === "revisar" ? 200 : 409 });
   }

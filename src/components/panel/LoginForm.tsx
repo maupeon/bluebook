@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { AlertCircle, ArrowLeft, MailCheck } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient, createOtpRequestClient } from "@/lib/supabase/client";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
  * La longitud del código la decide Supabase (Authentication → Sign In / Up →
  * Email OTP Length) y va de 6 a 10 dígitos. Este proyecto lo tiene en 8.
@@ -16,13 +17,37 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * hay un RANGO y no un número: si alguien cambia ese ajuste, el formulario
  * sigue funcionando sin tocar código.
  */
-const MIN_CODIGO = 6;
-const MAX_CODIGO = 10;
+export const MIN_CODIGO = 6;
+export const MAX_CODIGO = 10;
 /** Segundos antes de poder pedir otro código. Supabase limita el envío igual. */
 const ESPERA_REENVIO = 45;
 
 /**
- * Acceso al panel en dos pasos: correo y luego código de seis dígitos.
+ * El botón de Google solo aparece si el proveedor ya está dado de alta en
+ * Supabase (NEXT_PUBLIC_GOOGLE_LOGIN=1 en el entorno).
+ *
+ * No es cautela de más: cuando el proveedor está apagado, Supabase NO
+ * devuelve a la app con un error que podamos enseñar bonito. Contesta un 400
+ * en crudo —{"msg":"Unsupported provider: provider is not enabled"}— sobre
+ * fondo negro, fuera de nuestro dominio y sin manera de volver. Comprobado en
+ * local. Un botón que hace eso es peor que no tener botón, así que nace
+ * apagado y se enciende el día que el proveedor esté listo.
+ */
+export const GOOGLE_ACTIVO = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
+
+/**
+ * A quién le habla el texto. /acceso es la puerta del panel, que es de los dos
+ * («ustedes»); el onboarding es una conversación con quien se registra («tú»).
+ * La lógica es la misma: solo cambian las palabras.
+ */
+export type Voz = "ustedes" | "tu";
+
+function texto(isEnglish: boolean, voz: Voz, t: { en: string; ustedes: string; tu: string }) {
+  return isEnglish ? t.en : t[voz];
+}
+
+/**
+ * Acceso en dos pasos: correo y luego el código que llega por correo.
  *
  * Antes era un enlace mágico, y fallaba de una forma que no se veía venir: el
  * `code_verifier` de PKCE vive en una cookie del navegador que PIDIÓ el enlace,
@@ -39,45 +64,30 @@ const ESPERA_REENVIO = 45;
  * enlaces de Gmail abre el enlace y deja el código gastado antes de que nadie
  * lo teclee. Medido en los logs de Supabase: /verify ocho segundos después del
  * envío, y el código del usuario llegando después a "token has expired".
+ *
+ * Vive aquí, y no en el formulario, porque lo usan dos pantallas: /acceso y el
+ * último paso de /comenzar. Una sola copia de estas reglas.
  */
-export function LoginForm({
-  next,
-  hadError = false,
+export function useCodigoPorCorreo({
+  destino,
+  voz,
+  errorInicial = null,
 }: {
-  next?: string;
-  hadError?: boolean;
+  /** A dónde lleva el enlace del correo si alguien lo usa en vez del código. */
+  destino: string;
+  voz: Voz;
+  errorInicial?: string | null;
 }) {
   const { isEnglish } = useLanguage();
   const [email, setEmail] = useState("");
-  const [codigo, setCodigo] = useState("");
+  const [codigo, setCodigoCrudo] = useState("");
   const [paso, setPaso] = useState<"correo" | "codigo">("correo");
   const [loading, setLoading] = useState(false);
   const [espera, setEspera] = useState(0);
-  const [conGoogle, setConGoogle] = useState(false);
-  const [error, setError] = useState<string | null>(
-    hadError
-      ? isEnglish
-        ? "We couldn't sign you in with that link. Request a new code below."
-        : "No pudimos entrar con ese enlace. Pidan un código nuevo aquí abajo."
-      : null
-  );
+  const [error, setError] = useState<string | null>(errorInicial);
   const inputCodigo = useRef<HTMLInputElement>(null);
 
   const correo = email.trim().toLowerCase();
-  const destino = next && next.startsWith("/") ? next : "/panel";
-
-  /**
-   * El botón de Google solo aparece si el proveedor ya está dado de alta en
-   * Supabase (NEXT_PUBLIC_GOOGLE_LOGIN=1 en el entorno).
-   *
-   * No es cautela de más: cuando el proveedor está apagado, Supabase NO
-   * devuelve a la app con un error que podamos enseñar bonito. Contesta un 400
-   * en crudo —{"msg":"Unsupported provider: provider is not enabled"}— sobre
-   * fondo negro, fuera de nuestro dominio y sin manera de volver. Comprobado en
-   * local. Un botón que hace eso es peor que no tener botón, así que nace
-   * apagado y se enciende el día que el proveedor esté listo.
-   */
-  const googleActivo = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
 
   // Cuenta atrás del reenvío.
   useEffect(() => {
@@ -95,23 +105,36 @@ export function LoginForm({
   function mensajeDeEnvio(e: { status?: number; code?: string; message?: string }) {
     const msg = e.message || "";
     if (e.status === 429 || e.code === "over_email_send_rate_limit" || /rate limit/i.test(msg)) {
-      return isEnglish
-        ? "Too many attempts. Please wait a few minutes and try again."
-        : "Demasiados intentos. Esperen unos minutos e inténtenlo de nuevo.";
+      return texto(isEnglish, voz, {
+        en: "Too many attempts. Please wait a few minutes and try again.",
+        ustedes: "Demasiados intentos. Esperen unos minutos e inténtenlo de nuevo.",
+        tu: "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+      });
     }
     if (
       e.code === "otp_disabled" ||
       e.code === "signup_disabled" ||
       /signups? not allowed|not allowed for otp/i.test(msg)
     ) {
-      return isEnglish
-        ? "Email sign-in is disabled on the server. Please contact us."
-        : "El acceso por correo está deshabilitado. Escríbannos, por favor.";
+      return texto(isEnglish, voz, {
+        en: "Email sign-in is disabled on the server. Please contact us.",
+        ustedes: "El acceso por correo está deshabilitado. Escríbannos, por favor.",
+        tu: "El acceso por correo está deshabilitado. Escríbenos, por favor.",
+      });
     }
-    return isEnglish
-      ? "We couldn't send the code. Please try again in a moment."
-      : "No pudimos enviar el código. Inténtenlo de nuevo en un momento.";
+    return texto(isEnglish, voz, {
+      en: "We couldn't send the code. Please try again in a moment.",
+      ustedes: "No pudimos enviar el código. Inténtenlo de nuevo en un momento.",
+      tu: "No pude enviar el código. Inténtalo de nuevo en un momento.",
+    });
   }
+
+  const algoSalioMal = () =>
+    texto(isEnglish, voz, {
+      en: "Something went wrong. Please try again.",
+      ustedes: "Algo salió mal. Inténtenlo de nuevo.",
+      tu: "Algo salió mal. Inténtalo de nuevo.",
+    });
 
   async function enviarCodigo(reenvio = false) {
     setError(null);
@@ -145,35 +168,37 @@ export function LoginForm({
       }
       setPaso("codigo");
       setEspera(ESPERA_REENVIO);
-      if (reenvio) setCodigo("");
+      if (reenvio) setCodigoCrudo("");
     } catch {
-      setError(
-        isEnglish
-          ? "Something went wrong. Please try again."
-          : "Algo salió mal. Inténtenlo de nuevo."
-      );
+      setError(algoSalioMal());
     } finally {
       setLoading(false);
     }
   }
 
-  const pedirCodigo = async (e: FormEvent) => {
-    e.preventDefault();
+  /** Paso 1. Valida el correo y pide el código. */
+  async function pedirCodigo() {
     if (loading) return;
     if (!EMAIL_RE.test(correo)) {
       setError(
-        isEnglish
-          ? "Please enter a valid email address."
-          : "Escriban un correo electrónico válido."
+        texto(isEnglish, voz, {
+          en: "Please enter a valid email address.",
+          ustedes: "Escriban un correo electrónico válido.",
+          tu: "Escribe un correo electrónico válido.",
+        })
       );
       return;
     }
     await enviarCodigo();
-  };
+  }
 
-  const entrar = async (e: FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
+  /**
+   * Paso 2. true = la sesión ya quedó en las cookies. En ese caso `loading`
+   * se queda encendido a propósito: quien llama navega o sigue guardando, y
+   * apagarlo haría parpadear el botón justo antes de irse.
+   */
+  async function verificarCodigo(): Promise<boolean> {
+    if (loading) return false;
     const token = codigo.replace(/\D/g, "");
     if (token.length < MIN_CODIGO) {
       setError(
@@ -181,7 +206,7 @@ export function LoginForm({
           ? `The code has at least ${MIN_CODIGO} digits.`
           : `El código tiene al menos ${MIN_CODIGO} dígitos.`
       );
-      return;
+      return false;
     }
 
     setError(null);
@@ -198,57 +223,122 @@ export function LoginForm({
         const caducado = /expired|invalid/i.test(msg);
         setError(
           caducado
-            ? isEnglish
-              ? "That code is wrong or has expired. Request a new one."
-              : "Ese código no es correcto o ya caducó. Pidan uno nuevo."
-            : isEnglish
-              ? "We couldn't sign you in. Please try again."
-              : "No pudimos entrar. Inténtenlo de nuevo."
+            ? texto(isEnglish, voz, {
+                en: "That code is wrong or has expired. Request a new one.",
+                ustedes: "Ese código no es correcto o ya caducó. Pidan uno nuevo.",
+                tu: "Ese código no es correcto o ya caducó. Pide uno nuevo.",
+              })
+            : texto(isEnglish, voz, {
+                en: "We couldn't sign you in. Please try again.",
+                ustedes: "No pudimos entrar. Inténtenlo de nuevo.",
+                tu: "No pudimos entrar. Inténtalo de nuevo.",
+              })
         );
         setLoading(false);
-        return;
+        return false;
       }
-      // Navegación dura y no router.push: la sesión se acaba de escribir en las
-      // cookies y el panel se renderiza en el servidor, que tiene que leerlas.
-      window.location.assign(destino);
+      return true;
     } catch {
-      setError(
-        isEnglish
-          ? "Something went wrong. Please try again."
-          : "Algo salió mal. Inténtenlo de nuevo."
-      );
+      setError(algoSalioMal());
       setLoading(false);
+      return false;
     }
+  }
+
+  function volverAlCorreo() {
+    setPaso("correo");
+    setCodigoCrudo("");
+    setError(null);
+  }
+
+  return {
+    email,
+    setEmail,
+    correo,
+    codigo,
+    setCodigo: (v: string) => setCodigoCrudo(v.replace(/\D/g, "").slice(0, MAX_CODIGO)),
+    paso,
+    loading,
+    setLoading,
+    espera,
+    error,
+    setError,
+    inputCodigo,
+    pedirCodigo,
+    enviarCodigo,
+    verificarCodigo,
+    volverAlCorreo,
+  };
+}
+
+/**
+ * Google usa PKCE igual que el enlace mágico, pero aquí NO tiene el problema
+ * que tumbó aquel: el `code_verifier` se escribe y se lee en el mismo
+ * navegador, porque la vuelta de Google cae en esta misma pestaña. Por eso
+ * /auth/callback ya sabe atender `?code=` con exchangeCodeForSession.
+ *
+ * `prompt: "select_account"` es a propósito: una boda son dos personas y
+ * muchas veces una computadora compartida. Sin eso, Google entra solo con la
+ * cuenta que ya estaba abierta y la pareja no entiende por qué ve otro panel.
+ *
+ * Devuelve false si no se pudo abrir Google. Si devuelve true, el navegador ya
+ * se está yendo: no se apaga el spinner, así el botón no parpadea al salir.
+ */
+export async function abrirGoogle(destino: string): Promise<boolean> {
+  try {
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destino)}`,
+        queryParams: { prompt: "select_account" },
+      },
+    });
+    return !oauthError;
+  } catch {
+    return false;
+  }
+}
+
+export function LoginForm({
+  next,
+  hadError = false,
+}: {
+  next?: string;
+  hadError?: boolean;
+}) {
+  const { isEnglish } = useLanguage();
+  const destino = next && next.startsWith("/") ? next : "/panel";
+  const acceso = useCodigoPorCorreo({
+    destino,
+    voz: "ustedes",
+    errorInicial: hadError
+      ? isEnglish
+        ? "We couldn't sign you in with that link. Request a new code below."
+        : "No pudimos entrar con ese enlace. Pidan un código nuevo aquí abajo."
+      : null,
+  });
+  const { correo, codigo, paso, loading, espera, error, inputCodigo } = acceso;
+  const [conGoogle, setConGoogle] = useState(false);
+
+  const pedirCodigo = async (e: FormEvent) => {
+    e.preventDefault();
+    await acceso.pedirCodigo();
   };
 
-  /**
-   * Google usa PKCE igual que el enlace mágico, pero aquí NO tiene el problema
-   * que tumbó aquel: el `code_verifier` se escribe y se lee en el mismo
-   * navegador, porque la vuelta de Google cae en esta misma pestaña. Por eso
-   * /auth/callback ya sabe atender `?code=` con exchangeCodeForSession.
-   *
-   * `prompt: "select_account"` es a propósito: una boda son dos personas y
-   * muchas veces una computadora compartida. Sin eso, Google entra solo con la
-   * cuenta que ya estaba abierta y la pareja no entiende por qué ve otro panel.
-   */
+  const entrar = async (e: FormEvent) => {
+    e.preventDefault();
+    // Navegación dura y no router.push: la sesión se acaba de escribir en las
+    // cookies y el panel se renderiza en el servidor, que tiene que leerlas.
+    if (await acceso.verificarCodigo()) window.location.assign(destino);
+  };
+
   const entrarConGoogle = async () => {
     if (loading || conGoogle) return;
-    setError(null);
+    acceso.setError(null);
     setConGoogle(true);
-    try {
-      const supabase = createClient();
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destino)}`,
-          queryParams: { prompt: "select_account" },
-        },
-      });
-      if (oauthError) throw oauthError;
-      // Si no hubo error, el navegador ya se está yendo a Google. No se apaga
-      // el spinner: dejarlo encendido evita el parpadeo del botón al salir.
-    } catch {
-      setError(
+    if (!(await abrirGoogle(destino))) {
+      acceso.setError(
         isEnglish
           ? "We couldn't open Google. Try the code instead."
           : "No pudimos abrir Google. Prueben con el código."
@@ -305,7 +395,7 @@ export function LoginForm({
               autoComplete="one-time-code"
               maxLength={MAX_CODIGO}
               value={codigo}
-              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, MAX_CODIGO))}
+              onChange={(e) => acceso.setCodigo(e.target.value)}
               placeholder="········"
               disabled={loading}
               className="w-full rounded-xl border border-sand bg-bone px-4 py-3 text-center font-body text-2xl tracking-[0.25em] text-ink placeholder:text-ink-soft/40 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20 disabled:opacity-60"
@@ -330,7 +420,7 @@ export function LoginForm({
           <button
             type="button"
             disabled={loading || espera > 0}
-            onClick={() => enviarCodigo(true)}
+            onClick={() => acceso.enviarCodigo(true)}
             className="font-body text-sm font-medium text-azul-deep transition-colors hover:text-navy disabled:cursor-not-allowed disabled:text-ink-soft"
           >
             {espera > 0
@@ -343,11 +433,7 @@ export function LoginForm({
           </button>
           <button
             type="button"
-            onClick={() => {
-              setPaso("correo");
-              setCodigo("");
-              setError(null);
-            }}
+            onClick={acceso.volverAlCorreo}
             className="inline-flex items-center gap-2 font-body text-sm font-medium text-ink-muted transition-colors hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
@@ -363,15 +449,17 @@ export function LoginForm({
       <h2 className="font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
         {isEnglish ? "Your wedding panel" : "Su panel de boda"}
       </h2>
+      {/* Antes: «con el correo que registraron con su planner». Desde la prueba
+          gratis la pareja se registra sola, así que el correo es el suyo. */}
       <p className="mt-3 font-body text-sm leading-relaxed text-ink-muted">
         {isEnglish
-          ? "Sign in with the email you registered with your planner."
-          : "Entren con el correo que registraron con su planner."}
+          ? "Sign in with your wedding's email. We'll send you a code, no password needed."
+          : "Entren con el correo de su boda. Les mandamos un código, sin contraseñas."}
       </p>
 
       {aviso}
 
-      {googleActivo ? (
+      {GOOGLE_ACTIVO ? (
         <>
           <button
             type="button"
@@ -387,20 +475,11 @@ export function LoginForm({
             {isEnglish ? "Continue with Google" : "Continuar con Google"}
           </button>
 
-          <div className="mt-6 flex items-center gap-4" aria-hidden="true">
-            <span className="h-px flex-1 bg-sand" />
-            {/* En la serif y no en la de cuerpo: Montserrat es geométrica y su
-                "o" minúscula es un círculo perfecto, así que sola entre dos
-                rayas se lee como un símbolo y no como la palabra "o". */}
-            <span className="font-heading text-lg leading-none text-ink-muted">
-              {isEnglish ? "or" : "o"}
-            </span>
-            <span className="h-px flex-1 bg-sand" />
-          </div>
+          <SeparadorO className="mt-6" />
         </>
       ) : null}
 
-      <form onSubmit={pedirCodigo} className={`${googleActivo ? "mt-6" : "mt-7"} space-y-5`}>
+      <form onSubmit={pedirCodigo} className={`${GOOGLE_ACTIVO ? "mt-6" : "mt-7"} space-y-5`}>
         <div>
           <label htmlFor="email" className="mb-2 block font-body text-sm font-medium text-ink">
             {isEnglish ? "Email" : "Correo electrónico"}
@@ -411,8 +490,8 @@ export function LoginForm({
             type="email"
             autoComplete="email"
             inputMode="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={acceso.email}
+            onChange={(e) => acceso.setEmail(e.target.value)}
             placeholder={isEnglish ? "you@email.com" : "ustedes@correo.com"}
             disabled={loading}
             className="w-full rounded-xl border border-sand bg-bone px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20 disabled:opacity-60"
@@ -432,6 +511,34 @@ export function LoginForm({
           )}
         </button>
       </form>
+
+      {/* A quien llega aquí sin panel todavía: la puerta de entrada es otra.
+          En «tú» porque le habla a quien todavía no tiene boda, no a la pareja. */}
+      <p className="mt-8 border-t border-sand pt-6 text-center font-body text-sm text-ink-muted">
+        {isEnglish ? "Don't have your panel yet? " : "¿Todavía no tienes tu panel? "}
+        <Link
+          href="/comenzar"
+          className="font-semibold text-azul-deep underline-offset-4 transition-colors hover:text-navy hover:underline"
+        >
+          {isEnglish ? "Start for free" : "Empieza gratis"}
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+/**
+ * La «o» entre Google y el correo. En la serif y no en la de cuerpo:
+ * Montserrat es geométrica y su "o" minúscula es un círculo perfecto, así que
+ * sola entre dos rayas se lee como un símbolo y no como la palabra "o".
+ */
+export function SeparadorO({ className = "" }: { className?: string }) {
+  const { isEnglish } = useLanguage();
+  return (
+    <div className={`flex items-center gap-4 ${className}`} aria-hidden="true">
+      <span className="h-px flex-1 bg-sand" />
+      <span className="font-heading text-lg leading-none text-ink-muted">{isEnglish ? "or" : "o"}</span>
+      <span className="h-px flex-1 bg-sand" />
     </div>
   );
 }
@@ -440,7 +547,7 @@ export function LoginForm({
  * La "G" de Google, tal cual. Los cuatro colores y las proporciones son parte
  * de sus condiciones de marca: no se tiñe con currentColor ni se recorta.
  */
-function LogoGoogle() {
+export function LogoGoogle() {
   return (
     <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden="true" focusable="false">
       <path

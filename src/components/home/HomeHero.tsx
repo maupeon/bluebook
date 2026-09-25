@@ -7,6 +7,7 @@ import { Heart, ScribbleArrow, Sparkle, Star } from "@/components/marketing/Ink"
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { PhoneHoy, PlannerNote, RsvpToast } from "@/components/marketing/Mockups";
 import { ButtonLink, Container, Display, Em, Lead, Script } from "@/components/marketing/ui";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
 
 export function HomeHero() {
@@ -49,25 +50,29 @@ export function HomeHero() {
             <Reveal delay={240}>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <ButtonLink href="/comenzar" arrow>
-                  {en ? "Start your wedding" : "Empieza tu boda"}
+                  {en ? "Start free" : "Empieza gratis"}
                 </ButtonLink>
                 <ButtonLink href="#todo-en-un-lugar" variant="secondary">
                   {en ? "See what's inside" : "Ver qué incluye"}
                 </ButtonLink>
               </div>
-              <p className="mt-4 font-body text-sm text-navy-muted">
+              {/* Lo que pasa después de la prueba, dicho antes de que lo pregunte:
+                  sin tarjeta hoy y dos caminos al final, ninguno escondido. */}
+              <p className="mt-4 max-w-[34rem] font-body text-sm text-navy-muted">
                 {en
-                  ? `${formatMXN(AGENT_PLAN.priceMxMonthly)} a month · cancel anytime`
-                  : `${formatMXN(AGENT_PLAN.priceMxMonthly)} al mes · cancelas cuando quieras`}
+                  ? `${DIAS_DE_PRUEBA} days free, no card. Then ${formatMXN(AGENT_PLAN.priceMxMonthly)} a month, or a single payment for your invitations.`
+                  : `${DIAS_DE_PRUEBA} días gratis, sin tarjeta. Después, ${formatMXN(AGENT_PLAN.priceMxMonthly)} al mes o un solo pago por tus invitaciones.`}
               </p>
             </Reveal>
 
             <Reveal delay={320}>
               <p className="mt-8 flex items-center gap-2.5 border-t border-hairline pt-6 font-body text-sm text-navy-soft">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-azul" strokeWidth={1.75} aria-hidden="true" />
+                {/* Solo el plan mensual trae planner: en la prueba y en «solo
+                    invitaciones» la boda no tiene una asignada. */}
                 {en
-                  ? "A real wedding planner looks after every wedding."
-                  : "Una wedding planner real cuida cada boda."}
+                  ? "With the monthly plan, a real wedding planner looks after your wedding."
+                  : "Con el plan mensual, una wedding planner real cuida tu boda."}
               </p>
             </Reveal>
           </div>

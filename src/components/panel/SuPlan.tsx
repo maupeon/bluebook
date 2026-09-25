@@ -6,7 +6,7 @@ import type { SuscripcionDeLaBoda } from "@/lib/suscripcion";
 import { useLanguage } from "@/components/LanguageProvider";
 import { formatInstantDate } from "@/components/panel/dates";
 import { Eyebrow } from "@/components/panel/sections";
-import { formatMXN } from "@/lib/weddingPlans";
+import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
 
 /**
  * El botón que abre el portal de Stripe. La URL se pide en el clic porque la
@@ -112,7 +112,9 @@ export function SuPlan({ suscripcion: s }: { suscripcion: SuscripcionDeLaBoda })
       <div className="max-w-xl">
         <Eyebrow>{isEnglish ? "Your plan" : "Su plan"}</Eyebrow>
         <h2 className="mt-3 font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
-          {isEnglish ? "Planner with AI" : "Planner con IA"}
+          {/* El nombre de lo que se cobra sale de un solo sitio. Aquí decía
+              «Planner con IA» a mano, y no hay IA que planee. */}
+          {isEnglish ? AGENT_PLAN.en.name : AGENT_PLAN.es.name}
           {importe ? (
             <span className="ml-3 font-body text-sm font-normal tracking-normal text-ink-muted">{importe}</span>
           ) : null}

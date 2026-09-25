@@ -20,13 +20,18 @@ const inputClass =
  *
  * Al guardar se refresca el panel entero: la fecha también sale en la barra de
  * arriba (layout) y mueve las fechas del plan (trigger de la 0024).
+ *
+ * soloLectura (prueba vencida) quita el botón de editar: la ruta igual lo
+ * rechaza con 402, pero ofrecer un formulario que no va a guardar es mentirles.
  */
 export function DatosDeLaBoda({
   weddingDate,
   venue,
+  soloLectura = false,
 }: {
   weddingDate: string | null;
   venue: string | null;
+  soloLectura?: boolean;
 }) {
   const { isEnglish } = useLanguage();
   const refrescar = useRefrescoDelPanel();
@@ -70,7 +75,8 @@ export function DatosDeLaBoda({
     }
   }
 
-  if (!editando) {
+  if (!editando || soloLectura) {
+    if (soloLectura && !weddingDate && !venue) return null;
     return (
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 font-body text-sm text-ink-muted">
         {weddingDate ? (
@@ -82,20 +88,22 @@ export function DatosDeLaBoda({
             {venue}
           </span>
         ) : null}
-        <button
-          type="button"
-          onClick={abrir}
-          className="inline-flex items-center gap-1.5 font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
-        >
-          <Pencil className="h-3.5 w-3.5" strokeWidth={1.6} />
-          {faltaAlgo
-            ? isEnglish
-              ? "Add date and venue"
-              : "Poner fecha y lugar"
-            : isEnglish
-              ? "Edit"
-              : "Editar"}
-        </button>
+        {soloLectura ? null : (
+          <button
+            type="button"
+            onClick={abrir}
+            className="inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+          >
+            <Pencil className="h-3.5 w-3.5" strokeWidth={1.6} />
+            {faltaAlgo
+              ? isEnglish
+                ? "Add date and venue"
+                : "Poner fecha y lugar"
+              : isEnglish
+                ? "Edit"
+                : "Editar"}
+          </button>
+        )}
       </div>
     );
   }

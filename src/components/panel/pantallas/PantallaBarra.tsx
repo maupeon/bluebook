@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertCircle, Download, Plus, RotateCcw, Trash2 } from "lucide-react";
 import type { PanelBundle } from "@/lib/couplePanel";
@@ -113,12 +115,21 @@ const RAPIDOS = [
 export function PantallaBarra({
   bundle,
   planGuardado,
+  soloLectura = false,
 }: {
   bundle: PanelBundle;
   planGuardado: PlanBarra | null;
+  /**
+   * Prueba vencida (0030). La calculadora sigue sirviendo para hacer cuentas,
+   * pero no se guarda: el servidor lo rechazaría, y antes eso se veía como un
+   * «No se pudo guardar» con «Reintentar» que nunca iba a funcionar. El Excel
+   * se baja con la lista que ya estaba guardada.
+   */
+  soloLectura?: boolean;
 }) {
   const { isEnglish } = useLanguage();
-  const { guests, seating } = bundle;
+  const { guests, seating, wedding } = bundle;
+  const conPlanner = wedding.tienePlanner;
 
   // El punto de partida no se teclea. Pero tampoco es "los confirmados a secas":
   // con grupos sin contestar ese número sólo puede SUBIR, y surtir una barra
@@ -127,9 +138,17 @@ export function PantallaBarra({
   const confirmadas = guests.attending;
   const faltanPorContestar = guests.pending;
   const maximo = seating.unavailable ? null : confirmadas + seating.pendingPeople;
+  // Los que la pareja imagina (onboarding). Mientras nadie ha confirmado, es
+  // el único número real que hay: antes la barra arrancaba en 1 persona y
+  // sugería media botella de todo, que es la calculadora diciendo "no sé".
+  const estimados =
+    wedding.invitadosEstimados != null && wedding.invitadosEstimados > 0
+      ? wedding.invitadosEstimados
+      : null;
+  const arranque = confirmadas > 0 ? confirmadas : (estimados ?? 1);
 
   const [plan, setPlan] = useState<PlanBarra>(() =>
-    planGuardado ? completarPlan(planGuardado) : planInicial(Math.max(confirmadas, 1))
+    planGuardado ? completarPlan(planGuardado) : planInicial(Math.max(arranque, 1))
   );
   const [guardado, setGuardado] = useState<Guardado>("guardado");
   const [bajando, setBajando] = useState(false);
@@ -186,11 +205,12 @@ export function PantallaBarra({
     // La lista recién cargada no se vuelve a guardar (y en desarrollo, el
     // doble montaje de StrictMode tampoco la manda dos veces).
     if (plan === inicial.current) return;
+    if (soloLectura) return;
     sucio.current = true;
     setGuardado("pendiente");
     if (temporizador.current) clearTimeout(temporizador.current);
     temporizador.current = setTimeout(() => void guardar(), 800);
-  }, [plan, guardar]);
+  }, [plan, guardar, soloLectura]);
 
   useEffect(() => {
     if (guardado !== "pendiente" && guardado !== "guardando") return;
@@ -204,7 +224,7 @@ export function PantallaBarra({
     setErrorDescarga(null);
     try {
       if (enVuelo.current) await enVuelo.current;
-      if (sucio.current) {
+      if (sucio.current && !soloLectura) {
         const ok = await guardar();
         if (!ok) throw new Error(isEnglish ? "Couldn't save your list first." : "No pudimos guardar su lista antes de bajarla.");
       }
@@ -260,8 +280,11 @@ export function PantallaBarra({
   const agregadas = plan.lineas.filter((l) => !l.clave);
   const hayAMano = deReceta.some((l) => l.aMano && l.clave && l.cantidad !== sugerido(l.clave, personas));
 
-  const estadoGuardado =
-    guardado === "guardado"
+  const estadoGuardado = soloLectura
+    ? isEnglish
+      ? "Read-only: changes aren't saved"
+      : "Solo lectura: los cambios no se guardan"
+    : guardado === "guardado"
       ? isEnglish
         ? "Saved"
         : "Guardado"
@@ -283,9 +306,16 @@ export function PantallaBarra({
             <em className="italic text-azul">{isEnglish ? "the bar" : "la barra"}</em>
           </h1>
           <p className="mt-4 max-w-2xl font-body text-sm leading-relaxed text-ink-muted">
-            {isEnglish
-              ? "The calculator suggests amounts from your planner's recipe. You pick the brand, the amount and the price you'll actually pay, and download it as Excel for whoever sells it to you."
-              : "La calculadora sugiere cantidades con la receta de su planner. Ustedes ponen la marca, la cantidad y el precio que de verdad van a pagar, y la descargan en Excel para quien se la venda."}
+            {/* La receta es la tabla de una wedding planner real (lib/barra.ts).
+                Sin planner asignada, "su planner" le atribuía la receta a
+                alguien que la pareja no tiene. */}
+            {conPlanner
+              ? isEnglish
+                ? "The calculator suggests amounts from your planner's recipe. You pick the brand, the amount and the price you'll actually pay, and download it as Excel for whoever sells it to you."
+                : "La calculadora sugiere cantidades con la receta de su planner. Ustedes ponen la marca, la cantidad y el precio que de verdad van a pagar, y la descargan en Excel para quien se la venda."
+              : isEnglish
+                ? "The calculator suggests amounts from a wedding planner's recipe. You pick the brand, the amount and the price you'll actually pay, and download it as Excel for whoever sells it to you."
+                : "La calculadora sugiere cantidades con la receta de una wedding planner. Ustedes ponen la marca, la cantidad y el precio que de verdad van a pagar, y la descargan en Excel para quien se la venda."}
           </p>
         </header>
       </Reveal>
@@ -317,16 +347,31 @@ export function PantallaBarra({
               <span className="font-body text-base text-ink-soft">{isEnglish ? "people" : "personas"}</span>
             </p>
             <div className="flex flex-wrap gap-2 pb-1">
-              <button
-                type="button"
-                onClick={() => ponerPersonas(Math.max(confirmadas, 1))}
-                aria-pressed={personas === confirmadas}
-                className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
-                  personas === confirmadas ? "border-azul bg-wash-soft text-ink" : "border-sand bg-white text-ink-soft hover:bg-bone"
-                }`}
-              >
-                {isEnglish ? `Confirmed: ${confirmadas}` : `Confirmados: ${confirmadas}`}
-              </button>
+              {/* "Confirmados: 0" no es un punto de partida: con cero no sale. */}
+              {confirmadas > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => ponerPersonas(confirmadas)}
+                  aria-pressed={personas === confirmadas}
+                  className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
+                    personas === confirmadas ? "border-azul bg-wash-soft text-ink" : "border-sand bg-white text-ink-soft hover:bg-bone"
+                  }`}
+                >
+                  {isEnglish ? `Confirmed: ${confirmadas}` : `Confirmados: ${confirmadas}`}
+                </button>
+              ) : null}
+              {estimados != null && estimados !== confirmadas ? (
+                <button
+                  type="button"
+                  onClick={() => ponerPersonas(estimados)}
+                  aria-pressed={personas === estimados}
+                  className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
+                    personas === estimados ? "border-azul bg-wash-soft text-ink" : "border-sand bg-white text-ink-soft hover:bg-bone"
+                  }`}
+                >
+                  {isEnglish ? `What you pictured: ${estimados}` : `Los que imaginan: ${estimados}`}
+                </button>
+              ) : null}
               {maximo != null && maximo > confirmadas ? (
                 <button
                   type="button"
@@ -370,8 +415,8 @@ export function PantallaBarra({
           {fuera && tipo === "completa" ? (
             <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
               {isEnglish
-                ? `Heads up: your number is outside the ${RANGO_TABLA.min}–${RANGO_TABLA.max} range the original table covers, so the suggestion is an extrapolation. Check it with your planner.`
-                : `Ojo: su número queda fuera del rango de ${RANGO_TABLA.min} a ${RANGO_TABLA.max} que cubre la tabla original, así que lo sugerido es una extrapolación. Confírmenlo con su planner.`}
+                ? `Heads up: your number is outside the ${RANGO_TABLA.min}–${RANGO_TABLA.max} range the original table covers, so the suggestion is an extrapolation. ${conPlanner ? "Check it with your planner." : "Check it with whoever sells it to you."}`
+                : `Ojo: su número queda fuera del rango de ${RANGO_TABLA.min} a ${RANGO_TABLA.max} que cubre la tabla original, así que lo sugerido es una extrapolación. ${conPlanner ? "Confírmenlo con su planner." : "Confírmenlo con quien se la venda."}`}
             </p>
           ) : null}
 
@@ -420,7 +465,14 @@ export function PantallaBarra({
               className={`font-body text-xs ${guardado === "error" ? "text-terra-deep" : "text-ink-muted"}`}
             >
               {estadoGuardado}
-              {guardado === "error" ? (
+              {soloLectura ? (
+                <Link
+                  href="/panel/plan"
+                  className="ml-2 text-azul-deep underline underline-offset-4 hover:text-ink"
+                >
+                  {isEnglish ? "Choose a plan" : "Elegir plan"}
+                </Link>
+              ) : guardado === "error" ? (
                 <button
                   type="button"
                   onClick={() => void guardar()}
@@ -554,8 +606,8 @@ export function PantallaBarra({
           </p>
           <p>
             {isEnglish
-              ? "A case is 12 bottles. These are stocking amounts, not what gets drunk: a bar is set up with more than it serves, and most suppliers take back what you don't open. Your planner adjusts it for how long the party runs and what your people actually drink."
-              : "Una caja son 12 botellas. Son cantidades para surtir, no lo que se va a beber: una barra se monta con más de lo que se sirve, y casi todos los proveedores reciben de vuelta lo que no se abre. Su planner lo ajusta según cuánto dure la fiesta y qué toma su gente."}
+              ? `A case is 12 bottles. These are stocking amounts, not what gets drunk: a bar is set up with more than it serves, and most suppliers take back what you don't open. ${conPlanner ? "Your planner adjusts it" : "Adjust it"} for how long the party runs and what your people actually drink.`
+              : `Una caja son 12 botellas. Son cantidades para surtir, no lo que se va a beber: una barra se monta con más de lo que se sirve, y casi todos los proveedores reciben de vuelta lo que no se abre. ${conPlanner ? "Su planner lo ajusta" : "Ajústenlo"} según cuánto dure la fiesta y qué toma su gente.`}
           </p>
         </div>
       </Reveal>
