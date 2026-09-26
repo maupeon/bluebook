@@ -59,6 +59,11 @@ export interface Respuestas {
   lada: string;
   /** Solo los dígitos nacionales. */
   telefono: string;
+  /**
+   * Marcó la casilla de los Términos. Viaja en el borrador porque se marca
+   * ANTES de salir a Google, y a la vuelta se guarda sin volver a preguntar.
+   */
+  aceptaTerminos: boolean;
 }
 
 export const RESPUESTAS_VACIAS: Respuestas = {
@@ -72,6 +77,7 @@ export const RESPUESTAS_VACIAS: Respuestas = {
   prioridades: [],
   lada: "52",
   telefono: "",
+  aceptaTerminos: false,
 };
 
 export const LADAS = [
@@ -96,6 +102,8 @@ export interface CuerpoDePrueba {
   /** Lada y número, solo dígitos. */
   telefono: string | null;
   idioma: "es" | "en";
+  /** Siempre true en un cuerpo válido: sin la casilla, el servidor no crea la boda. */
+  aceptaTerminos: true;
 }
 
 function limpiarTexto(v: string): string {
@@ -120,6 +128,7 @@ export function cuerpoDe(r: Respuestas, idioma: "es" | "en"): CuerpoDePrueba {
     prioridades: r.prioridades,
     telefono: telefonoCompleto ? `${r.lada}${r.telefono}` : null,
     idioma,
+    aceptaTerminos: r.aceptaTerminos as true,
   };
 }
 
@@ -189,6 +198,9 @@ function textoCorto(v: unknown, max: number): string | null {
 export function limpiarCuerpo(x: unknown, hoy: string): CuerpoDePrueba | null {
   if (!x || typeof x !== "object" || Array.isArray(x)) return null;
   const o = x as Record<string, unknown>;
+  // Sin la casilla de los Términos no hay boda: es el consentimiento del
+  // contrato, y el servidor no se fía de que la pantalla lo haya pedido.
+  if (o.aceptaTerminos !== true) return null;
 
   const fecha = typeof o.fecha === "string" && fechaEnRango(o.fecha, hoy) ? o.fecha : null;
 
@@ -236,6 +248,7 @@ export function limpiarCuerpo(x: unknown, hoy: string): CuerpoDePrueba | null {
     prioridades,
     telefono,
     idioma: o.idioma === "en" ? "en" : "es",
+    aceptaTerminos: true,
   };
 }
 

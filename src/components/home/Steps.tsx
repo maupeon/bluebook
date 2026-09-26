@@ -7,11 +7,10 @@ import { Watercolor } from "@/components/marketing/Watercolor";
 import { Container, Em, Eyebrow, Heading } from "@/components/marketing/ui";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
-
 // Misma bandera que el botón de LoginForm: mientras el proveedor de Google no
 // esté dado de alta en Supabase, el sitio no puede prometer que se entra con
 // Google.
-const CON_GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
+import { GOOGLE_ACTIVO as CON_GOOGLE } from "@/lib/entrarConGoogle";
 
 const price = formatMXN(AGENT_PLAN.priceMxMonthly);
 

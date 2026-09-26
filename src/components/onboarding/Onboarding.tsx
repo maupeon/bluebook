@@ -9,6 +9,7 @@ import { Rings } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { SaveTheDate } from "./SaveTheDate";
+import { CasillaDeTerminos } from "@/components/legal/CasillaDeTerminos";
 import {
   BOTON_PRIMARIO,
   BOTON_SECUNDARIO,
@@ -181,7 +182,10 @@ export function Onboarding({
         const respuestas = conNombre(borrador.respuestas);
         setR(respuestas);
         setIndice(ULTIMO);
-        if (correoDeSesion) {
+        // Solo se guarda sola si la casilla de los Términos venía marcada (se
+        // marca antes de salir a Google). Un borrador sin ella se queda en el
+        // paso de guardar para que la marque.
+        if (correoDeSesion && respuestas.aceptaTerminos) {
           setVuelta("guardando");
           void guardar(respuestas).then((ok) => {
             if (!ok) setVuelta(null);
@@ -277,7 +281,13 @@ export function Onboarding({
             {errorAlGuardar}
           </p>
         ) : null}
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+        <CasillaDeTerminos
+          className="mt-8"
+          aceptada={r.aceptaTerminos}
+          alCambiar={(v) => cambiar({ aceptaTerminos: v })}
+          isEnglish={isEnglish}
+        />
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
             className={BOTON_PRIMARIO}
@@ -289,7 +299,12 @@ export function Onboarding({
           >
             {isEnglish ? "Tell you again" : "Contártelas otra vez"}
           </button>
-          <button type="button" className={BOTON_SECUNDARIO} disabled={guardando} onClick={() => void guardar(r)}>
+          <button
+            type="button"
+            className={BOTON_SECUNDARIO}
+            disabled={guardando || !r.aceptaTerminos}
+            onClick={() => void guardar(r)}
+          >
             {guardando
               ? isEnglish
                 ? "Saving…"
@@ -350,6 +365,8 @@ export function Onboarding({
           correoDeSesion={sesion}
           alCambiarSesion={setSesion}
           guardar={() => void guardar(r)}
+          aceptaTerminos={r.aceptaTerminos}
+          alAceptarTerminos={(v) => cambiar({ aceptaTerminos: v })}
           guardando={guardando}
           errorAlGuardar={errorAlGuardar}
           antesDeSalir={() => guardarBorrador({ respuestas: r, paso: indice })}

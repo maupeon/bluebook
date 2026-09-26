@@ -3,7 +3,10 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
+import { cookies } from "next/headers";
 import { LoginForm } from "@/components/panel/LoginForm";
+import { AvisoSimplificado } from "@/components/legal/AvisoSimplificado";
+import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 
 export const metadata: Metadata = {
   title: "Acceso",
@@ -16,6 +19,7 @@ export default async function AccesoPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const params = await searchParams;
+  const isEnglish = parseLanguage((await cookies()).get(LANGUAGE_COOKIE)?.value) === "en";
   const next = typeof params.next === "string" ? params.next : "/panel";
 
   // Si ya hay sesión Y la boda coincide, entrar directo al panel.
@@ -51,6 +55,9 @@ export default async function AccesoPage({
           <div className="panel-card p-6 sm:p-8 md:p-10">
             <LoginForm next={next} hadError={params.error === "1"} />
           </div>
+          {/* El correo se pide aquí: el simplificado va antes de que llegue
+              al servidor (LFPDPPP art. 16 fr. II). */}
+          <AvisoSimplificado isEnglish={isEnglish} className="mt-6 px-1 text-center" />
         </div>
       </div>
     </div>

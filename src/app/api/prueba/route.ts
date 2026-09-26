@@ -7,6 +7,7 @@ import {
   type DatosDeLaPrueba,
 } from "@/lib/avisosDePrueba";
 import { etiquetaDePrioridad, limpiarCuerpo } from "@/components/onboarding/respuestas";
+import { VERSION_AVISO, VERSION_TERMINOS } from "@/lib/legal";
 
 // POST /api/prueba — la boda nace aquí: la prueba de siete días, sin tarjeta.
 //
@@ -92,6 +93,40 @@ export async function POST(req: NextRequest) {
 
   const weddingId = res.wedding_id;
   const yaExistia = res.ya_existia === true;
+
+  // La prueba del consentimiento, junto a la solicitud: qué versión de los
+  // Términos y del Aviso aceptó, si dio el permiso expreso del presupuesto
+  // (dato patrimonial, LFPDPPP art. 7) y cuándo. El Reglamento de la ley
+  // (art. 20) pone en el responsable la carga de probarlo.
+  if (!yaExistia) {
+    const { data: lead } = await supabase
+      .from("couple_leads")
+      .select("id, details")
+      .eq("wedding_id", weddingId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lead) {
+      const { error: errorConsentimiento } = await supabase
+        .from("couple_leads")
+        .update({
+          details: {
+            ...((lead.details as Record<string, unknown> | null) ?? {}),
+            consentimiento: {
+              terminos: VERSION_TERMINOS,
+              aviso: VERSION_AVISO,
+              presupuesto: datos.presupuesto != null,
+              en: new Date().toISOString(),
+              via: "onboarding",
+            },
+          },
+        })
+        .eq("id", lead.id);
+      if (errorConsentimiento) {
+        console.error("[api/prueba] no se guardó el consentimiento:", errorConsentimiento.message);
+      }
+    }
+  }
 
   if (!yaExistia) {
     const aviso: DatosDeLaPrueba = {

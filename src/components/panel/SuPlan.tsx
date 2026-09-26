@@ -128,8 +128,11 @@ export function SuPlan({ suscripcion: s }: { suscripcion: SuscripcionDeLaBoda })
         </p>
       </div>
       {s.situacion !== "terminada" ? (
+        // Se llama como lo nombran los Términos, el checkout y el aviso de
+        // cobro («Su plan › Administrar o cancelar»): la LFPC (76 Bis fr. IX)
+        // pide que cancelar sea fácil de encontrar, no que se adivine.
         <BotonDelPortal
-          texto={isEnglish ? "Payment and invoices" : "Pagos y facturas"}
+          texto={isEnglish ? "Manage or cancel" : "Administrar o cancelar"}
         />
       ) : null}
     </div>

@@ -29,7 +29,7 @@ const FAQ_ES: FaqItem[] = [
   },
   {
     q: "¿Hay plazos forzosos?",
-    a: "No. Es mes a mes y lo cancelas cuando quieras, con un mensaje. Se detiene al final del periodo que ya pagaste.",
+    a: "No. Es mes a mes y lo cancelas cuando quieras desde tu panel, en Su plan, sin escribirle a nadie. Ya no se vuelve a cobrar y el plan termina al final del periodo que ya pagaste.",
   },
   {
     q: "¿Y si solo quiero las invitaciones?",
@@ -53,7 +53,7 @@ const FAQ_EN: FaqItem[] = [
   },
   {
     q: "Is there a lock-in?",
-    a: "No. It's month to month and you cancel whenever you want, with one message. It stops at the end of the period you already paid.",
+    a: "No. It's month to month and you cancel whenever you want from your panel, under Your plan, without writing to anyone. You won't be charged again, and the plan ends at the end of the period you already paid.",
   },
   {
     q: "What if I only want the invitations?",

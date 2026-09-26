@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertCircle, ArrowLeft, MailCheck } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient, createOtpRequestClient } from "@/lib/supabase/client";
+import { GOOGLE_ACTIVO } from "@/lib/entrarConGoogle";
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
@@ -22,18 +23,8 @@ export const MAX_CODIGO = 10;
 /** Segundos antes de poder pedir otro código. Supabase limita el envío igual. */
 const ESPERA_REENVIO = 45;
 
-/**
- * El botón de Google solo aparece si el proveedor ya está dado de alta en
- * Supabase (NEXT_PUBLIC_GOOGLE_LOGIN=1 en el entorno).
- *
- * No es cautela de más: cuando el proveedor está apagado, Supabase NO
- * devuelve a la app con un error que podamos enseñar bonito. Contesta un 400
- * en crudo —{"msg":"Unsupported provider: provider is not enabled"}— sobre
- * fondo negro, fuera de nuestro dominio y sin manera de volver. Comprobado en
- * local. Un botón que hace eso es peor que no tener botón, así que nace
- * apagado y se enciende el día que el proveedor esté listo.
- */
-export const GOOGLE_ACTIVO = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
+// Por qué el botón de Google nace apagado: ver lib/entrarConGoogle.
+export { GOOGLE_ACTIVO };
 
 /**
  * A quién le habla el texto. /acceso es la puerta del panel, que es de los dos

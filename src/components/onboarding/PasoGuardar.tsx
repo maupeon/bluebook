@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type RefObject } from "react";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { AvisoSimplificado } from "@/components/legal/AvisoSimplificado";
+import { CasillaDeTerminos } from "@/components/legal/CasillaDeTerminos";
 import { createClient } from "@/lib/supabase/client";
 import {
   GOOGLE_ACTIVO,
@@ -58,6 +59,8 @@ export function PasoGuardar({
   guardando,
   errorAlGuardar,
   antesDeSalir,
+  aceptaTerminos,
+  alAceptarTerminos,
   isEnglish,
 }: {
   tituloRef: RefObject<HTMLHeadingElement | null>;
@@ -68,12 +71,17 @@ export function PasoGuardar({
   errorAlGuardar: string | null;
   /** Deja las respuestas en sessionStorage antes de irse a Google. */
   antesDeSalir: () => void;
+  /** La casilla de los Términos. Vive en las respuestas: viaja en el borrador. */
+  aceptaTerminos: boolean;
+  alAceptarTerminos: (valor: boolean) => void;
   isEnglish: boolean;
 }) {
   const acceso = useCodigoPorCorreo({ destino: RUTA_DE_VUELTA, voz: "tu" });
   const [conGoogle, setConGoogle] = useState(false);
   const [cerrando, setCerrando] = useState(false);
   const ocupado = guardando || acceso.loading || conGoogle || cerrando;
+  // Todo lo que crea la boda o sale a iniciar sesión espera a la casilla.
+  const bloqueado = ocupado || !aceptaTerminos;
 
   const irConGoogle = async () => {
     if (ocupado) return;
@@ -135,9 +143,15 @@ export function PasoGuardar({
       {error ? <AvisoDeError>{error}</AvisoDeError> : null}
 
       <div className="mt-9 max-w-md">
+        <CasillaDeTerminos
+          className="mb-6"
+          aceptada={aceptaTerminos}
+          alCambiar={alAceptarTerminos}
+          isEnglish={isEnglish}
+        />
         {correoDeSesion ? (
           <>
-            <button type="button" onClick={guardar} disabled={ocupado} className={`${BOTON_PRIMARIO} w-full`}>
+            <button type="button" onClick={guardar} disabled={bloqueado} className={`${BOTON_PRIMARIO} w-full`}>
               {guardando ? (
                 <>
                   <Spinner />
@@ -196,7 +210,7 @@ export function PasoGuardar({
               />
               <button
                 type="submit"
-                disabled={ocupado || acceso.codigo.length < MIN_CODIGO}
+                disabled={bloqueado || acceso.codigo.length < MIN_CODIGO}
                 className={`${BOTON_PRIMARIO} mt-4 w-full`}
               >
                 {ocupado ? (
@@ -241,7 +255,7 @@ export function PasoGuardar({
           <>
             {GOOGLE_ACTIVO ? (
               <>
-                <button type="button" onClick={irConGoogle} disabled={ocupado} className={`${BOTON_SECUNDARIO} w-full`}>
+                <button type="button" onClick={irConGoogle} disabled={bloqueado} className={`${BOTON_SECUNDARIO} w-full`}>
                   {conGoogle ? <Spinner claro={false} /> : <LogoGoogle />}
                   {isEnglish ? "Continue with Google" : "Continuar con Google"}
                 </button>
@@ -275,7 +289,7 @@ export function PasoGuardar({
                 disabled={ocupado}
                 className="mt-1 min-h-[56px] w-full border-b border-wash-deep bg-transparent pb-1 font-body text-lg text-navy placeholder:text-navy-muted/40 outline-none transition-colors focus:border-azul disabled:opacity-60"
               />
-              <button type="submit" disabled={ocupado} className={`${BOTON_PRIMARIO} mt-6 w-full`}>
+              <button type="submit" disabled={bloqueado} className={`${BOTON_PRIMARIO} mt-6 w-full`}>
                 {acceso.loading ? (
                   <>
                     <Spinner />
@@ -296,17 +310,9 @@ export function PasoGuardar({
           </>
         )}
 
-        <p className="mt-10 font-body text-xs leading-relaxed text-navy-muted">
-          {isEnglish ? "By saving you accept the " : "Al guardar aceptas los "}
-          <Link href="/terminos" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-navy">
-            {isEnglish ? "Terms" : "Términos"}
-          </Link>
-          {isEnglish ? " and the " : " y el "}
-          <Link href="/privacidad" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-navy">
-            {isEnglish ? "Privacy notice" : "Aviso de privacidad"}
-          </Link>
-          .
-        </p>
+        {/* El simplificado: la ley pide mostrarlo antes de que los datos
+            lleguen al servidor, y es aquí donde llegan (LFPDPPP art. 16). */}
+        <AvisoSimplificado isEnglish={isEnglish} className="mt-10" />
       </div>
     </div>
   );

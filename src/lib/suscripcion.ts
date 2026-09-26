@@ -51,7 +51,20 @@ export const EVENTOS_DE_SUSCRIPCION = new Set<string>([
   "customer.subscription.deleted",
   "invoice.paid",
   "invoice.payment_failed",
+  // El aviso previo a cada cobro (LFPC art. 76 Bis fr. VIII, DOF 12-12-2025):
+  // al menos 5 días naturales antes. Stripe lo manda los días que diga
+  // Settings › Billing › Subscriptions › «Upcoming renewal events»; tiene que
+  // estar en 5 o más, y el evento dado de alta en el endpoint del webhook.
+  "invoice.upcoming",
 ]);
+
+/**
+ * Los días antes de la renovación en que Stripe manda invoice.upcoming. Es el
+ * valor de «Upcoming renewal events» en Stripe LIVE (7 desde el 26-sep-2026);
+ * si allá cambia, cambia aquí. Lo usa la reactivación: quien reactiva dentro
+ * de esta ventana ya no va a recibir el evento de Stripe.
+ */
+const DIAS_DEL_AVISO_DE_RENOVACION = 7;
 
 export function stripeServidor(): Stripe | null {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -109,6 +122,8 @@ interface Sincronizada {
   weddingId: string | null;
   leadId: string | null;
   importe: number | null;
+  /** Ya canceló y termina al final del periodo: no hay próximo cobro que anunciar. */
+  cancelaAlFinal: boolean;
 }
 
 /**
@@ -176,7 +191,7 @@ export async function sincronizarSuscripcion(
   );
   if (error) throw new Error(`No se pudo guardar la suscripción ${sub.id}: ${error.message}`);
 
-  return { weddingId, leadId, importe };
+  return { weddingId, leadId, importe, cancelaAlFinal };
 }
 
 /**
@@ -212,6 +227,9 @@ export async function atenderEventoDeSuscripcion(stripe: Stripe, event: Stripe.E
         ultimo_pago_en: iso(invoice.status_transitions?.paid_at) ?? iso(event.created),
         proximo_intento_en: null,
       };
+    } else if (event.type === "invoice.upcoming") {
+      // Una factura que todavía no existe: no cambia nada del estado.
+      extra = {};
     } else {
       extra = {
         ultimo_fallo_en: iso(event.created),
@@ -278,7 +296,10 @@ async function nombreDeLaPareja(s: Sincronizada, invoice: Stripe.Invoice | null)
  * - La pareja canceló o reactivó desde el portal: al equipo.
  * - La suscripción terminó: al equipo y a la pareja.
  * - Se cobró un pago que estaba pendiente: al equipo.
- * Las renovaciones normales no avisan a nadie: serían un correo al mes de ruido.
+ * - Viene un cobro (invoice.upcoming, o una reactivación a días del cobro): a
+ *   la pareja, con monto, fecha y cómo cancelar. Antes las renovaciones no
+ *   avisaban a nadie por no hacer ruido;
+ *   desde el 13-dic-2025 la LFPC (art. 76 Bis fr. VIII) lo exige.
  *
  * QUÉ CAMBIÓ se lee del EVENTO (previous_attributes, el motivo de la
  * cancelación) y no comparando contra el estado guardado.
@@ -287,6 +308,29 @@ async function nombreDeLaPareja(s: Sincronizada, invoice: Stripe.Invoice | null)
  * prueba lo agarró así: el created llegó junto con la cancelación y el aviso
  * de "cancelaron" no salía.
  */
+/**
+ * El aviso de que viene un cobro, a la pareja: monto, fecha y cómo cancelar
+ * (LFPC art. 76 Bis fr. VIII). Lo que dice de cancelar es lo que de verdad
+ * pasa: el panel es suyo para siempre desde el primer pago
+ * (v_acceso_de_la_boda), así que no se les amenaza con cerrarlo.
+ */
+async function avisarCobroProximo(to: string[], cuando: string, monto: number | null) {
+  await sendAvisoEmail({
+    to,
+    subject: "Su próximo cobro de Blue Book",
+    eyebrow: "Su plan",
+    titulo: cuando ? `El ${cuando} se renueva su plan` : "Se acerca la renovación de su plan",
+    parrafos: [
+      monto != null
+        ? `Ese día cobraremos ${formatMXN(monto)} a la tarjeta con la que se suscribieron, como cada mes.`
+        : "Ese día cobraremos su mensualidad a la tarjeta con la que se suscribieron, como cada mes.",
+      "Si ya no lo quieren, pueden cancelarlo antes de esa fecha desde su panel, en Su plan › Administrar o cancelar. La cancelación es inmediata y no se les vuelve a cobrar. Su panel y todo lo que capturaron se quedan.",
+    ],
+    boton: { texto: "Administrar mi plan", url: `${urlDelPanel()}/plan` },
+    pie: "Les mandamos este aviso antes de cada cobro, como marca la Ley Federal de Protección al Consumidor.",
+  });
+}
+
 async function avisar(
   event: Stripe.Event,
   s: Sincronizada,
@@ -305,6 +349,20 @@ async function avisar(
     const botonAdmin = s.weddingId
       ? { texto: "Abrir la boda", url: urlDeLaBodaEnElAdmin(s.weddingId) }
       : undefined;
+
+    // El aviso de que viene un cobro. Lo exige la LFPC (art. 76 Bis fr. VIII)
+    // desde el 13-dic-2025: monto, fecha y cómo cancelar, con al menos 5 días
+    // naturales de anticipación. Solo si la suscripción sigue viva y va a
+    // cobrar: a quien ya canceló al final del periodo no se le anuncia nada.
+    if (event.type === "invoice.upcoming" && invoice) {
+      if (s.cancelaAlFinal || invoice.amount_due <= 0) return;
+      const cuando = formatInstantDate(
+        iso(invoice.next_payment_attempt ?? invoice.period_end),
+        false
+      );
+      await avisarCobroProximo(deLaPareja, cuando, invoice.amount_due / 100);
+      return;
+    }
 
     if (event.type === "invoice.payment_failed" && invoice) {
       const reintento = formatInstantDate(iso(invoice.next_payment_attempt), false);
@@ -376,6 +434,13 @@ async function avisar(
           filas: [["Plan", importe]],
           boton: botonAdmin,
         });
+        // Mientras estaba cancelada, el aviso de Stripe no salió (o se
+        // descartó arriba). Si reactivan ya dentro de la ventana, nadie más les
+        // va a anunciar este cobro: se lo anunciamos aquí.
+        const faltan = finDelPeriodo != null ? finDelPeriodo * 1000 - Date.now() : null;
+        if (faltan != null && faltan > 0 && faltan <= DIAS_DEL_AVISO_DE_RENOVACION * 86_400_000) {
+          await avisarCobroProximo(deLaPareja, formatInstantDate(iso(finDelPeriodo), false), s.importe);
+        }
       }
       return;
     }

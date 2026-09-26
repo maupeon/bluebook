@@ -50,7 +50,7 @@ export const HOME_FAQ_ES: FaqItem[] = [
   },
   {
     q: "¿Cómo cancelo?",
-    a: "Cuando quieras, con un mensaje. No hay plazos forzosos ni penalización: el plan es mes a mes y se detiene al final del periodo que ya pagaste.",
+    a: "Cuando quieras, desde tu panel, en Su plan: es inmediato y sin escribirle a nadie. No hay plazos forzosos ni penalización: el plan es mes a mes y termina al final del periodo que ya pagaste.",
   },
 ];
 
@@ -82,7 +82,7 @@ export const HOME_FAQ_EN: FaqItem[] = [
   },
   {
     q: "How do I cancel?",
-    a: "Whenever you want, with one message. No lock-in and no penalty: the plan is month to month and stops at the end of the period you already paid.",
+    a: "Whenever you want, from your panel, under Your plan: it's immediate and you don't have to write to anyone. No lock-in and no penalty: the plan is month to month and ends at the end of the period you already paid.",
   },
 ];
 

@@ -522,8 +522,8 @@ function YaTienenPlan({
           <p className="mt-4 max-w-2xl font-body text-sm leading-relaxed text-ink-muted">
             {suscripcion
               ? isEnglish
-                ? "Your panel is fully open. Here you can see your monthly plan, your invoices and change your card."
-                : "Su panel está abierto por completo. Aquí ven su plan mensual, sus facturas y pueden cambiar su tarjeta."
+                ? "Your panel is fully open. Here you can see your monthly plan and its charges, change your card or cancel it."
+                : "Su panel está abierto por completo. Aquí ven su plan mensual y sus cobros, cambian su tarjeta o lo cancelan."
               : isEnglish
                 ? "Your panel is fully open. If you'd like to change anything about your plan, write to us from the chat in Today."
                 : "Su panel está abierto por completo. Si quieren cambiar algo de su plan, escríbannos desde el chat de Hoy."}

@@ -69,6 +69,7 @@ export function leerBorrador(): Borrador | null {
         : [],
       lada: texto(r.lada) || RESPUESTAS_VACIAS.lada,
       telefono: texto(r.telefono).replace(/\D/g, ""),
+      aceptaTerminos: r.aceptaTerminos === true,
     };
     const paso = typeof o.paso === "number" && Number.isInteger(o.paso) ? o.paso : 0;
     return { respuestas, paso };

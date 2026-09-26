@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { Check } from "lucide-react";
 import { Toast } from "@/components/marketing/Ink";
@@ -583,7 +585,6 @@ const ESCALA_PRESUPUESTO: number[] = (() => {
   return v;
 })();
 
-const PRESUPUESTO_INICIAL = 180_000;
 /** Bodas.com.mx, Informe del Sector Nupcial 2025. La única cifra de fuera que tenemos. */
 const BODA_PROMEDIO_MX = 180_000;
 
@@ -596,10 +597,14 @@ function indiceMasCercano(valor: number): number {
 }
 
 export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePaso) {
-  const [valor, setValor] = useState<number | null>(r.presupuesto ?? PRESUPUESTO_INICIAL);
+  // Sin cifra hasta que ella la dé. Antes arrancaba en el promedio y un
+  // «Continuar» sin tocar nada guardaba $180,000 que nadie dijo, con el
+  // consentimiento expreso encima: NULL es que nadie lo capturó. El promedio
+  // se queda como sugerencia (el placeholder y la perilla en su sitio).
+  const [valor, setValor] = useState<number | null>(r.presupuesto ?? null);
   const [intento, setIntento] = useState(false);
   const valido = valor != null && valor > 0 && valor <= LIMITES.presupuestoMax;
-  const indice = indiceMasCercano(valor ?? PRESUPUESTO_INICIAL);
+  const indice = indiceMasCercano(valor ?? BODA_PROMEDIO_MX);
   const relleno = (indice / (ESCALA_PRESUPUESTO.length - 1)) * 100;
   const porInvitado = valido && r.invitados ? valor / r.invitados : null;
 
@@ -638,12 +643,13 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
             type="text"
             inputMode="numeric"
             value={valor == null ? "" : miles(valor)}
+            placeholder={miles(BODA_PROMEDIO_MX)}
             onChange={(e) => {
               setIntento(false);
               const digitos = e.target.value.replace(/\D/g, "").slice(0, 8);
               setValor(digitos ? Number(digitos) : null);
             }}
-            className="w-[11ch] border-b border-wash-deep bg-transparent pb-1 font-heading text-[2.6rem] font-medium leading-none tracking-[-0.02em] text-navy tabular-nums outline-none transition-colors focus:border-azul sm:text-[3.25rem]"
+            className="w-[11ch] border-b border-wash-deep bg-transparent pb-1 font-heading text-[2.6rem] font-medium leading-none tracking-[-0.02em] text-navy tabular-nums outline-none transition-colors placeholder:text-navy/25 focus:border-azul sm:text-[3.25rem]"
           />
         </span>
         <span className="font-body text-base text-navy-muted">MXN</span>
@@ -661,7 +667,13 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
         }}
         onKeyDown={enterEnvia}
         aria-label={isEnglish ? "Budget" : "Presupuesto"}
-        aria-valuetext={`${pesos(ESCALA_PRESUPUESTO[indice])} MXN`}
+        aria-valuetext={
+          valor == null
+            ? isEnglish
+              ? "No amount yet"
+              : "Sin cifra todavía"
+            : `${pesos(ESCALA_PRESUPUESTO[indice])} MXN`
+        }
         className="range-blue mt-6 w-full max-w-md"
         style={{ "--fill": `${relleno}%` } as CSSProperties}
       />
@@ -672,11 +684,30 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
 
       {intento && !valido ? (
         <AvisoDeError>
-          {isEnglish
-            ? `Type an amount up to ${pesos(LIMITES.presupuestoMax)}.`
-            : `Escribe una cantidad de hasta ${pesos(LIMITES.presupuestoMax)}.`}
+          {valor == null
+            ? isEnglish
+              ? "Type an amount or move the bar. If you'd rather not say, that's fine too."
+              : "Escribe una cantidad o mueve la barra. Si prefieres no decirla, también está bien."
+            : isEnglish
+              ? `Type an amount up to ${pesos(LIMITES.presupuestoMax)}.`
+              : `Escribe una cantidad de hasta ${pesos(LIMITES.presupuestoMax)}.`}
         </AvisoDeError>
       ) : null}
+
+      {/* El consentimiento EXPRESO del dato patrimonial (LFPDPPP art. 7): el
+          presupuesto dice cuánto dinero tiene la pareja. Va pegado al
+          deslizador y siempre a la vista, no al fondo del paso: en un teléfono
+          el fondo queda bajo la barra fija de «Continuar», y un permiso que no
+          se ve no es permiso. «Prefiero no decir» sigue al lado y no guarda
+          nada. */}
+      <p className="mt-4 max-w-[52ch] font-body text-xs leading-relaxed text-navy-muted">
+        {isEnglish
+          ? "If you continue with an amount, you authorize us to save it to set up your budget. It's information about your money, so the law asks for your express consent. You can withdraw it whenever you want."
+          : "Si continúas con una cifra, nos autorizas a guardarla para armar tu presupuesto. Es un dato sobre tu dinero, así que la ley pide tu permiso expreso. Puedes retirarlo cuando quieras."}{" "}
+        <Link href="/privacidad" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-navy">
+          {isEnglish ? "Privacy notice" : "Aviso de privacidad"}
+        </Link>
+      </p>
 
       {valido ? (
         <div className="mt-10 max-w-lg">

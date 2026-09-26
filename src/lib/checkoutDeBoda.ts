@@ -1,6 +1,6 @@
 import "server-only";
 import type Stripe from "stripe";
-import { AGENT_PLAN, getInvitationTier } from "@/lib/weddingPlans";
+import { AGENT_PLAN, formatMXN, getInvitationTier } from "@/lib/weddingPlans";
 
 /**
  * La sesión de Stripe de una boda, en un solo sitio. La usan el checkout del
@@ -55,6 +55,14 @@ export async function crearCheckoutDeBoda(
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: { productType: "planner", leadId },
+      // Junto al botón de pagar: periodicidad, monto y cómo cancelar. La LFPC
+      // (art. 76 Bis fr. VIII, DOF 12-12-2025) pide informarlo de forma clara
+      // y destacada ANTES del consentimiento al cobro recurrente.
+      custom_text: {
+        submit: {
+          message: `Se cobrarán ${formatMXN(AGENT_PLAN.priceMxMonthly)} cada mes, el mismo día del mes en que te suscribes, hasta que canceles. Te avisamos por correo al menos 5 días antes de cada cobro y puedes cancelar cuando quieras desde tu panel, en Su plan › Administrar o cancelar.`,
+        },
+      },
       // También en la suscripción: sus eventos (renovación, cobro rechazado,
       // cancelación) no traen la metadata de la sesión, y con esto el
       // webhook encuentra la boda aunque lleguen antes que el primer pago.
@@ -86,6 +94,11 @@ export async function crearCheckoutDeBoda(
     allow_promotion_codes: true,
     success_url: successUrl,
     cancel_url: cancelUrl,
+    custom_text: {
+      submit: {
+        message: `Pago único, sin cobros posteriores: las invitaciones de tu boda, hasta ${tier.maxGuests} invitaciones (una por invitado o por grupo, con sus pases), con su envío por WhatsApp y las confirmaciones.`,
+      },
+    },
     // El tramo viaja con la sesión: registrarPagoDeBoda escribe en la
     // solicitud lo que de verdad se pagó, aunque entre tanto la pareja haya
     // elegido otra cosa en otra pestaña.
