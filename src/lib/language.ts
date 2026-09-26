@@ -8,7 +8,7 @@ export const CONTACT_INFO = {
   whatsappDisplay: "+52 442 202 9374",
   whatsappNumber: "+524422029374",
   whatsappUrl: "https://wa.me/524422029374",
-  email: "majomer9@gmail.com",
+  email: "majomn97@gmail.com",
   cityEs: "Ciudad de México, México",
   cityEn: "Mexico City, Mexico",
 } as const;

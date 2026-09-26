@@ -29,14 +29,9 @@ export const RESPONSABLE = {
    * revocación del consentimiento y dudas de privacidad. Gratuito: la ley no
    * deja que la única vía cueste (Reglamento de la LFPDPPP, art. 93).
    */
-  correoPrivacidad: "majomn97@gmail.com",
-  /**
-   * Soporte, reembolsos y aclaraciones de cobros. El mismo que el de
-   * privacidad: la titular confirmó el 26-sep-2026 que su correo bueno es
-   * majomn97. CONTACT_INFO.email (pie de página y avisos internos) todavía
-   * dice majomer9; no se tocó sin preguntarle.
-   */
-  correoAtencion: "majomn97@gmail.com",
+  correoPrivacidad: CONTACT_INFO.email,
+  /** Soporte, reembolsos y aclaraciones de cobros. */
+  correoAtencion: CONTACT_INFO.email,
 } as const;
 
 /** Si los precios publicados ya traen el IVA dentro. Lo confirmó la titular el 26-sep-2026. */
