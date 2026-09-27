@@ -69,7 +69,7 @@ export function PasoGuardar({
   guardar: () => void;
   guardando: boolean;
   errorAlGuardar: string | null;
-  /** Deja las respuestas en sessionStorage antes de irse a Google. */
+  /** Deja las respuestas para la vuelta antes de irse a Google o al correo (ver borrador.ts). */
   antesDeSalir: () => void;
   /** La casilla de los Términos. Vive en las respuestas: viaja en el borrador. */
   aceptaTerminos: boolean;

@@ -11,6 +11,7 @@ import { leerSuscripcion } from "@/lib/suscripcion";
 import { AvisoDePago } from "@/components/panel/SuPlan";
 import { leerAcceso } from "@/lib/acceso";
 import { FranjaDePrueba } from "@/components/panel/FranjaDePrueba";
+import { LimpiarLaVuelta } from "@/components/onboarding/LimpiarLaVuelta";
 
 /** El id del div que scrollea. Lo comparten el layout y ResetScroll. */
 const ID_SCROLLER = "panel-scroll";
@@ -43,6 +44,7 @@ export default async function PanelLayout({
         className="sb panel-sb fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-bone"
       >
         <ScrollLock />
+      <LimpiarLaVuelta siempre />
         <PanelTopBar coupleName={null} weddingDate={null} />
         <NoWedding email={email} />
       </div>
@@ -62,6 +64,7 @@ export default async function PanelLayout({
     // sistema, ver globals.css). panel-sb: sus colores (tokens redefinidos).
     <div data-panel-overlay className="sb panel-sb fixed inset-0 z-[55] flex flex-col bg-bone">
       <ScrollLock />
+      <LimpiarLaVuelta siempre />
       <ResetScroll targetId={ID_SCROLLER} />
       <PanelTopBar
         coupleName={wedding.coupleName}

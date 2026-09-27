@@ -278,7 +278,10 @@ function seccionesEs(): SeccionLegal[] {
           <li>
             Solo usamos las necesarias para que el sitio funcione: la de tu sesión (sb-…-auth-token) y la de tu idioma
             (bb_lang). Mientras contestas el onboarding, tus respuestas se guardan en tu navegador, en esa pestaña y
-            hasta por 2 días, para no perderlas si la página se recarga o sales a iniciar sesión.
+            hasta por 2 días, para no perderlas si la página se recarga. Al salir a iniciar sesión se deja además, en
+            ese navegador, una copia que solo se usa si vuelves en menos de 30 minutos: se borra al volver, al entrar
+            a tu panel o, pasado ese plazo, la próxima vez que abras Blue Book. No salen de tu navegador hasta que
+            guardas tu boda.
           </li>
           <li>No usamos cookies de publicidad ni de analítica.</li>
           <li>Puedes borrarlas desde tu navegador; si borras la de sesión, tendrás que volver a entrar.</li>
@@ -607,7 +610,10 @@ function seccionesEn(): SeccionLegal[] {
           <li>
             We only use the cookies needed for the site to work: your session (sb-…-auth-token) and your language
             (bb_lang). While you answer the onboarding, your answers are kept in your browser, in that tab and for up to
-            2 days, so they aren&rsquo;t lost if the page reloads or you step out to sign in.
+            2 days, so they aren&rsquo;t lost if the page reloads. When you step out to sign in, a copy is also kept in
+            that browser and only used if you&rsquo;re back within 30 minutes: it&rsquo;s deleted when you come back,
+            when you enter your panel or, after that time, the next time you open Blue Book. They don&rsquo;t leave
+            your browser until you save your wedding.
           </li>
           <li>We don&rsquo;t use advertising or analytics cookies.</li>
           <li>You can delete them in your browser; if you delete the session one, you&rsquo;ll need to sign in again.</li>
@@ -701,7 +707,7 @@ export default async function PrivacidadPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Privacy notice" : "Aviso de privacidad"}
-      actualizado={isEnglish ? "September 26, 2026" : "26 de septiembre de 2026"}
+      actualizado={isEnglish ? "September 27, 2026" : "27 de septiembre de 2026"}
       intro={
         isEnglish ? (
           <p>

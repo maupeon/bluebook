@@ -5,6 +5,7 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { LimpiarLaVuelta } from "@/components/onboarding/LimpiarLaVuelta";
 import { CONTACT_INFO, LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 
 // Structured Data - Organization Schema
@@ -154,6 +155,7 @@ export default async function RootLayout({
         className={`${cormorant.variable} ${montserrat.variable} ${sacramento.variable} ${sniglet.variable} antialiased bg-light text-dark`}
       >
         <LanguageProvider initialLanguage={language}>
+          <LimpiarLaVuelta />
           <Navbar />
           <main>{children}</main>
           <Footer />

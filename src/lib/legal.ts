@@ -45,7 +45,7 @@ export const EMITE_CFDI = false;
 
 /** Fechas de la versión vigente. Se guardan con cada consentimiento como prueba. */
 export const VERSION_TERMINOS = "2026-09-26";
-export const VERSION_AVISO = "2026-09-26";
+export const VERSION_AVISO = "2026-09-27";
 
 /** Días naturales de anticipación con que se avisa un cambio a los Términos. */
 export const DIAS_AVISO_CAMBIO_TERMINOS = 15;

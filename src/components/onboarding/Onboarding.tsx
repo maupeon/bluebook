@@ -22,7 +22,14 @@ import {
   PasoWhatsApp,
 } from "./pasos";
 import { PasoGuardar } from "./PasoGuardar";
-import { borrarBorrador, guardarBorrador, leerBorrador } from "./borrador";
+import {
+  borrarBorrador,
+  descartarLaVuelta,
+  guardarBorrador,
+  guardarParaLaVuelta,
+  leerBorrador,
+  tomarLaVuelta,
+} from "./borrador";
 import { cuerpoDe, RESPUESTAS_VACIAS, type Respuestas } from "./respuestas";
 
 const PASOS = [
@@ -173,13 +180,22 @@ export function Onboarding({
     if (yaLeido.current) return;
     yaLeido.current = true;
 
-    const borrador = leerBorrador();
+    // La copia para la vuelta es de quien vuelve con sesión: /comenzar/guardar
+    // la toma (y la borra); /comenzar la descarta sin mirarla. La de la
+    // pestaña manda si sobrevivió.
+    const deLaVuelta = modo === "volviendo" ? tomarLaVuelta() : null;
+    if (modo !== "volviendo") descartarLaVuelta();
+    const borrador = leerBorrador() ?? deLaVuelta;
     const conNombre = (x: Respuestas): Respuestas =>
       x.nombre.trim() || !nombreDeGoogle ? x : { ...x, nombre: nombreDeGoogle };
 
     if (modo === "volviendo") {
       if (borrador) {
         const respuestas = conNombre(borrador.respuestas);
+        // Si vino de la copia (la pestaña llegó vacía), se queda también en
+        // la pestaña: la copia ya se borró, y una recarga a media petición no
+        // debe volver a perderlas.
+        guardarBorrador({ respuestas, paso: ULTIMO });
         setR(respuestas);
         setIndice(ULTIMO);
         // Solo se guarda sola si la casilla de los Términos venía marcada (se
@@ -369,7 +385,7 @@ export function Onboarding({
           alAceptarTerminos={(v) => cambiar({ aceptaTerminos: v })}
           guardando={guardando}
           errorAlGuardar={errorAlGuardar}
-          antesDeSalir={() => guardarBorrador({ respuestas: r, paso: indice })}
+          antesDeSalir={() => guardarParaLaVuelta({ respuestas: r, paso: indice })}
           isEnglish={isEnglish}
         />
         <div className="mx-auto mt-16 w-full max-w-sm px-6 lg:hidden">
