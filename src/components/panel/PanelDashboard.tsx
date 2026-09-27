@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   Check,
@@ -791,24 +791,36 @@ const GUEST_COUNTRY_CODES = [
   { code: "+34", label: "+34 ES", digits: 9 },
 ];
 
+/**
+ * Un número de un país que no está en la lista (+44, +49, +57…). Llegan de la
+ * importación de la lista (y del admin): el editor los conserva enteros, con
+ * su lada, en vez de partirlos como si fueran de México.
+ */
+const OTRO_PAIS = "otro";
+
 function guestPhoneDigitsFor(cc: string): number {
+  if (cc === OTRO_PAIS) return 15;
   return GUEST_COUNTRY_CODES.find((c) => c.code === cc)?.digits ?? 10;
 }
 
 /** Separa "+<cc><dígitos>" en código de país conocido + dígitos nacionales. */
 function splitPhone(phone: string): { cc: string; digits: string } {
   const onlyDigits = (phone ?? "").replace(/\D/g, "");
+  if (!onlyDigits) return { cc: "+52", digits: "" };
   // Probamos los códigos más largos primero (+52/+34 antes que +1).
   const byLen = [...GUEST_COUNTRY_CODES].sort(
     (a, b) => b.code.length - a.code.length
   );
   for (const c of byLen) {
     const ccDigits = c.code.replace(/\D/g, "");
-    if (onlyDigits.startsWith(ccDigits)) {
+    if (onlyDigits.startsWith(ccDigits) && onlyDigits.length === ccDigits.length + c.digits) {
       return { cc: c.code, digits: onlyDigits.slice(ccDigits.length) };
     }
   }
-  return { cc: "+52", digits: onlyDigits };
+  // Diez dígitos sin lada son de México, como siempre: así los guarda el
+  // alta del admin y la sincronización de Sheets.
+  if (onlyDigits.length === 10) return { cc: "+52", digits: onlyDigits };
+  return { cc: OTRO_PAIS, digits: onlyDigits };
 }
 
 function formatGuestPhone(digits: string): string {
@@ -924,6 +936,12 @@ export function GuestListSection({
 }) {
   const [guests, setGuests] = useState<PanelGuest[]>(initialGuests);
   const refrescar = useRefrescoDelPanel();
+  // La lista del servidor manda cuando cambia: una importación (TraerLista)
+  // o un cambio desde otra pestaña llegan por router.refresh() como props
+  // nuevas, y sin esto la tabla se quedaba con la copia del primer render.
+  useEffect(() => {
+    setGuests(initialGuests);
+  }, [initialGuests]);
 
   // Formulario de alta
   const [name, setName] = useState("");
@@ -1483,11 +1501,17 @@ function GuestRow({
       setError(isEnglish ? "Please enter a name." : "Escriban un nombre.");
       return;
     }
-    if (digits.length !== expectedDigits) {
+    // Vacío vale, como en el alta: hay invitados sin celular. Lo que no vale
+    // es un número a medias.
+    if (cc === OTRO_PAIS ? digits.length > 0 && (digits.length < 11 || digits.length > 15) : digits.length > 0 && digits.length !== expectedDigits) {
       setError(
-        isEnglish
-          ? `Check the number: it should be ${expectedDigits} digits.`
-          : `Revisen el número: deben ser ${expectedDigits} dígitos.`
+        cc === OTRO_PAIS
+          ? isEnglish
+            ? "Check the number: it should include its country code, 11 to 15 digits."
+            : "Revisen el número: debe llevar su lada del país, de 11 a 15 dígitos."
+          : isEnglish
+            ? `Check the number: it should be ${expectedDigits} digits. If you don't have it, leave it blank.`
+            : `Revisen el número: deben ser ${expectedDigits} dígitos. Si no lo tienen, déjenlo en blanco.`
       );
       return;
     }
@@ -1504,7 +1528,7 @@ function GuestRow({
     setSaving(true);
     const ok = await onUpdate(guest.id, {
       name: trimmedName,
-      phone: `${cc}${digits}`,
+      phone: !digits ? "" : cc === OTRO_PAIS ? `+${digits}` : `${cc}${digits}`,
       seats: seatsNum,
       notes: notes.trim() || null,
     });
@@ -1567,12 +1591,13 @@ function GuestRow({
                     {c.label}
                   </option>
                 ))}
+                <option value={OTRO_PAIS}>{isEnglish ? "Other" : "Otro"}</option>
               </select>
               <input
                 id={`edit-phone-${guest.id}`}
                 type="tel"
                 inputMode="numeric"
-                value={formatGuestPhone(digits)}
+                value={cc === OTRO_PAIS ? (digits ? `+${digits}` : "") : formatGuestPhone(digits)}
                 onChange={(e) => setDigits(sanitizeDigits(e.target.value, cc))}
                 className={guestInputClass}
               />

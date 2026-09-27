@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { MapPin, Pencil } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { formatLongDate } from "@/components/panel/dates";
@@ -28,10 +29,17 @@ export function DatosDeLaBoda({
   weddingDate,
   venue,
   soloLectura = false,
+  enlazarAlPerfil = false,
 }: {
   weddingDate: string | null;
   venue: string | null;
   soloLectura?: boolean;
+  /**
+   * En Hoy, «Editar» lleva a «Su boda», donde está todo lo que contaron. En el
+   * envío de invitaciones se queda en su lugar: ahí solo falta fecha o lugar
+   * y salir de la pantalla haría perder el hilo.
+   */
+  enlazarAlPerfil?: boolean;
 }) {
   const { isEnglish } = useLanguage();
   const refrescar = useRefrescoDelPanel();
@@ -88,7 +96,21 @@ export function DatosDeLaBoda({
             {venue}
           </span>
         ) : null}
-        {soloLectura ? null : (
+        {soloLectura ? null : enlazarAlPerfil ? (
+          <Link
+            href="/panel/boda"
+            className="inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+          >
+            <Pencil className="h-3.5 w-3.5" strokeWidth={1.6} />
+            {faltaAlgo
+              ? isEnglish
+                ? "Add date and venue"
+                : "Poner fecha y lugar"
+              : isEnglish
+                ? "Edit your wedding"
+                : "Editar su boda"}
+          </Link>
+        ) : (
           <button
             type="button"
             onClick={abrir}

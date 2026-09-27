@@ -45,7 +45,9 @@ export const EMITE_CFDI = false;
 
 /** Fechas de la versión vigente. Se guardan con cada consentimiento como prueba. */
 export const VERSION_TERMINOS = "2026-09-26";
-export const VERSION_AVISO = "2026-09-27";
+// «.2»: el mismo día se publicó otra versión (la copia de 30 minutos para la
+// vuelta de Google); esta agrega traer la lista y el presupuesto en «Su boda».
+export const VERSION_AVISO = "2026-09-27.2";
 
 /** Días naturales de anticipación con que se avisa un cambio a los Términos. */
 export const DIAS_AVISO_CAMBIO_TERMINOS = 15;

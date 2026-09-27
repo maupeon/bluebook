@@ -270,6 +270,9 @@ export async function POST(req: NextRequest) {
       send_status: "pending",
       role: "guest",
       stage: "not_started",
+      // Sin esto quedaba 'desconocido' (el default de la 0020), y el PUT de
+      // esta misma ruta sí firmaba 'couple': lo creó la pareja y se sabe.
+      created_by: "couple",
     })
     .select(MEMBERSHIP_SELECT)
     .single();

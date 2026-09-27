@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, Pencil } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { formatLongDate } from "@/components/panel/dates";
 
@@ -29,28 +30,49 @@ export function PanelTopBar({
               Blue Book
             </span>
           </span>
+          {/* El nombre lleva a «Su boda»: ahí se cambia todo lo que contaron. */}
           {coupleName ? (
-            <span className="hidden min-w-0 truncate border-l border-sand pl-4 font-body text-sm text-ink-muted sm:inline">
-              <span className="font-heading text-[17px] font-medium text-ink">{coupleName}</span>
+            <Link
+              href="/panel/boda"
+              title={isEnglish ? "Your wedding details" : "Los datos de su boda"}
+              className="group hidden min-w-0 truncate border-l border-sand pl-4 font-body text-sm text-ink-muted sm:inline"
+            >
+              <span className="font-heading text-[17px] font-medium text-ink underline-offset-4 group-hover:underline">
+                {coupleName}
+              </span>
               {weddingDate ? (
                 <span className="text-ink-muted">
                   {" · "}
                   <span className="tabular-nums">{formatLongDate(weddingDate, isEnglish)}</span>
                 </span>
               ) : null}
-            </span>
+            </Link>
           ) : null}
         </div>
 
-        <form action="/auth/signout" method="post">
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-full border border-sand bg-white px-4 py-2 font-body text-sm font-semibold text-ink transition-[background-color,border-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.97]"
-          >
-            <LogOut className="h-4 w-4" strokeWidth={1.5} />
-            {isEnglish ? "Sign out" : "Salir"}
-          </button>
-        </form>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* En teléfono, solo el lápiz: con texto, a 360 px se enciman la
+              marca y el enlace (y en inglés, en cualquier teléfono). */}
+          {coupleName ? (
+            <Link
+              href="/panel/boda"
+              aria-label={isEnglish ? "Your wedding" : "Su boda"}
+              title={isEnglish ? "Your wedding" : "Su boda"}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-azul-deep transition-colors hover:bg-wash-soft hover:text-ink sm:hidden"
+            >
+              <Pencil className="h-4 w-4" strokeWidth={1.6} />
+            </Link>
+          ) : null}
+          <form action="/auth/signout" method="post">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded-full border border-sand bg-white px-4 py-2 font-body text-sm font-semibold text-ink transition-[background-color,border-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.97]"
+            >
+              <LogOut className="h-4 w-4" strokeWidth={1.5} />
+              {isEnglish ? "Sign out" : "Salir"}
+            </button>
+          </form>
+        </div>
       </div>
     </header>
   );

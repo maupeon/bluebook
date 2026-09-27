@@ -1,4 +1,5 @@
 import { datosConListaDeInvitados } from "@/lib/panelSesion";
+import { leerAcceso } from "@/lib/acceso";
 import { tituloDelPanel } from "@/lib/panelTitulo";
 import { PantallaInvitados } from "@/components/panel/pantallas/PantallaInvitados";
 
@@ -12,5 +13,6 @@ export default async function Pagina() {
   const datos = await datosConListaDeInvitados();
   // Sin boda el layout ya enseña NoWedding; aquí no hay nada que pintar.
   if (!datos) return null;
-  return <PantallaInvitados bundle={datos.bundle} />;
+  const acceso = await leerAcceso(datos.bundle.wedding.id);
+  return <PantallaInvitados bundle={datos.bundle} soloLectura={!acceso.puedeEditar} />;
 }

@@ -4,6 +4,7 @@ import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 import { DocumentoLegal, Enlace, Lista, Tabla, type SeccionLegal } from "@/components/legal/DocumentoLegal";
 import { RESPONSABLE, datoLegal, fraseDeDomicilio } from "@/lib/legal";
 import { GOOGLE_ACTIVO } from "@/lib/entrarConGoogle";
+import { GOOGLE_SHEETS_ACTIVO } from "@/lib/googleSheets";
 
 // El Aviso de privacidad INTEGRAL. Ley Federal de Protección de Datos
 // Personales en Posesión de los Particulares, publicada en el DOF el
@@ -79,6 +80,13 @@ function seccionesEs(): SeccionLegal[] {
             nombre, persona de contacto, teléfono y correo.
           </p>
           <p>
+            Si traes tu lista de invitados pegándola o subiendo un archivo (.xlsx o .csv), leemos esas columnas y el
+            archivo no se guarda.
+            {GOOGLE_SHEETS_ACTIVO
+              ? " Si la traes de Google Sheets, Google te pide permiso solo para la hoja que eliges: la leemos en ese momento y retiramos el permiso en cuanto termina de leerse. También puedes quitarlo tú en myaccount.google.com/permissions."
+              : ""}
+          </p>
+          <p>
             <strong>Si eres invitado a una boda en Blue Book:</strong> los datos que la pareja capturó de ti (los del
             párrafo anterior), tus respuestas por WhatsApp (el texto o el botón que eliges y el nombre de tu perfil de
             WhatsApp) y, si subes fotos al álbum, las fotos, el nombre con el que te invitó quien administra el álbum y,
@@ -144,8 +152,8 @@ function seccionesEs(): SeccionLegal[] {
           <li>
             Tu presupuesto y tus pagos son datos patrimoniales, y para ellos la ley pide tu{" "}
             <strong>consentimiento expreso</strong>. Para el presupuesto lo das al continuar con una cifra en ese paso
-            del registro (puedes elegir «Prefiero no decir»), y guardamos la fecha y la versión de este aviso como
-            constancia. Los pagos a tus proveedores solo los captura tu planner, con lo que tú le compartes para eso.
+            del registro (puedes elegir «Prefiero no decir») o al guardarla en «Su boda», donde también la puedes
+            quitar; guardamos la fecha y la versión de este aviso como constancia. Los pagos a tus proveedores solo los captura tu planner, con lo que tú le compartes para eso.
           </li>
           <li>
             Puedes revocar tu consentimiento en cualquier momento (sección 8). Si lo revocas para datos que el servicio
@@ -172,7 +180,7 @@ function seccionesEs(): SeccionLegal[] {
               ["Resend", "Envío de correos", "Estados Unidos"],
               [
                 "Google",
-                `${GOOGLE_ACTIVO ? "Inicio de sesión con Google, el" : "El"} correo del equipo (Gmail) y hojas de cálculo que el equipo usa en algunas bodas`,
+                `${GOOGLE_ACTIVO ? "Inicio de sesión con Google, el" : "El"} correo del equipo (Gmail), hojas de cálculo que el equipo usa en algunas bodas${GOOGLE_SHEETS_ACTIVO ? " y la hoja de Google Sheets que eliges para traer tu lista" : ""}`,
                 "Estados Unidos",
               ],
               [
@@ -413,6 +421,13 @@ function seccionesEn(): SeccionLegal[] {
             email.
           </p>
           <p>
+            If you bring your guest list by pasting it or uploading a file (.xlsx or .csv), we read those columns and the
+            file isn&rsquo;t kept.
+            {GOOGLE_SHEETS_ACTIVO
+              ? " If you bring it from Google Sheets, Google asks your permission only for the sheet you choose: we read it at that moment and withdraw the permission as soon as it's read. You can also remove it yourself at myaccount.google.com/permissions."
+              : ""}
+          </p>
+          <p>
             <strong>If you&rsquo;re a guest at a wedding in Blue Book:</strong> the data the couple added about you (the
             previous paragraph), your WhatsApp replies (the text or button you choose and your WhatsApp profile name)
             and, if you upload photos to the album, the photos, the name the album&rsquo;s manager invited you with and,
@@ -478,8 +493,8 @@ function seccionesEn(): SeccionLegal[] {
           <li>
             Your budget and payments are financial data, and for them the law requires your{" "}
             <strong>express consent</strong>. For the budget, you give it by continuing with an amount in that sign-up
-            step (you can choose &ldquo;I&rsquo;d rather not say&rdquo;), and we keep the date and the version of this
-            notice as a record. Payments to your vendors are only entered by your planner, with what you share with them
+            step (you can choose &ldquo;I&rsquo;d rather not say&rdquo;) or by saving it in &ldquo;Your wedding&rdquo;,
+            where you can also remove it; we keep the date and the version of this notice as a record. Payments to your vendors are only entered by your planner, with what you share with them
             for that.
           </li>
           <li>
@@ -504,7 +519,7 @@ function seccionesEn(): SeccionLegal[] {
               ["Resend", "Sending email", "United States"],
               [
                 "Google",
-                `${GOOGLE_ACTIVO ? "Google sign-in, the" : "The"} team's email (Gmail) and spreadsheets the team uses for some weddings`,
+                `${GOOGLE_ACTIVO ? "Google sign-in, the" : "The"} team's email (Gmail), spreadsheets the team uses for some weddings${GOOGLE_SHEETS_ACTIVO ? " and the Google sheet you choose to bring your list" : ""}`,
                 "United States",
               ],
               [

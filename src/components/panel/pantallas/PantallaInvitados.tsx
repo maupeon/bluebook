@@ -5,8 +5,9 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow, SeatingSection } from "@/components/panel/sections";
 import { GuestListSection } from "@/components/panel/PanelDashboard";
+import { TraerLista } from "@/components/panel/TraerLista";
 
-export function PantallaInvitados({ bundle }: { bundle: PanelBundle }) {
+export function PantallaInvitados({ bundle, soloLectura = false }: { bundle: PanelBundle; soloLectura?: boolean }) {
   const { isEnglish } = useLanguage();
   const { guests, wedding } = bundle;
   const conPlanner = wedding.tienePlanner;
@@ -92,6 +93,10 @@ export function PantallaInvitados({ bundle }: { bundle: PanelBundle }) {
       </Reveal>
 
       <Reveal app className="mt-10">
+        <TraerLista listaVacia={listaVacia} soloLectura={soloLectura} />
+      </Reveal>
+
+      <Reveal app className={soloLectura ? "mt-10" : listaVacia ? "mt-8" : "mt-3"}>
         <GuestListSection
           guests={bundle.guestList}
           isEnglish={isEnglish}

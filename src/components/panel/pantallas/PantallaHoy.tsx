@@ -469,6 +469,7 @@ export function PantallaHoy({
               weddingDate={wedding.weddingDate}
               venue={wedding.venue}
               soloLectura={!acceso.puedeEditar}
+              enlazarAlPerfil
             />
           </div>
           {faltanDias ? <CuentaRegresiva dias={diasRestantes!} isEnglish={isEnglish} /> : null}
