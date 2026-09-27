@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { CalendarClock, ChevronDown } from "lucide-react";
 import type {
   BudgetSummary,
@@ -165,6 +166,16 @@ export function BudgetSection({
                 ? "There's no budget here yet."
                 : "Todavía no hay un presupuesto aquí."}
           </EmptyNote>
+          {/* Con la cifra, «Su dinero» la reparte sola por categoría: es lo
+              primero que se gana al escribirla. */}
+          <p className="mt-3 font-body text-sm text-ink-muted">
+            <Link href="/panel/boda" className="text-azul-deep underline underline-offset-4 hover:text-ink">
+              {isEnglish ? "Set it in “Your wedding”" : "Escríbanlo en «Su boda»"}
+            </Link>
+            {isEnglish
+              ? " and we'll split it across what a wedding needs."
+              : " y aquí se reparte solo en lo que lleva una boda."}
+          </p>
         </div>
       </div>
     );

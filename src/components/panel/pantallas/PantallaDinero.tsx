@@ -4,6 +4,9 @@ import type { PanelBundle } from "@/lib/couplePanel";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { formatMXN } from "@/lib/weddingPlans";
+import type { ClavePrioridad } from "@/components/onboarding/respuestas";
+import { contratadoPorCategoria, type PlanReparto } from "@/lib/reparto";
+import { RepartoDelPresupuesto } from "@/components/panel/RepartoDelPresupuesto";
 import {
   BudgetSection,
   ChecklistSection,
@@ -21,10 +24,37 @@ import {
  * orden que cuenta algo: primero lo pagado, que es la buena noticia; luego lo
  * que falta; y al final el desglose para quien quiera bajar al detalle.
  */
-export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
+export function PantallaDinero({
+  bundle,
+  planReparto,
+  prioridades,
+  soloLectura,
+}: {
+  bundle: PanelBundle;
+  /** Lo que la pareja fijó a mano del reparto (0035). */
+  planReparto: PlanReparto;
+  /** Lo que más les importa (onboarding / «Su boda»): empuja el reparto. */
+  prioridades: ClavePrioridad[];
+  /** Prueba vencida: el reparto se ve pero no se edita. */
+  soloLectura: boolean;
+}) {
   const { isEnglish } = useLanguage();
-  const { budget } = bundle;
-  const conPlanner = bundle.wedding.tienePlanner;
+  const { budget, wedding, guests, seating } = bundle;
+  const conPlanner = wedding.tienePlanner;
+
+  // «Por invitado» se lee con los que imaginan (el onboarding o «Su boda»).
+  // Sin ese número, con las personas de su lista: confirmadas más las que
+  // faltan por contestar, que es para cuántas hay que planear.
+  const personasDeLaLista = seating.unavailable
+    ? guests.attending
+    : seating.confirmedPeople + seating.pendingPeople;
+  const personas =
+    wedding.invitadosEstimados != null && wedding.invitadosEstimados > 0
+      ? wedding.invitadosEstimados
+      : personasDeLaLista > 0
+        ? personasDeLaLista
+        : null;
+  const hayReparto = budget.budgetTotal != null && budget.budgetTotal > 0;
 
   // Con nada contratado ni pagado, "Llevan pagado $0" era el titular de la
   // pantalla: un cero de entrada. Si ya hay presupuesto (lo dijeron en el
@@ -80,6 +110,21 @@ export function PantallaDinero({ bundle }: { bundle: PanelBundle }) {
       <Reveal app className="mt-10">
         <BudgetSection budget={budget} isEnglish={isEnglish} conPlanner={conPlanner} />
       </Reveal>
+
+      {hayReparto ? (
+        <Reveal app className="mt-8">
+          <RepartoDelPresupuesto
+            total={budget.budgetTotal!}
+            prioridades={prioridades}
+            planGuardado={planReparto}
+            personas={personas}
+            personasDeLaLista={wedding.invitadosEstimados == null || wedding.invitadosEstimados <= 0}
+            contratado={contratadoPorCategoria(bundle.checklist.categories, bundle.vendors)}
+            isEnglish={isEnglish}
+            soloLectura={soloLectura}
+          />
+        </Reveal>
+      ) : null}
 
       {verDesglose ? (
         <>

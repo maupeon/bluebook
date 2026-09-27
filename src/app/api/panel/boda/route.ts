@@ -7,6 +7,7 @@ import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 import { VERSION_AVISO } from "@/lib/legal";
 import { LIMITES, PRIORIDADES } from "@/components/onboarding/respuestas";
 import { nombreDeLaBoda } from "@/lib/perfilDeLaBoda";
+import { borrarPlanReparto } from "@/lib/repartoGuardado";
 
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
 const LUGAR_MAX = 160;
@@ -28,6 +29,8 @@ const CLAVES_PRIORIDAD = new Set<string>(PRIORIDADES.map((p) => p.clave));
 //    imagen ya hecha conserva los de antes (la pantalla lo avisa).
 //  - El presupuesto es un dato patrimonial (LFPDPPP art. 7): ponerlo o
 //    quitarlo deja constancia en weddings.details.consentimiento_presupuesto.
+//    Quitarlo borra también el reparto por categorías (0035). Cambiarlo no:
+//    lo que la pareja no fijó a mano se recalcula solo con la cifra nueva.
 //  - Los invitados que imaginan van SOLO a weddings.invitados_estimados.
 //    couple_leads.guest_count ya no es la estimación después de la prueba: es
 //    el tamaño del paquete comprado (/api/panel/plan), y pisarlo cambiaría
@@ -172,6 +175,18 @@ export async function PUT(req: NextRequest) {
     if (!interno || interno === wedding.coupleName.trim()) cambios.display_name = cambios.couple_name;
   }
 
+  // Quitar el presupuesto retira el permiso: las cifras que fijaron por
+  // categoría en el reparto (0035) son el mismo dato en pedazos y se van con
+  // él. Se borran ANTES de tocar la cifra: si el borrado falla, el
+  // presupuesto sigue donde estaba y quitarlo se puede reintentar. Al revés,
+  // la cifra ya no estaba y el botón para quitarla tampoco.
+  if (presupuestoCambia && cambios.budget_total === null && wedding.budgetTotal != null) {
+    const borrado = await borrarPlanReparto(wedding.id);
+    if (!borrado) {
+      return NextResponse.json({ error: t("No pudimos guardarlo.", "We couldn't save it.") }, { status: 500 });
+    }
+  }
+
   // El permiso del presupuesto, con la versión del aviso que tenían enfrente,
   // ANTES de guardar la cifra: sin constancia no se guarda. Se mezcla en la
   // base (update_wedding_details, 0005: details || patch) y no leyendo y
@@ -200,6 +215,14 @@ export async function PUT(req: NextRequest) {
       console.error(`[boda] no se pudo guardar ${wedding.id}:`, error.message);
       return NextResponse.json({ error: t("No pudimos guardarlo.", "We couldn't save it.") }, { status: 500 });
     }
+  }
+
+  // Y otra vez DESPUÉS: si la otra mitad de la pareja guardó su reparto justo
+  // entre el primer borrado y la cifra en null, este lo alcanza. Lo que
+  // llegue más tarde lo deshace la propia ruta del reparto, que vuelve a
+  // mirar el presupuesto después de guardar.
+  if (presupuestoCambia && cambios.budget_total === null && wedding.budgetTotal != null) {
+    await borrarPlanReparto(wedding.id);
   }
 
   // La solicitud es lo que el equipo ve en el admin (/clientes): los nombres

@@ -305,8 +305,8 @@ export function PantallaSuBoda({
               titulo={en ? "Budget" : "Presupuesto"}
               ayuda={
                 en
-                  ? "Your budget in Money starts from here."
-                  : "Con esto arranca su presupuesto en Dinero."
+                  ? "Your budget in Money starts from here, already split by category."
+                  : "Con esto arranca su presupuesto en Dinero, ya repartido por categoría."
               }
             >
               <label className="block max-w-xs">
@@ -336,8 +336,8 @@ export function PantallaSuBoda({
               ) : null}
               <p className="mt-2 max-w-[52ch] font-body text-xs leading-relaxed text-ink-muted">
                 {en
-                  ? "By saving an amount you authorize us to keep it for your budget; it's information about your money, so the law asks for your express consent. You can remove it whenever you want. "
-                  : "Al guardar una cifra nos autorizan a guardarla para su presupuesto: es un dato sobre su dinero y la ley pide su permiso expreso. Pueden quitarla cuando quieran. "}
+                  ? "By saving an amount you authorize us to keep it for your budget; it's information about your money, so the law asks for your express consent. You can remove it whenever you want; removing it also deletes how you split it. "
+                  : "Al guardar una cifra nos autorizan a guardarla para su presupuesto: es un dato sobre su dinero y la ley pide su permiso expreso. Pueden quitarla cuando quieran; si la quitan, se borra también cómo la repartieron. "}
                 {tienePlanner
                   ? en
                     ? "Your planner sees it too."
@@ -354,8 +354,8 @@ export function PantallaSuBoda({
                 titulo={en ? "What matters most" : "Lo que más les importa"}
                 ayuda={
                   en
-                    ? `Up to ${PRIORIDADES_A_ELEGIR}. The team starts helping you there.`
-                    : `Hasta ${PRIORIDADES_A_ELEGIR}. El equipo empieza a ayudarles por ahí.`
+                    ? `Up to ${PRIORIDADES_A_ELEGIR}. The team starts helping you there, and in your budget split the food, venue, photos, decor or party you pick moves up within its range.`
+                    : `Hasta ${PRIORIDADES_A_ELEGIR}. El equipo empieza a ayudarles por ahí, y en el reparto de su presupuesto la comida, el lugar, las fotos, la decoración o la fiesta que elijan sube dentro de su rango.`
                 }
               >
                 <div className="flex flex-wrap gap-2">

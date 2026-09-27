@@ -426,8 +426,8 @@ export function PantallaHoy({
       clave: "presupuesto",
       figura: formatMXN(budget.budgetTotal),
       texto: isEnglish
-        ? "Your budget already lives in Money, whole."
-        : "Su presupuesto ya vive en Dinero, completo.",
+        ? "Your budget already lives in Money, split across what a wedding needs."
+        : "Su presupuesto ya vive en Dinero, repartido en lo que lleva una boda.",
       enlace: mostrarDinero
         ? { href: "/panel/dinero", texto: isEnglish ? "See your money" : "Ver su dinero" }
         : undefined,

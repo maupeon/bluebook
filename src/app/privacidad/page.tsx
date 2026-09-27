@@ -66,7 +66,7 @@ function seccionesEs(): SeccionLegal[] {
               día, acomodo de mesas y las notas que escribas.
             </li>
             <li>
-              Patrimoniales: tu presupuesto aproximado; los proveedores que contratas con sus montos, anticipos, pagos y
+              Patrimoniales: tu presupuesto aproximado y cómo lo repartes por categoría (lugar, banquete, fotos…); los proveedores que contratas con sus montos, anticipos, pagos y
               fechas; y el historial de pagos de tu plan en Blue Book (montos, fechas y estado). Los datos de tu tarjeta
               los captura y guarda Stripe: Blue Book no los ve.
             </li>
@@ -153,7 +153,8 @@ function seccionesEs(): SeccionLegal[] {
             Tu presupuesto y tus pagos son datos patrimoniales, y para ellos la ley pide tu{" "}
             <strong>consentimiento expreso</strong>. Para el presupuesto lo das al continuar con una cifra en ese paso
             del registro (puedes elegir «Prefiero no decir») o al guardarla en «Su boda», donde también la puedes
-            quitar; guardamos la fecha y la versión de este aviso como constancia. Los pagos a tus proveedores solo los captura tu planner, con lo que tú le compartes para eso.
+            quitar; guardamos la fecha y la versión de este aviso como constancia. Si la quitas, borramos también las
+            cifras que hayas puesto al repartirla. Los pagos a tus proveedores solo los captura tu planner, con lo que tú le compartes para eso.
           </li>
           <li>
             Puedes revocar tu consentimiento en cualquier momento (sección 8). Si lo revocas para datos que el servicio
@@ -407,7 +408,7 @@ function seccionesEn(): SeccionLegal[] {
               run-of-show, seating and the notes you write.
             </li>
             <li>
-              Financial: your approximate budget; the vendors you hire with their amounts, deposits, payments and dates;
+              Financial: your approximate budget and how you split it by category (venue, catering, photos…); the vendors you hire with their amounts, deposits, payments and dates;
               and the payment history of your Blue Book plan (amounts, dates and status). Your card details are
               collected and kept by Stripe: Blue Book never sees them.
             </li>
@@ -494,7 +495,8 @@ function seccionesEn(): SeccionLegal[] {
             Your budget and payments are financial data, and for them the law requires your{" "}
             <strong>express consent</strong>. For the budget, you give it by continuing with an amount in that sign-up
             step (you can choose &ldquo;I&rsquo;d rather not say&rdquo;) or by saving it in &ldquo;Your wedding&rdquo;,
-            where you can also remove it; we keep the date and the version of this notice as a record. Payments to your vendors are only entered by your planner, with what you share with them
+            where you can also remove it; we keep the date and the version of this notice as a record. If you remove it, we
+            also delete the amounts you set when splitting it. Payments to your vendors are only entered by your planner, with what you share with them
             for that.
           </li>
           <li>
