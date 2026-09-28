@@ -19,11 +19,9 @@ export async function PATCH(
 ) {
   const { slug } = await params
   const body = (await request.json()) as AlbumSettingsPayload
+  // Sin token decide la sesión del panel (resolveAlbumAccess): la pareja
+  // administra su álbum desde /panel/album sin el enlace secreto.
   const token = body.token || null
-
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido' }, { status: 401 })
-  }
 
   const access = await validateAccess(slug, token)
 
@@ -98,11 +96,8 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params
+  // Sin token decide la sesión del panel (resolveAlbumAccess).
   const token = new URL(request.url).searchParams.get('token')
-
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido' }, { status: 401 })
-  }
 
   const access = await validateAccess(slug, token)
 
@@ -110,5 +105,11 @@ export async function GET(
     return NextResponse.json({ error: 'Solo el administrador puede ver el álbum' }, { status: 403 })
   }
 
-  return NextResponse.json({ album: access.album })
+  // Sin las credenciales ni los datos de pago: el navegador no las necesita (la
+  // pareja administra con su sesión) y el admin_token reconstruiría el enlace
+  // secreto que ya no se reparte. Es lo que AdministrarAlbum ya espera.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { admin_token, email, stripe_session_id, ...album } =
+    (access.album ?? {}) as NonNullable<typeof access.album> & { stripe_session_id?: string | null }
+  return NextResponse.json({ album })
 }

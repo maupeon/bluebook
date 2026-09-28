@@ -5,7 +5,9 @@ import {
   Camera,
   Check,
   Crown,
+  Gift,
   Images,
+  LayoutDashboard,
   QrCode,
   ScanLine,
   Share2,
@@ -103,6 +105,10 @@ export default function AlbumDigitalPage() {
   const { language, isEnglish } = useLanguage();
   const [loadingPlan, setLoadingPlan] = useState<AlbumPlanId | null>(null);
   const [albumTitle, setAlbumTitle] = useState("");
+  // El correo va antes de Stripe: es la llave de su panel, y con él se revisa
+  // que no pague un álbum que ya tiene.
+  const [correo, setCorreo] = useState("");
+  const [yaLoTiene, setYaLoTiene] = useState<{ texto: string; panel: string } | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState("classic");
   const [selectedPlanId, setSelectedPlanId] = useState<AlbumPlanId>("album_200");
   const [showForm, setShowForm] = useState(false);
@@ -146,6 +152,12 @@ export default function AlbumDigitalPage() {
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+      alert(isEnglish ? "Please add your email: you'll sign in to your panel with it." : "Escribe tu correo: con él entras a tu panel.");
+      return;
+    }
+
+    setYaLoTiene(null);
     setLoadingPlan(selectedPlanId);
     try {
       const response = await fetch("/api/checkout", {
@@ -155,12 +167,17 @@ export default function AlbumDigitalPage() {
           planId: selectedPlanId,
           albumTitle: albumTitle.trim(),
           albumTemplate: selectedTemplate,
+          correo: correo.trim(),
         }),
       });
 
-      const { data, raw } = await parseJsonSafe<{ url?: string; error?: string }>(response);
+      const { data, raw } = await parseJsonSafe<{ url?: string; error?: string; panel?: string }>(response);
       if (response.ok && data?.url) {
         window.location.href = data.url;
+      } else if (response.status === 409 && data?.error && data.panel) {
+        // Ya tiene un álbum igual o mayor: no se le cobra. Se dice junto al
+        // botón, con el camino a su panel, en vez de un alert que se cierra.
+        setYaLoTiene({ texto: data.error, panel: data.panel });
       } else {
         const errorMessage = data?.error || summarizeHttpError(
           response.status,
@@ -225,6 +242,10 @@ export default function AlbumDigitalPage() {
                 { icon: Images, text: isEnglish ? "50, 200, or unlimited photos" : "50, 200 o fotos ilimitadas" },
                 { icon: Smartphone, text: isEnglish ? "Mobile-first experience" : "Experiencia optimizada para móvil" },
                 { icon: ShieldCheck, text: isEnglish ? "One-time payment and lifetime access" : "Pago único y acceso de por vida" },
+                // Desde la 0036 el álbum pertenece a una boda y se administra
+                // desde el panel; la compra suelta trae la prueba del panel.
+                { icon: LayoutDashboard, text: isEnglish ? "It lives in your Blue Book panel" : "Vive en tu panel de Blue Book" },
+                { icon: Gift, text: isEnglish ? "7 days of the full panel, as a gift" : "7 días del panel completo, de regalo" },
               ].map((item) => (
                 <div
                   key={item.text}
@@ -293,9 +314,15 @@ export default function AlbumDigitalPage() {
             </Heading>
             <Lead className="mx-auto mt-4 max-w-2xl">
               {isEnglish
-                ? "Choose by photo volume. Album experience and QR flow are included from the entry plan."
-                : "Elige por volumen de fotos. La experiencia del álbum y el flujo QR están incluidos desde el plan de entrada."}
+                ? "Choose by photo volume. Album experience and QR flow are included from the entry plan, and every plan comes with 7 days of the full panel to plan your wedding."
+                : "Elige por volumen de fotos. La experiencia del álbum y el flujo QR están incluidos desde el plan de entrada, y cada plan trae 7 días del panel completo para organizar tu boda."}
             </Lead>
+            {/* Quien ya tiene panel lo compra desde ahí: el álbum va directo a
+                su boda. Por aquí también llega (la compra busca la boda de su
+                correo), pero desde el panel se ve si ya tiene uno. */}
+            <ButtonLink href="/acceso?next=/panel/album" variant="ghost" size="md" className="mt-4 text-center">
+              {isEnglish ? "Already have your panel? Buy it from there" : "¿Ya tienes tu panel? Cómpralo desde ahí"}
+            </ButtonLink>
           </div>
 
           <div className="grid gap-5 lg:grid-cols-3">
@@ -333,6 +360,14 @@ export default function AlbumDigitalPage() {
                   {plan.maxPhotosLabel}
                 </div>
 
+                {/* El Planner completo trae este plan: quien lo paga no lo
+                    compra aparte. */}
+                {plan.includedInPlanner && (
+                  <p className="mt-3 text-xs text-tinta">
+                    {isEnglish ? "Included in the full Planner" : "Incluido en el Planner completo"}
+                  </p>
+                )}
+
                 <ul className="mt-5 space-y-2.5 text-sm text-tinta">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2.5">
@@ -368,8 +403,8 @@ export default function AlbumDigitalPage() {
             </Heading>
             <Lead className="mx-auto mt-4 max-w-2xl">
               {isEnglish
-                ? "Inside the admin panel you can create invitations, open their QR, download it, and share it by WhatsApp or with the phone share button."
-                : "Dentro del panel de administración puedes generar invitaciones, abrir su QR, descargarlo y compartirlo por WhatsApp o desde el botón compartir del celular."}
+                ? "Inside your panel you can create invitations, open their QR, download it, and share it by WhatsApp or with the phone share button."
+                : "Dentro de tu panel puedes generar invitaciones, abrir su QR, descargarlo y compartirlo por WhatsApp o desde el botón compartir del celular."}
             </Lead>
           </div>
 
@@ -419,8 +454,8 @@ export default function AlbumDigitalPage() {
 
               <p className="mt-4 text-xs text-tinta">
                 {isEnglish
-                  ? "In production, this block is generated automatically from each invitation in the admin panel."
-                  : "En producción, este bloque se genera automáticamente desde cada invitación del panel admin."}
+                  ? "In your panel, this block is generated automatically for each invitation."
+                  : "En tu panel, este bloque se genera solo para cada invitación."}
               </p>
             </div>
           </div>
@@ -454,6 +489,30 @@ export default function AlbumDigitalPage() {
                   maxLength={100}
                   className="w-full rounded-2xl border border-linea-control bg-papel px-4 py-3.5 text-sm text-noche outline-none transition-[border-color,box-shadow] focus:border-noche focus:ring-2 focus:ring-noche/20"
                 />
+
+                <label htmlFor="album-correo" className="mt-5 mb-2 block text-sm font-medium text-noche">
+                  {isEnglish ? "Your email" : "Tu correo"}
+                </label>
+                <input
+                  id="album-correo"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={correo}
+                  onChange={(event) => {
+                    setCorreo(event.target.value);
+                    setYaLoTiene(null);
+                  }}
+                  placeholder={isEnglish ? "you@email.com" : "tu@correo.com"}
+                  maxLength={200}
+                  aria-describedby="album-correo-ayuda"
+                  className="w-full rounded-2xl border border-linea-control bg-papel px-4 py-3.5 text-sm text-noche outline-none transition-[border-color,box-shadow] focus:border-noche focus:ring-2 focus:ring-noche/20"
+                />
+                <p id="album-correo-ayuda" className="mt-1.5 text-xs text-tinta">
+                  {isEnglish
+                    ? "You'll sign in to your Blue Book panel with it, where your album lives."
+                    : "Con él entras a tu panel de Blue Book, donde vive tu álbum."}
+                </p>
 
                 <p className="mt-5 mb-2 text-sm font-medium text-noche">
                   {isEnglish ? "Template" : "Plantilla"}
@@ -526,6 +585,10 @@ export default function AlbumDigitalPage() {
                     <span>{isEnglish ? "Active templates" : "Plantillas activas"}</span>
                     <strong className="text-noche tabular-nums">{selectedPlanLevel === 1 ? "1" : selectedPlanLevel === 2 ? "3" : (isEnglish ? "All" : "Todas")}</strong>
                   </p>
+                  <p className="flex items-center justify-between">
+                    <span>{isEnglish ? "Full panel" : "Panel completo"}</span>
+                    <strong className="text-noche">{isEnglish ? "7 days free" : "7 días de regalo"}</strong>
+                  </p>
                 </div>
 
                 <div className="mt-5 rounded-xl bg-niebla p-4">
@@ -538,7 +601,7 @@ export default function AlbumDigitalPage() {
 
                 <button
                   onClick={handleCheckout}
-                  disabled={loadingPlan !== null || !albumTitle.trim()}
+                  disabled={loadingPlan !== null || !albumTitle.trim() || !correo.trim()}
                   className={`${BOTON_PRINCIPAL} mt-5 w-full px-5 py-3.5 disabled:cursor-not-allowed disabled:opacity-60`}
                 >
                   {loadingPlan === selectedPlanId
@@ -546,6 +609,26 @@ export default function AlbumDigitalPage() {
                     : (isEnglish ? "Create my album" : "Crear mi álbum")}
                   <Arrow />
                 </button>
+
+                {yaLoTiene ? (
+                  <div role="status" className="mt-4 rounded-xl border border-linea-control/60 bg-papel p-4 text-sm text-noche">
+                    <p>{yaLoTiene.texto}</p>
+                    <ButtonLink href={yaLoTiene.panel} variant="secondary" size="md" className="mt-3 w-full">
+                      {isEnglish ? "Go to my panel" : "Ir a mi panel"}
+                    </ButtonLink>
+                  </div>
+                ) : null}
+
+                {/* Dónde queda lo que compra y con qué entra: el correo de
+                    arriba es la llave de su panel. */}
+                <p className="mt-4 text-xs leading-relaxed text-tinta">
+                  {isEnglish
+                    ? "Your album lives in your Blue Book panel: you sign in with the email above."
+                    : "Tu álbum queda en tu panel de Blue Book: entras con el correo de arriba."}
+                </p>
+                <ButtonLink href="/acceso?next=/panel/album" variant="ghost" size="md" className="mt-1 w-full text-center">
+                  {isEnglish ? "Already have your panel? Buy it from there" : "¿Ya tienes tu panel? Cómpralo desde ahí"}
+                </ButtonLink>
               </aside>
             </div>
           </div>

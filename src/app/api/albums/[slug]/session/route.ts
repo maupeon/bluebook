@@ -21,11 +21,9 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params
+  // Sin token no se rechaza aquí: resolveAlbumAccess prueba la sesión del
+  // panel (la pareja dueña de la boda entra como admin desde /panel/album).
   const token = new URL(request.url).searchParams.get('token')
-
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido', reason: 'unauthorized' }, { status: 401 })
-  }
 
   const access = await resolveAlbumAccess(slug, token)
 

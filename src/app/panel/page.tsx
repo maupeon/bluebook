@@ -3,6 +3,7 @@ import { tituloDelPanel } from "@/lib/panelTitulo";
 import { PantallaHoy } from "@/components/panel/pantallas/PantallaHoy";
 import { leerSuscripcion } from "@/lib/suscripcion";
 import { leerAcceso } from "@/lib/acceso";
+import { incluidoEnSuPlan, leerEstadoDelAlbum } from "@/app/panel/album/leerEstadoDelAlbum";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +21,10 @@ export default async function Pagina({
   if (!datos) return null;
   const weddingId = datos.bundle.wedding.id;
   // Cacheadas por petición: lo que el layout ya pidió no cuesta otro viaje.
-  const [suscripcion, acceso, params] = await Promise.all([
+  const [suscripcion, acceso, album, params] = await Promise.all([
     leerSuscripcion(weddingId),
     leerAcceso(weddingId),
+    leerEstadoDelAlbum(weddingId),
     searchParams,
   ]);
   // El onboarding aterriza aquí con ?bienvenida=1 la primera vez.
@@ -34,6 +36,9 @@ export default async function Pagina({
       suscripcion={suscripcion}
       acceso={acceso}
       bienvenida={bienvenida}
+      album={album}
+      // El Planner completo (el plan mensual) trae el álbum Ilimitado.
+      albumIncluido={incluidoEnSuPlan(suscripcion)}
     />
   );
 }

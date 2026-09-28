@@ -30,9 +30,8 @@ const MARCA = {
   tinta: '#55688C',
   noche: '#2E3A55',
   linea: '#C6D0E4',
-  // El aviso de la app (ocre sobre su fondo, 5:1): «Guarda este enlace».
-  aviso: '#7F5500',
-  avisoFondo: '#FBF3DB',
+  // El ocre de aviso se fue con el «Guarda este enlace» del correo del
+  // álbum: ese correo ya no lleva enlace secreto.
 } as const
 
 const LETRA = `'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif`
@@ -87,89 +86,151 @@ function getResendClient() {
   return new Resend(apiKey)
 }
 
-interface SendAdminEmailParams {
+interface SendAlbumListoEmailParams {
   to: string
-  albumTitle: string
-  adminUrl: string
+  /** El título que escribió al comprar. null en la compra desde el panel: el álbum toma el nombre de la boda. */
+  albumTitle: string | null
+  /** El nombre del plan comprado, ya en su idioma («Plan 200»). */
+  planName: string
+  /** La compra creó la boda: trae los 7 días del panel completo de regalo. */
+  bodaNueva: boolean
+  /** A dónde lleva el botón: /acceso?next=/panel/album (si ya hay sesión, /acceso pasa directo). */
+  panelUrl: string
+  isEnglish: boolean
 }
 
-export async function sendAdminEmail({ to, albumTitle, adminUrl }: SendAdminEmailParams) {
+/**
+ * A quien compró un álbum. Desde la 0036 el álbum vive en el panel de su boda
+ * y se entra con el correo, así que este correo ya NO lleva el enlace secreto
+ * de administración (admin_token): cualquiera que lo reenviara regalaba el
+ * control del álbum. El botón lleva al acceso del panel.
+ *
+ * Voz: «tú», como todos los correos a la pareja (le llega a quien pagó).
+ * Lo llama lib/albumPagado.ts (registrarSesionDeAlbum) una sola vez por pago.
+ */
+export async function sendAlbumListoEmail({
+  to,
+  albumTitle,
+  planName,
+  bodaNueva,
+  panelUrl,
+  isEnglish: en,
+}: SendAlbumListoEmailParams) {
   const resend = getResendClient()
   if (!resend) {
+    if (process.env.NODE_ENV !== 'production') console.info('[álbum sin enviar] →', to)
     return { success: false, error: 'Email service not configured' }
   }
+
+  // El título lo escribió la pareja en un formulario público: se escapa.
+  const titulo = albumTitle?.trim() ? escapeHtml(albumTitle.trim()) : null
+  const plan = escapeHtml(planName)
+  const correo = escapeHtml(to)
+  const parrafo = `color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6;`
+
+  const loQuePuedes = en
+    ? [
+        'Upload your favorite photos',
+        'Share the QR so your guests upload theirs, no account needed',
+        'Arrange and curate every photo',
+        'Share the finished album with family and friends',
+      ]
+    : [
+        'Subir tus fotos favoritas',
+        'Compartir el QR para que tus invitados suban las suyas, sin cuenta',
+        'Ordenar y curar todas las fotos',
+        'Compartir el álbum terminado con tu familia y amigos',
+      ]
 
   try {
     const { data, error } = await resend.emails.send({
       from: 'Blue Book <hola@bluebook.mx>',
       replyTo: SUPPORT_EMAIL,
       to: [to],
-      subject: `Tu álbum "${albumTitle}" está listo`,
+      subject: en ? 'Your album is in your panel' : 'Tu álbum ya está en tu panel',
       html: documento(`
-            <!-- El titular, centrado sobre la misma tarjeta (antes, una franja con degradado dorado) -->
             <div style="padding: 40px 30px 0; text-align: center;">
-              <h1 style="${ESTILO.titular} font-size: 32px;">
-                ¡Tu álbum está listo!
+              <p style="${ESTILO.rotulo}">${en ? 'Payment received' : 'Pago recibido'}</p>
+              <h1 style="${ESTILO.titular} margin-top: 12px; font-size: 32px;">
+                ${en ? 'Your album is ready!' : '¡Tu álbum está listo!'}
               </h1>
             </div>
 
             <div style="padding: 28px 30px 40px;">
-              <p style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                ¡Felicidades! Tu álbum digital <strong style="${ESTILO.fuerte}">"${albumTitle}"</strong> ha sido creado exitosamente.
+              <p style="${parrafo} margin: 0 0 20px;">
+                ${
+                  titulo
+                    ? en
+                      ? `Your digital album <strong style="${ESTILO.fuerte}">"${titulo}"</strong> (${plan}) now lives in your Blue Book panel.`
+                      : `Tu álbum digital <strong style="${ESTILO.fuerte}">"${titulo}"</strong> (${plan}) ya vive en tu panel de Blue Book.`
+                    : en
+                      ? `Your digital album (${plan}) now lives in your Blue Book panel.`
+                      : `Tu álbum digital (${plan}) ya vive en tu panel de Blue Book.`
+                }
               </p>
 
-              <p style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
-                Desde tu panel de administración podrás:
+              <p style="${parrafo} margin: 0 0 12px;">
+                ${
+                  en
+                    ? `Sign in with this same email (<strong style="${ESTILO.fuerte}">${correo}</strong>): we send you a code, no password needed. From there you can:`
+                    : `Entra con este mismo correo (<strong style="${ESTILO.fuerte}">${correo}</strong>): te mandamos un código, sin contraseña. Desde ahí puedes:`
+                }
               </p>
 
-              <ul style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.8; margin: 0 0 30px; padding-left: 20px;">
-                <li>Subir tus fotos favoritas</li>
-                <li>Invitar a otros a contribuir con sus fotos</li>
-                <li>Ordenar y organizar todas las fotos</li>
-                <li>Compartir el álbum final con tu familia y amigos</li>
+              <ul style="${parrafo} line-height: 1.8; margin: 0 0 30px; padding-left: 20px;">
+                ${loQuePuedes.map((item) => `<li>${item}</li>`).join('')}
               </ul>
 
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${adminUrl}" style="${ESTILO.boton} padding: 16px 40px; font-size: 16px;">
-                  Ir a mi panel de administración
+                <a href="${escapeHtml(panelUrl)}" style="${ESTILO.boton} padding: 16px 40px; font-size: 16px;">
+                  ${en ? 'Open my panel' : 'Entrar a mi panel'}
                 </a>
               </div>
-
-              <!-- El aviso: ocre sobre su fondo, como en la app. El enlace, en una caja niebla. -->
-              <div style="background-color: ${MARCA.avisoFondo}; border-radius: 12px; padding: 20px; margin-top: 30px;">
-                <p style="color: ${MARCA.aviso}; font-size: 14px; margin: 0 0 10px; font-weight: 500;">
-                  ⚠️ Guarda este enlace
+              ${
+                bodaNueva
+                  ? `
+              <!-- El regalo va en papel azul dentro de la tarjeta niebla: los dos únicos fondos de la marca. -->
+              <div style="background-color: ${MARCA.papel}; border-radius: 12px; padding: 20px; margin-top: 30px;">
+                <p style="${ESTILO.rotulo}">${en ? 'A gift for you' : 'De regalo'}</p>
+                <p style="color: ${MARCA.noche}; font-size: 15px; line-height: 1.6; margin: 10px 0 0;">
+                  ${
+                    en
+                      ? 'You also get 7 days of the full Blue Book panel to plan your wedding: your guest list, your budget and your to-dos. No card needed.'
+                      : 'Además tienes 7 días del panel completo de Blue Book para organizar tu boda: tu lista de invitados, tu presupuesto y tus pendientes. Sin tarjeta.'
+                  }
                 </p>
-                <p style="color: ${MARCA.aviso}; font-size: 14px; margin: 0 0 10px;">
-                  Este es tu enlace privado de administración. No lo compartas con nadie.
+                <p style="color: ${MARCA.tinta}; font-size: 14px; line-height: 1.6; margin: 10px 0 0;">
+                  ${
+                    en
+                      ? 'When those days end, the rest of the panel becomes read-only, but your album stays complete: you keep editing it and your guests keep uploading photos.'
+                      : 'Cuando terminen, el resto del panel queda en solo lectura, pero tu álbum sigue completo: lo sigues editando y tus invitados siguen subiendo fotos.'
+                  }
                 </p>
-                <p style="color: ${MARCA.noche}; font-size: 12px; margin: 0; word-break: break-all; background-color: ${MARCA.niebla}; border: 1px solid ${MARCA.linea}; padding: 10px; border-radius: 6px;">
-                  ${adminUrl}
-                </p>
-              </div>
+              </div>`
+                  : ''
+              }
             </div>
 
             <div style="padding: 30px; text-align: center; border-top: 1px solid ${MARCA.linea};">
               <p style="color: ${MARCA.tinta}; font-size: 14px; margin: 0;">
-                ¿Tienes preguntas? Escríbenos a
+                ${en ? 'Questions? Write to us at' : '¿Tienes preguntas? Escríbenos a'}
                 <a href="mailto:${SUPPORT_EMAIL}" style="${ESTILO.enlace}">${SUPPORT_EMAIL}</a>
               </p>
               <p style="color: ${MARCA.tinta}; font-size: 12px; margin: 15px 0 0;">
-                © ${new Date().getFullYear()} Blue Book. Todos los derechos reservados.
+                © ${new Date().getFullYear()} Blue Book. ${en ? 'All rights reserved.' : 'Todos los derechos reservados.'}
               </p>
             </div>
       `),
     })
 
     if (error) {
-      console.error('Error sending email:', error)
+      console.error('Error sending album email:', error)
       return { success: false, error }
     }
 
-    console.log('Email sent successfully:', data)
     return { success: true, data }
   } catch (error) {
-    console.error('Error sending email:', error)
+    console.error('Error sending album email:', error)
     return { success: false, error }
   }
 }

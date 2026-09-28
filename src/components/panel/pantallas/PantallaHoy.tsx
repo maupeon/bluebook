@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import type { PanelBundle } from "@/lib/couplePanel";
 import { seccionesDelPanel } from "@/lib/seccionesDelPanel";
 import { DatosDeLaBoda } from "@/components/panel/DatosDeLaBoda";
@@ -19,9 +19,14 @@ import { formatMXN } from "@/lib/weddingPlans";
 import { Eyebrow } from "@/components/panel/sections";
 import { countdownPhrase } from "@/components/panel/dates";
 import { TasksSection, MessagesSection } from "@/components/panel/PanelDashboard";
-import { PlannerBook } from "@/components/marketing/Ink";
+import { PlannerBook, Polaroid } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { Titular } from "@/components/marca/Titular";
+import {
+  textoDeFotos,
+  tieneLimiteDeFotos,
+  type AlbumDelPanel,
+} from "@/components/album/estadoDelAlbum";
 
 /**
  * Una tarjeta que RESUME y lleva a su destino. No repite el detalle: dice el
@@ -37,6 +42,7 @@ function Resumen({
   tono,
   href,
   cta,
+  className = "",
 }: {
   eyebrow: string;
   titular: string;
@@ -45,11 +51,13 @@ function Resumen({
   tono: "noche" | "tinta";
   href: string;
   cta: string;
+  /** Para acomodarla en la rejilla (p. ej. a lo ancho cuando queda sola). */
+  className?: string;
 }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col panel-card p-6 transition-[scale,border-color] duration-150 hover:border-linea-control active:scale-[0.99] active:duration-100 motion-reduce:active:scale-100 sm:p-7"
+      className={`group flex flex-col panel-card p-6 transition-[scale,border-color] duration-150 hover:border-linea-control active:scale-[0.99] active:duration-100 motion-reduce:active:scale-100 sm:p-7 ${className}`}
     >
       <Eyebrow>{eyebrow}</Eyebrow>
       <p className="mt-2 text-[28px] font-light leading-tight text-noche tabular-nums sm:text-[32px]">
@@ -108,6 +116,131 @@ function CuentaRegresiva({ dias, isEnglish }: { dias: number; isEnglish: boolean
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * DESPUÉS DE LA BODA, EL ÁLBUM ENCABEZA HOY. Antes de la fecha es una tarjeta
+ * más entre las de resumen; desde el día siguiente es lo que importa (las
+ * fotos están en los celulares de los invitados), así que sube arriba y
+ * crece. Con fotos enseña las primeras; sin ellas, el dibujo de la cámara.
+ * El título es de tarjeta, no un titular: el titular de la pantalla es el
+ * «Hola» de arriba.
+ */
+function FotosDeLaBoda({
+  album,
+  incluido,
+  isEnglish,
+}: {
+  album: AlbumDelPanel | null;
+  incluido: boolean;
+  isEnglish: boolean;
+}) {
+  const detalle = album
+    ? album.fotos > 0
+      ? isEnglish
+        ? `You have ${textoDeFotos(album.fotos, true)}. Your guests can keep adding theirs with the QR.`
+        : `Llevan ${textoDeFotos(album.fotos, false)}. Sus invitados pueden seguir subiendo las suyas con el QR.`
+      : isEnglish
+        ? "Your album is ready. Share the QR with your guests to gather the photos they took."
+        : "Su álbum está listo. Compartan el QR con sus invitados para juntar ahí las fotos que tomaron."
+    : incluido
+      ? isEnglish
+        ? "Your album comes with your Full planner: open it and share the QR with your guests."
+        : "Su álbum viene incluido en su Planner completo: ábranlo y compartan el QR con sus invitados."
+      : isEnglish
+        ? "Gather the photos your guests took in one album: they upload from their phones with a QR, no account needed."
+        : "Junten en un álbum las fotos que tomaron sus invitados: suben desde su celular con un QR, sin crear cuenta.";
+
+  const cta = album
+    ? isEnglish
+      ? "Go to your album"
+      : "Ir a su álbum"
+    : incluido
+      ? isEnglish
+        ? "Open your album"
+        : "Abrir su álbum"
+      : isEnglish
+        ? "See how it works"
+        : "Ver cómo funciona";
+
+  const muestras = album?.muestras ?? [];
+
+  return (
+    <section aria-labelledby="fotos-de-la-boda" className="panel-card overflow-hidden">
+      <div className="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <div className="flex flex-col p-6 sm:p-8">
+          <Eyebrow>{isEnglish ? "Your album" : "Su álbum"}</Eyebrow>
+          <h2
+            id="fotos-de-la-boda"
+            className="mt-2 text-[32px] font-light leading-tight text-noche sm:text-[40px]"
+          >
+            {isEnglish ? "Your wedding photos" : "Sus fotos de la boda"}
+          </h2>
+          <p className="mt-3 max-w-[48ch] text-sm leading-relaxed text-tinta">{detalle}</p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href="/panel/album"
+              className="group inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full bg-noche px-5 py-2.5 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
+            >
+              {cta}
+              <ArrowRight
+                aria-hidden="true"
+                className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none"
+                strokeWidth={1.6}
+              />
+            </Link>
+            {album ? (
+              <a
+                href={`/album/${album.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-5 py-2.5 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
+              >
+                {isEnglish ? "View the album" : "Ver el álbum"}
+                <ExternalLink aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
+              </a>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Las fotos (o el dibujo) en papel azul, del lado de la tarjeta. */}
+        <div className="border-t border-linea bg-papel p-4 sm:p-6 md:border-l md:border-t-0">
+          {muestras.length >= 4 ? (
+            <ul className="grid grid-cols-2 gap-2 sm:gap-3">
+              {muestras.slice(0, 4).map((url, i) => (
+                <li key={`${i}-${url}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- URL de Cloudinary, dinámica */}
+                  <img
+                    src={url}
+                    alt={isEnglish ? `Photo ${i + 1} in your album` : `Foto ${i + 1} de su álbum`}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-square w-full rounded-xl object-cover"
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : muestras.length > 0 ? (
+            // Con menos de cuatro, una sola grande: un mosaico con huecos se
+            // lee como algo que no cargó.
+            // eslint-disable-next-line @next/next/no-img-element -- URL de Cloudinary, dinámica
+            <img
+              src={muestras[0]}
+              alt={isEnglish ? "The first photo in your album" : "La primera foto de su álbum"}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[4/3] h-full w-full rounded-xl object-cover"
+            />
+          ) : (
+            <div className="relative flex h-full min-h-[12rem] items-center justify-center">
+              <Watercolor tone="linea" opacity={0.45} seed={5} className="absolute inset-0 h-full w-full" />
+              <Polaroid className="relative h-40 w-auto text-tinta" />
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -250,6 +383,8 @@ export function PantallaHoy({
   suscripcion = null,
   acceso,
   bienvenida = false,
+  album = null,
+  albumIncluido = false,
 }: {
   bundle: PanelBundle;
   /** Resuelto en el servidor. Aquí NO se mira el reloj: ver getPanelDataByEmail. */
@@ -260,6 +395,10 @@ export function PantallaHoy({
   acceso: AccesoDeLaBoda;
   /** true cuando llega del onboarding (?bienvenida=1). */
   bienvenida?: boolean;
+  /** El álbum de la boda (leerEstadoDelAlbum), o null si todavía no tienen. */
+  album?: AlbumDelPanel | null;
+  /** Tienen el Planner completo, que incluye el álbum aunque aún no exista. */
+  albumIncluido?: boolean;
 }) {
   const { isEnglish } = useLanguage();
   const router = useRouter();
@@ -402,6 +541,69 @@ export function PantallaHoy({
       ? ((guests.total - guests.pending) / guests.total) * 100
       : null;
 
+  // ----- El álbum -----
+  // Antes de la boda, una tarjeta de resumen como las otras. Después, la
+  // grande de arriba (FotosDeLaBoda) y aquí ya no se repite.
+  const albumArriba = paso;
+  const albumTitular = !album
+    ? isEnglish
+      ? "An album for your photos"
+      : "Un álbum para sus fotos"
+    : album.fotos > 0
+      ? isEnglish
+        ? `${textoDeFotos(album.fotos, true)} in your album`
+        : `${textoDeFotos(album.fotos, false)} en su álbum`
+      : isEnglish
+        ? "Ready for your guests"
+        : "Listo para sus invitados";
+
+  const albumDetalle = !album
+    ? albumIncluido
+      ? isEnglish
+        ? "It comes with your Full planner. Open it whenever you like."
+        : "Viene incluido en su Planner completo. Ábranlo cuando quieran."
+      : estaEnPrueba(acceso)
+        ? isEnglish
+          ? "Your guests upload their photos with a QR. The Full planner includes it, or you can buy it on its own."
+          : "Sus invitados suben sus fotos con un QR. El Planner completo lo incluye, o pueden comprarlo solo."
+        : isEnglish
+          ? "Your guests upload their photos with a QR, no account needed. Paid once."
+          : "Sus invitados suben sus fotos con un QR, sin crear cuenta. Se paga una vez."
+    : album.fotos > 0
+      ? tieneLimiteDeFotos(album.limiteDeFotos)
+        ? isEnglish
+          ? `Out of the ${album.limiteDeFotos} your plan allows.`
+          : `De las ${album.limiteDeFotos} que permite su plan.`
+        : isEnglish
+          ? "No limit on photos."
+          : "Sin límite de fotos."
+      : isEnglish
+        ? "Share the QR and your guests upload their photos from their phones."
+        : "Compartan el QR y sus invitados suben sus fotos desde el celular.";
+
+  const albumProgreso =
+    album && album.fotos > 0 && tieneLimiteDeFotos(album.limiteDeFotos)
+      ? (album.fotos / album.limiteDeFotos) * 100
+      : null;
+
+  const albumCta = album
+    ? isEnglish
+      ? "Go to your album"
+      : "Ir a su álbum"
+    : albumIncluido
+      ? isEnglish
+        ? "Open your album"
+        : "Abrir su álbum"
+      : isEnglish
+        ? "See how it works"
+        : "Ver cómo funciona";
+
+  // Cuántas tarjetas de resumen van en la rejilla. Con tres, en fila sólo en
+  // pantallas anchas (xl): con la barra lateral, a 1024px cada una mediría
+  // ~220px y las cifras se partirían en tres renglones. Antes de eso, dos
+  // columnas y la del álbum a lo ancho.
+  const tarjetas = (mostrarDinero ? 1 : 0) + 1 + (albumArriba ? 0 : 1);
+
   // ----- Lo que ya funciona, para la bienvenida -----
   const pendientes = bundle.tasks.filter((t) => !t.doneAt).length;
   const loQueYaEsta: LoQueYaEsta[] = [];
@@ -492,8 +694,18 @@ export function PantallaHoy({
         <Bienvenida items={loQueYaEsta} isEnglish={isEnglish} onCerrar={cerrarBienvenida} />
       ) : null}
 
+      {albumArriba ? (
+        <Reveal app className="mt-10">
+          <FotosDeLaBoda album={album} incluido={albumIncluido} isEnglish={isEnglish} />
+        </Reveal>
+      ) : null}
+
       <Reveal app className="mt-10">
-        <div className={`grid gap-5 ${mostrarDinero ? "sm:grid-cols-2" : ""}`}>
+        <div
+          className={`grid gap-5 ${tarjetas >= 2 ? "sm:grid-cols-2" : ""} ${
+            tarjetas === 3 ? "xl:grid-cols-3" : ""
+          }`}
+        >
           {mostrarDinero ? (
             <Resumen
               eyebrow={isEnglish ? "Your money" : "Su dinero"}
@@ -530,6 +742,18 @@ export function PantallaHoy({
                   : "Ver la lista"
             }
           />
+          {albumArriba ? null : (
+            <Resumen
+              eyebrow={isEnglish ? "Your album" : "Su álbum"}
+              titular={albumTitular}
+              detalle={albumDetalle}
+              progreso={albumProgreso}
+              tono="tinta"
+              href="/panel/album"
+              cta={albumCta}
+              className={tarjetas === 3 ? "sm:col-span-2 xl:col-span-1" : ""}
+            />
+          )}
         </div>
       </Reveal>
 

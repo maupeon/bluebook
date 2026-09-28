@@ -5,6 +5,12 @@ export interface SeccionesDelPanel {
   dinero: boolean;
   /** /panel/dia: el guion del día. */
   dia: boolean;
+  /**
+   * /panel/album: el álbum digital. Siempre: con álbum lo administran; sin él
+   * la sección enseña cómo se ve y cómo tenerlo (el Planner completo lo
+   * incluye, o se compra solo). A nadie le promete algo que no puede tener.
+   */
+  album: boolean;
 }
 
 /**
@@ -41,5 +47,6 @@ export function seccionesDelPanel(bundle: PanelBundle): SeccionesDelPanel {
   return {
     dinero: conPlanner || hayDinero,
     dia: conPlanner || hayGuion,
+    album: true,
   };
 }

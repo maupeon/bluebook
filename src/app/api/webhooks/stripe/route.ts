@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
-import { nanoid } from 'nanoid'
-import { sendAdminEmail } from '@/lib/email'
-import { getAlbumPlan, UNLIMITED_PHOTO_LIMIT } from '@/lib/albumPlans'
+import { registrarSesionDeAlbum } from '@/lib/albumPagado'
 import { registrarPagoDeBoda } from '@/lib/bodaPagada'
 import { EVENTOS_DE_SUSCRIPCION, atenderEventoDeSuscripcion } from '@/lib/suscripcion'
 
@@ -15,11 +12,6 @@ const getStripeClient = (): Stripe | null => {
     apiVersion: "2025-12-15.clover",
   })
 }
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 export async function POST(req: NextRequest) {
   const stripe = getStripeClient()
@@ -52,74 +44,24 @@ export async function POST(req: NextRequest) {
     const metadata = session.metadata || {}
     const productType = metadata.productType
 
-    // Solo procesar si es un álbum
+    // El álbum digital (0036): cada álbum pertenece a una boda y se administra
+    // desde el panel. registrarSesionDeAlbum crea la boda con la prueba de 7
+    // días si el correo no tiene una, crea o sube el álbum, registra el pago en
+    // pagos_de_album (nunca en couple_leads) y manda el correo una sola vez. La
+    // página de gracias y /panel/album hacen lo mismo por su lado; el que llegue
+    // segundo encuentra el pago hecho. La sesión del evento ya viene completa:
+    // no se vuelve a pedir a Stripe.
     if (productType === 'album') {
-      const email = session.customer_email || session.customer_details?.email
-
-      // Generar slug único y legible
-      const slug = `album-${nanoid(8)}`
-      const adminToken = nanoid(32)  // Token de administrador
-      const title = metadata.albumTitle || 'Nuestro Álbum'
-      const template = metadata.albumTemplate || 'classic'
-      const plan = getAlbumPlan(metadata.planId || '')
-      const maxPhotos = plan?.maxPhotos || 50
-      const stripeSessionId = session.id
-
-      // Evitar duplicados por reintentos del webhook.
-      const { data: existingAlbum } = await supabase
-        .from('albums')
-        .select('id, slug')
-        .eq('stripe_session_id', stripeSessionId)
-        .maybeSingle()
-
-      if (existingAlbum) {
-        console.log('Album ya creado para sesión Stripe:', stripeSessionId, existingAlbum.slug)
-        return NextResponse.json({ received: true, duplicate: true })
+      try {
+        const album = await registrarSesionDeAlbum(session)
+        if (album) {
+          console.log('Pago de álbum registrado:', session.id, '→ boda', album.weddingId, album.slug)
+        }
+      } catch (error) {
+        // 500 a propósito: Stripe reintenta el evento, y reintentar es seguro.
+        console.error('Error registrando pago de álbum:', session.id, error)
+        return NextResponse.json({ error: 'Failed to register album payment' }, { status: 500 })
       }
-
-      // Crear álbum en Supabase con admin_token
-      const { data, error } = await supabase
-        .from('albums')
-        .insert({
-          slug,
-          email,
-          title,
-          template,
-          photos: [],
-          admin_token: adminToken,
-          stripe_session_id: stripeSessionId,
-          guest_upload_enabled: true,
-          max_photos_per_guest: maxPhotos,
-        })
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Error creating album:', error)
-        return NextResponse.json({ error: 'Failed to create album' }, { status: 500 })
-      }
-
-      console.log('Album created:', data)
-
-      // Enviar email con el link de administración
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bluebook-2fkn.vercel.app'
-      const adminUrl = `${baseUrl}/album/${slug}/admin?token=${adminToken}`
-
-      // Enviar email al administrador
-      if (email) {
-        await sendAdminEmail({
-          to: email,
-          albumTitle: title,
-          adminUrl,
-        })
-      }
-      console.log('Admin URL:', adminUrl)
-      console.log(
-        'Plan creado:',
-        plan?.id || metadata.planId || 'desconocido',
-        'límite fotos:',
-        maxPhotos >= UNLIMITED_PHOTO_LIMIT ? 'ilimitado' : maxPhotos
-      )
     }
 
     // Productos de boda (planner / invitaciones): el pago crea la boda.

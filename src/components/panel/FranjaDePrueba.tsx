@@ -35,18 +35,31 @@ export function FranjaDePrueba({ acceso }: { acceso: AccesoDeLaBoda }) {
     !vencida && acceso.diasDePrueba != null && acceso.diasDePrueba <= DIAS_PARA_ACERCARSE;
   const discreta = !vencida && !cerca;
 
+  // En /panel/album la solo lectura NO aplica: el álbum se paga aparte (o
+  // viene con el Planner) y sigue abierto al vencer la prueba (0036). Decir
+  // «todo en solo lectura» ahí contradecía la pantalla.
+  const enAlbum = pathname.startsWith("/panel/album");
+
   const dias = textoDeDias(acceso, isEnglish);
   const principal = vencida
-    ? isEnglish
-      ? "Your trial ended. Everything is still here, read-only."
-      : "Su prueba terminó. Todo sigue aquí, en solo lectura."
+    ? enAlbum
+      ? isEnglish
+        ? "Your trial ended. Your album stays open; the rest is read-only."
+        : "Su prueba terminó. Su álbum sigue abierto; lo demás, en solo lectura."
+      : isEnglish
+        ? "Your trial ended. Everything is still here, read-only."
+        : "Su prueba terminó. Todo sigue aquí, en solo lectura."
     : `${dias ?? ""}.`;
   const detalle = vencida
     ? null
     : cerca
-      ? isEnglish
-        ? "After that, everything stays here, read-only."
-        : "Después, todo se queda aquí en solo lectura."
+      ? enAlbum
+        ? isEnglish
+          ? "After that, your album stays open; the rest becomes read-only."
+          : "Después, su álbum sigue abierto; lo demás queda en solo lectura."
+        : isEnglish
+          ? "After that, everything stays here, read-only."
+          : "Después, todo se queda aquí en solo lectura."
       : isEnglish
         ? "The whole panel is open to you."
         : "El panel completo está abierto para ustedes.";

@@ -12,6 +12,7 @@ import { AvisoDePago } from "@/components/panel/SuPlan";
 import { leerAcceso } from "@/lib/acceso";
 import { FranjaDePrueba } from "@/components/panel/FranjaDePrueba";
 import { LimpiarLaVuelta } from "@/components/onboarding/LimpiarLaVuelta";
+import { incluidoEnSuPlan, leerEstadoDelAlbum } from "@/app/panel/album/leerEstadoDelAlbum";
 
 /** El id del div que scrollea. Lo comparten el layout y ResetScroll. */
 const ID_SCROLLER = "panel-scroll";
@@ -52,11 +53,12 @@ export default async function PanelLayout({
   }
 
   const { wedding, bundle, diasRestantes } = datos;
-  // Las dos cacheadas por petición: Hoy las vuelve a pedir para sus tarjetas
-  // sin otra consulta. En paralelo porque no dependen una de la otra.
-  const [suscripcion, acceso] = await Promise.all([
+  // Las tres cacheadas por petición: Hoy y Álbum las vuelven a pedir para sus
+  // tarjetas sin otra consulta. En paralelo porque no dependen una de otra.
+  const [suscripcion, acceso, album] = await Promise.all([
     leerSuscripcion(wedding.id),
     leerAcceso(wedding.id),
+    leerEstadoDelAlbum(wedding.id),
   ]);
 
   return (
@@ -83,6 +85,9 @@ export default async function PanelLayout({
             hayGuion:
               !bundle.runOfShow.unavailable && bundle.runOfShow.blocks.length > 0,
             invitacionLista: wedding.invitacionId != null,
+            album,
+            // El Planner completo (el plan mensual) trae el álbum Ilimitado.
+            albumIncluido: incluidoEnSuPlan(suscripcion),
           }}
           secciones={seccionesDelPanel(bundle)}
           acceso={acceso}

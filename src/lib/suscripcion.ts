@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { asegurarAlbumDeLaBoda, PLAN_DE_ALBUM_DEL_PLANNER } from "@/lib/albumDeLaBoda";
 import { sendAvisoEmail } from "@/lib/email";
 import { formatInstantDate } from "@/components/panel/dates";
 import { formatMXN } from "@/lib/weddingPlans";
@@ -24,6 +25,13 @@ import {
  *
  * Lo que la situación SIGNIFICA (al corriente, pago pendiente...) no se decide
  * aquí: sale de v_suscripciones, que también lee el admin.
+ *
+ * EL ÁLBUM (0036): el Planner completo lo incluye, y si cancelan (o Stripe la
+ * da por terminada tras cobros rechazados) el álbum se queda para siempre,
+ * abierto y con su plan: decisión del dueño, 28-sep-2026. Por eso nada de
+ * este módulo borra, cierra ni baja de plan la fila de albums; lo único que
+ * hace con ella es asegurarla mientras la suscripción está al corriente
+ * (asegurarElAlbumDelPlanner), y asegurar_album_de_la_boda nunca baja.
  */
 
 export type SituacionSuscripcion =
@@ -259,8 +267,57 @@ export async function atenderEventoDeSuscripcion(stripe: Stripe, event: Stripe.E
   }
 
   const s = await sincronizarSuscripcion(stripe, subscriptionId, extra);
+  // Antes de reclamar el evento: un reintento de Stripe también cuenta como
+  // otra oportunidad de crear el álbum. Nunca lanza.
+  await asegurarElAlbumDelPlanner(s.weddingId);
   if (!(await reclamarEvento(event))) return;
   await avisar(event, s, invoice, saldaUnFallo);
+}
+
+/**
+ * El álbum Ilimitado que trae el Planner completo, por el lado de la
+ * suscripción. Donde nace de verdad es registrarPagoDeBoda (el pago del
+ * checkout); esto es la red para lo que no pasa por ahí:
+ *
+ *   - Una suscripción que la boda paga sin checkout de la app (dada de alta a
+ *     mano en Stripe con el leadId, o ligada a la solicitud después).
+ *     v_acceso_de_la_boda ya la cuenta como pagada con la situación
+ *     al_corriente aunque la solicitud no tenga paid_at; el álbum va igual.
+ *   - Un fallo del álbum en registrarPagoDeBoda: ahí se traga para no tumbar
+ *     el pago, el webhook responde 200 y Stripe ya no reintenta ese evento.
+ *     Los de la suscripción (la creación, cada renovación pagada) lo vuelven
+ *     a intentar.
+ *
+ * Sólo con la situación al_corriente, leída de v_suscripciones (la única
+ * traducción del status de Stripe) justo después de sincronizar. No se usa
+ * leerFila: está en cache() y podría traer la foto de antes.
+ *
+ * Idempotente (asegurar_album_de_la_boda no hace nada si ya es Ilimitado) y
+ * NUNCA lanza: el estado de la suscripción ya quedó guardado, y un 500 por el
+ * álbum haría que Stripe reintentara el evento y retrasaría los avisos (el de
+ * cobro próximo lo exige la LFPC). Sin la migración 0036 la RPC no existe: se
+ * anota y se sigue.
+ */
+async function asegurarElAlbumDelPlanner(weddingId: string | null): Promise<void> {
+  // Sin boda todavía (el evento llegó antes que el pago la creara): la crea
+  // registrarPagoDeBoda, y con ella el álbum.
+  if (!weddingId) return;
+  try {
+    const { data, error } = await createAdminClient()
+      .from("v_suscripciones")
+      .select("situacion")
+      .eq("wedding_id", weddingId)
+      .maybeSingle();
+    if (error) throw new Error(`no se pudo leer la situación: ${error.message}`);
+    if (data?.situacion !== "al_corriente") return;
+    await asegurarAlbumDeLaBoda({
+      weddingId,
+      plan: PLAN_DE_ALBUM_DEL_PLANNER,
+      origen: "plan",
+    });
+  } catch (err) {
+    console.error(`[suscripcion] no se pudo asegurar el álbum del Planner de ${weddingId}:`, err);
+  }
 }
 
 // ----- Avisar -----
@@ -445,6 +502,8 @@ async function avisar(
       return;
     }
 
+    // Terminó el plan: sólo se avisa. El álbum de la boda NO se toca: se queda
+    // para siempre, con su plan y abierto a los invitados (ver arriba).
     if (event.type === "customer.subscription.deleted") {
       const sub = event.data.object as Stripe.Subscription;
       await sendAvisoEmail({

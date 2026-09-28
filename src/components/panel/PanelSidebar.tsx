@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, Home, Mail, Users, Wallet, Wine } from "lucide-react";
+import { CalendarClock, Home, Images, Mail, Users, Wallet, Wine } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { countdownPhrase } from "@/components/panel/dates";
 import type { SeccionesDelPanel } from "@/lib/seccionesDelPanel";
 import { textoDeDias, type AccesoDeLaBoda } from "@/lib/accesoDeLaBoda";
+import { pistaDelAlbum, type AlbumDelPanel } from "@/components/album/estadoDelAlbum";
 
 /**
  * Lo que el menú necesita saber para GUIAR, no sólo para enlazar.
@@ -28,6 +29,10 @@ export interface EstadoDelMenu {
   hayGuion: boolean;
   /** true si la pareja ya eligió su invitación (weddings.invitacion_id). */
   invitacionLista: boolean;
+  /** El álbum de la boda (leerEstadoDelAlbum), o null si todavía no tienen. */
+  album: AlbumDelPanel | null;
+  /** Tienen el Planner completo, que incluye el álbum aunque aún no exista. */
+  albumIncluido: boolean;
 }
 
 const pesos = (n: number) =>
@@ -130,6 +135,20 @@ function destinos(e: EstadoDelMenu, isEnglish: boolean): Destino[] {
       Icono: Wine,
       llama: false,
     },
+    {
+      // El último a propósito: es lo que viene después de la boda.
+      href: "/panel/album",
+      nombre: isEnglish ? "Album" : "Álbum",
+      pista: pistaDelAlbum(e.album, e.albumIncluido, isEnglish),
+      Icono: Images,
+      // Desde el día de la boda, un álbum vacío llama: es cuando sus
+      // invitados tienen las fotos en el celular.
+      llama:
+        e.album != null &&
+        e.album.fotos === 0 &&
+        e.diasRestantes != null &&
+        e.diasRestantes <= 0,
+    },
   ];
 }
 
@@ -142,7 +161,8 @@ function esActivo(pathname: string, href: string): boolean {
 /**
  * La pista de la prueba, al pie del menú de escritorio. Discreta a propósito:
  * la franja de arriba ya lo dice en todas las pantallas (y en el teléfono es
- * la única, porque la barra de abajo no tiene lugar para un séptimo destino).
+ * la única, porque en la barra de abajo ya van hasta siete destinos y no cabe
+ * uno más).
  */
 function PistaDePrueba({
   acceso,
@@ -191,8 +211,13 @@ export function PanelSidebar({
   const items = destinos(estado, isEnglish).filter(
     ({ href }) =>
       (href !== "/panel/dinero" || secciones.dinero) &&
-      (href !== "/panel/dia" || secciones.dia)
+      (href !== "/panel/dia" || secciones.dia) &&
+      (href !== "/panel/album" || secciones.album)
   );
+  // Con los siete destinos (boda con planner), la barra del teléfono se
+  // aprieta: menos hueco entre botones y la letra medio punto más chica, para
+  // que «Invitación» quepa en 375px sin cortarse. Con seis o menos, como era.
+  const apretada = items.length > 6;
 
   return (
     <>
@@ -263,7 +288,9 @@ export function PanelSidebar({
           translúcido del panel es la barra de arriba. */}
       <nav
         aria-label={isEnglish ? "Panel sections" : "Secciones del panel"}
-        className="fixed inset-x-0 bottom-0 z-20 flex gap-1 border-t border-linea bg-niebla px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:hidden"
+        className={`fixed inset-x-0 bottom-0 z-20 flex border-t border-linea bg-niebla pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:hidden ${
+          apretada ? "gap-0.5 px-1" : "gap-1 px-2"
+        }`}
       >
         {items.map(({ href, nombre, pista, Icono, llama }) => {
           const activo = esActivo(pathname, href);
@@ -272,7 +299,7 @@ export function PanelSidebar({
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className={`relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+              className={`relative flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
                 activo ? "border-linea bg-papel" : "border-transparent"
               }`}
             >
@@ -280,8 +307,16 @@ export function PanelSidebar({
                 className={`h-[18px] w-[18px] ${activo ? "text-noche" : "text-tinta"}`}
                 strokeWidth={activo ? 2 : 1.6}
               />
+              {/* max-w-full + truncate: en un teléfono de 320px con siete
+                  destinos, el nombre se recorta en vez de empujar a los demás
+                  fuera de la pantalla. El recorte esconde lo que sale de la
+                  caja: con leading-none se comería el acento de «Álbum» y la
+                  cola de la «y» de «Hoy», por eso el interlineado un poco más
+                  alto. */}
               <span
-                className={`text-[10.5px] leading-none ${activo ? "font-medium text-noche" : "font-normal text-tinta"}`}
+                className={`max-w-full truncate leading-[1.25] ${apretada ? "text-[10px]" : "text-[10.5px]"} ${
+                  activo ? "font-medium text-noche" : "font-normal text-tinta"
+                }`}
               >
                 {nombre}
               </span>

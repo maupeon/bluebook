@@ -5,6 +5,7 @@ import { sendPaymentNotificationEmail } from "@/lib/email";
 import { AGENT_PLAN, INVITATION_TIERS, getInvitationTier } from "@/lib/weddingPlans";
 import { sincronizarSuscripcion, stripeServidor } from "@/lib/suscripcion";
 import { avisarConversion } from "@/lib/avisosDePrueba";
+import { asegurarAlbumDeLaBoda, PLAN_DE_ALBUM_DEL_PLANNER } from "@/lib/albumDeLaBoda";
 
 export interface BodaPagada {
   weddingId: string;
@@ -13,7 +14,8 @@ export interface BodaPagada {
 }
 
 /**
- * Registra el pago de una boda (planner o invitaciones) y crea la boda.
+ * Registra el pago de una boda (planner o invitaciones) y crea la boda. Con
+ * el Planner completo, también su álbum (ver más abajo).
  *
  * La llaman dos sitios, en cualquier orden y las veces que haga falta: el
  * webhook de Stripe y la página de gracias. La página no espera al webhook
@@ -119,6 +121,34 @@ export async function registrarPagoDeBoda(
       if (stripe) await sincronizarSuscripcion(stripe, session.subscription);
     } catch (err) {
       console.error("No se pudo sincronizar la suscripción del pago", session.id, err);
+    }
+  }
+
+  // El Planner completo incluye el álbum Ilimitado (decisión del dueño,
+  // 28-sep-2026), y nace AQUÍ, al pagar: la prueba (empezar_prueba) no pasa
+  // por este archivo, y mientras dura el panel enseña un álbum de ejemplo.
+  // Las de «Solo invitaciones» no lo traen: lo compran aparte desde el panel.
+  //
+  // Va en cada llamada, no sólo en la que crea la boda: asegurar_album_de_la_boda
+  // (0036) es idempotente y nunca baja de plan, así que un reintento del
+  // webhook o la página de gracias recargada no duplican nada, y si la
+  // primera vez falló, la siguiente lo arregla. Si ya habían comprado un
+  // álbum suelto más chico, aquí sube a Ilimitado.
+  //
+  // Un error aquí NO tumba el registro del pago: la pareja pagó y su boda
+  // tiene que quedar pagada. Si lanzara, el webhook respondería 500 por culpa
+  // del álbum y /panel/plan diría que el pago sigue «en camino». Se anota y se
+  // sigue; lo vuelven a intentar la página de gracias, el regreso a
+  // /panel/plan y cada evento de la suscripción al corriente (suscripcion.ts).
+  if (productType === "planner") {
+    try {
+      await asegurarAlbumDeLaBoda({
+        weddingId,
+        plan: PLAN_DE_ALBUM_DEL_PLANNER,
+        origen: "plan",
+      });
+    } catch (err) {
+      console.error("No se pudo asegurar el álbum del Planner", weddingId, session.id, err);
     }
   }
 

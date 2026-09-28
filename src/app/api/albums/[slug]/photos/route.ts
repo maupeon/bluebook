@@ -50,10 +50,8 @@ export async function POST(
   const body = await request.json()
   const { photo_url, cloudinary_public_id, token, guest_name } = body
 
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido' }, { status: 401 })
-  }
-
+  // Sin token decide la sesión del panel (resolveAlbumAccess): solo puede
+  // salir admin, nunca invitado, así que nadie sube a nombre de otro.
   const access = await validateAccess(slug, token)
 
   if (access.role === 'unauthorized') {
@@ -144,10 +142,11 @@ export async function DELETE(
   const photoId = searchParams.get('photoId')
   const token = searchParams.get('token')
 
-  if (!token || !photoId) {
-    return NextResponse.json({ error: 'Token y photoId requeridos' }, { status: 400 })
+  if (!photoId) {
+    return NextResponse.json({ error: 'photoId requerido' }, { status: 400 })
   }
 
+  // Sin token decide la sesión del panel (resolveAlbumAccess).
   const access = await validateAccess(slug, token)
 
   if (access.role === 'unauthorized') {
@@ -206,10 +205,7 @@ export async function PUT(
   const body = await request.json()
   const { token, photoOrders } = body  // photoOrders: [{ id: string, display_order: number }]
 
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido' }, { status: 401 })
-  }
-
+  // Sin token decide la sesión del panel (resolveAlbumAccess).
   const access = await validateAccess(slug, token)
 
   if (access.role !== 'admin') {

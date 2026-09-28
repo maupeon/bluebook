@@ -17,6 +17,12 @@ export type AlbumPlan = {
   featured?: boolean;
   badge?: string;
   templateAccess: 'classic' | 'three' | 'all';
+  /**
+   * Viene incluido en el Planner completo (decisión del dueño, 28-sep-2026):
+   * quien paga el Planner no lo compra aparte. Lo leen /album-digital y el
+   * panel para decirlo junto al precio.
+   */
+  includedInPlanner?: boolean;
 };
 
 export const ALBUM_PLAN_ORDER: AlbumPlanId[] = [
@@ -81,6 +87,7 @@ export const ALBUM_PLANS: Record<AlbumPlanId, AlbumPlan> = {
     maxPhotos: UNLIMITED_PHOTO_LIMIT,
     maxPhotosLabel: 'Ilimitadas',
     templateAccess: 'all',
+    includedInPlanner: true,
   },
 };
 

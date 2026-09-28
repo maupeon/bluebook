@@ -16,11 +16,8 @@ export async function GET(
 ) {
   const { slug } = await params
   const { searchParams } = new URL(request.url)
+  // Sin token decide la sesión del panel (resolveAlbumAccess).
   const token = searchParams.get('token')
-
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido' }, { status: 401 })
-  }
 
   const access = await validateAccess(slug, token)
 
@@ -57,10 +54,7 @@ export async function POST(
   const body = await request.json()
   const { token, guest_name, guest_email, max_photos, is_general, send_email } = body
 
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido' }, { status: 401 })
-  }
-
+  // Sin token decide la sesión del panel (resolveAlbumAccess).
   const access = await validateAccess(slug, token)
 
   if (access.role !== 'admin') {
@@ -121,10 +115,11 @@ export async function DELETE(
   const inviteId = searchParams.get('inviteId')
   const token = searchParams.get('token')
 
-  if (!token || !inviteId) {
-    return NextResponse.json({ error: 'Token e inviteId requeridos' }, { status: 400 })
+  if (!inviteId) {
+    return NextResponse.json({ error: 'inviteId requerido' }, { status: 400 })
   }
 
+  // Sin token decide la sesión del panel (resolveAlbumAccess).
   const access = await validateAccess(slug, token)
 
   if (access.role !== 'admin') {
@@ -154,10 +149,11 @@ export async function PUT(
   const body = await request.json()
   const { token, inviteId, guest_name, max_photos, is_active } = body
 
-  if (!token || !inviteId) {
-    return NextResponse.json({ error: 'Token e inviteId requeridos' }, { status: 400 })
+  if (!inviteId) {
+    return NextResponse.json({ error: 'inviteId requerido' }, { status: 400 })
   }
 
+  // Sin token decide la sesión del panel (resolveAlbumAccess).
   const access = await validateAccess(slug, token)
 
   if (access.role !== 'admin') {

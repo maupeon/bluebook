@@ -22,10 +22,7 @@ export async function PUT(
   const token = body.token || null
   const rawPhotos = body.photos
 
-  if (!token) {
-    return NextResponse.json({ error: 'Token requerido' }, { status: 401 })
-  }
-
+  // Sin token decide la sesión del panel (resolveAlbumAccess, más abajo).
   if (!Array.isArray(rawPhotos)) {
     return NextResponse.json({ error: 'Se requiere la lista de fotos' }, { status: 400 })
   }

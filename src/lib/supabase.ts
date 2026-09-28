@@ -26,7 +26,14 @@ export type Album = AlbumPublico & {
   email: string
   admin_token: string
   guest_upload_enabled: boolean
+  /** El límite de fotos del ÁLBUM (el nombre es de origen). Sigue a `plan`. */
   max_photos_per_guest: number
+  /** 0036: la boda dueña del álbum. null en los álbumes sueltos de antes. */
+  wedding_id?: string | null
+  /** 0036: album_50 | album_200 | album_unlimited. null en los de antes. */
+  plan?: 'album_50' | 'album_200' | 'album_unlimited' | null
+  /** 0036: de dónde salió el plan vigente: lo compraron o viene con el Planner. */
+  origen?: 'compra' | 'plan' | null
 }
 
 export type AlbumPhoto = {
