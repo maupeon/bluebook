@@ -93,7 +93,8 @@ function seccionesEs(): SeccionLegal[] {
             si la invitación te llegó por correo, tu correo.
           </p>
           <p>
-            <strong>Si compras o administras un álbum digital:</strong> tu correo, el título y la fecha del álbum, el
+            <strong>Si compras o administras un álbum digital:</strong> tu nombre y tu correo (con ellos creamos tu
+            cuenta si todavía no tienes una), el título y la fecha del álbum, el
             enlace de música si lo pones y, de las personas que invitas a subir fotos, su nombre y, si les mandas la
             invitación por correo, su correo.
           </p>
@@ -435,7 +436,8 @@ function seccionesEn(): SeccionLegal[] {
             if your invitation came by email, your email.
           </p>
           <p>
-            <strong>If you buy or manage a digital album:</strong> your email, the album&rsquo;s title and date, the
+            <strong>If you buy or manage a digital album:</strong> your name and email (we use them to create your
+            account if you don&rsquo;t have one yet), the album&rsquo;s title and date, the
             music link if you add one and, for the people you invite to upload photos, their name and, if you send them
             the invitation by email, their email.
           </p>
@@ -724,7 +726,7 @@ export default async function PrivacidadPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Privacy notice" : "Aviso de privacidad"}
-      actualizado={isEnglish ? "September 27, 2026" : "27 de septiembre de 2026"}
+      actualizado={isEnglish ? "September 28, 2026" : "28 de septiembre de 2026"}
       intro={
         isEnglish ? (
           <p>

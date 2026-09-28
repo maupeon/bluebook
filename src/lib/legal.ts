@@ -44,11 +44,14 @@ export const PRECIOS_INCLUYEN_IVA: boolean | null = true;
 export const EMITE_CFDI = false;
 
 /** Fechas de la versión vigente. Se guardan con cada consentimiento como prueba. */
-export const VERSION_TERMINOS = "2026-09-26";
+// 2026-09-28: el álbum digital entra al panel: incluido en el plan mensual,
+// se vende suelto creando la cuenta con la prueba, y no caduca ni baja de plan.
+export const VERSION_TERMINOS = "2026-09-28";
 // «.2»: el mismo día se publicó otra versión (la copia de 30 minutos para la
 // vuelta de Google); esa agregó traer la lista y el presupuesto en «Su boda».
 // «.3»: el reparto del presupuesto por categoría, y que se borra con él.
-export const VERSION_AVISO = "2026-09-27.3";
+// 2026-09-28: comprar el álbum pide tu nombre y crea tu cuenta si no tienes.
+export const VERSION_AVISO = "2026-09-28";
 
 /** Días naturales de anticipación con que se avisa un cambio a los Términos. */
 export const DIAS_AVISO_CAMBIO_TERMINOS = 15;

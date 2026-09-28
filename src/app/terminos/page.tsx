@@ -80,7 +80,8 @@ function seccionesEs(): SeccionLegal[] {
               del estilo que elijas; se envían por WhatsApp a tus invitados y sus respuestas llegan a tu panel.
             </li>
             <li>
-              <strong>Álbum digital:</strong> un álbum interactivo donde tus invitados suben sus fotos.
+              <strong>Álbum digital:</strong> un álbum interactivo donde tú y tus invitados suben las fotos de la boda, y
+              que administras desde tu panel. Viene incluido en el plan mensual y también se compra por separado.
             </li>
             <li>
               En el plan mensual, <strong>una wedding planner del equipo de Blue Book</strong> acompaña tu boda a
@@ -121,14 +122,15 @@ function seccionesEs(): SeccionLegal[] {
             <strong>No pide tarjeta y no se convierte sola en un cobro:</strong> al terminar no se te cobra nada.
           </li>
           <li>
-            Durante la prueba usas el panel completo, con dos límites: puedes crear hasta {LIMITE_IA_EN_PRUEBA}{" "}
-            invitaciones con IA, y el envío de invitaciones por WhatsApp se activa al elegir un plan.
+            Durante la prueba usas el panel completo, con tres límites: puedes crear hasta {LIMITE_IA_EN_PRUEBA}{" "}
+            invitaciones con IA, el envío de invitaciones por WhatsApp se activa al elegir un plan, y el álbum digital
+            no forma parte de la prueba (viene con el plan mensual o lo compras por separado).
           </li>
           <li>
             Si al terminar no eliges plan, tu panel queda en <strong>solo lectura</strong>: ves todo lo que capturaste,
-            pero no puedes agregar ni cambiar nada. No borramos tu información: se guarda mientras exista tu cuenta y
-            puedes pedir que la borremos cuando quieras (ver el <Enlace href="/privacidad">Aviso de privacidad</Enlace>
-            ).
+            pero no puedes agregar ni cambiar nada. Si compraste tu álbum digital, ese sigue abierto (sección 8). No
+            borramos tu información: se guarda mientras exista tu cuenta y puedes pedir que la borremos cuando quieras
+            (ver el <Enlace href="/privacidad">Aviso de privacidad</Enlace>).
           </li>
           <li>Puedes elegir plan cuando quieras, antes o después de que termine la prueba.</li>
         </Lista>
@@ -148,7 +150,7 @@ function seccionesEs(): SeccionLegal[] {
             filas={[
               [
                 <strong key="n">{AGENT_PLAN.es.name}</strong>,
-                `Tu panel completo, tus invitaciones (hasta ${LIMITE_IA_PAGADA} con IA) con envío por WhatsApp y confirmaciones, y una wedding planner del equipo.`,
+                `Tu panel completo, tus invitaciones (hasta ${LIMITE_IA_PAGADA} con IA) con envío por WhatsApp y confirmaciones, una wedding planner del equipo y tu álbum digital con fotos ilimitadas.`,
                 `${formatMXN(AGENT_PLAN.priceMxMonthly)} al mes`,
               ],
               ...tramos.map((t) => [
@@ -171,6 +173,12 @@ function seccionesEs(): SeccionLegal[] {
           <p>
             El tramo de invitaciones se elige por el número de invitaciones que vas a enviar (una por invitado o por
             grupo, con sus pases) y no puede ser menor que tu lista al momento de pagar.
+          </p>
+          <p>
+            El álbum digital es un pago único por álbum. Si lo compras sin tener cuenta, al pagar la creamos con tu
+            correo e incluye la prueba gratis de {DIAS_DE_PRUEBA} días del panel. Si ya tienes un álbum y quieres uno
+            con más fotos, pagas el precio completo del plan mayor, según esta tabla: lo que pagaste antes no se
+            descuenta.
           </p>
           <p>
             {EMITE_CFDI ? (
@@ -205,6 +213,10 @@ function seccionesEs(): SeccionLegal[] {
             <strong>Cancelas cuando quieras desde tu panel</strong>, en Su plan › Administrar o cancelar, sin escribirle a nadie y
             sin penalización. La cancelación es inmediata: no se te vuelve a cobrar, y conservas lo que ya pagaste hasta
             el final del periodo. Al terminar, tu información no se borra.
+          </li>
+          <li>
+            Incluye tu álbum digital con fotos ilimitadas. Si cancelas el plan, tu álbum se queda: no baja de plan y
+            sigue abierto, también para que tus invitados suban fotos, mientras exista tu cuenta.
           </li>
           <li>
             Si un cobro es rechazado, te avisamos por correo con un enlace para pagar. Stripe lo reintenta durante unos
@@ -247,7 +259,16 @@ function seccionesEs(): SeccionLegal[] {
       cuerpo: (
         <Lista>
           <li>
-            Tus invitados suben fotos con el enlace o el código QR del álbum.{" "}
+            Lo administras desde tu panel, con tu cuenta. Viene incluido, con fotos ilimitadas, en el plan mensual; con
+            el plan de invitaciones o por sí solo, lo compras por separado (sección 5).
+          </li>
+          <li>
+            <strong>Tu álbum no caduca ni baja de plan:</strong> si cancelas el plan mensual o termina tu prueba, se
+            queda con el plan que tenía y sigue abierto, también para que tus invitados suban fotos, mientras exista tu
+            cuenta. El resto del panel sigue las reglas de tu plan o de tu prueba.
+          </li>
+          <li>
+            Tus invitados suben fotos con el enlace o el código QR del álbum, sin crear cuenta.{" "}
             <strong>Cualquier persona que tenga el enlace puede ver el álbum y sus fotos:</strong> compártelo solo con
             quien quieras.
           </li>
@@ -393,7 +414,8 @@ function seccionesEs(): SeccionLegal[] {
         <Lista>
           <li>
             Puedes dejar de usar Blue Book cuando quieras y pedir que borremos tu cuenta y tus datos escribiendo a{" "}
-            <Enlace href={`mailto:${RESPONSABLE.correoPrivacidad}`}>{RESPONSABLE.correoPrivacidad}</Enlace>.
+            <Enlace href={`mailto:${RESPONSABLE.correoPrivacidad}`}>{RESPONSABLE.correoPrivacidad}</Enlace>. Al
+            borrar tu cuenta se borra también tu álbum con sus fotos.
           </li>
           <li>
             Podemos terminar el servicio si incumples estos términos de forma grave (sección de uso aceptable), con aviso
@@ -496,7 +518,8 @@ function seccionesEn(): SeccionLegal[] {
               style you choose; they&rsquo;re sent to your guests over WhatsApp and their replies arrive in your panel.
             </li>
             <li>
-              <strong>Digital album:</strong> an interactive album where your guests upload their photos.
+              <strong>Digital album:</strong> an interactive album where you and your guests upload the wedding photos,
+              managed from your panel. It&rsquo;s included in the monthly plan and can also be bought separately.
             </li>
             <li>
               With the monthly plan, <strong>a wedding planner from the Blue Book team</strong> looks after your wedding
@@ -538,14 +561,15 @@ function seccionesEn(): SeccionLegal[] {
             ends.
           </li>
           <li>
-            During the trial you use the full panel with two limits: you can create up to {LIMITE_IA_EN_PRUEBA}{" "}
-            invitations with AI, and sending invitations over WhatsApp unlocks when you choose a plan.
+            During the trial you use the full panel with three limits: you can create up to {LIMITE_IA_EN_PRUEBA}{" "}
+            invitations with AI, sending invitations over WhatsApp unlocks when you choose a plan, and the digital album
+            isn&rsquo;t part of the trial (it comes with the monthly plan or you buy it separately).
           </li>
           <li>
             If you don&rsquo;t choose a plan when it ends, your panel becomes <strong>read-only</strong>: you see
-            everything you added but can&rsquo;t add or change anything. We don&rsquo;t delete your information: it&rsquo;s
-            kept while your account exists, and you can ask us to delete it whenever you want (see the{" "}
-            <Enlace href="/privacidad">Privacy notice</Enlace>).
+            everything you added but can&rsquo;t add or change anything. If you bought your digital album, it stays open
+            (section 8). We don&rsquo;t delete your information: it&rsquo;s kept while your account exists, and you can
+            ask us to delete it whenever you want (see the <Enlace href="/privacidad">Privacy notice</Enlace>).
           </li>
           <li>You can choose a plan at any time, before or after the trial ends.</li>
         </Lista>
@@ -565,7 +589,7 @@ function seccionesEn(): SeccionLegal[] {
             filas={[
               [
                 <strong key="n">{AGENT_PLAN.en.name}</strong>,
-                `Your full panel, your invitations (up to ${LIMITE_IA_PAGADA} with AI) sent over WhatsApp with RSVPs, and a planner from the team.`,
+                `Your full panel, your invitations (up to ${LIMITE_IA_PAGADA} with AI) sent over WhatsApp with RSVPs, a planner from the team and your digital album with unlimited photos.`,
                 `${formatMXN(AGENT_PLAN.priceMxMonthly)} per month`,
               ],
               ...tramos.map((t) => [
@@ -588,6 +612,12 @@ function seccionesEn(): SeccionLegal[] {
           <p>
             The invitations tier is chosen by the number of invitations you&rsquo;ll send (one per guest or per group,
             with its seats) and can&rsquo;t be lower than your list when you pay.
+          </p>
+          <p>
+            The digital album is a one-time payment per album. If you buy it without an account, we create one with
+            your email when you pay, and it includes the {DIAS_DE_PRUEBA}-day free trial of the panel. If you already
+            have an album and want one with more photos, you pay the full price of the bigger plan, per this table:
+            what you paid before isn&rsquo;t deducted.
           </p>
           <p>
             {EMITE_CFDI ? (
@@ -621,6 +651,11 @@ function seccionesEn(): SeccionLegal[] {
             <strong>You cancel whenever you want from your panel</strong>, under Your plan › Manage or cancel, without writing to
             anyone and with no penalty. Cancellation is immediate: you won&rsquo;t be charged again, and you keep what
             you already paid until the end of the period. Your information isn&rsquo;t deleted when it ends.
+          </li>
+          <li>
+            It includes your digital album with unlimited photos. If you cancel the plan, your album stays: it
+            doesn&rsquo;t drop to a smaller plan and stays open, including for your guests to upload photos, while your
+            account exists.
           </li>
           <li>If a charge is declined, we email you a link to pay. Stripe retries it for a few days.</li>
           <li>
@@ -660,7 +695,16 @@ function seccionesEn(): SeccionLegal[] {
       cuerpo: (
         <Lista>
           <li>
-            Your guests upload photos with the album&rsquo;s link or QR code.{" "}
+            You manage it from your panel, with your account. It&rsquo;s included, with unlimited photos, in the monthly
+            plan; with the invitations plan or on its own, you buy it separately (section 5).
+          </li>
+          <li>
+            <strong>Your album doesn&rsquo;t expire or drop to a smaller plan:</strong> if you cancel the monthly plan or
+            your trial ends, it keeps the plan it had and stays open, including for your guests to upload photos, while
+            your account exists. The rest of the panel follows the rules of your plan or your trial.
+          </li>
+          <li>
+            Your guests upload photos with the album&rsquo;s link or QR code, without creating an account.{" "}
             <strong>Anyone who has the link can see the album and its photos:</strong> share it only with whoever you
             want.
           </li>
@@ -799,7 +843,8 @@ function seccionesEn(): SeccionLegal[] {
         <Lista>
           <li>
             You can stop using Blue Book whenever you want and ask us to delete your account and data by writing to{" "}
-            <Enlace href={`mailto:${RESPONSABLE.correoPrivacidad}`}>{RESPONSABLE.correoPrivacidad}</Enlace>.
+            <Enlace href={`mailto:${RESPONSABLE.correoPrivacidad}`}>{RESPONSABLE.correoPrivacidad}</Enlace>. Deleting
+            your account also deletes your album and its photos.
           </li>
           <li>
             We may end the service if you seriously breach these terms (acceptable use section), with prior notice
@@ -863,7 +908,7 @@ export default async function TerminosPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Terms and conditions" : "Términos y condiciones"}
-      actualizado={isEnglish ? "September 26, 2026" : "26 de septiembre de 2026"}
+      actualizado={isEnglish ? "September 28, 2026" : "28 de septiembre de 2026"}
       intro={
         isEnglish ? (
           <p>
