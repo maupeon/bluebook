@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, Home, Images, Mail, Users, Wallet, Wine } from "lucide-react";
+import { CalendarClock, Home, Images, Mail, Store, Users, Wine } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { countdownPhrase } from "@/components/panel/dates";
 import type { SeccionesDelPanel } from "@/lib/seccionesDelPanel";
@@ -25,6 +25,9 @@ export interface EstadoDelMenu {
   dineroPorPagar: number;
   /** Lo contratado. Sin esto no se distingue "todo pagado" de "nada contratado". */
   dineroContratado: number;
+  /** Proveedores que no están descartados, y cuántos de ellos ya contrataron. */
+  proveedoresActivos: number;
+  proveedoresContratados: number;
   momentos: number;
   hayGuion: boolean;
   /** true si la pareja ya eligió su invitación (weddings.invitacion_id). */
@@ -95,24 +98,28 @@ function destinos(e: EstadoDelMenu, isEnglish: boolean): Destino[] {
       llama: paso && !e.invitacionLista,
     },
     {
-      href: "/panel/dinero",
-      nombre: isEnglish ? "Money" : "Dinero",
-      // "Todo pagado" con cero contratado es mentira: no han pagado nada, es
-      // que todavía no hay nada que pagar. Son dos estados distintos y una
-      // pareja que apenas empieza merece ver el suyo.
+      href: "/panel/proveedores",
+      nombre: isEnglish ? "Vendors" : "Proveedores",
+      // Lo que falta por pagar es lo que les toca ver; sin eso, cuántos llevan.
+      // "Todo pagado" con cero contratado sería mentira: no han pagado nada, es
+      // que todavía no hay nada que pagar.
       pista:
-        e.dineroContratado <= 0
+        e.dineroContratado > 0 && e.dineroPorPagar > 0
           ? isEnglish
-            ? "Nothing contracted yet"
-            : "Aún sin contratar"
-          : e.dineroPorPagar > 0
+            ? `${pesos(e.dineroPorPagar)} to pay`
+            : `${pesos(e.dineroPorPagar)} por pagar`
+          : e.proveedoresContratados > 0
             ? isEnglish
-              ? `${pesos(e.dineroPorPagar)} to pay`
-              : `${pesos(e.dineroPorPagar)} por pagar`
-            : isEnglish
-              ? "All paid up"
-              : "Todo pagado",
-      Icono: Wallet,
+              ? `${e.proveedoresContratados} booked`
+              : `${e.proveedoresContratados} ${e.proveedoresContratados === 1 ? "contratado" : "contratados"}`
+            : e.proveedoresActivos > 0
+              ? isEnglish
+                ? `${e.proveedoresActivos} getting quotes`
+                : `${e.proveedoresActivos} cotizando`
+              : isEnglish
+                ? "No vendors yet"
+                : "Aún sin proveedores",
+      Icono: Store,
       llama: paso && e.dineroContratado > 0 && e.dineroPorPagar > 0,
     },
     {
@@ -210,13 +217,15 @@ export function PanelSidebar({
   const pathname = usePathname();
   const items = destinos(estado, isEnglish).filter(
     ({ href }) =>
-      (href !== "/panel/dinero" || secciones.dinero) &&
+      (href !== "/panel/proveedores" || secciones.proveedores) &&
       (href !== "/panel/dia" || secciones.dia) &&
       (href !== "/panel/album" || secciones.album)
   );
   // Con los siete destinos (boda con planner), la barra del teléfono se
-  // aprieta: menos hueco entre botones y la letra medio punto más chica, para
-  // que «Invitación» quepa en 375px sin cortarse. Con seis o menos, como era.
+  // aprieta: menos hueco entre botones, la letra medio punto más chica, y cada
+  // botón tan ancho como su nombre (nunca menos de 44px, lo que pide un dedo)
+  // en vez de siete partes iguales: «Proveedores» mide 60px y la séptima parte
+  // de 360px, 47. Así cabe entero desde 360px. Con seis o menos, como era.
   const apretada = items.length > 6;
 
   return (
@@ -299,9 +308,9 @@ export function PanelSidebar({
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className={`relative flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
-                activo ? "border-linea bg-papel" : "border-transparent"
-              }`}
+              className={`relative flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+                apretada ? "min-w-[2.75rem] flex-auto" : "min-w-0 flex-1"
+              } ${activo ? "border-linea bg-papel" : "border-transparent"}`}
             >
               <Icono
                 className={`h-[18px] w-[18px] ${activo ? "text-noche" : "text-tinta"}`}

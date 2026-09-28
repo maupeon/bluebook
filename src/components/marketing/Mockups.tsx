@@ -4,8 +4,8 @@ import {
   Check,
   Home,
   Send,
+  Store,
   Users,
-  Wallet,
 } from "lucide-react";
 import { CountUp } from "@/components/marketing/CountUp";
 import { Rings } from "@/components/marketing/Ink";
@@ -15,7 +15,7 @@ import { Rings } from "@/components/marketing/Ink";
  * nítidas en cualquier pantalla, se traducen solas y no pesan.
  *
  * Los datos son de una boda inventada (Sofía y Diego) pero las pantallas son
- * las reales: Hoy, Invitados, Dinero, El día y la barra existen en /panel.
+ * las reales: Hoy, Invitados, Proveedores, El día y la barra existen en /panel.
  * Las cifras de la barra salen de la misma receta que usa PantallaBarra
  * (150 personas: 48 botellas de tequila = 4 cajas, 360 coronitas = 15
  * cartones).
@@ -80,7 +80,7 @@ export function PhoneHoy({ en }: { en: boolean }) {
   const tabs = [
     { Icon: Home, label: en ? "Today" : "Hoy", active: true },
     { Icon: Users, label: en ? "Guests" : "Invitados" },
-    { Icon: Wallet, label: en ? "Money" : "Dinero" },
+    { Icon: Store, label: en ? "Vendors" : "Proveedores" },
     { Icon: CalendarClock, label: en ? "The day" : "El día" },
   ];
 

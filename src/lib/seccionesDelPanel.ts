@@ -1,8 +1,8 @@
 import type { PanelBundle } from "@/lib/couplePanel";
 
 export interface SeccionesDelPanel {
-  /** /panel/dinero: presupuesto, pagos, checklist y proveedores. */
-  dinero: boolean;
+  /** /panel/proveedores: proveedores, sus pagos y contratos, y el presupuesto. */
+  proveedores: boolean;
   /** /panel/dia: el guion del día. */
   dia: boolean;
   /**
@@ -19,9 +19,10 @@ export interface SeccionesDelPanel {
  * toca. Si cada uno decidiera por su cuenta, el menú podría esconder algo a
  * lo que la tarjeta de Hoy sigue enlazando.
  *
- * Dinero y El día solo los llena una planner. Para una boda de solo
- * invitaciones son pantallas vacías para siempre ("Su planner aún no define el
- * presupuesto") que prometen algo que no contrataron. Pero NO se decide solo
+ * Proveedores y El día son del Planner (con planner o en prueba). Para una
+ * boda de solo invitaciones son pantallas que no contrataron: desde la 0040 la
+ * pareja captura sus proveedores, pero eso es parte del Planner, no de la
+ * invitación. Pero NO se decide solo
  * por weddings.tier: las 8 bodas de hoy dicen 'invitations', incluida la piloto
  * con todo su dinero y su guion capturados. Esconderle eso sería peor que
  * enseñar de más. Regla: se enseña si la boda es con planner o si ya hay algo
@@ -45,7 +46,7 @@ export function seccionesDelPanel(bundle: PanelBundle): SeccionesDelPanel {
   const hayGuion = !bundle.runOfShow.unavailable && bundle.runOfShow.blocks.length > 0;
 
   return {
-    dinero: conPlanner || hayDinero,
+    proveedores: conPlanner || hayDinero,
     dia: conPlanner || hayGuion,
     album: true,
   };

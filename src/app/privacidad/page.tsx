@@ -66,18 +66,19 @@ function seccionesEs(): SeccionLegal[] {
               día, acomodo de mesas y las notas que escribas.
             </li>
             <li>
-              Patrimoniales: tu presupuesto aproximado y cómo lo repartes por categoría (lugar, banquete, fotos…); los proveedores que contratas con sus montos, anticipos, pagos y
+              Patrimoniales: tu presupuesto aproximado y cómo lo repartes por categoría (lugar, banquete, fotos…); los proveedores que cotizas y contratas con sus montos, anticipos, pagos y
               fechas; y el historial de pagos de tu plan en Blue Book (montos, fechas y estado). Los datos de tu tarjeta
               los captura y guarda Stripe: Blue Book no los ve.
             </li>
             <li>Imágenes: la invitación que subes o que generamos para ti.</li>
+            <li>Documentos: los contratos de tus proveedores que subes en PDF.</li>
             <li>Los mensajes que nos escribes desde tu panel o por correo.</li>
             <li>Técnicos: los necesarios para mantener tu sesión y tu idioma (ver Cookies).</li>
           </Lista>
           <p>
             <strong>Datos de otras personas que tú capturas:</strong> de tus invitados, su nombre, teléfono, número de
             pases, notas, grupo, mesa, restricción para el menú y su respuesta de asistencia; de tus proveedores, su
-            nombre, persona de contacto, teléfono y correo.
+            nombre, persona de contacto, teléfono, correo, su página o Instagram, y lo que diga el contrato que subas.
           </p>
           <p>
             Si traes tu lista de invitados pegándola o subiendo un archivo (.xlsx o .csv), leemos esas columnas y el
@@ -155,7 +156,7 @@ function seccionesEs(): SeccionLegal[] {
             <strong>consentimiento expreso</strong>. Para el presupuesto lo das al continuar con una cifra en ese paso
             del registro (puedes elegir «Prefiero no decir») o al guardarla en «Su boda», donde también la puedes
             quitar; guardamos la fecha y la versión de este aviso como constancia. Si la quitas, borramos también las
-            cifras que hayas puesto al repartirla. Los pagos a tus proveedores solo los captura tu planner, con lo que tú le compartes para eso.
+            cifras que hayas puesto al repartirla. Los montos y pagos de tus proveedores los capturas tú en «Proveedores» (o tu planner, con lo que tú le compartes para eso): al guardarlos ahí das tu consentimiento para ellos, y los puedes corregir o borrar en ese mismo lugar.
           </li>
           <li>
             Puedes revocar tu consentimiento en cualquier momento (sección 8). Si lo revocas para datos que el servicio
@@ -409,18 +410,19 @@ function seccionesEn(): SeccionLegal[] {
               run-of-show, seating and the notes you write.
             </li>
             <li>
-              Financial: your approximate budget and how you split it by category (venue, catering, photos…); the vendors you hire with their amounts, deposits, payments and dates;
+              Financial: your approximate budget and how you split it by category (venue, catering, photos…); the vendors you get quotes from and hire, with their amounts, deposits, payments and dates;
               and the payment history of your Blue Book plan (amounts, dates and status). Your card details are
               collected and kept by Stripe: Blue Book never sees them.
             </li>
             <li>Images: the invitation you upload or we generate for you.</li>
+            <li>Documents: the vendor contracts you upload as PDF.</li>
             <li>The messages you send us from your panel or by email.</li>
             <li>Technical: what&rsquo;s needed to keep your session and your language (see Cookies).</li>
           </Lista>
           <p>
             <strong>Other people&rsquo;s data you add:</strong> for your guests, their name, phone, number of seats,
-            notes, group, table, menu restriction and RSVP; for your vendors, their name, contact person, phone and
-            email.
+            notes, group, table, menu restriction and RSVP; for your vendors, their name, contact person, phone,
+            email, website or Instagram, and whatever the contract you upload says.
           </p>
           <p>
             If you bring your guest list by pasting it or uploading a file (.xlsx or .csv), we read those columns and the
@@ -498,8 +500,9 @@ function seccionesEn(): SeccionLegal[] {
             <strong>express consent</strong>. For the budget, you give it by continuing with an amount in that sign-up
             step (you can choose &ldquo;I&rsquo;d rather not say&rdquo;) or by saving it in &ldquo;Your wedding&rdquo;,
             where you can also remove it; we keep the date and the version of this notice as a record. If you remove it, we
-            also delete the amounts you set when splitting it. Payments to your vendors are only entered by your planner, with what you share with them
-            for that.
+            also delete the amounts you set when splitting it. You enter your vendors&rsquo; amounts and payments in &ldquo;Vendors&rdquo; (or your planner does, with what
+            you share with them for that): by saving them there you give your consent for them, and you can correct or
+            delete them in that same place.
           </li>
           <li>
             You can withdraw your consent at any time (section 8). If you withdraw it for data the service needs, we may

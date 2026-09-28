@@ -454,7 +454,7 @@ export function PantallaHoy({
   const faltanDias = diasRestantes != null && diasRestantes >= 0;
   // La misma regla que el menú y las rutas: sin planner y sin nada capturado,
   // la tarjeta de dinero solo diría "su planner aún no…" a quien no tiene una.
-  const { dinero: mostrarDinero } = seccionesDelPanel(bundle);
+  const { proveedores: mostrarDinero } = seccionesDelPanel(bundle);
 
   // El dinero se cuenta desde lo PAGADO, que es la buena noticia, y nunca se
   // enseña un "Disponible" suelto: cuando el estimado coincide con lo
@@ -483,11 +483,11 @@ export function PantallaHoy({
     budget.contracted <= 0
       ? conPlanner
         ? isEnglish
-          ? "Nothing is contracted yet. As your planner signs vendors, they'll show up here."
-          : "Todavía no hay nada contratado. Conforme su planner cierre proveedores van a ir apareciendo aquí."
+          ? "Nothing is booked yet. Whatever you or your planner book will show up here."
+          : "Todavía no hay nada contratado. Lo que contraten, ustedes o su planner, va a ir apareciendo aquí."
         : isEnglish
-          ? "Nothing is contracted or paid yet."
-          : "Todavía no hay nada contratado ni pagado."
+          ? "Nothing is booked yet. Write your vendors down from the first quote."
+          : "Todavía no hay nada contratado. Anoten a sus proveedores desde la primera cotización."
       : budget.balance > 0
         ? isEnglish
           ? `of ${formatMXN(budget.contracted)} contracted. ${formatMXN(budget.balance)} left to pay.`
@@ -634,10 +634,10 @@ export function PantallaHoy({
       clave: "presupuesto",
       figura: formatMXN(budget.budgetTotal),
       texto: isEnglish
-        ? "Your budget already lives in Money, split across what a wedding needs."
-        : "Su presupuesto ya vive en Dinero, repartido en lo que lleva una boda.",
+        ? "Your budget already lives in Vendors, split across what a wedding needs."
+        : "Su presupuesto ya vive en Proveedores, repartido en lo que lleva una boda.",
       enlace: mostrarDinero
-        ? { href: "/panel/dinero", texto: isEnglish ? "See your money" : "Ver su dinero" }
+        ? { href: "/panel/proveedores", texto: isEnglish ? "See your budget" : "Ver su presupuesto" }
         : undefined,
     });
   }
@@ -713,12 +713,12 @@ export function PantallaHoy({
               detalle={dineroDetalle}
               progreso={porcentajePagado}
               tono="noche"
-              href="/panel/dinero"
+              href="/panel/proveedores"
               cta={
                 soloPresupuesto
                   ? isEnglish
-                    ? "See your budget"
-                    : "Ver su presupuesto"
+                    ? "Add your vendors"
+                    : "Anotar sus proveedores"
                   : isEnglish
                     ? "See it vendor by vendor"
                     : "Ver proveedor por proveedor"

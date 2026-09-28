@@ -22,7 +22,7 @@ import type { PerfilDeLaBoda } from "@/lib/perfilDeLaBoda";
  *
  * Cada bloque dice DÓNDE se usa lo que escriben (regla de .impeccable.md): los
  * nombres salen en la invitación, la fecha mueve el plan, los invitados son la
- * meta de su lista, el presupuesto arranca Dinero. «Todavía no sé» siempre
+ * meta de su lista, el presupuesto arranca Proveedores. «Todavía no sé» siempre
  * vale: vacío es NULL, nunca cero.
  *
  * Un solo formulario y un solo botón, que solo manda lo que cambió.
@@ -309,8 +309,8 @@ export function PantallaSuBoda({
               titulo={en ? "Budget" : "Presupuesto"}
               ayuda={
                 en
-                  ? "Your budget in Money starts from here, already split by category."
-                  : "Con esto arranca su presupuesto en Dinero, ya repartido por categoría."
+                  ? "Your budget in Vendors starts from here, already split by category."
+                  : "Con esto arranca su presupuesto en Proveedores, ya repartido por categoría."
               }
             >
               <label className="block max-w-xs">

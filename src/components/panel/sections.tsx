@@ -7,17 +7,15 @@ import type {
   BudgetSummary,
   ChecklistItem,
   ChecklistSummary,
-  PanelPayment,
   PanelSeat,
   PanelTable,
-  PanelVendor,
   RunOfShowBlock,
   RunOfShowDetail,
   RunOfShowSummary,
   SeatingSummary,
 } from "@/lib/couplePanel";
 import { formatMXN } from "@/lib/weddingPlans";
-import { formatShortDate, daysUntil } from "@/components/panel/dates";
+import { formatShortDate } from "@/components/panel/dates";
 
 // ----- Piezas compartidas -----
 
@@ -80,6 +78,7 @@ const VENDOR_CATEGORIES: Record<string, { es: string; en: string }> = {
   venue: { es: "Lugar", en: "Venue" },
   catering: { es: "Banquete", en: "Catering" },
   banquete: { es: "Banquete", en: "Catering" },
+  foto_video: { es: "Foto y video", en: "Photo and video" },
   photography: { es: "Fotografía", en: "Photography" },
   photo: { es: "Fotografía", en: "Photography" },
   fotografia: { es: "Fotografía", en: "Photography" },
@@ -91,6 +90,7 @@ const VENDOR_CATEGORIES: Record<string, { es: string; en: string }> = {
   flores: { es: "Flores", en: "Flowers" },
   decor: { es: "Decoración", en: "Decor" },
   decoracion: { es: "Decoración", en: "Decor" },
+  barra: { es: "Bebida y barra", en: "Drinks and bar" },
   cake: { es: "Pastel", en: "Cake" },
   pastel: { es: "Pastel", en: "Cake" },
   makeup: { es: "Maquillaje", en: "Makeup" },
@@ -102,6 +102,8 @@ const VENDOR_CATEGORIES: Record<string, { es: string; en: string }> = {
   transporte: { es: "Transporte", en: "Transport" },
   invitations: { es: "Invitaciones", en: "Invitations" },
   invitaciones: { es: "Invitaciones", en: "Invitations" },
+  recuerdos: { es: "Recuerdos", en: "Favors" },
+  ceremonia: { es: "Ceremonia", en: "Ceremony" },
   planner: { es: "Planeación", en: "Planning" },
   other: { es: "Otro", en: "Other" },
   otro: { es: "Otro", en: "Other" },
@@ -889,171 +891,6 @@ export function SeatingSection({
           <SeatList seats={seating.unassigned} isEnglish={isEnglish} />
         </section>
       ) : null}
-    </div>
-  );
-}
-
-// ----- Pagos (solo lectura) -----
-
-export function PaymentsSection({
-  payments,
-  isEnglish,
-  conPlanner = true,
-}: {
-  payments: PanelPayment[];
-  isEnglish: boolean;
-  /** false sin planner: "Marcado por su planner" sería falso. */
-  conPlanner?: boolean;
-}) {
-  return (
-    <div className="panel-card p-6 sm:p-8 md:p-10">
-      <Eyebrow>{isEnglish ? "Payments" : "Pagos"}</Eyebrow>
-      <SectionTitle>{isEnglish ? "Payments" : "Pagos"}</SectionTitle>
-      {conPlanner ? (
-        <p className="mt-3 text-sm text-tinta">
-          {isEnglish ? "Marked by your planner." : "Marcado por su planner."}
-        </p>
-      ) : null}
-
-      {payments.length === 0 ? (
-        <div className="mt-6">
-          <EmptyNote>
-            {isEnglish
-              ? "No payments registered yet."
-              : "Aún sin pagos registrados."}
-          </EmptyNote>
-        </div>
-      ) : (
-        <ul className="mt-6">
-          {payments.map((payment) => {
-            const paid = Boolean(payment.paidAt);
-            const overdue =
-              !paid &&
-              payment.dueDate != null &&
-              (daysUntil(payment.dueDate) ?? 0) < 0;
-
-            // Pagado es el estado fuerte y cumplido: azul noche, como su tramo
-            // en la barra del presupuesto. Por pagar, aviso; vencido, error.
-            const badge = paid
-              ? {
-                  text: isEnglish ? "Paid" : "Pagado",
-                  cls: "bg-noche text-niebla",
-                }
-              : overdue
-                ? {
-                    text: isEnglish ? "Overdue" : "Vencido",
-                    cls: "bg-error-fondo text-error",
-                  }
-                : {
-                    text: isEnglish ? "Upcoming" : "Por pagar",
-                    cls: "bg-aviso-fondo text-aviso",
-                  };
-
-            return (
-              <li
-                key={payment.id}
-                className="flex items-center justify-between gap-4 border-b border-linea py-4 last:border-b-0"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-noche">
-                    {payment.concept}
-                  </p>
-                  {payment.dueDate ? (
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-tinta">
-                      <CalendarClock className="h-3.5 w-3.5" strokeWidth={1.5} />
-                      <span className="tabular-nums">
-                        {formatShortDate(payment.dueDate, isEnglish)}
-                      </span>
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex flex-shrink-0 items-center gap-4">
-                  <span className="text-lg text-noche tabular-nums">
-                    {formatMXN(payment.amount)}
-                  </span>
-                  <span
-                    className={`rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] ${badge.cls}`}
-                  >
-                    {badge.text}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-// ----- Proveedores (solo lectura) -----
-
-export function VendorsSection({
-  vendors,
-  isEnglish,
-}: {
-  vendors: PanelVendor[];
-  isEnglish: boolean;
-}) {
-  return (
-    <div className="panel-card p-6 sm:p-8 md:p-10">
-      <Eyebrow>{isEnglish ? "Vendors" : "Proveedores"}</Eyebrow>
-      <SectionTitle>{isEnglish ? "Vendors" : "Proveedores"}</SectionTitle>
-
-      {vendors.length === 0 ? (
-        <div className="mt-6">
-          <EmptyNote>
-            {isEnglish
-              ? "No vendors added yet."
-              : "Aún sin proveedores agregados."}
-          </EmptyNote>
-        </div>
-      ) : (
-        <ul className="mt-6">
-          {vendors.map((vendor) => {
-            const status = vendor.status?.trim().toLowerCase();
-            // Tres pesos: contratado lleno en azul noche (decidido), en
-            // revisión en papel (sigue abierto) y descartado sólo el texto en
-            // tinta, sin relleno: ya no pide atención.
-            const badge =
-              status === "contratado" || status === "booked"
-                ? {
-                    text: isEnglish ? "Booked" : "Contratado",
-                    cls: "border-noche bg-noche text-niebla",
-                  }
-                : status === "descartado" || status === "declined"
-                  ? {
-                      text: isEnglish ? "Dropped" : "Descartado",
-                      cls: "border-transparent text-tinta",
-                    }
-                  : {
-                      text: isEnglish ? "In review" : "En revisión",
-                      cls: "border-linea bg-papel text-noche",
-                    };
-
-            return (
-              <li
-                key={vendor.id}
-                className="flex items-center justify-between gap-4 border-b border-linea py-4 last:border-b-0"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-noche">
-                    {vendor.name}
-                  </p>
-                  <p className="mt-0.5 text-xs text-tinta">
-                    {humanizeCategory(vendor.category, isEnglish)}
-                  </p>
-                </div>
-                <span
-                  className={`flex-shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] ${badge.cls}`}
-                >
-                  {badge.text}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
     </div>
   );
 }

@@ -81,6 +81,8 @@ export default async function PanelLayout({
             personasConfirmadas: bundle.guests.attending,
             dineroPorPagar: bundle.budget.balance,
             dineroContratado: bundle.budget.contracted,
+            proveedoresActivos: bundle.vendors.filter((v) => v.status !== "descartado").length,
+            proveedoresContratados: bundle.vendors.filter((v) => v.status === "contratado").length,
             momentos: bundle.runOfShow.blocks.length,
             hayGuion:
               !bundle.runOfShow.unavailable && bundle.runOfShow.blocks.length > 0,
