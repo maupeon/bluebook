@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, FileText, Plus, Scale } from "lucide-react";
 import type { PanelBundle } from "@/lib/couplePanel";
@@ -20,8 +20,10 @@ import type { DatosDeProveedores } from "@/lib/proveedoresServidor";
 import {
   GRUPOS,
   cuentasDe,
+  esperaRespuesta,
   grupoDe,
   nombreDeTipo,
+  type DecisionDeLaPareja,
   type EstadoDeProveedor,
   type PagoDelPanel,
   type ProveedorDelPanel,
@@ -295,7 +297,47 @@ function Proveedores({
         });
         integrar([proveedor]);
       }),
+    decidir: (decision, nota) => decidir(p, decision, nota),
   });
+
+  /** Contestarle a la planner una cotización suya: no contrata, le avisa. */
+  const decidir = (p: ProveedorDelPanel, decision: DecisionDeLaPareja, nota: string) =>
+    hacer(async () => {
+      const { proveedor } = await pedir<{ proveedor: ProveedorDelPanel }>("/api/panel/proveedores/decision", "POST", {
+        proveedorId: p.id,
+        decision,
+        nota,
+      });
+      integrar([proveedor]);
+    });
+
+  /** Abre un proveedor y lo trae a la vista. */
+  const abrirYMostrar = (id: string) => {
+    setAbierto(id);
+    requestAnimationFrame(() =>
+      document.getElementById(`proveedor-${id}`)?.scrollIntoView({ block: "start", behavior: "smooth" })
+    );
+  };
+
+  // El enlace del correo o del chat (/panel/proveedores#proveedor-<id>) abre
+  // ese proveedor. El hash se quita al usarlo: si no, cada refresco del panel
+  // lo volvería a abrir y a mover la pantalla.
+  useEffect(() => {
+    const abrirDelHash = () => {
+      const m = /^#proveedor-([0-9a-f-]{36})$/i.exec(window.location.hash);
+      if (!m || !datos.proveedores.some((x) => x.id === m[1])) return;
+      window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+      abrirYMostrar(m[1]);
+    };
+    abrirDelHash();
+    // En una navegación del cliente el hash puede llegar un instante después.
+    const t = window.setTimeout(abrirDelHash, 120);
+    window.addEventListener("hashchange", abrirDelHash);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener("hashchange", abrirDelHash);
+    };
+  }, [datos.proveedores]);
 
   const elegir = (p: ProveedorDelPanel) =>
     hacer(async () => {
@@ -310,6 +352,7 @@ function Proveedores({
 
   // ----- Números -----
   const activos = proveedores.filter((p) => p.estado !== "descartado");
+  const porContestar = proveedores.filter(esperaRespuesta);
   const contratados = activos.filter((p) => p.estado === "contratado");
   const porGrupo = useMemo(() => {
     const m = new Map<string, ProveedorDelPanel[]>();
@@ -373,6 +416,35 @@ function Proveedores({
           ) : null}
         </header>
       </Reveal>
+
+      {porContestar.length > 0 ? (
+        <Reveal app className="mt-8">
+          <section className="panel-card p-5 sm:p-6" aria-labelledby="por-contestar">
+            <h2 id="por-contestar" className="text-base font-medium text-noche">
+              {porContestar.length === 1
+                ? isEnglish
+                  ? "Your planner sent you a quote"
+                  : "Su planner les mandó una cotización"
+                : isEnglish
+                  ? `Your planner sent you ${porContestar.length} quotes`
+                  : `Su planner les mandó ${porContestar.length} cotizaciones`}
+            </h2>
+            <p className="mt-1 text-sm text-tinta">
+              {isEnglish ? "Take a look and tell them what you think." : "Véanlas y díganle qué les parece."}
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {porContestar.map((p) => (
+                <li key={p.id}>
+                  <button type="button" onClick={() => abrirYMostrar(p.id)} className={chip}>
+                    {p.nombre}
+                    {p.cotizacion != null ? <span className="text-tinta tabular-nums">· {pesos(p.cotizacion)}</span> : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </Reveal>
+      ) : null}
 
       {porVenir.length > 0 ? (
         <Reveal app className="mt-8">
@@ -497,7 +569,7 @@ function Proveedores({
                       const suyos = pagos.filter((x) => x.proveedorId === p.id);
                       const cuentas = cuentasDe(p, suyos);
                       return (
-                        <li key={p.id} className="border-b border-linea last:border-b-0">
+                        <li key={p.id} id={`proveedor-${p.id}`} className="scroll-mt-6 border-b border-linea last:border-b-0">
                           <button
                             type="button"
                             aria-expanded={abiertoAqui}
@@ -523,6 +595,19 @@ function Proveedores({
                                 {[
                                   nombreDeTipo(p.tipo, isEnglish),
                                   !p.esDeLaPareja ? (isEnglish ? "from your planner" : "lo lleva su planner") : null,
+                                  esperaRespuesta(p)
+                                    ? isEnglish
+                                      ? "waiting for your answer"
+                                      : "espera su respuesta"
+                                    : !p.esDeLaPareja && p.estado === "cotizando" && p.decision
+                                      ? p.decision.tipo === "la_queremos"
+                                        ? isEnglish
+                                          ? "you'll go with this one"
+                                          : "se quedan con este"
+                                        : isEnglish
+                                          ? "not convinced"
+                                          : "no les convence"
+                                      : null,
                                 ]
                                   .filter(Boolean)
                                   .join(" · ")}
@@ -578,6 +663,7 @@ function Proveedores({
                     trabajando={trabajando}
                     isEnglish={isEnglish}
                     onElegir={(p) => void elegir(p)}
+                    onDecidir={(p) => void decidir(p, "la_queremos", p.decision?.nota ?? "")}
                     onCerrar={() => setComparando(null)}
                   />
                 ) : null}
@@ -690,6 +776,7 @@ function Comparar({
   trabajando,
   isEnglish,
   onElegir,
+  onDecidir,
   onCerrar,
 }: {
   proveedores: ProveedorDelPanel[];
@@ -697,6 +784,8 @@ function Comparar({
   trabajando: boolean;
   isEnglish: boolean;
   onElegir: (p: ProveedorDelPanel) => void;
+  /** Una cotización de la planner: «Nos quedamos con este» le avisa, no contrata. */
+  onDecidir: (p: ProveedorDelPanel) => void;
   onCerrar: () => void;
 }) {
   const conMonto = proveedores.filter((p) => p.cotizacion != null).map((p) => p.cotizacion!);
@@ -730,14 +819,27 @@ function Comparar({
               <button type="button" disabled={trabajando} onClick={() => onElegir(p)} className={`${chip} mt-4 self-start`}>
                 {isEnglish ? "Choose this one" : "Elegir este"}
               </button>
+            ) : !p.esDeLaPareja && p.decision?.tipo === "la_queremos" ? (
+              <p className="mt-4 flex items-center gap-1.5 text-xs font-medium text-noche">
+                {isEnglish ? "You told your planner: this one" : "Le dijeron a su planner: este"}
+              </p>
+            ) : !soloLectura && !p.esDeLaPareja && p.enviadaEn ? (
+              <button type="button" disabled={trabajando} onClick={() => onDecidir(p)} className={`${chip} mt-4 self-start`}>
+                {isEnglish ? "We'll go with this one" : "Nos quedamos con este"}
+              </button>
             ) : null}
           </div>
         ))}
       </div>
       <p className="mt-3 text-xs leading-relaxed text-tinta">
         {isEnglish
-          ? "Choosing one books it and drops the others you were quoting here. You can undo it in each vendor."
-          : "Elegir uno lo contrata y descarta a los demás que cotizaban aquí. Se puede deshacer en cada proveedor."}
+          ? "Choosing one of yours books it and drops the others you were quoting here. You can undo it in each vendor."
+          : "Elegir uno de los suyos lo contrata y descarta a los demás que cotizaban aquí. Se puede deshacer en cada proveedor."}
+        {proveedores.some((p) => !p.esDeLaPareja)
+          ? isEnglish
+            ? " On your planner's quotes, “We'll go with this one” lets them know; they confirm the booking."
+            : " En las cotizaciones de su planner, «Nos quedamos con este» le avisa y su planner confirma la contratación."
+          : ""}
       </p>
     </div>
   );

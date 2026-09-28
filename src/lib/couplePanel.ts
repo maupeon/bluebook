@@ -371,6 +371,25 @@ export interface PanelMessage {
   author: "couple" | "planner";
   body: string;
   createdAt: string;
+  /** El proveedor del que habla (una cotización o la respuesta a una), 0041. */
+  vendorId?: string | null;
+}
+
+type FilaDeMensaje = { id: string; author: string; body: string; created_at: string; vendor_id?: string | null };
+
+/**
+ * El chat de la boda. Con el proveedor de cada mensaje (0041); si esa columna
+ * todavía no existe, sin él: el chat no se cae por una migración pendiente.
+ */
+async function fetchMessages(
+  supabase: ReturnType<typeof createAdminClient>,
+  weddingId: string
+): Promise<{ data: FilaDeMensaje[] | null; error: { code?: string; message?: string } | null }> {
+  const leer = (columnas: string) =>
+    supabase.from("couple_messages").select(columnas).eq("wedding_id", weddingId).order("created_at", { ascending: true });
+  let res = await leer("id, author, body, created_at, vendor_id");
+  if (res.error?.code === "42703") res = await leer("id, author, body, created_at");
+  return { data: (res.data ?? null) as unknown as FilaDeMensaje[] | null, error: res.error };
 }
 
 export interface PanelBundle {
@@ -1223,11 +1242,7 @@ export async function getPanelBundle(
         )
         .eq("wedding_id", weddingId)
         .order("created_at", { ascending: true }),
-      supabase
-        .from("couple_messages")
-        .select("id, author, body, created_at")
-        .eq("wedding_id", weddingId)
-        .order("created_at", { ascending: true }),
+      fetchMessages(supabase, weddingId),
       fetchChecklist(supabase, weddingId),
       fetchSeating(supabase, weddingId),
       fetchRunOfShow(supabase, weddingId),
@@ -1400,6 +1415,7 @@ export async function getPanelBundle(
         author: m.author as "couple" | "planner",
         body: m.body,
         createdAt: m.created_at,
+        vendorId: m.vendor_id ?? null,
       }));
 
   return {

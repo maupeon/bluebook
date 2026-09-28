@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCoupleWeddingByEmail, type ChecklistSummary, type CoupleWedding } from "@/lib/couplePanel";
 import { exigirEdicion } from "@/lib/acceso";
-import { estadoVisible, type PagoDelPanel, type ProveedorDelPanel } from "@/lib/proveedores";
+import { esDecision, estadoVisible, type PagoDelPanel, type ProveedorDelPanel } from "@/lib/proveedores";
 
 /**
  * Los proveedores de una boda, del lado del servidor: lo que lee la pantalla
@@ -15,12 +15,14 @@ type PgError = { code?: string | null; message?: string | null } | null;
 
 export const BUCKET_CONTRATOS = "contratos";
 
-export const COLUMNAS_PROVEEDOR =
-  "id, name, category, status, contact_name, phone, email, notes, quoted_amount, contracted_amount, created_by, enlace, contrato_path, contrato_nombre, contrato_subido_en";
-// Las de antes de la 0040: si el código llega antes que la migración, la
-// pantalla se lee igual, sin enlace ni contrato.
 const COLUMNAS_PROVEEDOR_SIN_0040 =
   "id, name, category, status, contact_name, phone, email, notes, quoted_amount, contracted_amount, created_by";
+const COLUMNAS_PROVEEDOR_SIN_0041 = `${COLUMNAS_PROVEEDOR_SIN_0040}, enlace, contrato_path, contrato_nombre, contrato_subido_en`;
+export const COLUMNAS_PROVEEDOR = `${COLUMNAS_PROVEEDOR_SIN_0041}, cotizacion_path, cotizacion_nombre, cotizacion_subida_en, enviada_a_la_pareja_en, decision_de_la_pareja, decision_nota, decision_en`;
+// Si el código llega antes que una migración, la pantalla se lee igual con lo
+// que haya: sin cotización (0041) o sin enlace ni contrato (0040). Escribir sí
+// las necesita: se aplican antes de publicar.
+const COLUMNAS_EN_ORDEN = [COLUMNAS_PROVEEDOR, COLUMNAS_PROVEEDOR_SIN_0041, COLUMNAS_PROVEEDOR_SIN_0040];
 export const COLUMNAS_PAGO = "id, vendor_id, concept, amount, due_date, paid_at, kind, created_by";
 
 type FilaProveedor = {
@@ -40,6 +42,13 @@ type FilaProveedor = {
   contrato_path?: string | null;
   contrato_nombre?: string | null;
   contrato_subido_en?: string | null;
+  cotizacion_path?: string | null;
+  cotizacion_nombre?: string | null;
+  cotizacion_subida_en?: string | null;
+  enviada_a_la_pareja_en?: string | null;
+  decision_de_la_pareja?: string | null;
+  decision_nota?: string | null;
+  decision_en?: string | null;
 };
 
 type FilaPago = {
@@ -76,6 +85,13 @@ export function proveedorDeFila(r: FilaProveedor, contratadoEnPartidas: number |
     esDeLaPareja: r.created_by === "couple",
     contrato: r.contrato_path
       ? { nombre: r.contrato_nombre?.trim() || "Contrato.pdf", subidoEn: r.contrato_subido_en ?? null }
+      : null,
+    cotizacionArchivo: r.cotizacion_path
+      ? { nombre: r.cotizacion_nombre?.trim() || "Cotización.pdf", subidaEn: r.cotizacion_subida_en ?? null }
+      : null,
+    enviadaEn: r.enviada_a_la_pareja_en ?? null,
+    decision: esDecision(r.decision_de_la_pareja)
+      ? { tipo: r.decision_de_la_pareja, nota: r.decision_nota?.trim() || null, en: r.decision_en ?? null }
       : null,
   };
 }
@@ -127,8 +143,14 @@ export async function leerProveedores(
       .order("due_date", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: true }),
   ]);
-  const sin0040 = (primero.error as PgError)?.code === "42703";
-  const proveedoresRes = sin0040 ? await leer(COLUMNAS_PROVEEDOR_SIN_0040) : primero;
+  let proveedoresRes = primero;
+  let columnas = COLUMNAS_PROVEEDOR;
+  for (const otras of COLUMNAS_EN_ORDEN.slice(1)) {
+    if ((proveedoresRes.error as PgError)?.code !== "42703") break;
+    columnas = otras;
+    proveedoresRes = await leer(otras);
+  }
+  const sin0040 = columnas === COLUMNAS_PROVEEDOR_SIN_0040;
 
   for (const [error, relacion] of [
     [proveedoresRes.error, "vendors"],
@@ -206,8 +228,12 @@ export async function proveedorDeLaBoda(
   if (typeof id !== "string" || !id) return null;
   const leer = (columnas: string) =>
     createAdminClient().from("vendors").select(`${columnas}, wedding_id`).eq("id", id).maybeSingle();
-  let res = await leer(conContrato ? COLUMNAS_PROVEEDOR : COLUMNAS_PROVEEDOR_SIN_0040);
-  if (conContrato && (res.error as PgError)?.code === "42703") res = await leer(COLUMNAS_PROVEEDOR_SIN_0040);
+  const intentos = conContrato ? COLUMNAS_EN_ORDEN : [COLUMNAS_PROVEEDOR_SIN_0040];
+  let res = await leer(intentos[0]);
+  for (const otras of intentos.slice(1)) {
+    if ((res.error as PgError)?.code !== "42703") break;
+    res = await leer(otras);
+  }
   const fila = res.data as unknown as (FilaProveedor & { wedding_id: string }) | null;
   if (!fila || fila.wedding_id !== weddingId) return null;
   return fila;

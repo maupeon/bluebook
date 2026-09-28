@@ -15,7 +15,8 @@ import {
 //
 //   POST   { proveedorId }                  una URL firmada para subirlo
 //   PUT    { proveedorId, path, nombre }    darlo de alta (reemplaza al anterior)
-//   GET    ?id=<proveedorId>                abrirlo: redirige a una URL que caduca en 60 s
+//   GET    ?id=<proveedorId>[&doc=cotizacion] abrirlo: redirige a una URL que caduca en 60 s
+//                                           (doc=cotizacion abre la que subió la planner, 0041)
 //   DELETE { proveedorId }                  quitarlo
 //
 // Igual que la invitación (0025): el navegador sube el archivo DIRECTO a
@@ -109,17 +110,25 @@ export async function GET(req: NextRequest) {
   const { wedding } = r;
 
   const proveedor = await proveedorDeLaBoda(wedding.id, req.nextUrl.searchParams.get("id"));
-  if (!proveedor?.contrato_path) {
-    return NextResponse.json({ error: "Ese proveedor no tiene contrato." }, { status: 404 });
+  const esCotizacion = req.nextUrl.searchParams.get("doc") === "cotizacion";
+  const ruta = esCotizacion ? proveedor?.cotizacion_path : proveedor?.contrato_path;
+  if (!proveedor || !ruta) {
+    return NextResponse.json(
+      { error: esCotizacion ? "Ese proveedor no tiene cotización." : "Ese proveedor no tiene contrato." },
+      { status: 404 }
+    );
   }
+  const nombre = esCotizacion
+    ? proveedor.cotizacion_nombre || "Cotización.pdf"
+    : proveedor.contrato_nombre || "Contrato.pdf";
   const { data, error } = await createAdminClient()
     .storage.from(BUCKET_CONTRATOS)
-    .createSignedUrl(proveedor.contrato_path, SEGUNDOS_PARA_VER, {
-      download: req.nextUrl.searchParams.get("descargar") === "1" ? proveedor.contrato_nombre || "Contrato.pdf" : false,
+    .createSignedUrl(ruta, SEGUNDOS_PARA_VER, {
+      download: req.nextUrl.searchParams.get("descargar") === "1" ? nombre : false,
     });
   if (error || !data?.signedUrl) {
     console.error(`[contrato] no se pudo firmar la lectura de ${proveedor.id}: ${error?.message}`);
-    return NextResponse.json({ error: "No pudimos abrir el contrato." }, { status: 500 });
+    return NextResponse.json({ error: "No pudimos abrir el documento." }, { status: 500 });
   }
   // 303: el navegador abre la URL firmada; nadie guarda un enlace que no caduque.
   return NextResponse.redirect(data.signedUrl, 303);

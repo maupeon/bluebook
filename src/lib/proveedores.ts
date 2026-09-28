@@ -104,6 +104,18 @@ export function estadoVisible(status: string | null | undefined): EstadoDeProvee
   return "cotizando";
 }
 
+/**
+ * Lo que la pareja contesta a una cotización que le mandó su planner (0041).
+ * No contrata: la planner lleva al proveedor y confirma la contratación.
+ */
+export type DecisionDeLaPareja = "la_queremos" | "no_nos_convence";
+
+export function esDecision(x: unknown): x is DecisionDeLaPareja {
+  return x === "la_queremos" || x === "no_nos_convence";
+}
+
+export const NOTA_DECISION_MAX = 500;
+
 export interface ProveedorDelPanel {
   id: string;
   nombre: string;
@@ -127,6 +139,20 @@ export interface ProveedorDelPanel {
   /** true = lo capturó la pareja: lo puede editar y borrar. */
   esDeLaPareja: boolean;
   contrato: { nombre: string; subidoEn: string | null } | null;
+  /** El PDF de la cotización que subió la planner (0041). */
+  cotizacionArchivo: { nombre: string; subidaEn: string | null } | null;
+  /** Cuándo la planner se la mandó a la pareja para que decidan. */
+  enviadaEn: string | null;
+  /** Lo que contestaron; null si no han contestado (o se volvió a mandar). */
+  decision: { tipo: DecisionDeLaPareja; nota: string | null; en: string | null } | null;
+}
+
+/**
+ * Una cotización de la planner que espera la respuesta de la pareja: se la
+ * mandó, sigue cotizando y todavía no contestan.
+ */
+export function esperaRespuesta(p: ProveedorDelPanel): boolean {
+  return !p.esDeLaPareja && p.enviadaEn != null && p.decision == null && p.estado === "cotizando";
 }
 
 export interface PagoDelPanel {

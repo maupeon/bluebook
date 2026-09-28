@@ -4,9 +4,11 @@ import { useRef, useState, type FormEvent } from "react";
 import { Check, ExternalLink, FileText, Mail, MessageCircle, Plus, Trash2, Upload, X } from "lucide-react";
 import { formatShortDate, daysUntil } from "@/components/panel/dates";
 import {
+  NOTA_DECISION_MAX,
   conceptoSugerido,
   cuentasDe,
   numeroDeWhatsApp,
+  type DecisionDeLaPareja,
   type EstadoDeProveedor,
   type PagoDelPanel,
   type ProveedorDelPanel,
@@ -39,6 +41,8 @@ export interface AccionesDelProveedor {
   borrarPago: (pagoId: string) => Promise<boolean>;
   subirContrato: (archivo: File) => Promise<boolean>;
   quitarContrato: () => Promise<boolean>;
+  /** Contestarle a la planner una cotización que les mandó (0041). */
+  decidir: (decision: DecisionDeLaPareja, nota: string) => Promise<boolean>;
 }
 
 /**
@@ -143,6 +147,17 @@ export function DetalleDelProveedor({
             </a>
           ) : null}
         </div>
+      ) : null}
+
+      {/* Una cotización que les mandó su planner: lo primero que les toca. */}
+      {!p.esDeLaPareja && p.enviadaEn && p.estado === "cotizando" ? (
+        <RespuestaALaCotizacion
+          proveedor={p}
+          soloLectura={soloLectura}
+          trabajando={trabajando}
+          isEnglish={isEnglish}
+          onDecidir={acciones.decidir}
+        />
       ) : null}
 
       {/* En qué va */}
@@ -296,6 +311,16 @@ export function DetalleDelProveedor({
         ) : null}
       </div>
 
+      {/* La cotización en papel, cuando no está ya en el bloque de respuesta */}
+      {p.cotizacionArchivo && !(!p.esDeLaPareja && p.enviadaEn && p.estado === "cotizando") ? (
+        <div className="mt-5">
+          <h4 className={rotuloCampo}>{isEnglish ? "Quote" : "Cotización"}</h4>
+          <div className="mt-2">
+            <LigaDeCotizacion proveedor={p} />
+          </div>
+        </div>
+      ) : null}
+
       {/* El contrato */}
       {conContratos ? (
         <div className="mt-5">
@@ -407,6 +432,135 @@ export function DetalleDelProveedor({
               {isEnglish ? "Remove vendor" : "Quitar proveedor"}
             </button>
           )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function LigaDeCotizacion({ proveedor: p }: { proveedor: ProveedorDelPanel }) {
+  if (!p.cotizacionArchivo) return null;
+  return (
+    <a
+      href={`/api/panel/proveedores/contrato?id=${p.id}&doc=cotizacion`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={chip}
+    >
+      <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
+      <span className="max-w-[16rem] truncate">{p.cotizacionArchivo.nombre}</span>
+    </a>
+  );
+}
+
+/**
+ * Lo que la planner les mandó para que decidan, y su respuesta. Contestar no
+ * contrata: la planner cierra con el proveedor y lo marca en el admin. Pueden
+ * cambiar de respuesta mientras ella no lo cierre.
+ */
+function RespuestaALaCotizacion({
+  proveedor: p,
+  soloLectura,
+  trabajando,
+  isEnglish,
+  onDecidir,
+}: {
+  proveedor: ProveedorDelPanel;
+  soloLectura: boolean;
+  trabajando: boolean;
+  isEnglish: boolean;
+  onDecidir: (decision: DecisionDeLaPareja, nota: string) => Promise<boolean>;
+}) {
+  const [cambiando, setCambiando] = useState(false);
+  const [nota, setNota] = useState(p.decision?.nota ?? "");
+  const eligiendo = !soloLectura && (p.decision == null || cambiando);
+
+  const decidir = async (decision: DecisionDeLaPareja) => {
+    const ok = await onDecidir(decision, nota);
+    if (ok) setCambiando(false);
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-linea bg-papel p-4">
+      <p className="text-sm text-noche">
+        {isEnglish ? "Your planner sent you this quote" : "Su planner les mandó esta cotización"}
+        {p.enviadaEn ? (
+          <span className="text-tinta">
+            {" · "}
+            {formatShortDate(p.enviadaEn.slice(0, 10), isEnglish)}
+          </span>
+        ) : null}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {p.cotizacion != null ? (
+          <span className="mr-1 text-lg font-light text-noche tabular-nums">{pesos(p.cotizacion)}</span>
+        ) : null}
+        <LigaDeCotizacion proveedor={p} />
+      </div>
+
+      {p.decision && !cambiando ? (
+        <div className="mt-3">
+          <p className="flex items-center gap-1.5 text-sm font-medium text-noche">
+            <Check className="h-4 w-4" strokeWidth={2} />
+            {p.decision.tipo === "la_queremos"
+              ? isEnglish
+                ? "You told your planner you'll go with this one"
+                : "Le dijeron a su planner que se quedan con este"
+              : isEnglish
+                ? "You told your planner it doesn't convince you"
+                : "Le dijeron a su planner que no les convence"}
+          </p>
+          {p.decision.nota ? (
+            <p className="mt-1 whitespace-pre-line text-sm text-tinta">«{p.decision.nota}»</p>
+          ) : null}
+          <p className="mt-1 text-xs leading-relaxed text-tinta">
+            {p.decision.tipo === "la_queremos"
+              ? isEnglish
+                ? "Your planner confirms the booking with the vendor; it'll show up as booked here."
+                : "Su planner confirma la contratación con el proveedor; aquí va a aparecer como contratado."
+              : isEnglish
+                ? "Your planner will look for other options."
+                : "Su planner va a buscar otras opciones."}
+          </p>
+          {!soloLectura ? (
+            <button type="button" onClick={() => setCambiando(true)} className={`${chip} mt-3`}>
+              {isEnglish ? "Change answer" : "Cambiar respuesta"}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {eligiendo ? (
+        <div className="mt-3">
+          <label className="block">
+            <span className={rotuloCampo}>{isEnglish ? "Anything to tell your planner? (optional)" : "¿Algo que quieran decirle? (opcional)"}</span>
+            <textarea
+              rows={2}
+              maxLength={NOTA_DECISION_MAX}
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+              placeholder={isEnglish ? "e.g. We'd like the 8-hour package" : "p. ej. Nos gustaría el paquete de 8 horas"}
+              className={`${campo} mt-1 resize-y`}
+            />
+          </label>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" disabled={trabajando} onClick={() => void decidir("la_queremos")} className={botonPrincipal}>
+              {isEnglish ? "We'll go with this one" : "Nos quedamos con este"}
+            </button>
+            <button type="button" disabled={trabajando} onClick={() => void decidir("no_nos_convence")} className={botonSecundario}>
+              {isEnglish ? "Not convinced" : "No nos convence"}
+            </button>
+            {cambiando ? (
+              <button type="button" onClick={() => setCambiando(false)} className={chip}>
+                {isEnglish ? "Cancel" : "Cancelar"}
+              </button>
+            ) : null}
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-tinta">
+            {isEnglish
+              ? "Answering doesn't book anyone: your planner confirms with the vendor."
+              : "Contestar no contrata a nadie: su planner confirma con el proveedor."}
+          </p>
         </div>
       ) : null}
     </div>

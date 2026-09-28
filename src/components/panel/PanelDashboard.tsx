@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   Check,
@@ -731,6 +732,18 @@ export function MessagesSection({
                       <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                         {m.body}
                       </p>
+                      {/* Una cotización (o la respuesta a una): lleva al
+                          proveedor, donde se ve el PDF y se contesta. */}
+                      {m.vendorId ? (
+                        <Link
+                          href={`/panel/proveedores#proveedor-${m.vendorId}`}
+                          className={`mt-1.5 inline-block text-xs font-medium underline underline-offset-4 ${
+                            mine ? "text-niebla decoration-niebla/50" : "text-noche decoration-linea-control"
+                          }`}
+                        >
+                          {isEnglish ? "See it in Vendors" : "Verlo en Proveedores"}
+                        </Link>
+                      ) : null}
                       <p
                         suppressHydrationWarning
                         className={`mt-1 text-right text-[10px] font-normal tabular-nums ${

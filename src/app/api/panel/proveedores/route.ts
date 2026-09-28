@@ -228,11 +228,13 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "No pudimos quitar al proveedor." }, { status: 500 });
   }
 
-  // El contrato, al final y sin detener nada: un PDF huérfano en un bucket
-  // privado no le cuesta nada a la pareja; un proveedor que no se borra, sí.
-  if (fila.contrato_path) {
-    const { error: errorArchivo } = await admin.storage.from(BUCKET_CONTRATOS).remove([fila.contrato_path]);
-    if (errorArchivo) console.error(`[proveedores] quedó el contrato ${fila.contrato_path}: ${errorArchivo.message}`);
+  // Sus PDF (contrato y cotización), al final y sin detener nada: un archivo
+  // huérfano en un bucket privado no le cuesta nada a la pareja; un proveedor
+  // que no se borra, sí.
+  const archivos = [fila.contrato_path, fila.cotizacion_path].filter((x): x is string => Boolean(x));
+  if (archivos.length > 0) {
+    const { error: errorArchivo } = await admin.storage.from(BUCKET_CONTRATOS).remove(archivos);
+    if (errorArchivo) console.error(`[proveedores] quedaron ${archivos.join(", ")}: ${errorArchivo.message}`);
   }
   return NextResponse.json({ ok: true });
 }
