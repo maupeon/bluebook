@@ -662,3 +662,57 @@
     box-shadow: 0 1px 2px rgb(46 58 85 / 0.05), 0 12px 32px -16px rgb(46 58 85 / 0.24);
   }
 }
+
+/* =================================
+   LA HOJA IMPRESA DEL PLANO DE MESAS
+   =================================
+   PlanoParaImprimir se monta en un portal directo en <body>, y sólo mientras
+   se imprime. Todo esto cuelga de que exista, con :has(): imprimir cualquier
+   otra página del sitio sale como siempre.
+
+   - Se esconde todo lo demás que cuelga de <body>: el sitio de marketing que
+     sigue montado detrás del panel y el propio panel, que es un overlay fijo
+     con su scroll adentro y en papel se cortaba en la primera hoja.
+   - ScrollLock deja overflow:hidden y height:100% EN LÍNEA en html y body;
+     sin anularlos, la impresión se recorta a una sola hoja.
+   - La hoja del plano va horizontal (un salón es más ancho que largo); las
+     listas, verticales. Son páginas con nombre: @page sin nombre cambiaría
+     los márgenes de todo lo que se imprima en el sitio. */
+@page plano {
+  size: landscape;
+  margin: 12mm;
+}
+
+@page listas {
+  size: portrait;
+  margin: 14mm 12mm;
+}
+
+@media print {
+  html:has(body > [data-imprimible]),
+  body:has(> [data-imprimible]) {
+    overflow: visible !important;
+    height: auto !important;
+    background: none !important;
+  }
+
+  body:has(> [data-imprimible]) > :not([data-imprimible]) {
+    display: none !important;
+  }
+
+  .pagina-plano {
+    page: plano;
+  }
+
+  .pagina-listas {
+    page: listas;
+  }
+
+  /* Las sillas ocupadas y el piso del salón son rellenos: sin esto, el
+     navegador puede aclararlos para ahorrar tinta y ya no se distingue qué
+     silla está ocupada. */
+  [data-imprimible] {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

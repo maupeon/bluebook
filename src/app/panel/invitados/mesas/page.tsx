@@ -21,6 +21,7 @@ export default async function Pagina() {
   return (
     <PantallaMesas
       salon={salon}
+      boda={{ nombre: wedding.coupleName, fecha: wedding.weddingDate, lugar: wedding.venue }}
       conPlanner={wedding.tienePlanner}
       soloLectura={!acceso.puedeEditar}
     />

@@ -53,6 +53,7 @@ export function PlanoDelSalon({
   onTocar,
   onFondo,
   onSoltarEnMesa,
+  paraImprimir = false,
 }: {
   plano: Plano;
   mesas: MesaDelSalon[];
@@ -73,6 +74,11 @@ export function PlanoDelSalon({
   onTocar: (cosa: Seleccion) => void;
   onFondo: () => void;
   onSoltarEnMesa: (tableId: string, clave: string) => void;
+  /**
+   * La copia de papel: llena la caja que le den (el SVG escala el salón
+   * entero dentro, sin deformarlo) en vez de medir 640 px por el zoom.
+   */
+  paraImprimir?: boolean;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const idCuadricula = `cuadricula-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -165,8 +171,12 @@ export function PlanoDelSalon({
           ? `Floor plan, ${metros(ancho, true)} by ${metros(largo, true)}`
           : `Plano del salón, ${metros(ancho, false)} por ${metros(largo, false)}`
       }
-      className="block h-auto select-none"
-      style={{ width: `${zoom * 100}%`, minWidth: `${Math.round(640 * zoom)}px`, aspectRatio: `${vb.w} / ${vb.h}` }}
+      className={paraImprimir ? "block h-full w-full" : "block h-auto select-none"}
+      style={
+        paraImprimir
+          ? undefined
+          : { width: `${zoom * 100}%`, minWidth: `${Math.round(640 * zoom)}px`, aspectRatio: `${vb.w} / ${vb.h}` }
+      }
     >
       <defs>
         <pattern id={idCuadricula} width={100} height={100} patternUnits="userSpaceOnUse">
@@ -289,6 +299,12 @@ export function PlanoDelSalon({
         const nombre = nombreDeMesa(mesa.label, isEnglish);
         const ocupacion = mesa.capacity != null ? `${pax}/${mesa.capacity}` : String(pax);
         const etiqueta = /^\d+$/.test(mesa.label) ? mesa.label : mesa.label.slice(0, 10);
+        // El nombre cabe dentro de la mesa: «Novios» en una de cuatro (90 cm)
+        // se salía del círculo. Se mide contra el ancho que la mesa tiene a la
+        // vista (el texto no gira con ella) a ~0.58 em por letra de Work Sans.
+        const anchoALaVista =
+          lugar.giro % 180 === 0 ? m.ancho : lugar.giro % 180 === 90 ? m.largo : Math.min(m.ancho, m.largo);
+        const letraDelNombre = Math.min(letra, (anchoALaVista * 0.84) / Math.max(1, etiqueta.length * 0.58));
         const anillo = Math.max(m.ancho, m.largo) / 2 + SILLA + 22;
 
         const descripcion = isEnglish
@@ -418,11 +434,11 @@ export function PlanoDelSalon({
             {/* El texto no gira con la mesa: siempre se lee derecho. */}
             <g transform={`rotate(${-lugar.giro})`} pointerEvents="none">
               <text
-                y={-letra * 0.28}
+                y={-letraDelNombre * 0.28}
                 textAnchor="middle"
                 dominantBaseline="central"
                 className="fill-noche"
-                style={{ fontSize: letra, fontWeight: 500 }}
+                style={{ fontSize: letraDelNombre, fontWeight: 500 }}
               >
                 {etiqueta}
               </text>

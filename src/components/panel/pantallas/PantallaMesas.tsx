@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
-import { ArrowLeft, Download, Minus, Plus, RotateCw, Search, Trash2, X } from "lucide-react";
+import { flushSync } from "react-dom";
+import { ArrowLeft, Download, Minus, Plus, Printer, RotateCw, Search, Trash2, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
@@ -10,6 +11,7 @@ import { Titular } from "@/components/marca/Titular";
 import { descargarArchivo } from "@/components/panel/descargarArchivo";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { PlanoDelSalon, type Seleccion } from "@/components/panel/mesas/PlanoDelSalon";
+import { PlanoParaImprimir, type BodaParaImprimir } from "@/components/panel/mesas/PlanoParaImprimir";
 import { parseJsonSafe } from "@/lib/http";
 import type { DatosDelSalon } from "@/lib/salon";
 import {
@@ -75,6 +77,9 @@ const chipPeligro = `${chipBase} border-linea-control/60 bg-niebla text-noche ho
 const botonPrincipal =
   "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-60 disabled:hover:bg-noche disabled:active:scale-100";
 
+const botonSecundario =
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-4 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-60 disabled:active:scale-100";
+
 const botonIcono =
   "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-linea-control/60 bg-niebla text-noche transition-[background-color,border-color] duration-150 hover:border-linea-control hover:bg-papel-medio disabled:opacity-40 disabled:hover:bg-niebla";
 
@@ -99,11 +104,14 @@ function enMetros(cm: number): string {
 
 export function PantallaMesas({
   salon,
+  boda,
   conPlanner,
   soloLectura,
 }: {
   /** null = el acomodo no está disponible (falta la 0011 o la lectura falló). */
   salon: DatosDelSalon | null;
+  /** Lo que encabeza la hoja impresa. */
+  boda: BodaParaImprimir;
   conPlanner: boolean;
   soloLectura: boolean;
 }) {
@@ -138,7 +146,7 @@ export function PantallaMesas({
       </Reveal>
 
       {salon ? (
-        <Salon salon={salon} soloLectura={soloLectura} isEnglish={isEnglish} />
+        <Salon salon={salon} boda={boda} soloLectura={soloLectura} isEnglish={isEnglish} />
       ) : (
         <Reveal app className="mt-10">
           <div className="panel-card p-6 sm:p-8">
@@ -156,10 +164,12 @@ export function PantallaMesas({
 
 function Salon({
   salon,
+  boda,
   soloLectura,
   isEnglish,
 }: {
   salon: DatosDelSalon;
+  boda: BodaParaImprimir;
   soloLectura: boolean;
   isEnglish: boolean;
 }) {
@@ -514,6 +524,29 @@ function Salon({
     if (elegido && !porSentar.some((p) => p.clave === elegido)) setElegido(null);
   }, [elegido, porSentar]);
 
+  // ----- Imprimir -----
+  // La hoja de papel sólo existe mientras se imprime: tenerla siempre montada
+  // duplicaba el plano entero en cada movimiento de un arrastre. Se monta en
+  // beforeprint con flushSync (el navegador toma la foto en cuanto el evento
+  // termina, así que tiene que estar en el DOM antes) y se quita en
+  // afterprint. Escuchar el evento, y no sólo el botón, hace que ⌘P también
+  // imprima la hoja buena y no el panel recortado.
+  const [imprimiendo, setImprimiendo] = useState(false);
+  useEffect(() => {
+    const antes = () => flushSync(() => setImprimiendo(true));
+    const despues = () => setImprimiendo(false);
+    window.addEventListener("beforeprint", antes);
+    window.addEventListener("afterprint", despues);
+    return () => {
+      window.removeEventListener("beforeprint", antes);
+      window.removeEventListener("afterprint", despues);
+    };
+  }, []);
+  const imprimir = () => {
+    flushSync(() => setImprimiendo(true));
+    window.print();
+  };
+
   const [bajando, setBajando] = useState(false);
   async function descargar() {
     setBajando(true);
@@ -549,8 +582,23 @@ function Salon({
 
   return (
     <>
-      {/* Los números del acomodo, en una línea. */}
-      <Reveal app className="mt-6">
+      {imprimiendo ? (
+        <PlanoParaImprimir
+          boda={boda}
+          plano={plano}
+          mesas={mesas}
+          asientos={asientos}
+          grupos={grupos}
+          paxPorMesa={porMesa}
+          porSentar={porSentar}
+          isEnglish={isEnglish}
+        />
+      ) : null}
+
+      {/* Los números del acomodo y lo que sale del panel: el papel y el Excel.
+          Arriba y no al pie de la columna: en el teléfono, al pie quedaban
+          después de toda la lista de invitados. */}
+      <Reveal app className="mt-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-tinta tabular-nums">
           <span>
             <span className="font-medium text-noche">{mesas.length}</span>{" "}
@@ -576,6 +624,27 @@ function Salon({
             </span>
           ) : null}
         </p>
+        {/* Imprimir y bajar no escriben nada: también en solo lectura. */}
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={imprimir} className={botonPrincipal}>
+            <Printer className="h-4 w-4" strokeWidth={1.6} />
+            {isEnglish ? "Print the plan" : "Imprimir el plano"}
+          </button>
+          <button
+            type="button"
+            onClick={descargar}
+            disabled={bajando}
+            title={
+              isEnglish
+                ? "For the venue and the host: who sits at each table, and everyone in alphabetical order"
+                : "Para el salón y la hostess: quién va en cada mesa, y todos en orden alfabético"
+            }
+            className={botonSecundario}
+          >
+            <Download className="h-4 w-4" strokeWidth={1.6} />
+            {bajando ? (isEnglish ? "Preparing…" : "Armándolo…") : isEnglish ? "Download Excel" : "Descargar Excel"}
+          </button>
+        </div>
       </Reveal>
 
       {soloLectura ? (
@@ -873,24 +942,6 @@ function Salon({
               </>
             )}
           </section>
-
-          <div>
-            <button type="button" onClick={descargar} disabled={bajando} className={botonPrincipal}>
-              <Download className="h-4 w-4" strokeWidth={1.6} />
-              {bajando
-                ? isEnglish
-                  ? "Preparing…"
-                  : "Armándolo…"
-                : isEnglish
-                  ? "Download tables and door list"
-                  : "Descargar mesas y lista de la puerta"}
-            </button>
-            <p className="mt-2 text-xs leading-relaxed text-tinta">
-              {isEnglish
-                ? "An Excel for the venue and the host: who sits at each table, and everyone in alphabetical order to check them in."
-                : "Un Excel para el salón y la hostess: quién va en cada mesa, y todos en orden alfabético para recibirlos en la puerta."}
-            </p>
-          </div>
         </div>
       </div>
     </>
