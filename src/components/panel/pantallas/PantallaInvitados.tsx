@@ -120,6 +120,7 @@ export function PantallaInvitados({ bundle, soloLectura = false }: { bundle: Pan
             seating={bundle.seating}
             isEnglish={isEnglish}
             conPlanner={conPlanner}
+            planoHref="/panel/invitados/mesas"
           />
         </Reveal>
       )}

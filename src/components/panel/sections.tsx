@@ -712,15 +712,30 @@ function SeatList({
   );
 }
 
+/** El botón que abre el plano de mesas (/panel/invitados/mesas). */
+function AbrirPlano({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-[2.75rem] items-center justify-center rounded-full bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function SeatingSection({
   seating,
   isEnglish,
   conPlanner = true,
+  planoHref = null,
 }: {
   seating: SeatingSummary;
   isEnglish: boolean;
   /** false sin planner: el vacío no le promete a nadie que las va a armar. */
   conPlanner?: boolean;
+  /** Dónde se acomodan las mesas en el plano. null = sólo se enseña la lista. */
+  planoHref?: string | null;
 }) {
   // Sin la migración 0011 no hay mesas que enseñar: la sección no sale.
   if (seating.unavailable) return null;
@@ -734,14 +749,27 @@ export function SeatingSection({
         <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
         <div className="mt-5">
           <EmptyNote>
-            {conPlanner
-              ? isEnglish
-                ? "Your planner hasn't laid out the tables yet."
-                : "Su planner aún no arma el acomodo de mesas."
-              : isEnglish
-                ? "No tables laid out yet. Once there are, you'll see here who sits where."
-                : "Todavía no hay mesas acomodadas. Cuando las haya, aquí van a ver quién se sienta dónde."}
+            {planoHref
+              ? conPlanner
+                ? isEnglish
+                  ? "No tables yet. You can lay them out yourselves on the floor plan; your planner sees the same seating."
+                  : "Todavía no hay mesas. Pueden armarlas ustedes en el plano; su planner ve el mismo acomodo."
+                : isEnglish
+                  ? "No tables yet. Draw your venue, place your tables and seat your guests."
+                  : "Todavía no hay mesas. Dibujen su salón, pongan sus mesas y sienten a sus invitados."
+              : conPlanner
+                ? isEnglish
+                  ? "Your planner hasn't laid out the tables yet."
+                  : "Su planner aún no arma el acomodo de mesas."
+                : isEnglish
+                  ? "No tables laid out yet. Once there are, you'll see here who sits where."
+                  : "Todavía no hay mesas acomodadas. Cuando las haya, aquí van a ver quién se sienta dónde."}
           </EmptyNote>
+          {planoHref ? (
+            <div className="mt-5">
+              <AbrirPlano href={planoHref}>{isEnglish ? "Lay out your tables" : "Armar sus mesas"}</AbrirPlano>
+            </div>
+          ) : null}
         </div>
       </div>
     );
@@ -773,13 +801,20 @@ export function SeatingSection({
 
   return (
     <div className="panel-card p-6 sm:p-8 md:p-10">
-      <Eyebrow>{isEnglish ? "Seating" : "Acomodo"}</Eyebrow>
-      <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
-      <p className="mt-3 text-sm text-tinta">
-        {isEnglish
-          ? "Who sits where, table by table."
-          : "Quién se sienta dónde, mesa por mesa."}
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        <div>
+          <Eyebrow>{isEnglish ? "Seating" : "Acomodo"}</Eyebrow>
+          <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
+          <p className="mt-3 text-sm text-tinta">
+            {isEnglish
+              ? "Who sits where, table by table."
+              : "Quién se sienta dónde, mesa por mesa."}
+          </p>
+        </div>
+        {planoHref ? (
+          <AbrirPlano href={planoHref}>{isEnglish ? "Open the floor plan" : "Abrir el plano"}</AbrirPlano>
+        ) : null}
+      </div>
 
       <StatGrid stats={stats} />
 
