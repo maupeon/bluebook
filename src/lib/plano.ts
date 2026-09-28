@@ -179,9 +179,11 @@ export function sillasDeMesa(forma: FormaMesa, lugares: number): { x: number; y:
     const arriba = Math.ceil(n / 2);
     const abajo = n - arriba;
     const y = m.largo / 2 + fuera;
+    // Abajo de derecha a izquierda: las sillas se numeran en el sentido del
+    // reloj, como en la redonda y la cuadrada, y la silla 6 queda junto a la 5.
     return [
       ...aLoLargo(arriba, m.ancho).map((x) => ({ x, y: -y })),
-      ...aLoLargo(abajo, m.ancho).map((x) => ({ x, y })),
+      ...aLoLargo(abajo, m.ancho).map((x) => ({ x: -x, y })),
     ];
   }
 
@@ -425,6 +427,72 @@ export interface AsientoDelSalon {
   nombre: string;
   pax: number;
   membershipId: string | null;
+  /**
+   * El lugar en su mesa (0038), de 1 a la capacidad en el sentido del reloj
+   * desde arriba. Sólo para renglones de una persona; null = en la mesa sin
+   * silla fija. La base lo suelta sola al cambiar de mesa o achicarla.
+   */
+  silla: number | null;
+}
+
+/** Lo que dibuja cada silla de una mesa. */
+export interface SillaOcupada {
+  /** El renglón que la ocupa; null = libre. */
+  asientoId: string | null;
+  nombre: string | null;
+  /** true = la persona ELIGIÓ esta silla; false = sólo está sentada en la mesa. */
+  fija: boolean;
+}
+
+/**
+ * Quién ocupa cada silla de una mesa de `lugares` sillas.
+ *
+ * Primero las personas con silla fija, en su silla. Después, el resto de la
+ * mesa (grupos enteros y personas sin silla) llena las sillas libres en
+ * orden, una por persona, para que se vea cuánta gente hay. `deMas` es la
+ * gente que ya no cupo: el sobrecupo.
+ */
+export function ocupacionDeSillas(
+  lugares: number,
+  asientos: Pick<AsientoDelSalon, "id" | "nombre" | "pax" | "silla">[]
+): { sillas: SillaOcupada[]; deMas: number } {
+  const n = Math.max(0, Math.min(Math.round(lugares) || 0, LUGARES_MAX));
+  const sillas: SillaOcupada[] = Array.from({ length: n }, () => ({ asientoId: null, nombre: null, fija: false }));
+  const sinSilla: typeof asientos = [];
+  for (const a of asientos) {
+    if (a.silla != null && a.silla >= 1 && a.silla <= n && a.pax === 1 && sillas[a.silla - 1].asientoId == null) {
+      sillas[a.silla - 1] = { asientoId: a.id, nombre: a.nombre, fija: true };
+    } else {
+      sinSilla.push(a);
+    }
+  }
+  let deMas = 0;
+  let i = 0;
+  for (const a of sinSilla) {
+    for (let k = 0; k < Math.max(0, a.pax); k++) {
+      while (i < n && sillas[i].asientoId != null) i++;
+      if (i < n) sillas[i] = { asientoId: a.id, nombre: a.nombre, fija: false };
+      else deMas++;
+    }
+  }
+  return { sillas, deMas };
+}
+
+/**
+ * Lo que cabe escrito en una silla: las iniciales del nombre («Ana Sofía
+ * Núñez» → «AS»), sin «de», «y» ni «la». A un renglón recién separado se le
+ * quita el « · 3»: escribir «3» en una silla se confundía con el número de la
+ * silla (la silla 2 decía «1»).
+ */
+export function inicialesDe(nombre: string): string {
+  const limpio = (nombre || "").trim().replace(/ · \d+$/, "");
+  const palabras = limpio
+    .split(/\s+/)
+    .filter((p) => p.length > 1 && !/^(de|del|la|las|los|el|y|e)$/i.test(p));
+  return palabras
+    .slice(0, 2)
+    .map((p) => p[0].toUpperCase())
+    .join("");
 }
 
 export type RespuestaDelGrupo = "pending" | "confirmed" | "declined" | "maybe";

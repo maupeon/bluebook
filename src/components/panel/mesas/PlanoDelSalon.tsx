@@ -5,11 +5,14 @@ import {
   ELEMENTOS,
   REJILLA,
   SILLA,
+  inicialesDe,
   lugaresParaDibujar,
   medidasDeMesa,
   nombreDeMesa,
   redondear,
+  ocupacionDeSillas,
   sillasDeMesa,
+  type AsientoDelSalon,
   type MesaDelSalon,
   type Plano,
 } from "@/lib/plano";
@@ -36,13 +39,16 @@ function acotar(n: number, min: number, max: number): number {
  *
  * Se mueve todo con el puntero (ratón o dedo) y con las flechas del teclado.
  * Un toque sin arrastre elige la cosa; un grupo de la lista se suelta encima
- * de una mesa para sentarlo. Las líneas no engordan con el zoom
+ * de una mesa para sentarlo, y una persona encima de una SILLA para sentarla
+ * ahí (0038). La silla elegida lleva las iniciales de quien la ocupa; una
+ * silla rellena sin letras es gente sentada en la mesa sin silla fija. Las líneas no engordan con el zoom
  * (non-scaling-stroke): se ven igual de finas a cualquier tamaño.
  */
 export function PlanoDelSalon({
   plano,
   mesas,
   paxPorMesa,
+  asientosPorMesa,
   seleccion,
   soloLectura,
   sentando,
@@ -58,6 +64,8 @@ export function PlanoDelSalon({
   plano: Plano;
   mesas: MesaDelSalon[];
   paxPorMesa: Map<string, number>;
+  /** Quién está en cada mesa: de aquí sale qué silla ocupa cada quien. */
+  asientosPorMesa: Map<string, AsientoDelSalon[]>;
   seleccion: Seleccion | null;
   soloLectura: boolean;
   /** Hay alguien elegido para sentar: las mesas se vuelven destino. */
@@ -71,9 +79,10 @@ export function PlanoDelSalon({
    * partían de la misma posición vieja y la segunda deshacía a la primera.
    */
   onEmpujar: (cosa: Seleccion, dx: number, dy: number) => void;
-  onTocar: (cosa: Seleccion) => void;
+  /** `silla`: la silla que se tocó (1..n), si el toque cayó en una. */
+  onTocar: (cosa: Seleccion, silla?: number) => void;
   onFondo: () => void;
-  onSoltarEnMesa: (tableId: string, clave: string) => void;
+  onSoltarEnMesa: (tableId: string, clave: string, silla?: number) => void;
   /**
    * La copia de papel: llena la caja que le den (el SVG escala el salón
    * entero dentro, sin deformarlo) en vez de medir 640 px por el zoom.
@@ -89,11 +98,20 @@ export function PlanoDelSalon({
     desdeX: number;
     desdeY: number;
     movido: boolean;
+    /** La silla donde empezó el toque: a quién sentar, si no se arrastró. */
+    silla?: number;
   } | null>(null);
-  const [mesaBajoArrastre, setMesaBajoArrastre] = useState<string | null>(null);
+  const [destino, setDestino] = useState<{ mesa: string; silla?: number } | null>(null);
 
   const { ancho, largo } = plano;
   const vb = { x: -AIRE, y: -AIRE, w: ancho + AIRE * 2, h: largo + AIRE * 2 };
+
+  /** La silla bajo el puntero: las sillas llevan data-silla. */
+  function sillaDe(objetivo: EventTarget | null): number | undefined {
+    const el = objetivo instanceof Element ? objetivo.closest("[data-silla]") : null;
+    const n = el ? Number(el.getAttribute("data-silla")) : NaN;
+    return Number.isInteger(n) && n > 0 ? n : undefined;
+  }
 
   function aPlano(clientX: number, clientY: number): { x: number; y: number } | null {
     const svg = svgRef.current;
@@ -108,8 +126,9 @@ export function PlanoDelSalon({
       if (soloLectura || e.button !== 0) return;
       const p = aPlano(e.clientX, e.clientY);
       if (!p) return;
+      const silla = sillaDe(e.target);
       e.currentTarget.setPointerCapture(e.pointerId);
-      arrastre.current = { cosa, dx: p.x - x, dy: p.y - y, desdeX: e.clientX, desdeY: e.clientY, movido: false };
+      arrastre.current = { cosa, dx: p.x - x, dy: p.y - y, desdeX: e.clientX, desdeY: e.clientY, movido: false, silla };
     };
   }
 
@@ -131,7 +150,7 @@ export function PlanoDelSalon({
       arrastre.current = null;
       // Sin arrastre fue un toque. En solo lectura no hay arrastre y el toque
       // llega por onClick.
-      if (a && !a.movido) onTocar(cosa);
+      if (a && !a.movido) onTocar(cosa, a.silla);
     };
   }
 
@@ -241,7 +260,7 @@ export function PlanoDelSalon({
             onPointerMove={alMover}
             onPointerUp={alSoltar(cosa)}
             onPointerCancel={() => (arrastre.current = null)}
-            onClick={soloLectura ? () => onTocar(cosa) : undefined}
+            onClick={soloLectura ? (e) => onTocar(cosa, sillaDe(e.target)) : undefined}
             onKeyDown={conTeclado(cosa)}
           >
             <rect
@@ -290,10 +309,11 @@ export function PlanoDelSalon({
         const lugares = lugaresParaDibujar(mesa.capacity, pax);
         const m = medidasDeMesa(lugar.forma, lugares);
         const sillas = sillasDeMesa(lugar.forma, lugares);
+        const { sillas: ocupadas } = ocupacionDeSillas(lugares, asientosPorMesa.get(mesa.id) ?? []);
         const sobrecupo = mesa.capacity != null && pax > mesa.capacity;
         const llena = mesa.capacity != null && pax === mesa.capacity;
         const elegida = esElegida("mesa", mesa.id);
-        const destino = mesaBajoArrastre === mesa.id;
+        const esDestino = destino?.mesa === mesa.id;
         const cosa: Seleccion = { tipo: "mesa", id: mesa.id };
         const letra = acotar(Math.min(m.ancho, m.largo) * 0.26, 26, 56);
         const nombre = nombreDeMesa(mesa.label, isEnglish);
@@ -327,31 +347,32 @@ export function PlanoDelSalon({
             onPointerMove={alMover}
             onPointerUp={alSoltar(cosa)}
             onPointerCancel={() => (arrastre.current = null)}
-            onClick={soloLectura ? () => onTocar(cosa) : undefined}
+            onClick={soloLectura ? (e) => onTocar(cosa, sillaDe(e.target)) : undefined}
             onKeyDown={conTeclado(cosa)}
             onDragOver={(e) => {
               if (soloLectura) return;
               e.preventDefault();
               e.dataTransfer.dropEffect = "move";
-              if (mesaBajoArrastre !== mesa.id) setMesaBajoArrastre(mesa.id);
+              const silla = sillaDe(e.target);
+              if (destino?.mesa !== mesa.id || destino.silla !== silla) setDestino({ mesa: mesa.id, silla });
             }}
-            onDragLeave={() => setMesaBajoArrastre((actual) => (actual === mesa.id ? null : actual))}
+            onDragLeave={() => setDestino((actual) => (actual?.mesa === mesa.id ? null : actual))}
             onDrop={(e) => {
               e.preventDefault();
-              setMesaBajoArrastre(null);
+              setDestino(null);
               const clave = e.dataTransfer.getData("text/plain");
-              if (clave && !soloLectura) onSoltarEnMesa(mesa.id, clave);
+              if (clave && !soloLectura) onSoltarEnMesa(mesa.id, clave, sillaDe(e.target));
             }}
           >
             {/* Destino: un halo alrededor cuando algo se arrastra encima o hay
                 alguien elegido para sentar. */}
-            {destino || (sentando && !llena && !sobrecupo) ? (
+            {esDestino || (sentando && !llena && !sobrecupo) ? (
               lugar.forma === "redonda" ? (
                 <circle
                   r={anillo}
-                  className={destino ? "fill-papel-medio stroke-noche" : "fill-none stroke-linea-control"}
-                  strokeWidth={destino ? 2 : 1}
-                  strokeDasharray={destino ? undefined : "10 8"}
+                  className={esDestino ? "fill-papel-medio stroke-noche" : "fill-none stroke-linea-control"}
+                  strokeWidth={esDestino ? 2 : 1}
+                  strokeDasharray={esDestino ? undefined : "10 8"}
                   vectorEffect="non-scaling-stroke"
                 />
               ) : (
@@ -361,27 +382,56 @@ export function PlanoDelSalon({
                   width={m.ancho + (SILLA + 22) * 2}
                   height={m.largo + (SILLA + 22) * 2}
                   rx={16}
-                  className={destino ? "fill-papel-medio stroke-noche" : "fill-none stroke-linea-control"}
-                  strokeWidth={destino ? 2 : 1}
-                  strokeDasharray={destino ? undefined : "10 8"}
+                  className={esDestino ? "fill-papel-medio stroke-noche" : "fill-none stroke-linea-control"}
+                  strokeWidth={esDestino ? 2 : 1}
+                  strokeDasharray={esDestino ? undefined : "10 8"}
                   vectorEffect="non-scaling-stroke"
                 />
               )
             ) : null}
 
-            {sillas.map((s, i) => (
-              <circle
-                key={i}
-                cx={s.x}
-                cy={s.y}
-                r={SILLA / 2}
-                className={`${i < pax ? (sobrecupo ? "fill-error" : "fill-tinta") : "fill-niebla"} ${
-                  sobrecupo ? "stroke-error" : "stroke-tinta"
-                }`}
-                strokeWidth={1}
-                vectorEffect="non-scaling-stroke"
-              />
-            ))}
+            {sillas.map((s, i) => {
+              const n = i + 1;
+              const o = ocupadas[i];
+              const llena = o?.asientoId != null;
+              // Silla elegida: azul noche con las iniciales en niebla. Gente en
+              // la mesa sin silla fija: tinta, sin letras. En la mesa elegida,
+              // las libres llevan su número para saber cuál es cuál.
+              const texto = paraImprimir
+                ? ""
+                : o?.fija && o.nombre
+                  ? inicialesDe(o.nombre)
+                  : !llena && elegida
+                    ? String(n)
+                    : "";
+              const sobreEsta = esDestino && destino?.silla === n;
+              const nombreSilla = isEnglish ? `Seat ${n}` : `Silla ${n}`;
+              return (
+                <g key={i} data-silla={n} transform={`translate(${s.x} ${s.y})`}>
+                  <title>{o?.nombre ? `${nombreSilla}: ${o.nombre}` : nombreSilla}</title>
+                  <circle
+                    r={SILLA / 2}
+                    className={`${
+                      llena ? (sobrecupo ? "fill-error" : o.fija ? "fill-noche" : "fill-tinta") : "fill-niebla"
+                    } ${sobrecupo ? "stroke-error" : sobreEsta ? "stroke-noche" : "stroke-tinta"}`}
+                    strokeWidth={sobreEsta ? 3 : 1}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  {texto ? (
+                    <text
+                      transform={`rotate(${-lugar.giro})`}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className={llena ? "fill-niebla" : "fill-tinta"}
+                      style={{ fontSize: texto.length > 1 ? 17 : 20, fontWeight: 500 }}
+                      pointerEvents="none"
+                    >
+                      {texto}
+                    </text>
+                  ) : null}
+                </g>
+              );
+            })}
 
             {lugar.forma === "redonda" ? (
               <circle

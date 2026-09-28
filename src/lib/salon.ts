@@ -7,6 +7,7 @@ import { exigirEdicion } from "@/lib/acceso";
 import {
   compararEtiquetas,
   normalizarPlano,
+  personasEsperadas,
   type AsientoDelSalon,
   type GrupoDelSalon,
   type MesaDelSalon,
@@ -52,13 +53,16 @@ export function asientoDeFila(r: {
   display_name: string | null;
   pax: unknown;
   membership_id: string | null;
+  silla?: unknown;
 }): AsientoDelSalon {
+  const silla = r.silla == null ? null : entero(r.silla);
   return {
     id: r.id,
     tableId: r.table_id ?? null,
     nombre: (r.display_name ?? "").trim(),
     pax: entero(r.pax),
     membershipId: r.membership_id ?? null,
+    silla: silla != null && silla > 0 ? silla : null,
   };
 }
 
@@ -77,7 +81,14 @@ export function mesaDeFila(r: {
 }
 
 export const COLUMNAS_MESA = "id, label, capacity, zone";
-export const COLUMNAS_ASIENTO = "id, table_id, display_name, pax, membership_id";
+export const COLUMNAS_ASIENTO = "id, table_id, display_name, pax, membership_id, silla";
+/** Las de antes de la 0038, por si el código llega antes que la migración. */
+const COLUMNAS_ASIENTO_SIN_SILLA = "id, table_id, display_name, pax, membership_id";
+
+/** 42703: la columna todavía no existe. */
+function faltaLaColumna(error: PgError): boolean {
+  return Boolean(error && error.code === "42703");
+}
 
 /**
  * Todo lo que pinta la pantalla del plano. null si falta la 0011 o la lectura
@@ -86,14 +97,16 @@ export const COLUMNAS_ASIENTO = "id, table_id, display_name, pax, membership_id"
  */
 export async function leerSalon(weddingId: string): Promise<DatosDelSalon | null> {
   const supabase = createAdminClient();
-  const [mesasRes, asientosRes, gruposRes, planoRes] = await Promise.all([
-    supabase.from("wedding_tables").select(`${COLUMNAS_MESA}, sort_order`).eq("wedding_id", weddingId),
+  const leerAsientos = (columnas: string) =>
     supabase
       .from("seat_assignments")
-      .select(COLUMNAS_ASIENTO)
+      .select(columnas)
       .eq("wedding_id", weddingId)
       .order("sort_order", { ascending: true })
-      .order("display_name", { ascending: true }),
+      .order("display_name", { ascending: true });
+  const [mesasRes, asientosConSilla, gruposRes, planoRes] = await Promise.all([
+    supabase.from("wedding_tables").select(`${COLUMNAS_MESA}, sort_order`).eq("wedding_id", weddingId),
+    leerAsientos(COLUMNAS_ASIENTO),
     supabase
       .from("v_invitados")
       .select("membership_id, nombre, confirmation, boletos, personas_confirmadas, personas_canceladas, guest_side, dietary")
@@ -104,6 +117,11 @@ export async function leerSalon(weddingId: string): Promise<DatosDelSalon | null
       .eq("wedding_id", weddingId)
       .maybeSingle(),
   ]);
+
+  // Sin la 0038 no hay silla: se sienta igual, sólo que sin silla fija.
+  const asientosRes = faltaLaColumna(asientosConSilla.error)
+    ? await leerAsientos(COLUMNAS_ASIENTO_SIN_SILLA)
+    : asientosConSilla;
 
   const lecturas: Array<[PgError, string]> = [
     [mesasRes.error, "wedding_tables"],
@@ -144,7 +162,11 @@ export async function leerSalon(weddingId: string): Promise<DatosDelSalon | null
     .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || compararEtiquetas(a.label ?? "", b.label ?? ""))
     .map(mesaDeFila);
 
-  const asientos = ((asientosRes.data ?? []) as Parameters<typeof asientoDeFila>[0][]).map(asientoDeFila);
+  // Las columnas llegan en una cadena que no es literal (con o sin silla), así
+  // que PostgREST no infiere el tipo: se dice cuál es.
+  const asientos = ((asientosRes.data ?? []) as unknown as Parameters<typeof asientoDeFila>[0][]).map(
+    asientoDeFila
+  );
 
   type FilaGrupo = {
     membership_id: string;
@@ -241,4 +263,45 @@ export async function guardarPlano(weddingId: string, plano: Plano): Promise<{ g
     return { error: "No pudimos guardar su plano.", status: 500 };
   }
   return { guardadoEn: data.updated_at as string };
+}
+
+/**
+ * Cuántas personas del grupo faltan por sentar, contando TODAS sus filas de
+ * seat_assignments (con mesa o sin ella), igual que v_invitados.pax_sentado.
+ * La regla de cuántas se esperan es la misma que usa la pantalla.
+ */
+export async function faltanDelGrupo(
+  weddingId: string,
+  membershipId: string,
+  sinContarFila: string | null = null
+): Promise<{ nombre: string; faltan: number; sentadas: number } | null> {
+  const admin = createAdminClient();
+  const [grupoRes, filasRes] = await Promise.all([
+    admin
+      .from("v_invitados")
+      .select("membership_id, wedding_id, nombre, confirmation, boletos, personas_confirmadas, personas_canceladas")
+      .eq("membership_id", membershipId)
+      .maybeSingle(),
+    admin.from("seat_assignments").select("id, pax").eq("membership_id", membershipId),
+  ]);
+  const g = grupoRes.data as {
+    wedding_id: string;
+    nombre: string | null;
+    confirmation: string | null;
+    boletos: unknown;
+    personas_confirmadas: unknown;
+    personas_canceladas: unknown;
+  } | null;
+  if (grupoRes.error || filasRes.error || !g || g.wedding_id !== weddingId) return null;
+
+  const esperadas = personasEsperadas({
+    confirmation: (g.confirmation ?? "pending") as RespuestaDelGrupo,
+    boletos: Math.max(1, entero(g.boletos)),
+    confirmadas: entero(g.personas_confirmadas),
+    canceladas: entero(g.personas_canceladas),
+  });
+  const sentadas = ((filasRes.data ?? []) as { id: string; pax: unknown }[])
+    .filter((f) => f.id !== sinContarFila)
+    .reduce((s, f) => s + entero(f.pax), 0);
+  return { nombre: (g.nombre ?? "").trim(), faltan: Math.max(0, esperadas - sentadas), sentadas };
 }

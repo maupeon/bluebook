@@ -3,7 +3,20 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { flushSync } from "react-dom";
-import { ArrowLeft, Download, Minus, Plus, Printer, RotateCw, Search, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  Group,
+  Minus,
+  Pencil,
+  Plus,
+  Printer,
+  RotateCw,
+  Search,
+  Trash2,
+  Ungroup,
+  X,
+} from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
@@ -25,6 +38,8 @@ import {
   SALON_MIN,
   TIPOS_DE_ELEMENTO,
   colocarFaltantes,
+  inicialesDe,
+  lugaresParaDibujar,
   nombreDeMesa,
   normalizarGiro,
   personasEsperadas,
@@ -53,6 +68,10 @@ type PorSentar = {
   clave: string;
   nombre: string;
   personas: number;
+  /** El renglón, si es una fila sin mesa: se puede renombrar y separar. */
+  asientoId: string | null;
+  /** El grupo, si es un grupo al que le faltan personas: se puede separar. */
+  membershipId: string | null;
   /** Sin contestar todavía: se aparta su lugar, pero puede que no venga. */
   sinContestar: boolean;
   dieta: string | null;
@@ -194,6 +213,26 @@ function Salon({
   const [busqueda, setBusqueda] = useState("");
 
   const { porMesa, porGrupo } = useMemo(() => sumarAcomodo(asientos), [asientos]);
+  // Quién está en cada mesa: primero las sillas elegidas en orden, luego el
+  // resto por nombre. Es el orden del detalle, de la hoja impresa y de las
+  // sillas del plano.
+  const asientosPorMesa = useMemo(() => {
+    const m = new Map<string, AsientoDelSalon[]>();
+    for (const a of asientos) {
+      if (!a.tableId) continue;
+      const lista = m.get(a.tableId) ?? [];
+      lista.push(a);
+      m.set(a.tableId, lista);
+    }
+    for (const lista of m.values()) {
+      lista.sort((x, y) => (x.silla ?? 99) - (y.silla ?? 99) || porNombre(x.nombre, y.nombre));
+    }
+    return m;
+  }, [asientos]);
+  const dietaDe = useMemo(
+    () => new Map(grupos.filter((g) => g.dieta).map((g) => [g.membershipId, g.dieta as string])),
+    [grupos]
+  );
 
   // ----- Guardado automático del dibujo -----
   // Igual que la barra: 800 ms después del último cambio se manda el plano
@@ -269,18 +308,28 @@ function Salon({
         clave: `grupo:${g.membershipId}`,
         nombre: g.nombre || (isEnglish ? "Guest" : "Invitado"),
         personas: faltan,
+        asientoId: null,
+        membershipId: g.membershipId,
         sinContestar: g.confirmation !== "confirmed",
         dieta: g.dieta,
       });
     }
     const sinMesa: PorSentar[] = asientos
       .filter((a) => a.tableId == null && a.pax > 0)
-      .map((a) => ({ clave: `fila:${a.id}`, nombre: a.nombre, personas: a.pax, sinContestar: false, dieta: null }));
+      .map((a) => ({
+        clave: `fila:${a.id}`,
+        nombre: a.nombre,
+        personas: a.pax,
+        asientoId: a.id,
+        membershipId: null,
+        sinContestar: false,
+        dieta: a.membershipId ? (dietaDe.get(a.membershipId) ?? null) : null,
+      }));
     // Primero quienes ya dijeron que sí; los que no contestan, al final.
     return [...deGrupos, ...sinMesa].sort(
       (a, b) => Number(a.sinContestar) - Number(b.sinContestar) || porNombre(a.nombre, b.nombre)
     );
-  }, [grupos, asientos, porGrupo, isEnglish]);
+  }, [grupos, asientos, porGrupo, dietaDe, isEnglish]);
 
   const buscado = busqueda.trim().toLowerCase();
   const visibles = buscado
@@ -373,10 +422,32 @@ function Salon({
       ponerMesas(nuevas, "redonda");
     });
 
+  /**
+   * Mete en el estado lo que contestó la API, por id: los renglones nuevos se
+   * agregan, los que ya estaban se reemplazan y los de `quitar` se van. Una
+   * silla puede mover a otra persona de la misma mesa, así que las respuestas
+   * traen a todos los que cambiaron, no sólo al que se tocó.
+   */
+  const integrar = (nuevos: AsientoDelSalon[], quitar: string[] = []) =>
+    setAsientos((as) => {
+      const porId = new Map(nuevos.map((a) => [a.id, a]));
+      const fuera = new Set(quitar);
+      const yaEstaban = new Set(as.map((a) => a.id));
+      return [
+        ...as.filter((a) => !fuera.has(a.id)).map((a) => porId.get(a.id) ?? a),
+        ...nuevos.filter((a) => !yaEstaban.has(a.id)),
+      ];
+    });
+
   const cambiarMesa = (id: string, cambio: { label?: string; lugares?: number }) =>
     hacer(async () => {
-      const { mesa } = await pedir<{ mesa: MesaDelSalon }>("/api/panel/mesas", "PATCH", { id, ...cambio });
-      setMesas((ms) => ms.map((m) => (m.id === id ? mesa : m)));
+      const r = await pedir<{ mesa: MesaDelSalon; asientos?: AsientoDelSalon[] }>("/api/panel/mesas", "PATCH", {
+        id,
+        ...cambio,
+      });
+      setMesas((ms) => ms.map((m) => (m.id === id ? r.mesa : m)));
+      // Achicar la mesa suelta sillas en la base: vienen sus renglones.
+      if (r.asientos) integrar(r.asientos);
     });
 
   const borrarMesa = (id: string) =>
@@ -390,32 +461,69 @@ function Salon({
       setSeleccion(null);
     });
 
-  const sentar = (clave: string, tableId: string) =>
+  type RespuestaAsiento = { asiento: AsientoDelSalon; mesa?: AsientoDelSalon[]; aviso?: string };
+
+  /** Cuántas personas son: la silla sólo se pide para una. */
+  const personasDe = (clave: string): number => {
+    if (clave.startsWith("fila:")) return asientos.find((a) => a.id === clave.slice(5))?.pax ?? 0;
+    return porSentar.find((p) => p.clave === clave)?.personas ?? 0;
+  };
+
+  /**
+   * Sienta a alguien en una mesa. Con `silla`, y si es una sola persona, en
+   * esa silla; un grupo soltado en una silla se sienta en la mesa, sin silla.
+   */
+  const sentar = (clave: string, tableId: string, silla?: number) =>
     hacer(async () => {
+      const conSilla = silla != null && personasDe(clave) === 1 ? { silla } : {};
       if (clave.startsWith("grupo:")) {
-        const { asiento } = await pedir<{ asiento: AsientoDelSalon }>("/api/panel/mesas/asientos", "POST", {
+        const r = await pedir<RespuestaAsiento>("/api/panel/mesas/asientos", "POST", {
           membershipId: clave.slice("grupo:".length),
           tableId,
+          ...conSilla,
         });
-        setAsientos((as) => [...as, asiento]);
+        integrar([r.asiento, ...(r.mesa ?? [])]);
+        if (r.aviso) throw new Error(r.aviso);
       } else if (clave.startsWith("fila:")) {
-        const id = clave.slice("fila:".length);
-        const { asiento } = await pedir<{ asiento: AsientoDelSalon }>("/api/panel/mesas/asientos", "PATCH", {
-          id,
+        const r = await pedir<RespuestaAsiento>("/api/panel/mesas/asientos", "PATCH", {
+          id: clave.slice("fila:".length),
           tableId,
+          ...conSilla,
         });
-        setAsientos((as) => as.map((a) => (a.id === id ? asiento : a)));
+        integrar([r.asiento, ...(r.mesa ?? [])]);
       }
       setElegido(null);
     });
 
-  const cambiarAsiento = (id: string, cambio: { tableId?: null; pax?: number }) =>
+  const cambiarAsiento = (
+    id: string,
+    cambio: { tableId?: null; pax?: number; nombre?: string; silla?: number | null }
+  ) =>
     hacer(async () => {
-      const { asiento } = await pedir<{ asiento: AsientoDelSalon }>("/api/panel/mesas/asientos", "PATCH", {
-        id,
-        ...cambio,
-      });
-      setAsientos((as) => as.map((a) => (a.id === id ? asiento : a)));
+      const r = await pedir<RespuestaAsiento>("/api/panel/mesas/asientos", "PATCH", { id, ...cambio });
+      integrar([r.asiento, ...(r.mesa ?? [])]);
+    });
+
+  /** De grupo a personas (un renglón o lo que a un grupo le falta sentar). */
+  const separar = (objetivo: { asientoId: string } | { membershipId: string }) =>
+    hacer(async () => {
+      const r = await pedir<{ asientos: AsientoDelSalon[]; quitar: string[] }>(
+        "/api/panel/mesas/asientos/personas",
+        "POST",
+        { accion: "separar", ...objetivo }
+      );
+      integrar(r.asientos, r.quitar);
+    });
+
+  /** De personas a grupo: las del mismo grupo en la misma mesa. */
+  const juntar = (asientoId: string) =>
+    hacer(async () => {
+      const r = await pedir<{ asientos: AsientoDelSalon[]; quitar: string[] }>(
+        "/api/panel/mesas/asientos/personas",
+        "POST",
+        { accion: "juntar", asientoId }
+      );
+      integrar(r.asientos, r.quitar);
     });
 
   // ----- El dibujo (local; se guarda solo) -----
@@ -506,9 +614,9 @@ function Salon({
     });
 
   // ----- Toques en el plano -----
-  function tocar(cosa: Seleccion) {
+  function tocar(cosa: Seleccion, silla?: number) {
     if (cosa.tipo === "mesa" && elegido && !soloLectura) {
-      void sentar(elegido, cosa.id);
+      void sentar(elegido, cosa.id, silla);
       return;
     }
     setSeleccion((actual) => (actual?.tipo === cosa.tipo && actual.id === cosa.id ? null : cosa));
@@ -590,6 +698,7 @@ function Salon({
           asientos={asientos}
           grupos={grupos}
           paxPorMesa={porMesa}
+          asientosPorMesa={asientosPorMesa}
           porSentar={porSentar}
           isEnglish={isEnglish}
         />
@@ -708,7 +817,13 @@ function Salon({
             {aSentar ? (
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linea bg-papel px-4 py-3 sm:px-5" role="status">
                 <p className="text-sm text-noche">
-                  {isEnglish ? "Tap the table for " : "Toquen la mesa de "}
+                  {aSentar.personas === 1
+                    ? isEnglish
+                      ? "Tap the table or the seat for "
+                      : "Toquen la mesa o la silla de "
+                    : isEnglish
+                      ? "Tap the table for "
+                      : "Toquen la mesa de "}
                   <span className="font-medium">{aSentar.nombre}</span>
                   <span className="text-tinta">
                     {" "}
@@ -737,6 +852,7 @@ function Salon({
                 plano={plano}
                 mesas={mesas}
                 paxPorMesa={porMesa}
+                asientosPorMesa={asientosPorMesa}
                 seleccion={seleccion}
                 soloLectura={soloLectura}
                 sentando={aSentar != null}
@@ -746,7 +862,7 @@ function Salon({
                 onEmpujar={empujar}
                 onTocar={tocar}
                 onFondo={() => setSeleccion(null)}
-                onSoltarEnMesa={(tableId, clave) => void sentar(clave, tableId)}
+                onSoltarEnMesa={(tableId, clave, silla) => void sentar(clave, tableId, silla)}
               />
             </div>
 
@@ -812,7 +928,7 @@ function Salon({
               key={mesaElegida.id}
               mesa={mesaElegida}
               forma={plano.mesas[mesaElegida.id]?.forma ?? "redonda"}
-              asientos={asientos.filter((a) => a.tableId === mesaElegida.id)}
+              asientos={asientosPorMesa.get(mesaElegida.id) ?? []}
               pax={porMesa.get(mesaElegida.id) ?? 0}
               grupos={grupos}
               porGrupo={porGrupo}
@@ -828,6 +944,10 @@ function Salon({
               onSentar={(clave) => void sentar(clave, mesaElegida.id)}
               onQuitar={(id) => void cambiarAsiento(id, { tableId: null })}
               onPax={(id, pax) => void cambiarAsiento(id, { pax })}
+              onRenombrar={(id, nombre) => void cambiarAsiento(id, { nombre })}
+              onSilla={(id, silla) => void cambiarAsiento(id, { silla })}
+              onSeparar={(id) => void separar({ asientoId: id })}
+              onJuntar={(id) => void juntar(id)}
             />
           ) : null}
 
@@ -880,8 +1000,8 @@ function Salon({
                 {!soloLectura ? (
                   <p className="mt-1 text-xs leading-relaxed text-tinta">
                     {isEnglish
-                      ? "Drag a group onto its table, or tap it and then tap the table."
-                      : "Arrastren a un grupo a su mesa, o tóquenlo y luego toquen la mesa."}
+                      ? "Drag each one onto their table, or onto a seat; or tap them and then the table. To seat a group one by one, split it with the button beside it."
+                      : "Arrastren a cada quien a su mesa, o a una silla; o tóquenlo y luego toquen la mesa. Para sentar a un grupo persona por persona, sepárenlo con el botón de al lado."}
                   </p>
                 ) : null}
                 {porSentar.length > 8 ? (
@@ -898,41 +1018,21 @@ function Salon({
                   </label>
                 ) : null}
                 <ul className="mt-3 max-h-[52vh] space-y-1.5 overflow-y-auto pr-1">
-                  {visibles.map((p) => {
-                    const activo = elegido === p.clave;
-                    return (
-                      <li key={p.clave}>
-                        <button
-                          type="button"
-                          draggable={!soloLectura}
-                          disabled={soloLectura}
-                          aria-pressed={activo}
-                          onDragStart={(e: DragEvent<HTMLButtonElement>) => {
-                            e.dataTransfer.setData("text/plain", p.clave);
-                            e.dataTransfer.effectAllowed = "move";
-                          }}
-                          onClick={() => setElegido((actual) => (actual === p.clave ? null : p.clave))}
-                          className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-[background-color,border-color,scale] duration-150 active:scale-[0.985] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-default disabled:active:scale-100 ${
-                            activo
-                              ? "border-noche bg-papel"
-                              : "border-linea bg-niebla hover:border-linea-control hover:bg-papel-medio disabled:hover:border-linea disabled:hover:bg-niebla"
-                          } ${soloLectura ? "" : "cursor-grab"}`}
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm text-noche">{p.nombre}</span>
-                            {p.sinContestar || p.dieta ? (
-                              <span className="block truncate text-xs text-tinta">
-                                {[p.sinContestar ? (isEnglish ? "Hasn't replied" : "Sin contestar") : null, p.dieta]
-                                  .filter(Boolean)
-                                  .join(" · ")}
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="shrink-0 text-xs text-tinta tabular-nums">{p.personas}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
+                  {visibles.map((p) => (
+                    <RenglonPorSentar
+                      key={p.clave}
+                      item={p}
+                      activo={elegido === p.clave}
+                      soloLectura={soloLectura}
+                      trabajando={trabajando}
+                      isEnglish={isEnglish}
+                      onElegir={() => setElegido((actual) => (actual === p.clave ? null : p.clave))}
+                      onSeparar={() =>
+                        void separar(p.asientoId ? { asientoId: p.asientoId } : { membershipId: p.membershipId as string })
+                      }
+                      onRenombrar={(nombre) => p.asientoId && void cambiarAsiento(p.asientoId, { nombre })}
+                    />
+                  ))}
                   {visibles.length === 0 ? (
                     <li className="px-1 py-2 text-sm text-tinta">
                       {isEnglish ? "No one by that name." : "Nadie con ese nombre."}
@@ -1102,6 +1202,196 @@ function MedidasDelSalon({
   );
 }
 
+/**
+ * Un nombre que se cambia en su lugar: se toca, se escribe, Enter o salir del
+ * campo guarda y Esc lo deja como estaba. Sirve para ponerle nombre a cada
+ * persona de un grupo separado («Familia Ruiz · 3» → «Tío Beto»).
+ */
+function NombreEditable({
+  nombre,
+  soloLectura,
+  trabajando,
+  isEnglish,
+  onGuardar,
+}: {
+  nombre: string;
+  soloLectura: boolean;
+  trabajando: boolean;
+  isEnglish: boolean;
+  onGuardar: (nombre: string) => void;
+}) {
+  const [editando, setEditando] = useState(false);
+  const [texto, setTexto] = useState(nombre);
+
+  if (soloLectura) return <span className="min-w-0 flex-1 truncate text-sm text-noche">{nombre}</span>;
+
+  if (!editando) {
+    return (
+      <button
+        type="button"
+        disabled={trabajando}
+        onClick={() => {
+          setTexto(nombre);
+          setEditando(true);
+        }}
+        title={isEnglish ? "Change the name" : "Cambiar el nombre"}
+        className="group/nombre flex min-h-[2rem] min-w-0 flex-1 items-center gap-1.5 text-left text-sm text-noche disabled:opacity-60"
+      >
+        <span className="truncate">{nombre}</span>
+        <Pencil
+          className="h-3 w-3 shrink-0 text-tinta opacity-0 transition-opacity duration-150 group-hover/nombre:opacity-100 group-focus-visible/nombre:opacity-100"
+          strokeWidth={1.8}
+          aria-hidden="true"
+        />
+      </button>
+    );
+  }
+
+  const guardar = () => {
+    const limpio = texto.trim().replace(/\s+/g, " ");
+    setEditando(false);
+    if (limpio && limpio !== nombre) onGuardar(limpio);
+  };
+
+  return (
+    <input
+      type="text"
+      autoFocus
+      value={texto}
+      maxLength={80}
+      aria-label={isEnglish ? "Name" : "Nombre"}
+      onChange={(e) => setTexto(e.target.value)}
+      onBlur={guardar}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          setTexto(nombre);
+          setEditando(false);
+        }
+      }}
+      className="h-8 min-w-0 flex-1 rounded-lg border border-noche bg-papel px-2 text-sm text-noche outline-none ring-2 ring-noche/20"
+    />
+  );
+}
+
+/**
+ * Un renglón de «Por sentar»: se elige o se arrastra, y al lado, separar a
+ * un grupo en personas y ponerle nombre a una persona que todavía no tiene
+ * mesa.
+ */
+function RenglonPorSentar({
+  item: p,
+  activo,
+  soloLectura,
+  trabajando,
+  isEnglish,
+  onElegir,
+  onSeparar,
+  onRenombrar,
+}: {
+  item: PorSentar;
+  activo: boolean;
+  soloLectura: boolean;
+  trabajando: boolean;
+  isEnglish: boolean;
+  onElegir: () => void;
+  onSeparar: () => void;
+  onRenombrar: (nombre: string) => void;
+}) {
+  const [renombrando, setRenombrando] = useState(false);
+  const [texto, setTexto] = useState(p.nombre);
+  const lateral =
+    "flex w-9 shrink-0 items-center justify-center rounded-xl border border-linea bg-niebla text-tinta transition-[background-color,border-color,color] duration-150 hover:border-linea-control hover:bg-papel-medio hover:text-noche disabled:opacity-50";
+
+  const guardar = () => {
+    const limpio = texto.trim().replace(/\s+/g, " ");
+    setRenombrando(false);
+    if (limpio && limpio !== p.nombre) onRenombrar(limpio);
+  };
+
+  return (
+    <li className="flex items-stretch gap-1.5">
+      {renombrando ? (
+        <input
+          type="text"
+          autoFocus
+          value={texto}
+          maxLength={80}
+          aria-label={isEnglish ? "Name" : "Nombre"}
+          onChange={(e) => setTexto(e.target.value)}
+          onBlur={guardar}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              setTexto(p.nombre);
+              setRenombrando(false);
+            }
+          }}
+          className="min-h-[2.75rem] min-w-0 flex-1 rounded-xl border border-noche bg-papel px-3 text-sm text-noche outline-none ring-2 ring-noche/20"
+        />
+      ) : (
+        <button
+          type="button"
+          draggable={!soloLectura}
+          disabled={soloLectura}
+          aria-pressed={activo}
+          onDragStart={(e: DragEvent<HTMLButtonElement>) => {
+            e.dataTransfer.setData("text/plain", p.clave);
+            e.dataTransfer.effectAllowed = "move";
+          }}
+          onClick={onElegir}
+          className={`flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-[background-color,border-color,scale] duration-150 active:scale-[0.985] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-default disabled:active:scale-100 ${
+            activo
+              ? "border-noche bg-papel"
+              : "border-linea bg-niebla hover:border-linea-control hover:bg-papel-medio disabled:hover:border-linea disabled:hover:bg-niebla"
+          } ${soloLectura ? "" : "cursor-grab"}`}
+        >
+          <span className="min-w-0">
+            <span className="block truncate text-sm text-noche">{p.nombre}</span>
+            {p.sinContestar || p.dieta ? (
+              <span className="block truncate text-xs text-tinta">
+                {[p.sinContestar ? (isEnglish ? "Hasn't replied" : "Sin contestar") : null, p.dieta]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            ) : null}
+          </span>
+          <span className="shrink-0 text-xs text-tinta tabular-nums">{p.personas}</span>
+        </button>
+      )}
+      {!soloLectura && !renombrando && p.personas > 1 ? (
+        <button
+          type="button"
+          disabled={trabajando}
+          onClick={onSeparar}
+          aria-label={isEnglish ? `Split ${p.nombre} to seat one by one` : `Separar a ${p.nombre} por persona`}
+          title={isEnglish ? "Seat one by one" : "Separar por persona"}
+          className={lateral}
+        >
+          <Ungroup className="h-4 w-4" strokeWidth={1.6} />
+        </button>
+      ) : null}
+      {!soloLectura && !renombrando && p.asientoId && p.personas === 1 ? (
+        <button
+          type="button"
+          disabled={trabajando}
+          onClick={() => {
+            setTexto(p.nombre);
+            setRenombrando(true);
+          }}
+          aria-label={isEnglish ? `Rename ${p.nombre}` : `Cambiar el nombre de ${p.nombre}`}
+          title={isEnglish ? "Change the name" : "Cambiar el nombre"}
+          className={lateral}
+        >
+          <Pencil className="h-3.5 w-3.5" strokeWidth={1.7} />
+        </button>
+      ) : null}
+    </li>
+  );
+}
+
 function DetalleDeMesa({
   mesa,
   forma,
@@ -1121,6 +1411,10 @@ function DetalleDeMesa({
   onSentar,
   onQuitar,
   onPax,
+  onRenombrar,
+  onSilla,
+  onSeparar,
+  onJuntar,
 }: {
   mesa: MesaDelSalon;
   forma: FormaMesa;
@@ -1141,8 +1435,16 @@ function DetalleDeMesa({
   onSentar: (clave: string) => void;
   onQuitar: (asientoId: string) => void;
   onPax: (asientoId: string, pax: number) => void;
+  onRenombrar: (asientoId: string, nombre: string) => void;
+  /** null = en la mesa, sin silla fija. */
+  onSilla: (asientoId: string, silla: number | null) => void;
+  onSeparar: (asientoId: string) => void;
+  onJuntar: (asientoId: string) => void;
 }) {
   const [nombre, setNombre] = useState(mesa.label);
+  const lugares = lugaresParaDibujar(mesa.capacity, pax);
+  const porSilla = new Map(asientos.filter((a) => a.silla != null).map((a) => [a.silla as number, a]));
+  const personasSueltas = asientos.some((a) => a.pax === 1);
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
   const sobrecupo = mesa.capacity != null && pax > mesa.capacity;
   const libres = mesa.capacity != null ? mesa.capacity - pax : null;
@@ -1264,12 +1566,26 @@ function DetalleDeMesa({
       <h3 className="mt-5 text-[11px] font-medium uppercase tracking-[0.1em] text-tinta">
         {isEnglish ? "Seated here" : "Sentados aquí"}
       </h3>
+      {!soloLectura && asientos.length > 0 ? (
+        <p className="mt-1 text-xs leading-relaxed text-tinta">
+          {personasSueltas
+            ? isEnglish
+              ? "Pick each person's seat for the place cards. Tap a name to change it."
+              : "Elijan la silla de cada persona para las tarjetas de lugar. Toquen un nombre para cambiarlo."
+            : isEnglish
+              ? "To choose seats, split a group to seat it one by one."
+              : "Para elegir sillas, separen a un grupo y siéntenlo persona por persona."}
+        </p>
+      ) : null}
       {asientos.length === 0 ? (
         <p className="mt-2 text-sm text-tinta">{isEnglish ? "No one yet." : "Todavía nadie."}</p>
       ) : (
         <ul className="mt-2 divide-y divide-linea border-y border-linea">
           {asientos.map((a) => {
             const tope = topeDe(a);
+            const delMismoGrupo = a.membershipId
+              ? asientos.filter((x) => x.membershipId === a.membershipId).length
+              : 1;
             return (
               <li
                 key={a.id}
@@ -1278,43 +1594,111 @@ function DetalleDeMesa({
                   e.dataTransfer.setData("text/plain", `fila:${a.id}`);
                   e.dataTransfer.effectAllowed = "move";
                 }}
-                className={`flex items-center gap-2 py-2 ${soloLectura ? "" : "cursor-grab"}`}
+                className={`py-2 ${soloLectura ? "" : "cursor-grab"}`}
               >
-                <span className="min-w-0 flex-1 truncate text-sm text-noche">{a.nombre}</span>
-                {soloLectura ? (
-                  <span className="text-xs text-tinta tabular-nums">{a.pax}</span>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      disabled={trabajando || a.pax <= 1}
-                      onClick={() => onPax(a.id, a.pax - 1)}
-                      aria-label={isEnglish ? `One less from ${a.nombre}` : `Uno menos de ${a.nombre}`}
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-tinta transition-colors hover:bg-papel-medio hover:text-noche disabled:opacity-40 disabled:hover:bg-transparent"
+                <div className="flex items-center gap-2">
+                  {/* La silla: sólo una persona tiene silla. Elegir una ocupada
+                      intercambia (quien estaba toma la de esta persona). */}
+                  {a.pax === 1 && !soloLectura ? (
+                    <select
+                      value={a.silla ?? ""}
+                      disabled={trabajando}
+                      aria-label={isEnglish ? `Seat of ${a.nombre}` : `Silla de ${a.nombre}`}
+                      onChange={(e) => onSilla(a.id, e.target.value ? Number(e.target.value) : null)}
+                      className="h-8 w-[3.75rem] shrink-0 cursor-pointer rounded-lg border border-linea-control/70 bg-papel px-1 text-center text-xs text-noche tabular-nums outline-none transition-[border-color] duration-150 focus:border-noche disabled:opacity-60"
                     >
-                      <Minus className="h-3.5 w-3.5" strokeWidth={1.8} />
-                    </button>
-                    <span className="w-5 text-center text-xs text-noche tabular-nums">{a.pax}</span>
-                    <button
-                      type="button"
-                      disabled={trabajando || a.pax >= tope}
-                      onClick={() => onPax(a.id, a.pax + 1)}
-                      aria-label={isEnglish ? `One more from ${a.nombre}` : `Uno más de ${a.nombre}`}
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-tinta transition-colors hover:bg-papel-medio hover:text-noche disabled:opacity-40 disabled:hover:bg-transparent"
-                    >
-                      <Plus className="h-3.5 w-3.5" strokeWidth={1.8} />
-                    </button>
+                      <option value="">{isEnglish ? "Seat" : "Silla"}</option>
+                      {Array.from({ length: lugares }, (_, i) => i + 1).map((n) => {
+                        const ocupante = porSilla.get(n);
+                        return (
+                          <option key={n} value={n}>
+                            {ocupante && ocupante.id !== a.id ? `${n} · ${inicialesDe(ocupante.nombre)}` : n}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  ) : (
+                    <span className="w-[3.75rem] shrink-0 text-center text-xs text-tinta tabular-nums">
+                      {a.pax === 1
+                        ? a.silla != null
+                          ? isEnglish
+                            ? `Seat ${a.silla}`
+                            : `Silla ${a.silla}`
+                          : "—"
+                        : isEnglish
+                          ? `${a.pax} people`
+                          : `${a.pax} pers.`}
+                    </span>
+                  )}
+                  <NombreEditable
+                    nombre={a.nombre}
+                    soloLectura={soloLectura}
+                    trabajando={trabajando}
+                    isEnglish={isEnglish}
+                    onGuardar={(n) => onRenombrar(a.id, n)}
+                  />
+                  {!soloLectura ? (
                     <button
                       type="button"
                       disabled={trabajando}
                       onClick={() => onQuitar(a.id)}
                       aria-label={isEnglish ? `Take ${a.nombre} off this table` : `Quitar a ${a.nombre} de esta mesa`}
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-tinta transition-colors hover:bg-error-fondo hover:text-error"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-tinta transition-colors hover:bg-error-fondo hover:text-error"
                     >
                       <X className="h-3.5 w-3.5" strokeWidth={1.8} />
                     </button>
-                  </>
-                )}
+                  ) : null}
+                </div>
+
+                {!soloLectura && (a.pax > 1 || delMismoGrupo > 1) ? (
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pl-[4.25rem] text-xs">
+                    {a.pax > 1 ? (
+                      <>
+                        <span className="flex items-center">
+                          <button
+                            type="button"
+                            disabled={trabajando}
+                            onClick={() => onPax(a.id, a.pax - 1)}
+                            aria-label={isEnglish ? `One less from ${a.nombre}` : `Uno menos de ${a.nombre}`}
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-tinta transition-colors hover:bg-papel-medio hover:text-noche disabled:opacity-40 disabled:hover:bg-transparent"
+                          >
+                            <Minus className="h-3.5 w-3.5" strokeWidth={1.8} />
+                          </button>
+                          <span className="w-5 text-center text-noche tabular-nums">{a.pax}</span>
+                          <button
+                            type="button"
+                            disabled={trabajando || a.pax >= tope}
+                            onClick={() => onPax(a.id, a.pax + 1)}
+                            aria-label={isEnglish ? `One more from ${a.nombre}` : `Uno más de ${a.nombre}`}
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-tinta transition-colors hover:bg-papel-medio hover:text-noche disabled:opacity-40 disabled:hover:bg-transparent"
+                          >
+                            <Plus className="h-3.5 w-3.5" strokeWidth={1.8} />
+                          </button>
+                        </span>
+                        <button
+                          type="button"
+                          disabled={trabajando}
+                          onClick={() => onSeparar(a.id)}
+                          className="inline-flex min-h-[1.75rem] items-center gap-1 text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche disabled:opacity-60"
+                        >
+                          <Ungroup className="h-3.5 w-3.5" strokeWidth={1.7} />
+                          {isEnglish ? "Seat one by one" : "Separar por persona"}
+                        </button>
+                      </>
+                    ) : null}
+                    {delMismoGrupo > 1 ? (
+                      <button
+                        type="button"
+                        disabled={trabajando}
+                        onClick={() => onJuntar(a.id)}
+                        className="inline-flex min-h-[1.75rem] items-center gap-1 text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche disabled:opacity-60"
+                      >
+                        <Group className="h-3.5 w-3.5" strokeWidth={1.7} />
+                        {isEnglish ? "Put the group back together" : "Juntar con su grupo"}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
               </li>
             );
           })}

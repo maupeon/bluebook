@@ -2,7 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LUGARES_MAX, MESAS_DE_UN_JALON, MESAS_MAX, siguientesEtiquetas } from "@/lib/plano";
 import {
+  COLUMNAS_ASIENTO,
   COLUMNAS_MESA,
+  asientoDeFila,
   bodaParaEscribir,
   faltaLaRelacion,
   leerCuerpo,
@@ -142,6 +144,17 @@ export async function PATCH(req: NextRequest) {
     }
     console.error(`[mesas] no se pudo cambiar ${mesa.id}: ${error?.code} ${error?.message}`);
     return NextResponse.json({ error: "No pudimos guardar el cambio." }, { status: 500 });
+  }
+  // Achicar la mesa suelta las sillas que ya no existen (disparador de la
+  // 0038): se devuelven sus renglones para que la pantalla no se quede con
+  // sillas que la base ya soltó.
+  if ("capacity" in cambio) {
+    const { data: filas } = await createAdminClient()
+      .from("seat_assignments")
+      .select(COLUMNAS_ASIENTO)
+      .eq("wedding_id", wedding.id)
+      .eq("table_id", mesa.id);
+    return NextResponse.json({ mesa: mesaDeFila(data), asientos: (filas ?? []).map(asientoDeFila) });
   }
   return NextResponse.json({ mesa: mesaDeFila(data) });
 }

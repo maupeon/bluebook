@@ -55,6 +55,7 @@ export function PlanoParaImprimir({
   asientos,
   grupos,
   paxPorMesa,
+  asientosPorMesa,
   porSentar,
   isEnglish,
 }: {
@@ -64,6 +65,8 @@ export function PlanoParaImprimir({
   asientos: AsientoDelSalon[];
   grupos: GrupoDelSalon[];
   paxPorMesa: Map<string, number>;
+  /** Por mesa, ya en orden: primero por silla, luego por nombre. */
+  asientosPorMesa: Map<string, AsientoDelSalon[]>;
   porSentar: FaltaPorSentar[];
   isEnglish: boolean;
 }) {
@@ -125,6 +128,7 @@ export function PlanoParaImprimir({
             plano={plano}
             mesas={mesas}
             paxPorMesa={paxPorMesa}
+            asientosPorMesa={asientosPorMesa}
             seleccion={null}
             soloLectura
             sentando={false}
@@ -150,9 +154,7 @@ export function PlanoParaImprimir({
           {mesas.map((m) => {
             const pax = paxPorMesa.get(m.id) ?? 0;
             const sobrecupo = m.capacity != null && pax > m.capacity;
-            const aqui = asientos
-              .filter((a) => a.tableId === m.id)
-              .sort((a, b) => comparable(a.nombre).localeCompare(comparable(b.nombre), "es"));
+            const aqui = asientosPorMesa.get(m.id) ?? [];
             return (
               <div key={m.id} className="mb-5 break-inside-avoid">
                 <p className="flex items-baseline justify-between gap-3 border-b border-noche pb-1">
@@ -172,6 +174,10 @@ export function PlanoParaImprimir({
                       return (
                         <li key={a.id} className="flex items-baseline justify-between gap-3">
                           <span className="min-w-0">
+                            {/* El número de silla, para las tarjetas de lugar. */}
+                            {a.silla != null ? (
+                              <span className="mr-1.5 inline-block w-4 text-right tabular-nums text-tinta">{a.silla}</span>
+                            ) : null}
                             {a.nombre}
                             {dieta ? <span className="text-tinta"> · {dieta}</span> : null}
                           </span>
@@ -227,6 +233,7 @@ export function PlanoParaImprimir({
                 <span className="min-w-0">{a.nombre}</span>
                 <span className="shrink-0 tabular-nums text-tinta">
                   {(a.tableId && nombreDeMesaDe.get(a.tableId)) || (isEnglish ? "No table" : "Sin mesa")}
+                  {a.tableId && a.silla != null ? (isEnglish ? `, seat ${a.silla}` : `, silla ${a.silla}`) : ""}
                   {a.pax > 1 ? ` · ${a.pax}` : ""}
                 </span>
               </li>
