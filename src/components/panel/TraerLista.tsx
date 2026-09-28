@@ -174,12 +174,18 @@ function listaDeFilas(avisos: AvisoDeFila[]): string {
   return nums.length > 6 ? `${nums.slice(0, 6).join(", ")}…` : nums.join(", ");
 }
 
+// Los botones de la marca: azul noche el principal, niebla con borde de campo
+// el secundario. Responden al presionar, no al soltar.
 const botonPrimario =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-noche disabled:active:scale-100";
 const botonSecundario =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-5 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50 disabled:active:scale-100";
+// Campos: papel azul dentro de la tarjeta niebla, borde de campo y foco noche.
 const selectClass =
-  "w-full rounded-xl border border-sand bg-white px-3 py-2 font-body text-sm text-ink outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20";
+  "w-full rounded-xl border border-linea-control/70 bg-papel px-3 py-2 text-sm text-noche outline-none transition-[border-color,box-shadow] duration-150 focus:border-noche focus:ring-2 focus:ring-noche/20";
+// Terciario: noche con el subrayado en azul línea.
+const claseEnlace =
+  "text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche";
 
 export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; soloLectura: boolean }) {
   const { isEnglish: en } = useLanguage();
@@ -306,10 +312,10 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
       <div className="panel-card flex flex-wrap items-center justify-between gap-5 p-6 sm:p-8">
         <div className="max-w-xl">
           <Eyebrow>{en ? "Already have a list?" : "¿Ya tienen su lista?"}</Eyebrow>
-          <p className="mt-3 font-heading text-2xl font-medium leading-snug tracking-[-0.01em] text-ink">
+          <p className="mt-3 text-xl font-medium leading-snug text-noche">
             {en ? "Bring it from Google Sheets or Excel." : "Tráiganla de Google Sheets o Excel."}
           </p>
-          <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+          <p className="mt-2 text-sm leading-relaxed text-tinta">
             {en
               ? "Paste the cells or upload the file. We show you what will come in before saving anything."
               : "Peguen las celdas o suban el archivo. Antes de guardar nada, les enseñamos cómo va a quedar."}
@@ -325,7 +331,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
         <button
           type="button"
           onClick={() => setAbierto(true)}
-          className="inline-flex min-h-[2.75rem] items-center gap-2 font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+          className={`inline-flex min-h-[2.75rem] items-center gap-2 text-sm ${claseEnlace}`}
         >
           <FileSpreadsheet className="h-4 w-4" strokeWidth={1.6} />
           {en ? "Bring more guests from your sheet" : "Traer más invitados de su hoja"}
@@ -335,9 +341,9 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
   }
 
   const aviso = error ? (
-    <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl bg-terra-light px-4 py-3">
-      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep" strokeWidth={1.5} />
-      <p className="font-body text-sm text-terra-deep">{error}</p>
+    <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl border border-error/40 bg-error-fondo px-4 py-3">
+      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-error" strokeWidth={1.5} />
+      <p className="text-sm text-error">{error}</p>
     </div>
   ) : null;
 
@@ -345,11 +351,11 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
   if (hecho) {
     return (
       <div ref={raiz} className="panel-card p-6 sm:p-8" role="status">
-        <p className="flex items-center gap-2 font-heading text-2xl font-medium text-ink">
-          <Check className="h-5 w-5 text-azul" strokeWidth={1.8} />
+        <p className="flex items-center gap-2 text-xl font-medium text-noche">
+          <Check className="h-5 w-5 text-tinta" strokeWidth={1.8} />
           {en ? "Your list is in." : "Su lista ya está aquí."}
         </p>
-        <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+        <p className="mt-2 text-sm leading-relaxed text-tinta">
           {en
             ? `${hecho.nuevos} new ${hecho.nuevos === 1 ? "group" : "groups"} and ${hecho.actualizados} updated. Now you have ${hecho.total_despues}.`
             : `Entraron ${hecho.nuevos} ${hecho.nuevos === 1 ? "grupo nuevo" : "grupos nuevos"} y se actualizaron ${hecho.actualizados}. Ya son ${hecho.total_despues}.`}
@@ -376,12 +382,12 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
     return (
       <div ref={raiz} className="panel-card scroll-mt-24 p-6 sm:p-8">
         <Eyebrow>{en ? "Before saving" : "Antes de guardar"}</Eyebrow>
-        <h3 className="mt-3 font-heading text-2xl font-medium tracking-[-0.01em] text-ink">
+        <h3 className="mt-3 text-xl font-medium text-noche">
           {en ? "This is how your list would look" : "Así quedaría su lista"}
         </h3>
 
         {r ? (
-          <p className="mt-3 font-body text-sm leading-relaxed text-ink">
+          <p className="mt-3 text-sm leading-relaxed text-noche">
             {[
               en ? `${r.nuevos} new` : `${r.nuevos} ${r.nuevos === 1 ? "nuevo" : "nuevos"}`,
               r.actualizados ? (en ? `${r.actualizados} updated` : `${r.actualizados} se actualizan`) : null,
@@ -392,7 +398,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
               .join(" · ")}
           </p>
         ) : (
-          <p className="mt-3 font-body text-sm text-ink-muted">
+          <p className="mt-3 text-sm text-tinta">
             {en ? "We didn't find guests in that list. Check which column is the name." : "No encontramos invitados en esa lista. Revisen cuál columna es el nombre."}
           </p>
         )}
@@ -412,7 +418,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
           ))}
         </div>
         <details className="mt-3">
-          <summary className="inline-flex min-h-[2.75rem] cursor-pointer items-center font-body text-sm text-azul-deep underline-offset-4 hover:underline">
+          <summary className={`inline-flex min-h-[2.75rem] cursor-pointer items-center text-sm ${claseEnlace}`}>
             {en ? "More columns" : "Más columnas"}
           </summary>
           <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -432,7 +438,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
 
         {previa.hojas && previa.hojas.length > 1 ? (
           <label className="mt-4 block max-w-xs">
-            <span className="mb-1.5 block font-body text-xs font-medium text-ink-muted">{en ? "Sheet" : "Hoja"}</span>
+            <span className="mb-1.5 block text-xs font-medium text-tinta">{en ? "Sheet" : "Hoja"}</span>
             <select
               value={previa.hoja ?? ""}
               disabled={trabajando}
@@ -453,7 +459,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
         ) : null}
         {pestanas.length > 1 ? (
           <label className="mt-4 block max-w-xs">
-            <span className="mb-1.5 block font-body text-xs font-medium text-ink-muted">{en ? "Tab" : "Pestaña"}</span>
+            <span className="mb-1.5 block text-xs font-medium text-tinta">{en ? "Tab" : "Pestaña"}</span>
             <select value={pestanaActual} disabled={trabajando} onChange={(e) => cambiarPestana(Number(e.target.value))} className={selectClass}>
               {pestanas.map((p, i) => (
                 <option key={p.titulo} value={i}>
@@ -465,7 +471,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
         ) : null}
 
         {r?.excede ? (
-          <div className="mt-5 rounded-xl bg-terra-light px-4 py-3 font-body text-sm text-terra-deep">
+          <div className="mt-5 rounded-xl border border-error/40 bg-error-fondo px-4 py-3 text-sm text-error">
             {r.maximo != null && r.total_antes >= r.maximo
               ? en
                 ? `Your package covers up to ${r.maximo} invitations and your list already has ${r.total_antes}. To save the rest, remove from your sheet the ${r.nuevos} new ${r.nuevos === 1 ? "group" : "groups"} (marked «New»); to add more, write to us to extend it.`
@@ -477,10 +483,10 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
         ) : null}
 
         {previa.notas.length > 0 ? (
-          <ul className="mt-5 space-y-1.5 font-body text-sm leading-relaxed text-ink">
+          <ul className="mt-5 space-y-1.5 text-sm leading-relaxed text-noche">
             {previa.notas.map((n) => (
               <li key={n.tipo} className="flex gap-2">
-                <span aria-hidden="true" className="text-azul">·</span>
+                <span aria-hidden="true" className="text-tinta">·</span>
                 {textoDeNota(n, en)}
               </li>
             ))}
@@ -488,10 +494,10 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
         ) : null}
 
         {porTipo.size > 0 ? (
-          <ul className="mt-5 space-y-1.5 font-body text-sm leading-relaxed text-ink-muted">
+          <ul className="mt-5 space-y-1.5 text-sm leading-relaxed text-tinta">
             {[...porTipo.entries()].map(([tipo, lista]) => (
               <li key={tipo} className="flex gap-2">
-                <span aria-hidden="true" className="text-azul">·</span>
+                <span aria-hidden="true" className="text-tinta">·</span>
                 {textoDeAviso(tipo, lista.length, listaDeFilas(lista), en)}
               </li>
             ))}
@@ -499,10 +505,10 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
         ) : null}
 
         {previa.filas.length > 0 ? (
-          <div className="mt-6 max-h-[28rem] overflow-auto rounded-2xl border border-sand">
-            <table className="w-full min-w-[36rem] border-collapse text-left font-body text-sm">
-              <thead className="sticky top-0 bg-bone">
-                <tr className="border-b border-sand text-xs text-ink-muted">
+          <div className="mt-6 max-h-[28rem] overflow-auto rounded-2xl border border-linea">
+            <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+              <thead className="sticky top-0 bg-papel">
+                <tr className="border-b border-linea text-xs text-tinta">
                   <th scope="col" className="px-3 py-2 font-medium">{en ? "Row" : "Fila"}</th>
                   <th scope="col" className="px-3 py-2 font-medium">{en ? "Name" : "Nombre"}</th>
                   <th scope="col" className="px-3 py-2 font-medium">WhatsApp</th>
@@ -512,11 +518,11 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
               </thead>
               <tbody>
                 {previa.filas.slice(0, FILAS_A_LA_VISTA).map((f) => (
-                  <tr key={f.fila} className="border-b border-sand/60 align-top last:border-b-0">
-                    <td className="px-3 py-2 tabular-nums text-ink-muted">{f.fila}</td>
-                    <td className="px-3 py-2 text-ink">{f.nombre}</td>
-                    <td className="px-3 py-2 tabular-nums text-ink-muted">{f.telefono ?? "—"}</td>
-                    <td className="px-3 py-2 tabular-nums text-ink-muted">{f.pases ?? "—"}</td>
+                  <tr key={f.fila} className="border-b border-linea/60 align-top last:border-b-0">
+                    <td className="px-3 py-2 tabular-nums text-tinta">{f.fila}</td>
+                    <td className="px-3 py-2 text-noche">{f.nombre}</td>
+                    <td className="px-3 py-2 tabular-nums text-tinta">{f.telefono ?? "—"}</td>
+                    <td className="px-3 py-2 tabular-nums text-tinta">{f.pases ?? "—"}</td>
                     <td className="px-3 py-2">
                       <QuePasa fila={f} en={en} />
                     </td>
@@ -525,7 +531,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
               </tbody>
             </table>
             {previa.filas.length > FILAS_A_LA_VISTA ? (
-              <p className="border-t border-sand px-3 py-2 font-body text-xs text-ink-muted">
+              <p className="border-t border-linea px-3 py-2 text-xs text-tinta">
                 {en
                   ? `And ${previa.filas.length - FILAS_A_LA_VISTA} more rows, counted in the summary.`
                   : `Y ${previa.filas.length - FILAS_A_LA_VISTA} filas más, contadas en el resumen.`}
@@ -534,7 +540,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
           </div>
         ) : null}
 
-        <p className="mt-5 max-w-[62ch] font-body text-xs leading-relaxed text-ink-muted">
+        <p className="mt-5 max-w-[62ch] text-xs leading-relaxed text-tinta">
           {en
             ? "We never delete anyone: whoever isn't in your sheet stays in your list. Replies aren't imported; they come in on WhatsApp or you set them here."
             : "No borramos a nadie: quien no esté en su hoja se queda en su lista. Las confirmaciones no se importan: llegan por WhatsApp o las apuntan aquí."}
@@ -599,8 +605,10 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
               setModo(id);
               setError(null);
             }}
-            className={`inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border px-4 py-2 font-body text-sm transition-colors ${
-              modo === id ? "border-ink bg-ink text-white" : "border-sand bg-white text-ink hover:bg-bone"
+            className={`inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border px-4 py-2 text-sm transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+              modo === id
+                ? "border-noche bg-noche text-niebla"
+                : "border-linea-control/60 bg-niebla text-noche hover:border-linea-control hover:bg-papel-medio"
             }`}
           >
             <Icono className="h-4 w-4" strokeWidth={1.6} />
@@ -611,7 +619,7 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
 
       {modo === "pegar" ? (
         <div className="mt-5">
-          <label htmlFor="lista-pegada" className="block font-body text-sm leading-relaxed text-ink-muted">
+          <label htmlFor="lista-pegada" className="block text-sm leading-relaxed text-tinta">
             {en
               ? "In your sheet, select everything (⌘A or Ctrl+A), copy it and paste it here. Headers included, if it has them."
               : "En su hoja, seleccionen todo (⌘A o Ctrl+A), cópienlo y péguenlo aquí. Con los encabezados, si los tiene."}
@@ -623,12 +631,12 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
             rows={8}
             spellCheck={false}
             placeholder={en ? "Name\tWhatsApp\tSeats\nLópez family\t55 1234 5678\t4" : "Nombre\tWhatsApp\tPases\nFamilia López\t55 1234 5678\t4"}
-            className="mt-3 w-full rounded-2xl border border-sand bg-white px-4 py-3 font-mono text-xs leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-soft/50 focus:border-azul focus:ring-2 focus:ring-azul/20"
+            className="mt-3 w-full rounded-2xl border border-linea-control/70 bg-papel px-4 py-3 tabular-nums text-xs leading-relaxed text-noche outline-none transition-[border-color,box-shadow] duration-150 focus:border-noche focus:ring-2 focus:ring-noche/20"
           />
         </div>
       ) : modo === "archivo" ? (
         <div className="mt-5">
-          <label htmlFor="lista-archivo" className="block font-body text-sm leading-relaxed text-ink-muted">
+          <label htmlFor="lista-archivo" className="block text-sm leading-relaxed text-tinta">
             {en
               ? "An .xlsx or .csv file. From Google Sheets: File › Download › Microsoft Excel (.xlsx)."
               : "Un archivo .xlsx o .csv. Desde Google Sheets: Archivo › Descargar › Microsoft Excel (.xlsx)."}
@@ -638,15 +646,15 @@ export function TraerLista({ listaVacia, soloLectura }: { listaVacia: boolean; s
             type="file"
             accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
             onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
-            className="mt-3 block w-full font-body text-sm text-ink file:mr-4 file:rounded-full file:border file:border-sand file:bg-white file:px-4 file:py-2 file:font-body file:text-sm file:text-ink hover:file:bg-bone"
+            className="mt-3 block w-full text-sm text-noche file:mr-4 file:rounded-full file:border file:border-linea-control/60 file:bg-niebla file:px-4 file:py-2 file:text-sm file:font-medium file:text-noche file:transition-[background-color,border-color] file:duration-150 hover:file:border-linea-control hover:file:bg-papel-medio"
           />
-          <p className="mt-2 font-body text-xs text-ink-muted">
+          <p className="mt-2 text-xs text-tinta">
             {en ? "We read it and don't keep it." : "Lo leemos y no lo guardamos."}
           </p>
         </div>
       ) : (
         <div className="mt-5">
-          <p className="font-body text-sm leading-relaxed text-ink-muted">
+          <p className="text-sm leading-relaxed text-tinta">
             {en
               ? "Google will ask you for permission only for the sheet you choose. We read it once and withdraw the permission as soon as it's read."
               : "Google les va a pedir permiso solo para la hoja que elijan. La leemos una vez y retiramos el permiso en cuanto se termina de leer."}
@@ -699,7 +707,7 @@ function SelectorDeColumna({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block font-body text-xs font-medium text-ink-muted">{etiqueta}</span>
+      <span className="mb-1.5 block text-xs font-medium text-tinta">{etiqueta}</span>
       <select value={valor} disabled={deshabilitado} onChange={(e) => alCambiar(Number(e.target.value))} className={selectClass}>
         <option value={-1}>{en ? "— Not in the list —" : "— No viene —"}</option>
         {encabezados.map((h, j) => (
@@ -714,16 +722,16 @@ function SelectorDeColumna({
 
 function QuePasa({ fila, en }: { fila: FilaPrevia; en: boolean }) {
   if (fila.accion === "nuevo") {
-    return <span className="font-medium text-azul-deep">{en ? "New" : "Nuevo"}</span>;
+    return <span className="font-medium text-noche">{en ? "New" : "Nuevo"}</span>;
   }
   if (fila.accion === "actualiza") {
     const cambios = fila.cambios.map((c) => (CAMBIOS[c] ? CAMBIOS[c][en ? 1 : 0] : c)).join(", ");
     return (
-      <span className="text-ink">
+      <span className="text-noche">
         {en ? "Updates " : "Se actualiza "}
         {cambios}
         {fila.existente && fila.cambios.includes("nombre") ? (
-          <span className="block text-xs text-ink-muted">
+          <span className="block text-xs text-tinta">
             {en ? "Was: " : "Era: "}
             {fila.existente}
           </span>
@@ -734,7 +742,7 @@ function QuePasa({ fila, en }: { fila: FilaPrevia; en: boolean }) {
   }
   if (fila.accion === "igual") {
     return (
-      <span className="text-ink-muted">
+      <span className="text-tinta">
         {en ? "Already there" : "Ya estaba"}
         {fila.aviso === "pases_ya_enviados" ? <AvisoDePases en={en} /> : null}
       </span>
@@ -742,7 +750,7 @@ function QuePasa({ fila, en }: { fila: FilaPrevia; en: boolean }) {
   }
   const motivo = fila.motivo && MOTIVOS[fila.motivo] ? MOTIVOS[fila.motivo][en ? 1 : 0] : "";
   return (
-    <span className="text-terra-deep">
+    <span className="text-error">
       {en ? "Doesn't come in. " : "No entra. "}
       {motivo}
     </span>
@@ -751,7 +759,7 @@ function QuePasa({ fila, en }: { fila: FilaPrevia; en: boolean }) {
 
 function AvisoDePases({ en }: { en: boolean }) {
   return (
-    <span className="block text-xs text-ink-muted">
+    <span className="block text-xs text-tinta">
       {en
         ? "Their seats don't change: the invitation already went out or they replied."
         : "Sus pases no cambian: ya se le mandó la invitación o ya contestó."}

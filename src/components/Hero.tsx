@@ -36,13 +36,13 @@ export function Hero() {
   return (
     <section className="relative min-h-screen overflow-hidden pt-20">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-light via-muted/30 to-white" />
+      <div className="absolute inset-0 bg-gradient-to-b from-papel via-papel/30 to-niebla" />
       <div className="absolute inset-0 floral-pattern opacity-30" />
 
       {/* Decorative blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/5 rounded-full blur-3xl" />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-tinta/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-tinta/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-tinta/5 rounded-full blur-3xl" />
 
       {/* Floating hearts */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -58,7 +58,7 @@ export function Hero() {
             }}
           >
             <Heart
-              className="text-accent"
+              className="text-tinta"
               style={{
                 width: `${18 + i * 4}px`,
                 height: `${18 + i * 4}px`,
@@ -74,44 +74,44 @@ export function Hero() {
           {/* Text Content */}
           <div className="text-center lg:text-left order-2 lg:order-1">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg shadow-primary/5 mb-6 border border-white/50 group hover:shadow-xl transition-all duration-500">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-niebla/90 backdrop-blur-md rounded-full shadow-lg shadow-tinta/5 mb-6 border border-niebla/50 group hover:shadow-xl transition-all duration-500">
               <div className="relative">
-                <BookOpen className="w-5 h-5 text-accent" />
-                <Sparkles className="w-3 h-3 text-accent absolute -top-1 -right-1 animate-ping" />
+                <BookOpen className="w-5 h-5 text-tinta" />
+                <Sparkles className="w-3 h-3 text-tinta absolute -top-1 -right-1 animate-ping" />
               </div>
-              <span className="font-body text-sm font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="font-body text-sm font-medium bg-gradient-to-r from-tinta to-tinta bg-clip-text text-transparent">
                 {isEnglish ? "Interactive Digital Album" : "Album Digital Interactivo"}
               </span>
             </div>
 
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-semibold text-dark leading-tight mb-6">
+            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-medium text-noche leading-tight mb-6">
               {isEnglish ? "Turn your photos into a" : "Convierte tus fotos en un"}{" "}
               <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+                <span className="relative z-10 bg-gradient-to-r from-tinta via-tinta to-tinta bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
                   {isEnglish ? "magical keepsake" : "recuerdo magico"}
                 </span>
-                <svg className="absolute -bottom-2 left-0 w-full h-3 text-accent/30" viewBox="0 0 200 12" fill="none">
+                <svg className="absolute -bottom-2 left-0 w-full h-3 text-tinta/30" viewBox="0 0 200 12" fill="none">
                   <path d="M2 8c30-4 60-6 90-6s70 4 106 6" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
                 </svg>
               </span>
             </h1>
 
-            <p className="font-body text-lg sm:text-xl text-secondary leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="font-body text-lg sm:text-xl text-tinta leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0">
               {isEnglish ? (
                 <>
-                  Create an <span className="font-semibold text-primary">interactive digital flipbook</span> with your wedding photos.
+                  Create an <span className="font-medium text-tinta">interactive digital flipbook</span> with your wedding photos.
                   Share it with family and friends in one link.
                 </>
               ) : (
                 <>
-                  Crea un <span className="font-semibold text-primary">flipbook digital interactivo</span> con las fotos de tu boda.
+                  Crea un <span className="font-medium text-tinta">flipbook digital interactivo</span> con las fotos de tu boda.
                   Compartelo con familia y amigos con un solo link.
                 </>
               )}
             </p>
 
             {/* Feature Pills */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-sm text-secondary mb-8">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-sm text-tinta mb-8">
               {[
                 { icon: BookOpen, text: isEnglish ? "Interactive flipbook" : "Flipbook interactivo" },
                 { icon: Share2, text: isEnglish ? "Easy to share" : "Facil de compartir" },
@@ -120,9 +120,9 @@ export function Hero() {
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 border border-white/50 group cursor-default"
+                  className="flex items-center gap-2 bg-niebla/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 border border-niebla/50 group cursor-default"
                 >
-                  <item.icon className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
+                  <item.icon className="w-4 h-4 text-tinta group-hover:scale-110 transition-transform" />
                   <span className="font-body font-medium text-xs sm:text-sm">{item.text}</span>
                 </div>
               ))}
@@ -132,14 +132,14 @@ export function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link
                 href="/album-digital"
-                className="group inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white font-body font-semibold rounded-full hover:shadow-2xl hover:shadow-primary/30 transition-all duration-500 hover:scale-105"
+                className="group inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-tinta to-noche text-niebla font-body font-medium rounded-full hover:shadow-2xl hover:shadow-tinta/30 transition-all duration-500 hover:scale-105"
               >
                 <span>{isEnglish ? "Create my album" : "Crear mi album"}</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/album-digital#pricing"
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-primary font-body font-semibold rounded-full border-2 border-primary/20 hover:border-accent hover:bg-accent/5 transition-all duration-300 shadow-sm"
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-niebla text-tinta font-body font-medium rounded-full border-2 border-tinta/20 hover:border-tinta hover:bg-tinta/5 transition-all duration-300 shadow-sm"
               >
                 {isEnglish ? "View pricing" : "Ver precios"}
               </Link>
@@ -148,24 +148,24 @@ export function Hero() {
             {/* Trust Badges */}
             <div className="flex items-center gap-6 mt-10 justify-center lg:justify-start">
               <div className="text-center">
-                <p className="font-heading text-2xl sm:text-3xl font-bold text-primary">500+</p>
-                <p className="font-body text-xs sm:text-sm text-secondary">
+                <p className="font-heading text-2xl sm:text-3xl font-medium text-tinta">500+</p>
+                <p className="font-body text-xs sm:text-sm text-tinta">
                   {isEnglish ? "Albums created" : "Albumes creados"}
                 </p>
               </div>
-              <div className="w-px h-10 bg-border" />
+              <div className="w-px h-10 bg-linea" />
               <div className="text-center">
-                <p className="font-heading text-2xl sm:text-3xl font-bold text-primary">98%</p>
-                <p className="font-body text-xs sm:text-sm text-secondary">
+                <p className="font-heading text-2xl sm:text-3xl font-medium text-tinta">98%</p>
+                <p className="font-body text-xs sm:text-sm text-tinta">
                   {isEnglish ? "Happy couples" : "Parejas felices"}
                 </p>
               </div>
-              <div className="w-px h-10 bg-border hidden sm:block" />
+              <div className="w-px h-10 bg-linea hidden sm:block" />
               <div className="text-center hidden sm:block">
-                <p className="font-heading text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center gap-1">
+                <p className="font-heading text-2xl sm:text-3xl font-medium text-tinta flex items-center justify-center gap-1">
                   <Infinity className="w-5 h-5" />
                 </p>
-                <p className="font-body text-xs sm:text-sm text-secondary">
+                <p className="font-body text-xs sm:text-sm text-tinta">
                   {isEnglish ? "Lifetime" : "De por vida"}
                 </p>
               </div>
@@ -177,7 +177,7 @@ export function Hero() {
             <div className="relative">
               {/* Demo label */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                <div className="flex items-center gap-2 bg-accent text-primary px-4 py-1.5 rounded-full shadow-lg text-sm font-body font-semibold">
+                <div className="flex items-center gap-2 bg-tinta text-tinta px-4 py-1.5 rounded-full shadow-lg text-sm font-body font-medium">
                   <Sparkles className="w-4 h-4" />
                   {isEnglish ? "Interactive demo" : "Demo interactivo"}
                 </div>
@@ -195,7 +195,7 @@ export function Hero() {
 
               {/* Floating label below */}
               <div className="text-center mt-4">
-                <p className="font-body text-sm text-secondary/70">
+                <p className="font-body text-sm text-tinta/70">
                   <span className="hidden sm:inline">{isEnglish ? "Use arrows or " : "Usa las flechas o "}</span>
                   {isEnglish ? "tap pages to navigate" : "haz click en las paginas para navegar"}
                 </p>

@@ -20,6 +20,7 @@ import {
   PasoPresupuesto,
   PasoPrioridades,
   PasoWhatsApp,
+  TituloDePantalla,
 } from "./pasos";
 import { PasoGuardar } from "./PasoGuardar";
 import {
@@ -255,55 +256,52 @@ export function Onboarding({
   const enPregunta = indice > 0 && vuelta === null;
   const propsDePaso = { r, cambiar, avanzar, tituloRef, isEnglish };
 
+  // La acuarela detrás de los anillos: azul línea y tenue, porque la página es
+  // papel azul y una mancha papel sobre papel no se vería.
   let contenido: ReactNode;
   if (vuelta === "leyendo" || vuelta === "guardando") {
     contenido = (
       <div role="status" className="flex flex-1 flex-col items-center justify-center pb-16 text-center">
         <div className="relative mx-auto h-36 w-52">
-          <Watercolor seed={4} className="absolute inset-0 h-full w-full" />
-          <Rings className="relative mx-auto h-32 w-auto text-line" />
+          <Watercolor seed={4} tone="linea" opacity={0.5} className="absolute inset-0 h-full w-full" />
+          <Rings className="relative mx-auto h-32 w-auto text-tinta" />
         </div>
-        <h1
-          ref={tituloRef}
-          tabIndex={-1}
-          className="mt-6 font-heading text-4xl font-medium tracking-[-0.02em] text-navy outline-none"
-        >
+        <TituloDePantalla tituloRef={tituloRef} tamano="pantalla" className="mt-6">
           {isEnglish ? "Saving your wedding…" : "Guardando tu boda…"}
-        </h1>
-        <p className="mt-3 font-body text-[15px] text-navy-muted">
+        </TituloDePantalla>
+        <p className="mt-3 text-[15px] text-tinta">
           {isEnglish ? "One moment and you're in your panel." : "Un momento y entras a tu panel."}
         </p>
       </div>
     );
   } else if (vuelta === "perdidas") {
+    // El titular más largo del recorrido (68 caracteres con un nombre corto):
+    // va en tamaño hoja y con la columna ancha (max-w-3xl, abajo) para caber
+    // en dos líneas desde sm. En teléfono no cabe en dos a ningún tamaño digno.
     contenido = (
       <div className="flex flex-1 flex-col justify-center pb-16">
-        <h1
-          ref={tituloRef}
-          tabIndex={-1}
-          className="font-heading text-[2.35rem] font-medium leading-[1.05] tracking-[-0.02em] text-navy text-balance outline-none sm:text-5xl"
-        >
+        <TituloDePantalla tituloRef={tituloRef} tamano="hoja" amplio>
           {isEnglish
             ? `You're in${r.nombre ? `, ${r.nombre}` : ""}. Your answers got lost on the way.`
             : `Ya entraste${r.nombre ? `, ${r.nombre}` : ""}. Solo se me perdieron tus respuestas en el camino.`}
-        </h1>
-        <p className="mt-4 max-w-[46ch] font-body text-[15px] leading-relaxed text-navy-muted">
+        </TituloDePantalla>
+        <p className="mx-auto mt-4 max-w-[46ch] text-center text-[15px] leading-relaxed text-tinta">
           {isEnglish
             ? "It happens sometimes when coming back from Google. Tell me again? It takes two minutes. Or save it like this and fill it in from your panel."
             : "A veces pasa al volver de Google. ¿Me las cuentas otra vez? Son dos minutos. O guárdala así y lo llenas desde tu panel."}
         </p>
         {errorAlGuardar ? (
-          <p role="alert" className="mt-6 rounded-xl bg-terra-light px-4 py-3 font-body text-sm text-terra-deep">
+          <p role="alert" className="mx-auto mt-6 w-full max-w-md rounded-xl bg-error-fondo px-4 py-3 text-center text-sm text-error">
             {errorAlGuardar}
           </p>
         ) : null}
         <CasillaDeTerminos
-          className="mt-8"
+          className="mt-8 justify-center"
           aceptada={r.aceptaTerminos}
           alCambiar={(v) => cambiar({ aceptaTerminos: v })}
           isEnglish={isEnglish}
         />
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"
             className={BOTON_PRIMARIO}
@@ -336,20 +334,18 @@ export function Onboarding({
     contenido = (
       <div className="flex flex-1 flex-col items-center justify-center pb-10 text-center">
         <div className="relative mx-auto h-40 w-60">
-          <Watercolor seed={4} className="absolute inset-0 h-full w-full" />
-          <Rings className="relative mx-auto h-36 w-auto text-line" />
+          <Watercolor seed={4} tone="linea" opacity={0.5} className="absolute inset-0 h-full w-full" />
+          <Rings className="relative mx-auto h-36 w-auto text-tinta" />
         </div>
-        <p aria-hidden="true" className="mt-4 font-script text-[2rem] leading-none text-line">
+        {/* La nota manuscrita junto al dibujo, en tinta: decorativa, no dice
+            nada que no diga el titular. */}
+        <p aria-hidden="true" className="frase mt-4 text-[2rem] leading-none text-tinta">
           Something blue
         </p>
-        <h1
-          ref={tituloRef}
-          tabIndex={-1}
-          className="mt-3 font-heading text-[2.9rem] font-medium leading-[1.02] tracking-[-0.02em] text-navy text-balance outline-none sm:text-6xl"
-        >
+        <TituloDePantalla tituloRef={tituloRef} tamano="pantalla" className="mt-3">
           {isEnglish ? "Tell me about your wedding." : "Cuéntame de tu boda."}
-        </h1>
-        <p className="mt-5 max-w-[36ch] font-body text-base leading-relaxed text-navy-muted text-pretty sm:text-lg">
+        </TituloDePantalla>
+        <p className="mt-5 max-w-[36ch] text-base leading-relaxed text-tinta text-pretty sm:text-lg">
           {isEnglish
             ? "It takes two minutes, and you can change everything later."
             : "Son dos minutos, y todo se puede cambiar después."}
@@ -357,16 +353,16 @@ export function Onboarding({
         <button type="button" onClick={() => setIndice(1)} className={`${BOTON_PRIMARIO} mt-9 w-full sm:w-auto sm:px-12`}>
           {isEnglish ? "Start" : "Empezar"}
         </button>
-        <p className="mt-4 font-body text-sm text-navy-muted">
+        <p className="mt-4 text-sm text-tinta">
           {isEnglish
             ? `${DIAS_DE_PRUEBA} days to try everything. No card.`
             : `${DIAS_DE_PRUEBA} días para probarlo todo. Sin tarjeta.`}
         </p>
-        <p className="mt-12 font-body text-sm text-navy-muted">
+        <p className="mt-12 text-sm text-tinta">
           {isEnglish ? "Already have your panel? " : "¿Ya tienes tu panel? "}
           <Link
             href="/acceso"
-            className="inline-flex min-h-[44px] items-center font-semibold text-azul-deep underline-offset-4 hover:text-navy hover:underline"
+            className="inline-flex min-h-[44px] items-center font-medium text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] hover:decoration-noche"
           >
             {isEnglish ? "Sign in" : "Entrar"}
           </Link>
@@ -419,10 +415,7 @@ export function Onboarding({
   return (
     <div
       ref={raiz}
-      // panel-sb además de sb: SeparadorO y el hook de acceso vienen del
-      // formulario de /acceso, que pinta con los neutros del panel (sand,
-      // ink). panel-sb los vuelve azules aquí también.
-      className="sb panel-sb fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden overscroll-contain bg-paper"
+      className="fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden overscroll-contain bg-papel"
     >
       <header className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-h-[44px] items-center gap-2.5 justify-self-start">
@@ -430,7 +423,7 @@ export function Onboarding({
           {/* Debajo de 400px el nombre se partía en dos renglones junto a los
               puntos del progreso. Ahí basta el ícono; el nombre se queda para
               lectores de pantalla (es el nombre del enlace). */}
-          <span className="whitespace-nowrap font-round text-base uppercase leading-none tracking-[0.04em] text-navy max-[399px]:sr-only">
+          <span className="whitespace-nowrap font-round text-base uppercase leading-none tracking-[0.04em] text-noche max-[399px]:sr-only">
             Blue Book
           </span>
         </Link>
@@ -438,17 +431,24 @@ export function Onboarding({
         <Link
           href="/"
           aria-label={isEnglish ? "Leave" : "Salir"}
-          className="flex h-11 w-11 items-center justify-center justify-self-end rounded-full text-navy-muted transition-colors hover:bg-wash-soft hover:text-navy"
+          className="flex h-11 w-11 items-center justify-center justify-self-end rounded-full text-tinta transition-colors hover:bg-papel-medio hover:text-noche"
         >
           <X className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
         </Link>
       </header>
 
+      {/* Desde lg la pregunta comparte la fila con el save-the-date. Entre
+          1024 y 1280px la tarjeta mide 18rem y el hueco 3rem: así la columna
+          de la pregunta llega a ~620px, lo que pide la más larga para caber
+          en dos líneas a 44px (ver TAMANOS_DE_TITULO en pasos). Desde xl hay
+          aire para la tarjeta de 21rem y el hueco de 6rem.
+          Sin pregunta (bienvenida, guardando, perdidas) la columna es de
+          max-w-3xl: el titular de «perdidas» necesita ese ancho. */}
       <main
         className={`mx-auto w-full px-4 sm:px-6 lg:px-8 ${
           enPregunta
-            ? "max-w-6xl lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,21rem)] lg:gap-24"
-            : "max-w-2xl"
+            ? "max-w-6xl lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_21rem] xl:gap-24"
+            : "max-w-3xl"
         }`}
       >
         <section className="flex min-h-[calc(100dvh-4rem)] min-w-0 flex-col pb-12 pt-4 sm:pt-10">
@@ -457,7 +457,7 @@ export function Onboarding({
               type="button"
               onClick={() => setIndice((i) => Math.max(i - 1, 0))}
               disabled={guardando}
-              className="-ml-3 mb-4 inline-flex min-h-[44px] items-center gap-1 self-start rounded-full px-3 font-body text-sm text-navy-muted transition-colors hover:text-navy disabled:opacity-50"
+              className="-ml-3 mb-4 inline-flex min-h-[44px] items-center gap-1 self-start rounded-full px-3 text-sm text-tinta transition-colors hover:text-noche disabled:opacity-50"
             >
               <ChevronLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               {isEnglish ? "Back" : "Atrás"}
@@ -494,12 +494,14 @@ export function Onboarding({
 }
 
 /**
- * Dónde va, sin barra de progreso: ocho puntos y el actual un poco más largo.
- * El texto «3 de 8» va para lectores de pantalla; a la vista basta la forma.
+ * Dónde va: una barra plana, tinta sobre azul línea, partida en un tramo por
+ * pregunta; se llenan los contestados y el actual. Sin degradado ni sombra, y
+ * sin animar el ancho: sólo cambia el color de cada tramo. El texto «3 de 8»
+ * va para lectores de pantalla; a la vista basta la forma.
  */
 function Puntos({ actual, total, isEnglish }: { actual: number; total: number; isEnglish: boolean }) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex w-28 items-center gap-1 sm:w-40">
       <span className="sr-only">
         {isEnglish ? `Question ${actual} of ${total}` : `Pregunta ${actual} de ${total}`}
       </span>
@@ -509,8 +511,8 @@ function Puntos({ actual, total, isEnglish }: { actual: number; total: number; i
           <span
             key={n}
             aria-hidden="true"
-            className={`h-1.5 rounded-full transition-[width,background-color] duration-200 motion-reduce:transition-none ${
-              n === actual ? "w-4 bg-navy" : n < actual ? "w-1.5 bg-azul/60" : "w-1.5 bg-wash-deep"
+            className={`h-1 flex-1 rounded-full transition-colors duration-200 motion-reduce:transition-none ${
+              n <= actual ? "bg-tinta" : "bg-linea"
             }`}
           />
         );

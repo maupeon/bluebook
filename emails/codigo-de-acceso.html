@@ -25,6 +25,20 @@
   SIN IMÁGENES a propósito. Casi todos los clientes de correo bloquean las
   imágenes de un remitente nuevo, y un correo cuya marca es una imagen llega
   roto justo la primera vez, que es la que importa.
+
+  LA MARCA (guía del 28-sep-2026)
+  Fondo papel azul #E8EDF8, tarjeta papel niebla #F4F5F6 con borde azul línea
+  #C6D0E4, texto tinta #55688C, títulos azul noche #2E3A55. Sin degradados,
+  sin negro, sin blanco puro. Las letras van en pilas que caen con dignidad:
+    · Work Sans para el texto. Apple Mail e iOS la bajan del <link>; Gmail no,
+      y cae en Helvetica o Arial, que no tienen Light: por eso va a 400.
+    · Caveat Brush, en mayúsculas, para el nombre y el título (Marker Felt en
+      un Mac si no carga).
+    · Sacramento para la firma «bluebook.mx» (Snell Roundhand en un Mac).
+    · Outlook de escritorio cae en Times New Roman con una fuente que no
+      conoce: el bloque [if mso] lo manda a Arial.
+  El código ya no va en monoespaciada: son sólo dígitos, y los de Work Sans
+  con tabular-nums quedan igual de alineados.
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -34,17 +48,26 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="supported-color-schemes" content="light dark" />
     <title>Su código para entrar a Blue Book</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Sacramento&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <!--[if mso]>
+      <style>
+        body, table, td, p, span, h1 { font-family: Arial, Helvetica, sans-serif !important; }
+      </style>
+    <![endif]-->
     <style>
-      /* Apple Mail y clientes que respetan el modo oscuro. Gmail invierte por
-         su cuenta y no lee esto; por eso los colores de abajo también se leen
-         bien invertidos. */
+      /* Apple Mail y los clientes que respetan el modo oscuro. La marca no
+         tiene modo oscuro propio: aquí se da vuelta con sus mismos colores
+         (azul noche de papel, niebla de tinta, azul línea para lo suave), sin
+         negro. Gmail invierte por su cuenta y no lee esto; por eso los colores
+         de abajo también se leen bien invertidos. */
       @media (prefers-color-scheme: dark) {
-        .bb-fondo { background-color: #14202f !important; }
-        .bb-tarjeta { background-color: #1b2838 !important; border-color: #2c3d52 !important; }
-        .bb-tinta { color: #eef2f7 !important; }
-        .bb-tinta-suave { color: #b3c0d1 !important; }
-        .bb-codigo { background-color: #14202f !important; border-color: #4a76a8 !important; color: #eef2f7 !important; }
-        .bb-pie { color: #8a99ad !important; }
+        .bb-fondo { background-color: #2e3a55 !important; }
+        .bb-tarjeta { background-color: #364360 !important; border-color: #55688c !important; }
+        .bb-tinta { color: #f4f5f6 !important; }
+        .bb-tinta-suave { color: #c6d0e4 !important; }
+        .bb-codigo { background-color: #2e3a55 !important; border-color: #c6d0e4 !important; color: #f4f5f6 !important; }
+        .bb-regla { background-color: #55688c !important; }
+        .bb-pie { color: #c6d0e4 !important; }
       }
       /* Teléfonos: el código no cabe con 8px de tracking en pantallas chicas. */
       @media only screen and (max-width: 480px) {
@@ -53,23 +76,23 @@
       }
     </style>
   </head>
-  <body class="bb-fondo" style="margin:0; padding:0; background-color:#fbf8f5; -webkit-text-size-adjust:100%;">
+  <body class="bb-fondo" style="margin:0; padding:0; background-color:#e8edf8; -webkit-text-size-adjust:100%;">
     <!-- Línea de vista previa: el código se ve desde la notificación, sin abrir
          el correo. Si prefieren que no aparezca ahí, borren este bloque. -->
     <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
       Su código es {{ .Token }} &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
     </div>
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bb-fondo" style="background-color:#fbf8f5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bb-fondo" style="background-color:#e8edf8;">
       <tr>
         <td align="center" style="padding:40px 16px;">
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
 
-            <!-- Marca -->
+            <!-- Marca: el logotipo BLUE BOOK es marcador, como los titulares -->
             <tr>
-              <td align="center" style="padding-bottom:28px;">
-                <span class="bb-tinta" style="font-family:Georgia,'Times New Roman',serif; font-size:23px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:#1d2e4b;">
+              <td align="center" style="padding-bottom:24px;">
+                <span class="bb-tinta" style="font-family:'Caveat Brush','Marker Felt','Helvetica Neue',Arial,sans-serif; font-size:28px; font-weight:400; letter-spacing:0.04em; line-height:1; text-transform:uppercase; color:#2e3a55;">
                   Blue Book
                 </span>
               </td>
@@ -77,43 +100,45 @@
 
             <!-- Tarjeta -->
             <tr>
-              <td class="bb-tarjeta" style="background-color:#ffffff; border:1px solid #e4d8cf; border-radius:16px;">
+              <td class="bb-tarjeta" style="background-color:#f4f5f6; border:1px solid #c6d0e4; border-radius:16px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td class="bb-relleno" align="center" style="padding:40px 40px 36px 40px;">
 
-                      <h1 class="bb-tinta" style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:27px; font-weight:400; line-height:1.25; letter-spacing:-0.01em; color:#1d2e4b;">
+                      <h1 class="bb-tinta" style="margin:0; font-family:'Caveat Brush','Marker Felt','Helvetica Neue',Arial,sans-serif; font-size:32px; font-weight:400; line-height:1.1; letter-spacing:0.015em; text-transform:uppercase; color:#2e3a55;">
                         Su código para entrar
                       </h1>
 
-                      <p class="bb-tinta-suave" style="margin:14px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:15px; line-height:1.6; color:#5a6a84;">
+                      <p class="bb-tinta-suave" style="margin:14px 0 0 0; font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:15px; font-weight:400; line-height:1.6; color:#55688c;">
                         Escríbanlo en la pantalla donde lo pidieron.
                       </p>
 
-                      <!-- El código -->
+                      <!-- El código: papel azul dentro de la tarjeta niebla -->
                       <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:30px auto 0 auto;">
                         <tr>
-                          <td class="bb-codigo" align="center" style="background-color:#fbf8f5; border:1.5px solid #4a76a8; border-radius:12px; padding:22px 30px; font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,'Courier New',monospace; font-size:33px; font-weight:600; letter-spacing:8px; text-indent:8px; line-height:1.1; color:#1d2e4b; white-space:nowrap;">
+                          <td class="bb-codigo" align="center" style="background-color:#e8edf8; border:1px solid #c6d0e4; border-radius:12px; padding:22px 30px; font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:33px; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:8px; text-indent:8px; line-height:1.1; color:#2e3a55; white-space:nowrap;">
                             {{ .Token }}
                           </td>
                         </tr>
                       </table>
 
-                      <p class="bb-pie" style="margin:18px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:13px; line-height:1.6; color:#5a6a84;">
+                      <p class="bb-pie" style="margin:18px 0 0 0; font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px; font-weight:400; line-height:1.6; color:#55688c;">
                         Caduca en una hora y solo sirve una vez.
                       </p>
 
-                      <!-- Separador -->
+                      <!-- Separador en azul línea -->
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 0 0;">
-                        <tr><td style="height:1px; background-color:#efe6e0; line-height:1px; font-size:0;">&nbsp;</td></tr>
+                        <tr><td class="bb-regla" style="height:1px; background-color:#c6d0e4; line-height:1px; font-size:0;">&nbsp;</td></tr>
                       </table>
 
-                      <p class="bb-pie" style="margin:22px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:13px; line-height:1.65; color:#5a6a84;">
+                      <p class="bb-pie" style="margin:22px 0 0 0; font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px; font-weight:400; line-height:1.65; color:#55688c;">
                         Si no fueron ustedes quienes lo pidieron, pueden ignorar este correo: sin el código nadie entra.
                       </p>
 
-                      <p class="bb-pie" style="margin:14px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:12px; line-height:1.6; color:#8a99ad;">
-                        <em>Your Blue Book sign-in code. Type it on the screen where you asked for it — it expires in one hour.</em>
+                      <!-- En inglés, sin cursiva: Work Sans no la tiene y el
+                           cliente la falsearía. lang para los lectores de pantalla. -->
+                      <p class="bb-pie" lang="en" style="margin:14px 0 0 0; font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; font-weight:400; line-height:1.6; color:#55688c;">
+                        Your Blue Book sign-in code. Type it on the screen where you asked for it — it expires in one hour.
                       </p>
 
                     </td>
@@ -122,11 +147,13 @@
               </td>
             </tr>
 
-            <!-- Pie -->
+            <!-- Pie: la firma bluebook.mx en script, como en las piezas -->
             <tr>
               <td align="center" style="padding:24px 16px 0 16px;">
-                <p class="bb-pie" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:12px; line-height:1.7; color:#8a99ad;">
-                  Blue Book · bluebook.mx<br />
+                <p class="bb-pie" style="margin:0; font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; font-weight:400; line-height:1.7; color:#55688c;">
+                  Blue Book · <span class="bb-tinta" style="font-family:'Sacramento','Snell Roundhand',cursive; font-size:26px; font-weight:400; line-height:1; color:#2e3a55;">bluebook.mx</span>
+                </p>
+                <p class="bb-pie" style="margin:4px 0 0 0; font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; font-weight:400; line-height:1.7; color:#55688c;">
                   Su boda, organizada.
                 </p>
               </td>

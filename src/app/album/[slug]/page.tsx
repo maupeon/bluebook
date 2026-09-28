@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import AlbumClient from './AlbumClient'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { LANGUAGE_COOKIE, parseLanguage } from '@/lib/language'
+import { Titular } from '@/components/marca/Titular'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -85,11 +86,13 @@ export default async function AlbumPage({ params }: Props) {
   }
 
   if (photoUrls.length === 0) {
+    // Sin fotos todavía no hay nada que ver: es una pantalla informativa, así
+    // que va en papel azul con la hoja niebla, no en el niebla del álbum.
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f9fbff] via-[#f6f8fc] to-[#eef2ff] pt-24 px-4">
-        <div className="max-w-xl w-full bg-white/90 rounded-3xl shadow-xl border border-white/50 p-10 text-center">
-          <div className="mx-auto w-16 h-16 rounded-full bg-accent/15 flex items-center justify-center mb-5">
-            <svg className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen flex items-center justify-center bg-papel pt-24 px-4">
+        <div className="panel-card max-w-xl w-full p-10 text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-papel flex items-center justify-center mb-5">
+            <svg className="w-7 h-7 text-tinta" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -98,13 +101,15 @@ export default async function AlbumPage({ params }: Props) {
               />
             </svg>
           </div>
-          <h1 className="font-heading text-3xl text-primary mb-2">{album.title}</h1>
-          <p className="font-body text-secondary text-lg">
+          <Titular as="h1" tamano="hoja" className="mb-3">
+            {album.title}
+          </Titular>
+          <p className="text-tinta text-lg">
             {isEnglish
               ? 'This album has no photos to show yet.'
               : 'Este album aun no tiene fotos para mostrar.'}
           </p>
-          <p className="font-body text-sm text-secondary/75 mt-3">
+          <p className="text-sm text-tinta mt-3">
             {isEnglish
               ? 'When the album is ready, your premium experience will appear here.'
               : 'Cuando el album este listo, aparecera aqui tu experiencia premium.'}

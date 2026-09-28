@@ -6,6 +6,7 @@ import { Reveal } from "@/components/Reveal";
 import { Eyebrow, SeatingSection } from "@/components/panel/sections";
 import { GuestListSection } from "@/components/panel/PanelDashboard";
 import { TraerLista } from "@/components/panel/TraerLista";
+import { Titular } from "@/components/marca/Titular";
 
 export function PantallaInvitados({ bundle, soloLectura = false }: { bundle: PanelBundle; soloLectura?: boolean }) {
   const { isEnglish } = useLanguage();
@@ -28,13 +29,21 @@ export function PantallaInvitados({ bundle, soloLectura = false }: { bundle: Pan
   //
   // Con la lista vacía, "Van 0 personas" era lo primero que leía una pareja
   // recién llegada: un cero que no dice nada y suena a que nadie viene.
+  //
+  // La frase va en el marcador de la marca y la cifra en Work Sans, como todo
+  // número del panel: por eso el número va en su propia pieza.
+  const cifra = (
+    <span className="font-sans font-light normal-case tracking-[-0.01em] tabular-nums">
+      {guests.attending}
+    </span>
+  );
   const titular = listaVacia
     ? isEnglish
       ? "Your list starts here"
       : "Aquí empieza su lista"
     : isEnglish
-      ? `${guests.attending} people coming`
-      : `Van ${guests.attending} personas`;
+      ? <>{cifra} people coming</>
+      : <>Van {cifra} personas</>;
 
   const bajada = listaVacia
     ? estimados != null
@@ -78,14 +87,14 @@ export function PantallaInvitados({ bundle, soloLectura = false }: { bundle: Pan
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your guests" : "Sus invitados"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
             {titular}
-          </h1>
-          <p className="mt-4 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+          </Titular>
+          <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-tinta">
             {bajada}
           </p>
           {meta ? (
-            <p className="mt-1 max-w-[60ch] font-body text-sm leading-relaxed text-ink-soft">
+            <p className="mt-1 max-w-[60ch] text-sm leading-relaxed text-tinta">
               {meta}
             </p>
           ) : null}

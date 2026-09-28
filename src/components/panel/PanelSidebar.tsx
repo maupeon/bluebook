@@ -160,13 +160,13 @@ function PistaDePrueba({
       : "Solo lectura"
     : textoDeDias(acceso, isEnglish);
   return (
-    <div className="mt-auto border-t border-sand px-3 pt-3">
-      <p className="font-body text-[11.5px] leading-snug text-ink-muted">{estado}</p>
+    <div className="mt-auto border-t border-linea px-3 pt-3">
+      <p className="text-xs leading-snug text-tinta">{estado}</p>
       <Link
         href="/panel/plan"
         aria-current={activo ? "page" : undefined}
-        className={`inline-flex min-h-[2.75rem] items-center font-body text-sm underline-offset-4 transition-colors duration-150 hover:underline ${
-          activo ? "font-semibold text-ink" : "text-azul-deep"
+        className={`inline-flex min-h-[2.75rem] items-center text-sm text-noche underline decoration-linea-control underline-offset-4 transition-colors duration-150 hover:decoration-noche ${
+          activo ? "font-medium decoration-noche" : ""
         }`}
       >
         {isEnglish ? "Choose a plan" : "Elegir plan"}
@@ -196,10 +196,16 @@ export function PanelSidebar({
 
   return (
     <>
-      {/* Escritorio: columna a la izquierda */}
+      {/* Escritorio: columna a la izquierda. Es una superficie, así que es
+          niebla con su regla en azul línea, como las tarjetas.
+          El destino activo se hunde en papel azul y lleva una pestaña azul
+          noche en el borde, el nombre en Medium y el trazo del icono más
+          grueso: tres señales que no dependen de distinguir dos azules
+          claros. (Un bloque azul noche lo habría dicho más fuerte, pero
+          competía con el botón principal de cada pantalla.) */}
       <nav
         aria-label={isEnglish ? "Panel sections" : "Secciones del panel"}
-        className="hidden w-64 shrink-0 flex-col gap-1 border-r border-sand bg-sand-soft/50 p-3 md:flex"
+        className="hidden w-64 shrink-0 flex-col gap-1 border-r border-linea bg-niebla p-3 md:flex"
       >
         {items.map(({ href, nombre, pista, Icono, llama }) => {
           const activo = esActivo(pathname, href);
@@ -208,30 +214,36 @@ export function PanelSidebar({
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className={`group flex min-h-[3.5rem] items-center gap-3 rounded-xl border px-3 py-2 transition-[background-color,border-color,scale] duration-150 active:scale-[0.985] ${
+              className={`group relative flex min-h-[3.5rem] items-center gap-3 rounded-xl border px-3 py-2 transition-[background-color,border-color,scale] duration-150 active:scale-[0.985] active:duration-100 motion-reduce:active:scale-100 ${
                 activo
-                  ? "border-sand bg-white shadow-[0_1px_3px_rgba(29,46,75,0.07)]"
-                  : "border-transparent hover:bg-white/60"
+                  ? "border-linea bg-papel"
+                  : "border-transparent hover:bg-papel-medio"
               }`}
             >
+              {activo ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-y-3 left-0 w-[3px] rounded-r-full bg-noche"
+                />
+              ) : null}
               <Icono
-                className={`h-[18px] w-[18px] shrink-0 ${activo ? "text-navy" : "text-ink-muted"}`}
-                strokeWidth={1.6}
+                className={`h-[18px] w-[18px] shrink-0 ${activo ? "text-noche" : "text-tinta"}`}
+                strokeWidth={activo ? 2 : 1.6}
               />
               <span className="flex min-w-0 flex-col">
                 <span
-                  className={`font-body text-sm ${activo ? "font-semibold text-ink" : "text-ink-soft"}`}
+                  className={`text-sm ${activo ? "font-medium text-noche" : "text-tinta"}`}
                 >
                   {nombre}
                 </span>
-                <span className="truncate font-body text-[11.5px] text-ink-muted">
+                <span className="truncate text-xs text-tinta">
                   {pista}
                 </span>
               </span>
               {llama ? (
                 <span
                   aria-hidden="true"
-                  className="ml-auto h-[7px] w-[7px] shrink-0 rounded-full bg-azul"
+                  className="ml-auto h-[7px] w-[7px] shrink-0 rounded-full bg-tinta"
                 />
               ) : null}
             </Link>
@@ -246,10 +258,12 @@ export function PanelSidebar({
         ) : null}
       </nav>
 
-      {/* Teléfono: el mismo menú, abajo. No cabe una columna en 375 px. */}
+      {/* Teléfono: el mismo menú, abajo. No cabe una columna en 375 px.
+          Niebla sólida, como la columna de escritorio: el único material
+          translúcido del panel es la barra de arriba. */}
       <nav
         aria-label={isEnglish ? "Panel sections" : "Secciones del panel"}
-        className="fixed inset-x-0 bottom-0 z-20 flex gap-1 border-t border-sand bg-white/90 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 flex gap-1 border-t border-linea bg-niebla px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:hidden"
       >
         {items.map(({ href, nombre, pista, Icono, llama }) => {
           const activo = esActivo(pathname, href);
@@ -258,16 +272,16 @@ export function PanelSidebar({
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className={`relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] ${
-                activo ? "border-transparent bg-wash-soft" : "border-transparent"
+              className={`relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+                activo ? "border-linea bg-papel" : "border-transparent"
               }`}
             >
               <Icono
-                className={`h-[18px] w-[18px] ${activo ? "text-navy" : "text-ink-muted"}`}
+                className={`h-[18px] w-[18px] ${activo ? "text-noche" : "text-tinta"}`}
                 strokeWidth={activo ? 2 : 1.6}
               />
               <span
-                className={`font-body text-[10.5px] leading-none ${activo ? "font-semibold text-ink" : "text-ink-muted"}`}
+                className={`text-[10.5px] leading-none ${activo ? "font-medium text-noche" : "font-normal text-tinta"}`}
               >
                 {nombre}
               </span>
@@ -275,7 +289,7 @@ export function PanelSidebar({
                 <>
                   <span
                     aria-hidden="true"
-                    className="absolute right-3 top-2 h-[6px] w-[6px] rounded-full bg-azul"
+                    className="absolute right-3 top-2 h-[6px] w-[6px] rounded-full bg-tinta"
                   />
                   {/* En escritorio la pista ("36 sin contestar") se lee sola.
                       Aquí no cabe, así que el punto era la única señal — y era

@@ -7,6 +7,7 @@ import type { Album, AlbumPhoto, AlbumInvite } from '@/lib/supabase'
 import { isUnlimitedPhotosPlan } from '@/lib/albumPlans'
 import { parseJsonSafe, summarizeHttpError } from '@/lib/http'
 import { useLanguage } from '@/components/LanguageProvider'
+import { Titular } from '@/components/marca/Titular'
 
 // El servidor entrega el album sin admin_token ni email de la pareja.
 type AlbumPublico = Omit<Album, 'admin_token' | 'email'>
@@ -44,6 +45,18 @@ declare global {
     cloudinary: CloudinaryWidget
   }
 }
+
+// El widget de Cloudinary vive en un iframe y no ve las variables de
+// globals.css: se le pasan los valores ya resueltos de la marca, leídos de ahí
+// mismo, para que no haya una segunda copia de los colores.
+const colorDeMarca = (nombre: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(`--${nombre}`).trim()
+
+// El botón principal de la marca (como ButtonLink en
+// components/marketing/ui.tsx): responde al presionar, no al soltar.
+const BOTON_PRINCIPAL =
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-noche font-medium text-niebla hover:bg-noche-suave ' +
+  'transition-[background-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100'
 
 export default function GuestUploadPage() {
   const { isEnglish } = useLanguage()
@@ -153,21 +166,30 @@ export default function GuestUploadPage() {
         resourceType: 'image',
         clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp', 'heic'],
         maxFileSize: 15000000,
+        // El widget en la marca: ventana niebla, fuentes en papel azul,
+        // acciones en azul noche y el progreso de subida en tinta.
         styles: {
           palette: {
-            window: '#FFFFFF',
-            windowBorder: '#E5D4C0',
-            tabIcon: '#B8860B',
-            menuIcons: '#5A616A',
-            textDark: '#000000',
-            textLight: '#FFFFFF',
-            link: '#B8860B',
-            action: '#D4A574',
-            inactiveTabIcon: '#0E2F5A',
-            error: '#F44235',
-            inProgress: '#B8860B',
-            complete: '#20B832',
-            sourceBg: '#FDF8F3',
+            window: colorDeMarca('niebla'),
+            windowBorder: colorDeMarca('linea'),
+            tabIcon: colorDeMarca('noche'),
+            menuIcons: colorDeMarca('tinta'),
+            textDark: colorDeMarca('noche'),
+            textLight: colorDeMarca('niebla'),
+            link: colorDeMarca('noche'),
+            action: colorDeMarca('noche'),
+            inactiveTabIcon: colorDeMarca('tinta'),
+            error: colorDeMarca('error'),
+            inProgress: colorDeMarca('tinta'),
+            complete: colorDeMarca('noche'),
+            sourceBg: colorDeMarca('papel'),
+          },
+          fonts: {
+            default: null,
+            "'Work Sans', sans-serif": {
+              url: 'https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;500&display=swap',
+              active: true,
+            },
           },
         },
       },
@@ -233,23 +255,23 @@ export default function GuestUploadPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-hero">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
+      <div className="min-h-screen flex items-center justify-center bg-papel">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-tinta" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-hero floral-pattern py-12 px-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-500" />
+      <div className="min-h-screen flex items-center justify-center bg-papel py-12 px-4">
+        <div className="panel-card p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full bg-error-fondo flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-error" aria-hidden="true" />
           </div>
-          <h1 className="font-heading text-2xl text-primary mb-2">
+          <Titular as="h1" tamano="hoja" className="mb-3">
             {isEnglish ? 'Access unavailable' : 'Acceso no disponible'}
-          </h1>
-          <p className="font-body text-secondary">
+          </Titular>
+          <p className="text-tinta">
             {error}
           </p>
         </div>
@@ -258,44 +280,48 @@ export default function GuestUploadPage() {
   }
 
   return (
-    <div className="min-h-screen gradient-hero floral-pattern py-12 px-4 pt-24">
+    // Subir fotos es una pantalla informativa: papel azul, hojas en niebla.
+    // Aquí llega casi todo invitado, y desde el teléfono.
+    <div className="min-h-screen bg-papel py-12 px-4 pt-24">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-heading text-3xl sm:text-4xl font-semibold text-primary mb-2">
+          <Titular as="h1" tamano="pantalla" className="mb-3">
             {album?.title}
-          </h1>
+          </Titular>
           {invite?.guest_name && !invite.is_general && (
-            <p className="font-body text-xl text-accent mb-2">
+            <p className="text-xl text-noche mb-2">
               {isEnglish ? `Hi, ${invite.guest_name}!` : `Hola, ${invite.guest_name}!`}
             </p>
           )}
-          <p className="font-body text-secondary">
+          <p className="text-tinta">
             {isEnglish ? 'Upload your photos to contribute to the album' : 'Sube tus fotos para contribuir al album'}
           </p>
         </div>
 
         {/* Stats Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="panel-card p-6 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center">
-                <Camera className="w-7 h-7 text-accent" />
+              <div className="w-14 h-14 rounded-full bg-papel flex items-center justify-center">
+                <Camera className="w-7 h-7 text-tinta" aria-hidden="true" />
               </div>
               <div>
-                <p className="font-heading text-2xl text-primary">
+                <p className="text-2xl font-medium text-noche tabular-nums">
                   {invite?.photos_uploaded || 0} / {invite?.max_photos || 0}
                 </p>
-                <p className="font-body text-secondary text-sm">
+                <p className="text-tinta text-sm">
                   {isEnglish ? 'photos uploaded' : 'fotos subidas'}
                 </p>
               </div>
             </div>
 
-            <div className={`px-4 py-2 rounded-full font-body text-sm ${
+            {/* Con lugar, tinta sobre papel; sin lugar, aviso: es el tope,
+                no un error de quien sube. */}
+            <div className={`px-4 py-2 rounded-full text-sm ${
               effectiveRemaining > 0
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'
+                ? 'bg-papel text-noche'
+                : 'bg-aviso-fondo text-aviso'
             }`}>
               {effectiveRemaining > 0
                 ? (isEnglish
@@ -309,18 +335,18 @@ export default function GuestUploadPage() {
 
         {/* Upload Button */}
         {effectiveRemaining > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="panel-card p-8 mb-8">
             <button
               onClick={openUploadWidget}
-              className="w-full py-8 px-6 border-2 border-dashed border-accent/40 rounded-xl hover:border-accent hover:bg-accent/5 transition-all duration-300 flex flex-col items-center justify-center gap-3 group"
+              className="w-full py-8 px-6 border-2 border-dashed border-linea-control rounded-xl bg-papel hover:border-noche hover:bg-papel-medio transition-[border-color,background-color] duration-150 flex flex-col items-center justify-center gap-3 group"
             >
-              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                <Upload className="w-8 h-8 text-accent" />
+              <div className="w-16 h-16 rounded-full border border-linea bg-niebla flex items-center justify-center">
+                <Upload className="w-8 h-8 text-noche" aria-hidden="true" />
               </div>
-              <span className="font-heading text-xl text-primary">
+              <span className="text-xl font-medium text-noche">
                 {isEnglish ? 'Upload photos' : 'Subir fotos'}
               </span>
-              <span className="font-body text-secondary text-sm">
+              <span className="text-tinta text-sm">
                 {isEnglish
                   ? 'JPG, PNG, HEIC up to 15MB each'
                   : 'JPG, PNG, HEIC hasta 15MB cada una'}
@@ -336,12 +362,12 @@ export default function GuestUploadPage() {
 
         {/* My Photos Grid */}
         {myPhotos.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-heading text-xl text-primary">
+          <div className="panel-card p-6 mb-8">
+            <div className="flex justify-between items-center gap-4 mb-6">
+              <h2 className="text-xl font-medium text-noche">
                 {isEnglish ? `Your photos (${myPhotos.length})` : `Tus fotos (${myPhotos.length})`}
               </h2>
-              <p className="font-body text-sm text-secondary">
+              <p className="text-sm text-tinta">
                 {isEnglish ? 'You can only delete your own photos' : 'Solo puedes eliminar tus propias fotos'}
               </p>
             </div>
@@ -364,12 +390,14 @@ export default function GuestUploadPage() {
                       llega casi todo invitado, no habia forma de borrar una foto
                       subida por error. Ahora se ve siempre, y solo se esconde en
                       dispositivos que SI tienen hover (y reaparece con el hover o
-                      con el foco del teclado). */}
+                      con el foco del teclado).
+                      Ficha azul noche sobre la foto; al apuntarle, ladrillo: es
+                      la accion destructiva. 44px de lado para el dedo. */}
                   <button
                     type="button"
                     onClick={() => removePhoto(photo.id)}
                     aria-label={isEnglish ? `Delete photo ${index + 1}` : `Eliminar foto ${index + 1}`}
-                    className="absolute top-2 right-2 p-2.5 rounded-full bg-black/55 text-white shadow-md transition-[opacity,background-color] hover:bg-red-600 focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
+                    className="absolute top-2 right-2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-noche/70 text-niebla shadow-md transition-[opacity,background-color] hover:bg-error focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -383,11 +411,11 @@ export default function GuestUploadPage() {
         <div className="text-center">
           <button
             onClick={viewAlbum}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-white font-body font-semibold rounded-full hover:bg-accent/90 transition-all"
+            className={`${BOTON_PRINCIPAL} px-8 py-4`}
           >
-            <Eye className="w-5 h-5" />
+            <Eye className="w-5 h-5" aria-hidden="true" />
             {isEnglish ? 'View full album' : 'Ver el album completo'}
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       </div>

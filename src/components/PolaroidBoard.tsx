@@ -182,7 +182,7 @@ export function PolaroidBoard() {
       className="relative w-full h-64 sm:h-80 lg:h-96 select-none overflow-hidden"
     >
       {/* Soft pastel background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-light via-muted/50 to-white/80 rounded-2xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-papel via-papel/50 to-niebla/80 rounded-2xl" />
       
       {/* Subtle pattern */}
       <div 
@@ -209,7 +209,7 @@ export function PolaroidBoard() {
           onTouchStart={(e) => handleTouchStart(e, polaroid.id)}
         >
           {/* Polaroid frame */}
-          <div className="bg-white p-2 pb-8 rounded-sm w-24 sm:w-28 lg:w-32 shadow-md">
+          <div className="bg-niebla p-2 pb-8 rounded-sm w-24 sm:w-28 lg:w-32 shadow-md">
             {/* Photo area */}
             <div
               className="aspect-square rounded-sm flex items-center justify-center relative overflow-hidden"
@@ -224,10 +224,10 @@ export function PolaroidBoard() {
                   draggable={false}
                 />
               ) : (
-                <Heart className="w-8 h-8 text-white/60 fill-white/40" />
+                <Heart className="w-8 h-8 text-niebla/60 fill-niebla/40" />
               )}
               {/* Subtle overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-noche/10 to-transparent" />
             </div>
             
             {/* Caption */}
@@ -237,16 +237,16 @@ export function PolaroidBoard() {
           </div>
           
           {/* Push pin - soft blue tone */}
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary shadow-md border-2 border-primary/80">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white/50" />
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-tinta shadow-md border-2 border-tinta/80">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-niebla/50" />
           </div>
         </div>
       ))}
 
       {/* Instruction hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-        <p className="font-body text-xs text-secondary flex items-center gap-2">
-          <span className="inline-block w-4 h-4 border-2 border-dashed border-primary rounded animate-pulse" />
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-niebla/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
+        <p className="font-body text-xs text-tinta flex items-center gap-2">
+          <span className="inline-block w-4 h-4 border-2 border-dashed border-tinta rounded animate-pulse" />
           Arrastra las fotos para organizarlas
         </p>
       </div>

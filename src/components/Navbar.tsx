@@ -16,7 +16,7 @@ function LanguageSwitch({ className = "" }: { className?: string }) {
     <div
       role="group"
       aria-label="Idioma / Language"
-      className={`inline-flex items-center rounded-full border border-hairline bg-white/70 p-0.5 ${className}`}
+      className={`inline-flex items-center rounded-full border border-linea bg-niebla p-0.5 ${className}`}
     >
       {(["es", "en"] as const).map((item) => (
         <button
@@ -25,8 +25,8 @@ function LanguageSwitch({ className = "" }: { className?: string }) {
           onClick={() => setLanguage(item)}
           aria-pressed={language === item}
           aria-label={getLanguageName(item)}
-          className={`rounded-full px-2.5 py-1 font-body text-[11px] font-bold tracking-wide transition-colors duration-150 ${
-            language === item ? "bg-navy text-white" : "text-navy-muted hover:text-navy"
+          className={`rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide transition-colors duration-150 ${
+            language === item ? "bg-noche text-niebla" : "text-tinta hover:text-noche"
           }`}
         >
           {item.toUpperCase()}
@@ -80,10 +80,10 @@ export function Navbar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header className="sb fixed inset-x-0 top-0 z-50">
+    <header className="fixed inset-x-0 top-0 z-50">
       <div
         className={`nav-material border-b transition-[border-color,box-shadow] duration-200 ${
-          scrolled || open ? "border-hairline shadow-[0_1px_12px_-6px_rgba(28,45,79,0.12)]" : "border-transparent"
+          scrolled || open ? "border-linea shadow-[0_1px_12px_-6px_rgb(46_58_85/0.12)]" : "border-transparent"
         }`}
       >
         <nav
@@ -92,7 +92,9 @@ export function Navbar() {
         >
           <Link href="/" className="flex items-center gap-2.5" aria-label={en ? "Blue Book, home" : "Blue Book, inicio"}>
             <Image src="/icon.png" alt="" width={34} height={34} priority />
-            <span className="font-round text-[19px] uppercase leading-none tracking-[0.04em] text-navy">Blue Book</span>
+            {/* El logotipo en marcador, como los titulares. Sin el
+                interletrado abierto que pedía la letra redonda anterior. */}
+            <span className="font-round text-[23px] uppercase leading-none text-noche">Blue Book</span>
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
@@ -103,8 +105,8 @@ export function Navbar() {
                   <Link
                     href={link.href}
                     aria-current={active ? "page" : undefined}
-                    className={`rounded-full px-4 py-2 font-body text-sm font-medium transition-colors duration-150 ${
-                      active ? "bg-wash text-navy" : "text-navy-muted hover:bg-white/70 hover:text-navy"
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150 ${
+                      active ? "bg-niebla text-noche ring-1 ring-linea" : "text-tinta hover:bg-niebla hover:text-noche"
                     }`}
                   >
                     {link.label}
@@ -118,7 +120,7 @@ export function Navbar() {
             <LanguageSwitch />
             <Link
               href="/acceso"
-              className="font-body text-sm font-medium text-navy-muted transition-colors hover:text-navy"
+              className="text-sm font-medium text-tinta transition-colors hover:text-noche"
             >
               {en ? "Sign in" : "Acceso"}
             </Link>
@@ -131,7 +133,7 @@ export function Navbar() {
             ref={buttonRef}
             type="button"
             onClick={() => setOpen((value) => !value)}
-            className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-navy transition-colors hover:bg-white/70 active:scale-95 lg:hidden"
+            className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-noche transition-[background-color,scale] duration-150 hover:bg-niebla active:scale-95 motion-reduce:active:scale-100 lg:hidden"
             aria-label={open ? (en ? "Close menu" : "Cerrar menú") : en ? "Open menu" : "Abrir menú"}
             aria-expanded={open}
             aria-controls="mobile-menu"
@@ -146,7 +148,7 @@ export function Navbar() {
           invisible (fuera del tabulador y del árbol de accesibilidad). Sale
           más rápido de lo que entra: al cerrar ya no hay nada que leer. */}
       <div
-        className={`fixed inset-0 top-16 -z-10 bg-navy/25 transition-opacity lg:hidden motion-reduce:transition-none ${
+        className={`fixed inset-0 top-16 -z-10 bg-noche/25 transition-opacity lg:hidden motion-reduce:transition-none ${
           open ? "opacity-100 duration-200" : "pointer-events-none opacity-0 duration-150"
         }`}
         onClick={() => setOpen(false)}
@@ -154,22 +156,23 @@ export function Navbar() {
       />
       <div
         id="mobile-menu"
-        className={`absolute inset-x-0 top-16 origin-top border-b border-hairline bg-paper shadow-[0_24px_40px_-24px_rgba(28,45,79,0.35)] transition-[opacity,translate,visibility] lg:hidden motion-reduce:translate-y-0 ${
+        className={`absolute inset-x-0 top-16 origin-top border-b border-linea bg-papel shadow-[0_24px_40px_-24px_rgb(46_58_85/0.35)] transition-[opacity,translate,visibility] lg:hidden motion-reduce:translate-y-0 ${
           open ? "visible translate-y-0 opacity-100 duration-250" : "invisible -translate-y-3 opacity-0 duration-150"
         }`}
       >
         <div className="px-4 pb-7 pt-3 sm:px-6">
-          <ul className="divide-y divide-hairline">
+          {/* Navegación, no titulares: Work Sans Light a tamaño grande. */}
+          <ul className="divide-y divide-linea">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
                   aria-current={isActive(link.href) ? "page" : undefined}
-                  className="flex items-center justify-between py-4 font-heading text-[1.7rem] font-medium text-navy"
+                  className="flex items-center justify-between py-4 text-2xl text-noche"
                 >
                   {link.label}
-                  {isActive(link.href) && <span className="h-1.5 w-1.5 rounded-full bg-azul" aria-hidden="true" />}
+                  {isActive(link.href) && <span className="h-1.5 w-1.5 rounded-full bg-tinta" aria-hidden="true" />}
                 </Link>
               </li>
             ))}
@@ -177,7 +180,7 @@ export function Navbar() {
               <Link
                 href="/acceso"
                 onClick={() => setOpen(false)}
-                className="block py-4 font-heading text-[1.7rem] font-medium text-navy"
+                className="block py-4 text-2xl text-noche"
               >
                 {en ? "Sign in" : "Acceso"}
               </Link>
@@ -191,7 +194,7 @@ export function Navbar() {
           </ButtonLink>
           {/* En el teléfono cabe la letra chica que la barra de escritorio no
               tiene lugar para decir. */}
-          <p className="mt-3 text-center font-body text-xs text-navy-muted">
+          <p className="mt-3 text-center text-xs text-tinta">
             {en ? `${DIAS_DE_PRUEBA} days, no card` : `${DIAS_DE_PRUEBA} días, sin tarjeta`}
           </p>
         </div>

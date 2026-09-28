@@ -8,8 +8,10 @@ import { formatLongDate } from "@/components/panel/dates";
 import { parseJsonSafe } from "@/lib/http";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 
+// El formulario vive en una tarjeta niebla: el campo es papel azul, con el
+// borde de campo (3:1) para que se lea como algo que se llena.
 const inputClass =
-  "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20";
+  "w-full rounded-xl border border-linea-control/70 bg-papel px-4 py-3 text-sm text-noche outline-none transition-[border-color,box-shadow] focus:border-noche focus:ring-2 focus:ring-noche/20";
 
 /**
  * La fecha y el lugar de la boda, editables por la pareja.
@@ -86,20 +88,20 @@ export function DatosDeLaBoda({
   if (!editando || soloLectura) {
     if (soloLectura && !weddingDate && !venue) return null;
     return (
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 font-body text-sm text-ink-muted">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-tinta">
         {weddingDate ? (
           <span className="tabular-nums">{formatLongDate(weddingDate, isEnglish)}</span>
         ) : null}
         {venue ? (
           <span className="flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-azul" strokeWidth={1.5} />
+            <MapPin className="h-4 w-4 text-tinta" strokeWidth={1.5} />
             {venue}
           </span>
         ) : null}
         {soloLectura ? null : enlazarAlPerfil ? (
           <Link
             href="/panel/boda"
-            className="inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+            className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
           >
             <Pencil className="h-3.5 w-3.5" strokeWidth={1.6} />
             {faltaAlgo
@@ -114,7 +116,7 @@ export function DatosDeLaBoda({
           <button
             type="button"
             onClick={abrir}
-            className="inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+            className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
           >
             <Pencil className="h-3.5 w-3.5" strokeWidth={1.6} />
             {faltaAlgo
@@ -136,7 +138,7 @@ export function DatosDeLaBoda({
       className="mt-5 grid max-w-xl gap-4 panel-card p-5 sm:grid-cols-2"
     >
       <div>
-        <label htmlFor="boda-fecha" className="mb-2 block font-body text-sm font-medium text-ink">
+        <label htmlFor="boda-fecha" className="mb-2 block text-sm font-medium text-noche">
           {isEnglish ? "Wedding date" : "Fecha de la boda"}
         </label>
         <input
@@ -148,7 +150,7 @@ export function DatosDeLaBoda({
         />
       </div>
       <div>
-        <label htmlFor="boda-lugar" className="mb-2 block font-body text-sm font-medium text-ink">
+        <label htmlFor="boda-lugar" className="mb-2 block text-sm font-medium text-noche">
           {isEnglish ? "Venue" : "Lugar"}
         </label>
         <input
@@ -161,13 +163,13 @@ export function DatosDeLaBoda({
           className={inputClass}
         />
       </div>
-      <p className="font-body text-xs leading-relaxed text-ink-muted sm:col-span-2">
+      <p className="text-xs leading-relaxed text-tinta sm:col-span-2">
         {isEnglish
           ? "Changing the date moves the dates of your plan's pending tasks."
           : "Si cambian la fecha, las tareas pendientes del plan se mueven con ella."}
       </p>
       {error ? (
-        <p role="alert" className="font-body text-sm text-terra-deep sm:col-span-2">
+        <p role="alert" className="text-sm text-error sm:col-span-2">
           {error}
         </p>
       ) : null}
@@ -175,7 +177,7 @@ export function DatosDeLaBoda({
         <button
           type="submit"
           disabled={guardando}
-          className="inline-flex min-h-[2.75rem] items-center rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50"
+          className="inline-flex min-h-[2.75rem] items-center rounded-full border border-noche bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,border-color,scale] duration-150 hover:border-noche-suave hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50"
         >
           {guardando ? (isEnglish ? "Saving…" : "Guardando…") : isEnglish ? "Save" : "Guardar"}
         </button>
@@ -183,7 +185,7 @@ export function DatosDeLaBoda({
           type="button"
           onClick={() => setEditando(false)}
           disabled={guardando}
-          className="inline-flex min-h-[2.75rem] items-center rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone"
+          className="inline-flex min-h-[2.75rem] items-center rounded-full border border-linea-control/60 bg-niebla px-5 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
         >
           {isEnglish ? "Cancel" : "Cancelar"}
         </button>

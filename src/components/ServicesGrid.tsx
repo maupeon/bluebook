@@ -60,17 +60,17 @@ const services: Service[] = [
 
 export function ServicesGrid() {
   return (
-    <section className="py-20 lg:py-32 bg-white" id="servicios">
+    <section className="py-20 lg:py-32 bg-niebla" id="servicios">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="font-body text-sm font-semibold text-accent uppercase tracking-wider">
+          <span className="font-body text-sm font-medium text-tinta uppercase tracking-wider">
             Nuestros Servicios
           </span>
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-primary mt-4 mb-6">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-medium text-tinta mt-4 mb-6">
             Todo lo que necesitan para su boda
           </h2>
-          <p className="font-body text-lg text-secondary">
+          <p className="font-body text-lg text-tinta">
             Desde las invitaciones hasta los recuerdos, los acompañamos en cada paso
             para que solo tengan que preocuparse de disfrutar.
           </p>
@@ -83,18 +83,18 @@ export function ServicesGrid() {
             return (
               <div
                 key={index}
-                className="group bg-light rounded-2xl p-8 hover:bg-white hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-accent/20"
+                className="group bg-papel rounded-2xl p-8 hover:bg-niebla hover:shadow-xl hover:shadow-tinta/5 transition-all duration-500 border border-transparent hover:border-tinta/20"
               >
                 {/* Icon */}
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-accent group-hover:scale-110 transition-all duration-300">
-                  <Icon className="w-7 h-7 text-primary group-hover:text-primary" />
+                <div className="w-14 h-14 rounded-xl bg-tinta/10 flex items-center justify-center mb-6 group-hover:bg-tinta group-hover:scale-110 transition-all duration-300">
+                  <Icon className="w-7 h-7 text-tinta group-hover:text-tinta" />
                 </div>
 
                 {/* Content */}
-                <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+                <h3 className="font-heading text-xl font-medium text-tinta mb-3">
                   {service.title}
                 </h3>
-                <p className="font-body text-secondary text-sm leading-relaxed mb-6">
+                <p className="font-body text-tinta text-sm leading-relaxed mb-6">
                   {service.description}
                 </p>
 
@@ -103,9 +103,9 @@ export function ServicesGrid() {
                   {service.features.map((feature, featureIndex) => (
                     <li
                       key={featureIndex}
-                      className="font-body text-sm text-secondary flex items-center gap-2"
+                      className="font-body text-sm text-tinta flex items-center gap-2"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-tinta flex-shrink-0" />
                       {feature}
                     </li>
                   ))}

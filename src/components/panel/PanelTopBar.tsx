@@ -9,7 +9,7 @@ import { formatLongDate } from "@/components/panel/dates";
 /**
  * La barra de arriba del panel, con el mismo material y la misma marca que la
  * del sitio (Navbar): papel translúcido (nav-material, sólido para quien pidió
- * reducir transparencias) y "BLUE BOOK" en la redonda del Instagram.
+ * reducir transparencias) y "BLUE BOOK" en el marcador de los titulares.
  */
 export function PanelTopBar({
   coupleName,
@@ -21,12 +21,12 @@ export function PanelTopBar({
   const { isEnglish } = useLanguage();
 
   return (
-    <header className="nav-material sticky top-0 z-10 border-b border-sand">
+    <header className="nav-material sticky top-0 z-10 border-b border-linea">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-4">
           <span className="flex shrink-0 items-center gap-2.5">
             <Image src="/icon.png" alt="" width={30} height={30} />
-            <span className="font-round text-[17px] uppercase leading-none tracking-[0.04em] text-ink">
+            <span className="font-round text-[17px] uppercase leading-none tracking-[0.04em] text-noche">
               Blue Book
             </span>
           </span>
@@ -35,13 +35,13 @@ export function PanelTopBar({
             <Link
               href="/panel/boda"
               title={isEnglish ? "Your wedding details" : "Los datos de su boda"}
-              className="group hidden min-w-0 truncate border-l border-sand pl-4 font-body text-sm text-ink-muted sm:inline"
+              className="group hidden min-w-0 truncate border-l border-linea pl-4 text-sm text-tinta sm:inline"
             >
-              <span className="font-heading text-[17px] font-medium text-ink underline-offset-4 group-hover:underline">
+              <span className="text-[17px] font-medium text-noche decoration-linea-control underline-offset-4 group-hover:underline">
                 {coupleName}
               </span>
               {weddingDate ? (
-                <span className="text-ink-muted">
+                <span className="text-tinta">
                   {" · "}
                   <span className="tabular-nums">{formatLongDate(weddingDate, isEnglish)}</span>
                 </span>
@@ -58,7 +58,7 @@ export function PanelTopBar({
               href="/panel/boda"
               aria-label={isEnglish ? "Your wedding" : "Su boda"}
               title={isEnglish ? "Your wedding" : "Su boda"}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-azul-deep transition-colors hover:bg-wash-soft hover:text-ink sm:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-noche transition-colors hover:bg-papel-medio hover:text-noche sm:hidden"
             >
               <Pencil className="h-4 w-4" strokeWidth={1.6} />
             </Link>
@@ -66,7 +66,7 @@ export function PanelTopBar({
           <form action="/auth/signout" method="post">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-full border border-sand bg-white px-4 py-2 font-body text-sm font-semibold text-ink transition-[background-color,border-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.97]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-4 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
             >
               <LogOut className="h-4 w-4" strokeWidth={1.5} />
               {isEnglish ? "Sign out" : "Salir"}

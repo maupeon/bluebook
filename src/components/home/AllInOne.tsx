@@ -32,14 +32,15 @@ function Tile({
 }) {
   return (
     <Reveal delay={delay} className={className}>
-      <article className="flex h-full flex-col rounded-3xl bg-paper p-6 sm:p-8">
+      <article className="flex h-full flex-col rounded-3xl bg-papel p-6 sm:p-8">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-azul-deep ring-1 ring-hairline">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-niebla text-noche ring-1 ring-linea">
             <Icon className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden="true" />
           </span>
-          <h3 className="font-heading text-2xl font-medium tracking-[-0.01em] text-navy">{title}</h3>
+          {/* Título de tarjeta: Work Sans. El marcador es sólo del titular de la sección. */}
+          <h3 className="text-xl font-medium text-noche">{title}</h3>
         </div>
-        <p className="mt-3 max-w-[46ch] font-body text-sm leading-relaxed text-navy-muted">{body}</p>
+        <p className="mt-3 max-w-[46ch] text-sm leading-relaxed text-tinta">{body}</p>
         <div className="mt-6 flex-1 content-end">{children}</div>
       </article>
     </Reveal>
@@ -50,9 +51,9 @@ export function AllInOne() {
   const { isEnglish: en } = useLanguage();
 
   return (
-    <section id="todo-en-un-lugar" className="scroll-mt-16 bg-white pb-24 pt-4 md:pb-32">
+    <section id="todo-en-un-lugar" className="scroll-mt-16 bg-niebla pb-24 pt-4 md:pb-32">
       <Container>
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl text-center">
           <Reveal>
             <Eyebrow>{en ? "All in one place" : "Todo en un solo lugar"}</Eyebrow>
           </Reveal>
@@ -70,7 +71,7 @@ export function AllInOne() {
             </Heading>
           </Reveal>
           <Reveal delay={160}>
-            <Lead className="mt-5 max-w-2xl">
+            <Lead className="mx-auto mt-5 max-w-2xl">
               {en
                 ? "You and your partner sign in with your email and see exactly the same thing, from your phone or your laptop. No passwords, no forwarding screenshots."
                 : "Tú y tu pareja entran con su correo y ven exactamente lo mismo, desde el celular o la compu. Sin contraseñas y sin reenviar capturas."}
@@ -157,7 +158,7 @@ export function AllInOne() {
                 : "El guion de tu boda minuto a minuto, para que ese día nadie tenga que preguntarte nada a ti."
             }
           >
-            <div className="rounded-2xl border border-hairline bg-white p-5">
+            <div className="rounded-2xl border border-linea bg-niebla p-5">
               <TimelineMock en={en} horizontal />
             </div>
           </Tile>

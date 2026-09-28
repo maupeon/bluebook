@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
-import { Cormorant_Garamond, Montserrat, Sacramento, Sniglet } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Caveat_Brush, Work_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
@@ -43,33 +44,39 @@ const websiteSchema = {
     "Wedding planner en línea: toda tu boda en una plataforma, con una wedding planner real revisando cada detalle.",
 };
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
-
-// Acentos del sitio público, tomados del Instagram: la manuscrita de
-// "Something blue." y la redonda de "BLUE BOOK". Un solo peso cada una.
-const sacramento = Sacramento({
-  variable: "--font-sacramento",
-  subsets: ["latin"],
+// La marca (guía del 28-sep-2026): dos letras hechas a mano y una de apoyo.
+// Las de mano son las mismas de las piezas: BELLABOO para los titulares y Lazy
+// Dog para las frases y la firma (ver fuentes/LICENCIAS.md). Work Sans, todo
+// lo demás; va variable (sin lista de pesos) porque globals.css usa pesos
+// ópticos intermedios: 350 para el texto chico.
+const bellaboo = localFont({
+  src: "./fuentes/bellaboo.woff2",
+  variable: "--font-bellaboo",
   weight: "400",
   display: "swap",
 });
 
-const sniglet = Sniglet({
-  variable: "--font-sniglet",
+const lazyDog = localFont({
+  src: "./fuentes/lazy-dog-bb.woff2",
+  variable: "--font-lazy-dog",
+  weight: "400",
+  display: "swap",
+});
+
+// Caveat Brush, el «equivalente digital» del marcador, queda sólo de respaldo
+// para lo que BELLABOO no trae (& ¿ ¡ « » “ ” – —). Sin precarga: el navegador
+// la baja únicamente si en la página aparece uno de esos caracteres.
+const caveatBrush = Caveat_Brush({
+  variable: "--font-caveat-brush",
   subsets: ["latin"],
-  weight: "800",
+  weight: "400",
+  display: "swap",
+  preload: false,
+});
+
+const workSans = Work_Sans({
+  variable: "--font-work-sans",
+  subsets: ["latin"],
   display: "swap",
 });
 
@@ -123,6 +130,12 @@ export const metadata: Metadata = {
   },
 };
 
+// La barra de Safari y la de Chrome en Android toman el papel azul de la
+// página: la ventana se lee como una sola hoja.
+export const viewport: Viewport = {
+  themeColor: "#e8edf8",
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -152,7 +165,7 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${cormorant.variable} ${montserrat.variable} ${sacramento.variable} ${sniglet.variable} antialiased bg-light text-dark`}
+        className={`${bellaboo.variable} ${lazyDog.variable} ${caveatBrush.variable} ${workSans.variable}`}
       >
         <LanguageProvider initialLanguage={language}>
           <LimpiarLaVuelta />

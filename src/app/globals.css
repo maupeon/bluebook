@@ -1,61 +1,62 @@
 @import "tailwindcss";
 
+/* =================================
+   LA MARCA (guía del 28-sep-2026)
+   =================================
+   Seis colores y tres letras, iguales en bluebook.mx y en admin.bluebook.mx
+   (wedding-whatsapp/app/globals.css repite estos valores: si cambia uno, cambian
+   los dos).
+
+   «Solo dos fondos en toda la cuenta: papel azul y papel niebla. Papel azul
+   para lo dibujado y lo informativo (precios, pasos); papel niebla para foto y
+   frases. Todo lo demás es tinta azul sobre ese papel. Nunca negro, nunca
+   degradados de color.»
+
+   En la interfaz eso se traduce así:
+   - La página es papel azul. Las superficies que se levantan de ella
+     (tarjetas, hojas, campos, la barra) son papel niebla, igual que las
+     secciones de foto y de frases del sitio.
+   - El texto es tinta; los títulos y lo que más pesa, azul noche. No hay un
+     tercer gris: la jerarquía la hacen el tamaño y el peso, no el color.
+   - Azul línea para reglas, divisiones y viñetas. Nunca para texto.
+   - Crema papel (#EFE8DC) es de los sobres y la caja de recuerdos: sale sólo
+     en foto. No es un token a propósito, para que nadie lo use de fondo.
+   - Blanco y negro no existen: --color-white es papel niebla y --color-black
+     es azul noche, así que cualquier bg-white o sombra negra que quede cae en
+     la marca.
+
+   Contraste medido (WCAG 2.x):
+     tinta sobre papel azul 4.8:1 · sobre niebla 5.1:1  → texto normal AA
+     azul noche sobre papel azul 9.7:1 · niebla sobre azul noche 10.4:1
+   Por eso la tinta no se aclara con opacidad para texto: a /70 ya no llega. */
 :root {
-  /* Blue Book Brand Colors - Azul Pastel */
-  --primary: #6b9ac4;
-  --primary-dark: #4a7ba7;
-  --primary-light: #a8c5db;
-  --secondary: #97b8d8;
-  --accent: #f4a7b9;
-  --accent-light: #f8c8d4;
-  --accent-dark: #e88a9f;
-  --light: #f0f7ff;
-  --muted: #dbeafe;
-  --dark: #2c3e50;
-  
-  /* Semantic colors */
-  --background: var(--bone);
-  --foreground: var(--ink);
-  --card-bg: #ffffff;
-  --border: #c7ddf5;
+  --papel: #e8edf8;        /* Papel azul: fondo principal, ilustración y precios */
+  --niebla: #f4f5f6;       /* Papel niebla: superficies, foto y frases */
+  --tinta: #55688c;        /* Tinta: lettering, trazo, texto */
+  --noche: #2e3a55;        /* Azul noche: titulares, sombreado del dibujo, botón principal */
+  --linea: #c6d0e4;        /* Azul línea: reglas, viñetas, detalles */
 
-  /* Editorial palette (planner / couples experience) */
-  --bone: #fbf8f5;
-  --cream: #fcfaf8;
-  --ink: #1d2e4b;
-  --ink-soft: #3c4d6e;
-  --ink-muted: #5a6a84;
-  --sand: #e4d8cf;
-  --sand-soft: #efe6e0;
-  --terra: #c96f5a;
-  --terra-deep: #a4533e;
-  --terra-light: #f8d8cb;
-  --pale-green: #edf3ec;
-  --pale-green-ink: #346538;
-  --pale-blue: #e7f0fa;
-  --pale-blue-ink: #1f6c9f;
-  --pale-yellow: #fbf3db;
-  --pale-yellow-ink: #956400;
+  /* Estados que la guía no cubre porque una pieza de Instagram no los tiene.
+     Todos salen de los cinco de arriba, salvo error y aviso. */
+  --papel-medio: #eef1f7;  /* entre papel azul y niebla: hover de superficies */
+  --noche-suave: #364360;  /* hover del botón azul noche (80% noche, 20% tinta) */
+  --linea-control: #7788a8; /* borde de campos: 3:1 sobre papel y niebla (WCAG 1.4.11) */
+  /* Error y aviso tienen que distinguirse de la tinta en un vistazo: es lo
+     único que no es azul. Ladrillo apagado y ocre, los dos a 5:1 o más sobre
+     papel azul y sobre su propio fondo. */
+  --error: #9a4b37;
+  --error-fondo: #f5e4df;
+  --aviso: #7f5500;
+  --aviso-fondo: #fbf3db;
+}
 
-  /* "Something blue": la paleta del Instagram, para el sitio público.
-     Hueso frío de fondo, lavados de acuarela azul y la tinta marino de las
-     ilustraciones. Sin terracota: el panel y el onboarding siguen usando
-     terra con significado (errores, "no asiste"), por eso estos tokens son
-     aparte y no una redefinición de los de arriba.
-     Contraste medido sobre --paper: navy 13.6:1, navy-muted 5.3:1,
-     azul-deep 6.1:1 (texto chico), azul 4.4:1 (sólo texto grande). */
-  --paper: #f6f5f2;
-  --paper-warm: #fbfaf7;
-  --wash: #e1e9f5;
-  --wash-soft: #edf2f9;
-  --wash-deep: #c8d6ec;
-  --line: #3a5282;
-  --navy: #1c2d4f;
-  --navy-soft: #34466b;
-  --navy-muted: #56657f;
-  --azul: #4a76a8;
-  --azul-deep: #345e8f;
-  --hairline: #dde2ea;
+/* Quien pidió más contraste recibe la tinta más oscura y las líneas con
+   fuerza de borde de campo. */
+@media (prefers-contrast: more) {
+  :root {
+    --tinta: #3f4f6e;
+    --linea: #7788a8;
+  }
 }
 
 @theme inline {
@@ -77,61 +78,227 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Colors */
-  --color-primary: var(--primary);
-  --color-primary-dark: var(--primary-dark);
-  --color-primary-light: var(--primary-light);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
-  --color-accent-light: var(--accent-light);
-  --color-accent-dark: var(--accent-dark);
-  --color-light: var(--light);
-  --color-muted: var(--muted);
-  --color-dark: var(--dark);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card-bg: var(--card-bg);
-  --color-border: var(--border);
+  /* ---- Color ----
+     Sólo la marca: la paleta de Tailwind entera se apaga, así que un
+     bg-red-500 o un text-gray-600 no genera nada. */
+  --color-*: initial;
+  --color-papel: var(--papel);
+  --color-niebla: var(--niebla);
+  --color-tinta: var(--tinta);
+  --color-noche: var(--noche);
+  --color-linea: var(--linea);
+  --color-papel-medio: var(--papel-medio);
+  --color-noche-suave: var(--noche-suave);
+  --color-linea-control: var(--linea-control);
+  --color-error: var(--error);
+  --color-error-fondo: var(--error-fondo);
+  --color-aviso: var(--aviso);
+  --color-aviso-fondo: var(--aviso-fondo);
+  --color-white: var(--niebla);
+  --color-black: var(--noche);
 
-  /* Editorial palette */
-  --color-bone: var(--bone);
-  --color-cream: var(--cream);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-ink-muted: var(--ink-muted);
-  --color-sand: var(--sand);
-  --color-sand-soft: var(--sand-soft);
-  --color-terra: var(--terra);
-  --color-terra-deep: var(--terra-deep);
-  --color-terra-light: var(--terra-light);
-  --color-pale-green: var(--pale-green);
-  --color-pale-green-ink: var(--pale-green-ink);
-  --color-pale-blue: var(--pale-blue);
-  --color-pale-blue-ink: var(--pale-blue-ink);
-  --color-pale-yellow: var(--pale-yellow);
-  --color-pale-yellow-ink: var(--pale-yellow-ink);
+  /* Sombras teñidas de azul noche: la de Tailwind es negra. */
+  --shadow-2xs: 0 1px rgb(46 58 85 / 0.05);
+  --shadow-xs: 0 1px 2px 0 rgb(46 58 85 / 0.06);
+  --shadow-sm: 0 1px 3px 0 rgb(46 58 85 / 0.1), 0 1px 2px -1px rgb(46 58 85 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(46 58 85 / 0.1), 0 2px 4px -2px rgb(46 58 85 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(46 58 85 / 0.1), 0 4px 6px -4px rgb(46 58 85 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(46 58 85 / 0.1), 0 8px 10px -6px rgb(46 58 85 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(46 58 85 / 0.25);
 
-  /* Something blue */
-  --color-paper: var(--paper);
-  --color-paper-warm: var(--paper-warm);
-  --color-wash: var(--wash);
-  --color-wash-soft: var(--wash-soft);
-  --color-wash-deep: var(--wash-deep);
-  --color-line: var(--line);
-  --color-navy: var(--navy);
-  --color-navy-soft: var(--navy-soft);
-  --color-navy-muted: var(--navy-muted);
-  --color-azul: var(--azul);
-  --color-azul-deep: var(--azul-deep);
-  --color-hairline: var(--hairline);
+  /* ---- Letra ----
+     «Dos letras hechas a mano, una de apoyo.»
+     - marcador (BELLABOO, la misma de las piezas; Caveat Brush de respaldo
+       para & ¿ ¡): titulares. Siempre en mayúsculas, dos líneas
+       como máximo, centrado, con estrellitas y corazones a los lados: la clase
+       .titular y el componente <Titular>.
+     - script (Lazy Dog, con los acentos del español agregados): cierres
+       emocionales, la firma bluebook.mx y los pies
+       de pieza. Nunca para listas ni precios.
+     - sans (Work Sans): todo lo demás. Light 300; Medium 500 sólo para
+       énfasis. Nunca bold: semibold, bold y más pesados se quedan en 500.
+     font-heading, font-body y font-serif eran Cormorant y Montserrat; ahora
+     son Work Sans para que nada caiga en una letra que ya no existe. Un
+     título se vuelve marcador a propósito, con .titular. */
+  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Tampoco hay monoespaciada: <code>, <pre> y font-mono caen en Work Sans
+     (las cifras alineadas las da tabular-nums). */
+  --font-mono: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-marcador: var(--font-bellaboo), var(--font-caveat-brush), "Marker Felt", cursive;
+  --font-script: var(--font-lazy-dog), "Marker Felt", cursive;
+  /* El logotipo BLUE BOOK: marcador, como los titulares. */
+  --font-round: var(--font-bellaboo), var(--font-caveat-brush), "Marker Felt", cursive;
 
-  /* Fonts */
-  --font-heading: var(--font-cormorant);
-  --font-body: var(--font-montserrat);
-  /* La manuscrita de "Something blue. For good luck." y la redonda de
-     "BLUE BOOK" en el Instagram. Sólo acentos: nunca un párrafo. */
-  --font-script: var(--font-sacramento);
-  --font-round: var(--font-sniglet);
+  --font-weight-semibold: 500;
+  --font-weight-bold: 500;
+  --font-weight-extrabold: 500;
+  --font-weight-black: 500;
+
+  /* Peso e interletrado ópticos, por tamaño (como hace Apple con SF).
+     Work Sans Light a 12–14px sobre papel azul se adelgaza de más: los chicos
+     suben a 400 y 350 (Work Sans es variable) y ganan un poco de aire; los
+     grandes se cierran. Un font-medium o un tracking-* explícito siguen
+     mandando: Tailwind los lee de --tw-font-weight y --tw-tracking. */
+  --text-xs--font-weight: 400;
+  --text-xs--letter-spacing: 0.02em;
+  --text-sm--font-weight: 350;
+  --text-sm--letter-spacing: 0.01em;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl--letter-spacing: -0.015em;
+  --text-4xl--letter-spacing: -0.02em;
+  --text-5xl--letter-spacing: -0.02em;
+  --text-6xl--letter-spacing: -0.02em;
+  --text-7xl--letter-spacing: -0.02em;
+}
+
+@layer base {
+  html {
+    background-color: var(--papel);
+    color-scheme: light;
+  }
+
+  /* Antes estas reglas vivían fuera de toda capa y pedían var(--font-body),
+     que @theme inline no publica: caían en la fuente del sistema a 600 y le
+     ganaban a las utilidades. Ahora están en base y usan la variable real. */
+  body {
+    background-color: var(--papel);
+    color: var(--tinta);
+    font-family: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 500;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Nunca bold. Los th también: el navegador los pone en negrita y el
+     preflight no los toca. */
+  b, strong, th {
+    font-weight: 500;
+  }
+
+  ::placeholder {
+    color: var(--tinta);
+    opacity: 0.75;
+  }
+
+  ::selection {
+    background: var(--linea);
+    color: var(--noche);
+  }
+
+  /* Azul noche: 9.7:1 sobre papel azul, 10:1 sobre niebla. */
+  :focus-visible {
+    outline: 2px solid var(--noche);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* EL TITULAR. Marcador, mayúsculas, azul noche, dos líneas como máximo.
+     Fija su propio interletrado e interlineado a través de --tw-tracking y
+     --tw-leading, que es lo que leen las utilidades text-*: así un text-5xl
+     no le impone el -0.02em que le toca a Work Sans a ese tamaño. Las
+     mayúsculas de pincel necesitan un pelo de aire, no menos.
+     Un <em> dentro del titular no se inclina (el marcador no tiene
+     cursiva): cambia a tinta. */
+  .titular {
+    font-family: var(--font-bellaboo), var(--font-caveat-brush), "Marker Felt", cursive;
+    font-weight: 400;
+    --tw-font-weight: 400;
+    text-transform: uppercase;
+    color: var(--noche);
+    --tw-tracking: 0.015em;
+    letter-spacing: 0.015em;
+    --tw-leading: 1.1;
+    line-height: 1.1;
+    text-wrap: balance;
+    text-align: center;
+    font-synthesis: none;
+  }
+  .titular em {
+    font-style: normal;
+    color: var(--tinta);
+  }
+
+  /* «Acompañado de estrellitas y corazones dibujados a los lados.»
+     Estrellas antes de la primera palabra y corazón después de la última, en
+     tinta y a la mitad del alto de la letra, así crecen con el titular. En
+     línea con el texto y no en las orillas de la caja: con text-wrap: balance
+     las líneas quedan más cortas que la caja y los adornos se alejaban. */
+  .adornado::before,
+  .adornado::after {
+    /* Un espacio de no separación con la estrella o el corazón como máscara:
+       es texto y no una caja, así que no abre un corte de línea y el adorno
+       nunca se queda solo en un renglón; va pegado a la primera y a la última
+       palabra. El ancho lo da el interletrado. */
+    content: "\00a0";
+    font-family: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0.3em;
+    background-color: var(--tinta);
+    -webkit-mask: var(--adorno) center / contain no-repeat;
+    mask: var(--adorno) center / contain no-repeat;
+    position: relative;
+  }
+  .adornado::before {
+    --adorno: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 8.5C19.5 15 21.4 17.2 28.5 18.2C21.5 19.1 19.6 21.4 18.9 28.5C18.3 21.5 16.2 19.3 9.5 18.3C16.3 17.3 18.4 15.1 19 8.5Z'/%3E%3Cpath d='M6.5 3C6.8 5.6 7.6 6.3 10 6.6C7.6 6.9 6.8 7.7 6.4 10.2C6.1 7.7 5.3 6.9 3 6.6C5.4 6.3 6.2 5.5 6.5 3Z'/%3E%3C/svg%3E");
+    top: -0.08em;
+    margin-inline-end: 0.28em;
+  }
+  .adornado::after {
+    --adorno: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 27.5C6.2 22.4 3.4 18 4.6 13.4C5.8 9.2 10.6 8.6 13.4 12.4C16.4 8.3 21.6 8.9 22.7 13.1C23.9 17.8 20.6 22.3 13.5 27.5Z'/%3E%3Cpath d='M26.5 3.5C26.8 5.9 27.5 6.6 29.6 6.9C27.5 7.2 26.8 7.9 26.4 10.2C26.1 7.9 25.4 7.2 23.4 6.9C25.4 6.6 26.2 5.9 26.5 3.5Z'/%3E%3C/svg%3E");
+    top: 0.06em;
+    margin-inline-start: 0.28em;
+  }
+
+  /* En la app el título arranca en el borde del contenido y los adornos se
+     juntan al final: corazón y estrellita, sin nada que empuje la primera
+     letra fuera de la retícula. */
+  .adornado-fin::before {
+    display: none;
+  }
+
+  /* LA FRASE. Lazy Dog: cierres emocionales, la firma y los pies. Nunca
+     listas ni precios. Sus ascendentes y descendentes piden más interlineado
+     que el marcador. */
+  .frase {
+    font-family: var(--font-lazy-dog), "Marker Felt", cursive;
+    font-weight: 400;
+    --tw-font-weight: 400;
+    text-transform: none;
+    color: var(--noche);
+    --tw-tracking: 0;
+    letter-spacing: 0;
+    --tw-leading: 1.15;
+    line-height: 1.15;
+    font-synthesis: none;
+  }
+
+  /* EL RÓTULO: los «02 — COLOR» de la guía. Work Sans Medium, versales
+     separadas, tinta. Encabeza secciones; nunca va solo. */
+  .rotulo {
+    font-family: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    --tw-font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    --tw-tracking: 0.18em;
+    line-height: 1.4;
+    color: var(--tinta);
+  }
 }
 
 * {
@@ -149,60 +316,23 @@
   }
 }
 
-body {
-  background: var(--bone);
-  color: var(--ink);
-  font-family: var(--font-body), system-ui, sans-serif;
-  line-height: 1.6;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading), Georgia, serif;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-/* Custom scrollbar */
+/* Barra de desplazamiento en azul línea, sobre el papel. */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--sand-soft);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--sand);
+  background: var(--linea);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-muted);
-}
-
-/* Selection */
-::selection {
-  background: var(--terra-light);
-  color: var(--ink);
-}
-
-/* Focus styles */
-/* terra daba 2.89:1 sobre sand-soft, el fondo de la barra inferior del panel:
-   por debajo del 3:1 que piden los indicadores no textuales. terra-deep da
-   4.39 ahí y 5.11 sobre bone. */
-:focus-visible {
-  outline: 2px solid var(--terra-deep);
-  outline-offset: 2px;
-}
-
-/* Gradient backgrounds */
-.gradient-hero {
-  background: linear-gradient(180deg, var(--light) 0%, #eef2f7 100%);
-}
-
-/* Floral pattern overlay */
-.floral-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-1.5 3-4 5-7 5s-5.5-2-7-5c1.5 3 2 6 0 9s-5 4-8 3c3 1.5 5 4 5 7s-2 5.5-5 7c3-1.5 6-2 9 0s4 5 3 8c1.5-3 4-5 7-5s5.5 2 7 5c-1.5-3-2-6 0-9s5-4 8-3c-3-1.5-5-4-5-7s2-5.5 5-7c-3 1.5-6 2-9 0s-4-5-3-8' fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background: var(--linea-control);
 }
 
 /* =================================
@@ -221,27 +351,13 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Gradient text animation */
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 /* Utility classes for animations */
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
 
-.animate-gradient {
-  animation: gradient 3s ease infinite;
-}
+/* Fuera con la marca del 28-sep: .gradient-hero, .floral-pattern (flores
+   doradas) y .animate-gradient. «Nunca degradados de color.» */
 
 /* Fuera, por cero usos en src/ y remotion/: .transition-smooth (el unico
    "token" de movimiento aparente del repo, y con la curva simetrica que
@@ -358,16 +474,12 @@ h1, h2, h3, h4, h5, h6 {
      de Tailwind. Todas quedan en su fotograma de reposo.
      animate-spin NO esta aqui a proposito: un spinner comunica "cargando", y
      sin el la pantalla parece colgada.
-     !important porque Hero.tsx y Flipbook.tsx redefinen .animate-float,
-     .animate-gradient y .animate-float-particle dentro de <style jsx>, y la
-     clase jsx-XXXX que styled-jsx anade a esos selectores les da mas
-     especificidad que a esta regla. */
+     !important porque una animación definida dentro de <style jsx> lleva la
+     clase jsx-XXXX de styled-jsx y le gana en especificidad a esta regla. */
   .animate-drift,
   .animate-breathe,
   .typing-dot,
   .animate-float,
-  .animate-float-particle,
-  .animate-gradient,
   .animate-pulse,
   .animate-ping {
     animation: none !important;
@@ -445,161 +557,108 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* =================================
-   SITIO PÚBLICO — "SOMETHING BLUE"
+   CONTROLES Y SUPERFICIES DE LA MARCA
 ================================= */
 
 /* Slider de invitados. El nativo con accent-color pintaba el riel gris del
-   sistema; aquí el riel se llena en azul hasta el valor (--fill lo pone el
-   componente) y el pulgar es un círculo de tinta con halo al tocarlo. */
-.range-blue {
-  appearance: none;
-  height: 28px;
-  background: transparent;
-  cursor: pointer;
-  touch-action: pan-y;
-}
-.range-blue::-webkit-slider-runnable-track {
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(to right, var(--azul) 0 var(--fill, 50%), var(--wash) var(--fill, 50%) 100%);
-}
-.range-blue::-moz-range-track {
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(to right, var(--azul) 0 var(--fill, 50%), var(--wash) var(--fill, 50%) 100%);
-}
-.range-blue::-webkit-slider-thumb {
-  appearance: none;
-  margin-top: -9px;
-  height: 24px;
-  width: 24px;
-  border-radius: 999px;
-  background: var(--navy);
-  border: 3px solid #fff;
-  box-shadow: 0 1px 3px rgba(28, 45, 79, 0.35);
-  transition: box-shadow 150ms var(--ease-out, ease-out), scale 150ms var(--ease-out, ease-out);
-}
-.range-blue::-moz-range-thumb {
-  height: 18px;
-  width: 18px;
-  border-radius: 999px;
-  background: var(--navy);
-  border: 3px solid #fff;
-  box-shadow: 0 1px 3px rgba(28, 45, 79, 0.35);
-}
-/* Respuesta al presionar, no al soltar: el pulgar crece un poco y gana halo. */
-.range-blue:active::-webkit-slider-thumb {
-  scale: 1.12;
-  box-shadow: 0 0 0 7px rgba(74, 118, 168, 0.18), 0 1px 3px rgba(28, 45, 79, 0.35);
-}
-.range-blue:focus-visible {
-  outline: none;
-}
-.range-blue:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--azul-deep);
-}
-.range-blue:focus-visible::-moz-range-thumb {
-  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--azul-deep);
+   sistema; aquí el riel se llena en tinta hasta el valor (--fill lo pone el
+   componente) y lo que falta queda en azul línea. El pulgar es azul noche con
+   borde niebla y halo al tocarlo. Son dos tramos de color con corte seco, no
+   un degradado. */
+@layer components {
+  .range-blue {
+    appearance: none;
+    /* 44px: el alto del input es su área táctil (el riel mide 6px). */
+    height: 2.75rem;
+    background: transparent;
+    cursor: pointer;
+    touch-action: pan-y;
+  }
+  .range-blue::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--tinta) 0 var(--fill, 50%), var(--linea) var(--fill, 50%) 100%);
+  }
+  .range-blue::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--tinta) 0 var(--fill, 50%), var(--linea) var(--fill, 50%) 100%);
+  }
+  .range-blue::-webkit-slider-thumb {
+    appearance: none;
+    margin-top: -9px;
+    height: 24px;
+    width: 24px;
+    border-radius: 999px;
+    background: var(--noche);
+    border: 3px solid var(--niebla);
+    box-shadow: 0 1px 3px rgb(46 58 85 / 0.35);
+    transition: box-shadow 150ms var(--ease-out, ease-out), scale 150ms var(--ease-out, ease-out);
+  }
+  .range-blue::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 999px;
+    background: var(--noche);
+    border: 3px solid var(--niebla);
+    box-shadow: 0 1px 3px rgb(46 58 85 / 0.35);
+  }
+  /* Respuesta al presionar, no al soltar: el pulgar crece un poco y gana halo. */
+  .range-blue:active::-webkit-slider-thumb {
+    scale: 1.12;
+    box-shadow: 0 0 0 7px rgb(85 104 140 / 0.18), 0 1px 3px rgb(46 58 85 / 0.35);
+  }
+  .range-blue:focus-visible {
+    outline: none;
+  }
+  .range-blue:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--niebla), 0 0 0 5px var(--noche);
+  }
+  .range-blue:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--niebla), 0 0 0 5px var(--noche);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .range-blue::-webkit-slider-thumb {
+      transition: box-shadow 150ms ease-out;
+    }
+    .range-blue:active::-webkit-slider-thumb {
+      scale: 1;
+    }
+  }
 }
 
-/* La barra de navegación es un material: papel translúcido con el contenido
-   pasando por debajo. Quien pidió reducir transparencias la recibe sólida. */
+/* La barra de navegación es un material: papel azul translúcido con el
+   contenido pasando por debajo. Quien pidió reducir transparencias la recibe
+   sólida; quien pidió más contraste, sólida y con borde marcado. */
 .nav-material {
-  background-color: rgb(246 245 242 / 0.72);
+  background-color: rgb(232 237 248 / 0.72);
   -webkit-backdrop-filter: blur(20px) saturate(170%);
   backdrop-filter: blur(20px) saturate(170%);
 }
 @media (prefers-reduced-transparency: reduce) {
   .nav-material {
-    background-color: var(--paper);
+    background-color: var(--papel);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 }
 @media (prefers-contrast: more) {
   .nav-material {
-    background-color: var(--paper);
-    border-bottom-color: var(--navy-muted) !important;
+    background-color: var(--papel);
+    border-bottom-color: var(--linea-control) !important;
   }
 }
 
-/* LA TIPOGRAFÍA DEL SITIO PÚBLICO, que nunca se había aplicado.
-   Las reglas globales de body y h1–h6 (arriba) piden var(--font-body) y
-   var(--font-heading), pero @theme inline no publica esas variables: las
-   incrusta en las utilidades. La declaración queda inválida y el navegador
-   cae en la fuente del sistema. Y como esas reglas no están en ninguna capa,
-   le ganan a las utilidades de Tailwind (que sí lo están): la clase
-   font-heading y los font-medium/leading-* de los títulos se ignoraban.
-   Resultado medido: todo h1–h3 del sitio salía en ui-sans-serif a peso 600.
-   Aquí, sólo dentro de .sb: el cuerpo toma Montserrat de verdad y los
-   títulos devuelven family, peso e interlineado a las utilidades
-   (revert-layer desde fuera de capa regresa a lo que declararon las capas).
-   El panel no se toca: allá el cambio de aspecto es otra decisión. */
-.sb,
-.sb-dark {
-  font-family: var(--font-montserrat), system-ui, sans-serif;
-}
-.sb :is(h1, h2, h3, h4, h5, h6),
-.sb-dark :is(h1, h2, h3, h4, h5, h6) {
-  font-family: revert-layer;
-  font-weight: revert-layer;
-  line-height: revert-layer;
-}
-
-/* Foco y selección en azul dentro del sitio público (clase .sb en cada página,
-   el navbar y el footer). El panel conserva terra-deep, elegido por contraste
-   sobre sus fondos arena. Sobre tinta marino el anillo va en blanco: azul
-   sobre marino no llega a 3:1. */
-.sb :focus-visible {
-  outline-color: var(--azul-deep);
-}
-.sb-dark :focus-visible,
-.sb .sb-dark :focus-visible {
-  outline-color: #fff;
-}
-.sb ::selection,
-.sb-dark ::selection {
-  background: var(--wash-deep);
-  color: var(--navy);
-}
-
-/* =================================
-   PANEL — EL MISMO "SOMETHING BLUE"
-================================= */
-
-/* El panel hereda el sistema del sitio público sin reescribir sus ~350
-   clases de neutros: aquí se REDEFINEN sus tokens dentro de .panel-sb.
-   Funciona porque @theme inline compila cada utilidad a la variable
-   (.bg-bone { background-color: var(--bone) }, comprobado en el CSS
-   generado), así que cambiar --bone dentro del panel cambia todo bg-bone
-   del panel y nada fuera de él.
-
-   Terra NO se redefine: en el panel tiene significado (error, vencido, no
-   asiste, sobrecupo, borrar) y en el sistema azul es justo lo que tiene que
-   destacar. Sus usos decorativos se cambiaron a azul/marino en cada
-   componente. Tampoco pale-yellow: "por vencer" y "tal vez" siguen siendo
-   un aviso suave.
-
-   Los éxitos (confirmado, pagado, contratado) pasan del verde al azul de las
-   maquetas del sitio (Mockups.tsx: chip "done" = wash / azul-deep). */
-.panel-sb {
-  --bone: var(--paper);
-  --cream: var(--paper-warm);
-  --ink: var(--navy);
-  --ink-soft: var(--navy-soft);
-  --ink-muted: var(--navy-muted);
-  --sand: var(--hairline);
-  --sand-soft: var(--wash-soft);
-  --pale-green: var(--wash);
-  --pale-green-ink: var(--azul-deep);
-  --pale-blue: var(--wash-soft);
-  --pale-blue-ink: var(--azul-deep);
-}
-
-/* La superficie de las tarjetas del panel, la misma de MockCard. */
-.panel-card {
-  border-radius: 1rem;
-  border: 1px solid var(--hairline);
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(28, 45, 79, 0.04), 0 12px 32px -16px rgba(28, 45, 79, 0.22);
+/* La superficie que se levanta del papel: tarjetas del panel, hojas y
+   paneles. Papel niebla, borde en azul línea y una sombra azul noche doble
+   (el contacto, cerca y nítido; la altura, lejos y difusa). */
+@layer components {
+  /* En la capa de componentes para que un rounded-* o shadow-* puesto al lado
+     mande. */
+  .panel-card {
+    border-radius: 1rem;
+    border: 1px solid var(--linea);
+    background: var(--niebla);
+    box-shadow: 0 1px 2px rgb(46 58 85 / 0.05), 0 12px 32px -16px rgb(46 58 85 / 0.24);
+  }
 }

@@ -7,6 +7,7 @@ import { formatMXN } from "@/lib/weddingPlans";
 import type { ClavePrioridad } from "@/components/onboarding/respuestas";
 import { contratadoPorCategoria, type PlanReparto } from "@/lib/reparto";
 import { RepartoDelPresupuesto } from "@/components/panel/RepartoDelPresupuesto";
+import { Titular } from "@/components/marca/Titular";
 import {
   BudgetSection,
   ChecklistSection,
@@ -59,15 +60,20 @@ export function PantallaDinero({
   // Con nada contratado ni pagado, "Llevan pagado $0" era el titular de la
   // pantalla: un cero de entrada. Si ya hay presupuesto (lo dijeron en el
   // onboarding o lo puso la planner), ése es el dato que tienen.
+  //
+  // El titular va en el marcador de la marca, pero la cifra no: un precio en
+  // letra de pincel se lee mal (el 1 y el 7 se confunden) y la guía deja el
+  // dinero en Work Sans. Por eso la frase y la cantidad van en piezas.
   const sinMovimientos = budget.paid <= 0 && budget.contracted <= 0;
-  const titular =
-    sinMovimientos && budget.budgetTotal != null
-      ? isEnglish
-        ? `A budget of ${formatMXN(budget.budgetTotal)}`
-        : `Un presupuesto de ${formatMXN(budget.budgetTotal)}`
-      : isEnglish
-        ? `You've paid ${formatMXN(budget.paid)}`
-        : `Llevan pagado ${formatMXN(budget.paid)}`;
+  const conPresupuesto = sinMovimientos && budget.budgetTotal != null;
+  const titularFrase = conPresupuesto
+    ? isEnglish
+      ? "A budget of "
+      : "Un presupuesto de "
+    : isEnglish
+      ? "You've paid "
+      : "Llevan pagado ";
+  const titularCifra = formatMXN(conPresupuesto ? budget.budgetTotal! : budget.paid);
 
   // Sin planner, pagos, partidas y proveedores sólo los captura el admin: sus
   // tres vacíos seguidos eran tres tarjetas de "aún no hay" que nadie va a
@@ -100,10 +106,13 @@ export function PantallaDinero({
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your money" : "Su dinero"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
-            {titular}
-          </h1>
-          <p className="mt-4 font-body text-sm text-ink-muted">{bajada}</p>
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
+            {titularFrase}
+            <span className="font-sans font-light normal-case tracking-[-0.01em] tabular-nums">
+              {titularCifra}
+            </span>
+          </Titular>
+          <p className="mt-4 text-sm text-tinta">{bajada}</p>
         </header>
       </Reveal>
 

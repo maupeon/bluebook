@@ -14,10 +14,12 @@ const DIAS_PARA_ACERCARSE = 2;
  * AvisoDePago). La pinta el layout solo en 'prueba' y 'prueba_vencida'.
  *
  * Tres tonos y ninguno alarma (.impeccable.md, «la calma es la marca»):
- * - con días de sobra, un renglón chico sobre wash-soft;
- * - en los últimos dos días, el mismo renglón con un poco más de cuerpo;
- * - vencida, clara y sin culpa: todo sigue ahí, en solo lectura.
- * Nunca terra: en el panel terra significa error, y esto no lo es.
+ * - con días de sobra, un renglón chico sobre el mismo papel azul de la
+ *   página, separado sólo por su regla en azul línea;
+ * - en los últimos dos días, el mismo renglón con un poco más de cuerpo y en
+ *   aviso (ocre): es algo por vencer, que es justo lo que dice el aviso;
+ * - vencida, clara y sin culpa, sobre niebla: todo sigue ahí, en solo lectura.
+ * Nunca error (ladrillo): en el panel significa que algo falló, y esto no.
  *
  * En /panel/plan no sale: esa pantalla ya dice todo esto, y un enlace a la
  * página en la que ya están es ruido.
@@ -52,7 +54,7 @@ export function FranjaDePrueba({ acceso }: { acceso: AccesoDeLaBoda }) {
   return (
     <div
       className={`border-b ${
-        discreta ? "border-sand bg-wash-soft" : "border-wash-deep/60 bg-wash"
+        discreta ? "border-linea bg-papel" : cerca ? "border-aviso/25 bg-aviso-fondo" : "border-linea bg-niebla"
       }`}
     >
       <div
@@ -61,19 +63,19 @@ export function FranjaDePrueba({ acceso }: { acceso: AccesoDeLaBoda }) {
         }`}
       >
         <p
-          className={`min-w-0 flex-1 font-body leading-snug text-ink ${
-            discreta ? "text-xs" : "text-[13px]"
+          className={`min-w-0 flex-1 leading-snug text-noche ${
+            discreta ? "text-xs" : "text-[13px] font-normal"
           }`}
         >
-          <span className={discreta ? "" : "font-semibold"}>{principal}</span>
-          {detalle ? <span className="text-ink-muted"> {detalle}</span> : null}
+          <span className={discreta ? "" : cerca ? "font-medium text-aviso" : "font-medium"}>{principal}</span>
+          {detalle ? <span className="text-tinta"> {detalle}</span> : null}
         </p>
         <Link
           href="/panel/plan"
-          className={`group inline-flex min-h-[2.75rem] shrink-0 items-center gap-1.5 font-body transition-[background-color,border-color,scale,color] duration-150 active:scale-[0.98] ${
+          className={`group inline-flex min-h-[2.75rem] shrink-0 items-center gap-1.5 transition-[background-color,text-decoration-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
             discreta
-              ? "text-xs font-semibold text-azul-deep underline-offset-4 hover:underline"
-              : "my-0.5 rounded-full border border-ink bg-ink px-4 text-[13px] text-white hover:bg-ink-soft"
+              ? "text-xs font-medium text-noche underline decoration-linea-control underline-offset-4 hover:decoration-noche"
+              : "my-0.5 rounded-full bg-noche px-4 text-[13px] font-medium text-niebla hover:bg-noche-suave"
           }`}
         >
           {isEnglish ? "Choose a plan" : "Elegir plan"}

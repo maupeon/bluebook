@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useCallback, useRef, useState, useEffect } from 'react'
+import { forwardRef, useCallback, useRef, useState, useEffect, type CSSProperties } from 'react'
 import HTMLFlipBook from 'react-pageflip'
 import {
   ChevronLeft,
@@ -12,12 +12,12 @@ import {
   Grid3X3,
   X,
   Heart,
-  Sparkles,
   ZoomIn,
   ZoomOut,
   Calendar,
 } from 'lucide-react'
 import { useLanguage } from '@/components/LanguageProvider'
+import { Titular } from '@/components/marca/Titular'
 
 interface FlipbookProps {
   photos: string[]
@@ -40,100 +40,129 @@ const Page = forwardRef<HTMLDivElement, PageProps>(({ children, className = '' }
 })
 Page.displayName = 'Page'
 
-const templateStyles = {
-  classic: {
-    name: 'Clásico',
-    pageBg: 'bg-gradient-to-br from-amber-50 via-orange-50/80 to-amber-100',
-    coverBg: 'bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100',
-    border: 'border-amber-200/60',
-    text: 'text-amber-900',
-    textLight: 'text-amber-700',
-    accent: 'bg-amber-200',
-    accentColor: '#d97706',
-    accentLight: 'bg-amber-100',
-    font: 'font-serif',
-    pattern: 'bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.03)_1px,_transparent_1px)] bg-[length:24px_24px]',
-    glowColor: 'rgba(217,119,6,0.15)',
-    frameStyle: 'shadow-[0_4px_20px_rgba(217,119,6,0.15),0_0_0_1px_rgba(217,119,6,0.1)]',
-  },
+/*
+ * LAS PLANTILLAS DEL ÁLBUM.
+ *
+ * Una plantilla es el papel y la tinta del libro: portada, páginas de foto y
+ * cierre. Todo lo que rodea al libro (botones, barra de avance, galería, visor,
+ * pantalla completa) es la interfaz y va siempre en la marca, elija lo que
+ * elija la pareja.
+ *
+ * - Clásico (la «Editorial» de /album-digital: la del plan de entrada y la que
+ *   se usa cuando no hay otra) y Blue Book (la demo) SON la marca: portada en
+ *   papel azul, páginas de foto en papel niebla, titular en azul noche.
+ * - Moderno, Romántico, Elegante y Rústico los elige la pareja al pagar: son
+ *   contenido suyo y conservan su paleta, la de sus muestras en
+ *   app/album-digital/page.tsx (si cambia una, cambian las dos). Ya sin
+ *   degradados, sin partículas ni resplandor, y sin negro: Elegante
+ *   («Nocturna») tenía la portada casi negra y ahora es azul noche.
+ *
+ * Las letras son las de la marca en todas: el nombre de la pareja en marcador,
+ * el cierre y la firma en script, lo demás en Work Sans.
+ *
+ * Los colores viajan como variables CSS puestas en el contenedor, y las
+ * páginas las leen con clases (bg-(--pl-portada)). No pueden ir en un style de
+ * la página: page-flip reescribe el style.cssText de cada página en cada
+ * fotograma del doblez y lo borraría.
+ */
+interface Plantilla {
+  /** Fondo de la portada y del cierre. */
+  portada: string
+  /** El nombre de la pareja y la frase de cierre. */
+  titulo: string
+  /** Fecha, conteo y pie de la portada y el cierre. */
+  texto: string
+  /** Reglas y filetes de la portada. */
+  regla: string
+  /** Estrellitas y corazones. */
+  adorno: string
+  /** Fondo de las páginas con foto. */
+  pagina: string
+  /** El folio de cada página. */
+  folio: string
+  /** El marco de la foto y las reglas del folio. */
+  marco: string
+}
+
+const MARCA: Plantilla = {
+  portada: 'var(--papel)',
+  titulo: 'var(--noche)',
+  texto: 'var(--tinta)',
+  regla: 'var(--linea)',
+  adorno: 'var(--tinta)',
+  pagina: 'var(--niebla)',
+  folio: 'var(--tinta)',
+  marco: 'var(--linea)',
+}
+
+const plantillas: Record<FlipbookProps['template'], Plantilla> = {
+  classic: MARCA,
+  bluebook: MARCA,
+  // «Moderna: sobria y minimal»
   modern: {
-    name: 'Moderno',
-    pageBg: 'bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100',
-    coverBg: 'bg-gradient-to-br from-slate-100 via-gray-50 to-zinc-100',
-    border: 'border-slate-200',
-    text: 'text-slate-900',
-    textLight: 'text-slate-500',
-    accent: 'bg-slate-800',
-    accentColor: '#334155',
-    accentLight: 'bg-slate-100',
-    font: 'font-sans tracking-wide',
-    pattern: '',
-    glowColor: 'rgba(51,65,85,0.1)',
-    frameStyle: 'shadow-[0_4px_30px_rgba(0,0,0,0.08)]',
+    portada: '#E7EEF6',
+    titulo: '#1D3557',
+    texto: '#1D3557',
+    regla: '#AAC7E5',
+    adorno: '#1D3557',
+    pagina: '#E7EEF6',
+    folio: '#1D3557',
+    marco: '#AAC7E5',
   },
+  // «Romántica: suave y cálida»
   romantic: {
-    name: 'Romántico',
-    pageBg: 'bg-gradient-to-br from-rose-50 via-pink-50/80 to-rose-100',
-    coverBg: 'bg-gradient-to-br from-rose-100 via-pink-50 to-rose-100',
-    border: 'border-rose-200/60',
-    text: 'text-rose-900',
-    textLight: 'text-rose-500',
-    accent: 'bg-rose-300',
-    accentColor: '#f43f5e',
-    accentLight: 'bg-rose-100',
-    font: 'font-serif italic',
-    pattern: 'bg-[radial-gradient(circle_at_center,_rgba(244,63,94,0.03)_1px,_transparent_1px)] bg-[length:28px_28px]',
-    glowColor: 'rgba(244,63,94,0.12)',
-    frameStyle: 'shadow-[0_4px_20px_rgba(244,63,94,0.12),0_0_0_1px_rgba(244,63,94,0.08)]',
+    portada: '#FFE4E1',
+    titulo: '#5A2A44',
+    texto: '#5A2A44',
+    regla: '#F8B4B4',
+    adorno: '#5A2A44',
+    pagina: '#FFE4E1',
+    folio: '#5A2A44',
+    marco: '#F8B4B4',
   },
+  // «Nocturna: contraste de lujo». La noche es la azul de la marca, no negro.
   elegant: {
-    name: 'Elegante',
-    pageBg: 'bg-gradient-to-br from-stone-50 via-neutral-50 to-stone-100',
-    coverBg: 'bg-gradient-to-br from-stone-900 via-neutral-800 to-stone-900',
-    border: 'border-amber-300/30',
-    text: 'text-stone-900',
-    textLight: 'text-stone-500',
-    accent: 'bg-amber-400',
-    accentColor: '#fbbf24',
-    accentLight: 'bg-amber-100',
-    font: 'font-serif tracking-widest uppercase',
-    pattern: '',
-    dark: true,
-    glowColor: 'rgba(251,191,36,0.2)',
-    frameStyle: 'shadow-[0_4px_30px_rgba(0,0,0,0.1),0_0_0_1px_rgba(251,191,36,0.15)]',
+    portada: 'var(--noche)',
+    titulo: 'var(--niebla)',
+    texto: 'var(--niebla)',
+    regla: '#B08968',
+    adorno: '#B08968',
+    pagina: 'var(--niebla)',
+    folio: 'var(--noche)',
+    marco: '#B08968',
   },
+  // «Tierra: natural y orgánica»
   rustic: {
-    name: 'Rústico',
-    pageBg: 'bg-gradient-to-br from-orange-50 via-yellow-50/80 to-amber-100',
-    coverBg: 'bg-gradient-to-br from-orange-100 via-amber-100 to-yellow-100',
-    border: 'border-orange-300/50',
-    text: 'text-orange-900',
-    textLight: 'text-orange-600',
-    accent: 'bg-orange-300',
-    accentColor: '#ea580c',
-    accentLight: 'bg-orange-100',
-    font: 'font-serif',
-    pattern: 'bg-[url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M30 5c-1.5 3-4 5-7 5s-5.5-2-7-5c1.5 3 2 6 0 9s-5 4-8 3c3 1.5 5 4 5 7s-2 5.5-5 7c3-1.5 6-2 9 0s4 5 3 8c1.5-3 4-5 7-5s5.5 2 7 5c-1.5-3-2-6 0-9s5-4 8-3c-3-1.5-5-4-5-7s2-5.5 5-7c-3 1.5-6 2-9 0s-4-5-3-8\' fill=\'%23d4a574\' fill-opacity=\'0.04\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")]',
-    glowColor: 'rgba(234,88,12,0.15)',
-    frameStyle: 'shadow-[0_4px_25px_rgba(234,88,12,0.12)]',
-  },
-  bluebook: {
-    name: 'Blue Book',
-    pageBg: 'bg-gradient-to-br from-blue-50 via-sky-50/80 to-blue-100',
-    coverBg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800',
-    border: 'border-blue-200/60',
-    text: 'text-blue-900',
-    textLight: 'text-blue-600',
-    accent: 'bg-blue-200',
-    accentColor: '#3b82f6',
-    accentLight: 'bg-blue-100',
-    font: 'font-serif',
-    pattern: 'bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.03)_1px,_transparent_1px)] bg-[length:24px_24px]',
-    glowColor: 'rgba(59,130,246,0.2)',
-    frameStyle: 'shadow-[0_4px_20px_rgba(59,130,246,0.15),0_0_0_1px_rgba(59,130,246,0.1)]',
-    dark: true,
+    portada: '#F0D9B5',
+    titulo: '#4A3F35',
+    texto: '#4A3F35',
+    regla: '#C08A5A',
+    adorno: '#C08A5A',
+    pagina: '#F0D9B5',
+    folio: '#4A3F35',
+    marco: '#C08A5A',
   },
 }
+
+const variablesDePlantilla = (p: Plantilla) =>
+  ({
+    '--pl-portada': p.portada,
+    '--pl-titulo': p.titulo,
+    '--pl-texto': p.texto,
+    '--pl-regla': p.regla,
+    '--pl-adorno': p.adorno,
+    '--pl-pagina': p.pagina,
+    '--pl-folio': p.folio,
+    '--pl-marco': p.marco,
+  }) as CSSProperties
+
+// Los controles alrededor del libro: botones secundarios de la marca (niebla
+// con borde de campo) sobre la página, y niebla translúcida sobre el azul
+// noche de la pantalla completa. Responden al presionar, no al soltar.
+const CONTROL =
+  'rounded-full transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-40'
+const CONTROL_PAGINA = 'border border-linea-control/60 bg-niebla text-noche hover:border-linea-control hover:bg-papel-medio'
+const CONTROL_NOCHE = 'border border-niebla/20 bg-niebla/10 text-niebla hover:bg-niebla/20'
 
 interface FlipBookRef {
   pageFlip: () => {
@@ -148,31 +177,14 @@ interface FlipEvent {
   data: number
 }
 
-// Floating particles component
-function FloatingParticles({ color }: { color: string }) {
+/** Los filetes de esquina de la portada y el cierre, en el color de regla de la plantilla. */
+function Filete({ className }: { className: string }) {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute animate-float-particle opacity-20"
-          style={{
-            left: `${8 + i * 8}%`,
-            top: `${10 + (i % 4) * 20}%`,
-            animationDelay: `${i * 0.4}s`,
-            animationDuration: `${6 + i * 0.3}s`,
-          }}
-        >
-          <Heart
-            style={{
-              width: `${10 + (i % 3) * 4}px`,
-              height: `${10 + (i % 3) * 4}px`,
-              color,
-              fill: color,
-            }}
-          />
-        </div>
-      ))}
+    <div aria-hidden="true" className={`absolute h-20 w-20 text-(--pl-regla) ${className}`}>
+      <svg viewBox="0 0 100 100" className="h-full w-full">
+        <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="50" cy="50" r="3" fill="currentColor" />
+      </svg>
     </div>
   )
 }
@@ -187,7 +199,6 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
   const [showControls, setShowControls] = useState(true)
   const [zoomedPhoto, setZoomedPhoto] = useState<string | null>(null)
   const [zoomScale, setZoomScale] = useState(1)
-  const [isFlipping, setIsFlipping] = useState(false)
   const [viewportWidth, setViewportWidth] = useState(1024)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -206,8 +217,8 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
   }, [isFullscreen])
 
   const totalPages = photos.length + 2
-  const styles = templateStyles[template] || templateStyles.classic
-  const isDark = 'dark' in styles && styles.dark
+  const plantilla = plantillas[template] || plantillas.classic
+  const control = isFullscreen ? CONTROL_NOCHE : CONTROL_PAGINA
 
   // Auto-hide controls in fullscreen
   //
@@ -288,10 +299,11 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
     return () => window.removeEventListener('resize', updateViewport)
   }, [])
 
+  // Antes también encendía un estado isFlipping durante 800ms, que sólo
+  // agrandaba el resplandor de color detrás del libro. El resplandor se fue
+  // con la marca («nunca degradados»), y el estado con él.
   const onFlip = useCallback((e: FlipEvent) => {
-    setIsFlipping(true)
     setCurrentPage(e.data)
-    setTimeout(() => setIsFlipping(false), 800)
   }, [])
 
   const goToPrev = () => bookRef.current?.pageFlip()?.flipPrev()
@@ -352,15 +364,18 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col items-center justify-center gap-6 transition-all duration-700 ${isFullscreen
-          ? 'fixed inset-0 z-50 bg-gradient-to-b from-black via-black/98 to-black/95 p-4'
+      // La pantalla completa es un visor de fotos: azul noche, nunca negro.
+      className={`flex flex-col items-center justify-center gap-6 ${isFullscreen
+          ? 'fixed inset-0 z-50 bg-noche p-4'
           : 'relative'
         }`}
+      style={variablesDePlantilla(plantilla)}
     >
-      {/* Photo Zoom Modal */}
+      {/* El visor de una foto: azul noche casi opaco. Sin desenfoque: el
+          material translúcido es sólo de la barra de navegación. */}
       {zoomedPhoto && (
         <div
-          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-lg flex items-center justify-center p-4 animate-fadeIn cursor-zoom-out"
+          className="fixed inset-0 z-[100] bg-noche/95 flex items-center justify-center p-4 animate-fadeIn cursor-zoom-out"
           onClick={closeZoom}
         >
           <button
@@ -368,9 +383,9 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
               e.stopPropagation()
               closeZoom()
             }}
-            className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className={`absolute top-6 right-6 p-3 ${CONTROL} ${CONTROL_NOCHE}`}
           >
-            <X className="w-6 h-6 text-white" />
+            <X className="w-6 h-6" />
           </button>
 
           <div className="fixed bottom-6 sm:bottom-auto sm:top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-[101]">
@@ -379,17 +394,17 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                 e.stopPropagation()
                 zoomOut()
               }}
-              className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              className={`p-3 ${CONTROL} ${CONTROL_NOCHE}`}
               aria-label={isEnglish ? 'Zoom out' : 'Reducir zoom'}
             >
-              <ZoomOut className="w-5 h-5 text-white" />
+              <ZoomOut className="w-5 h-5" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 setZoomScale(1)
               }}
-              className="px-3 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-sm text-white font-medium transition-colors"
+              className={`px-3 py-2.5 text-sm font-medium tabular-nums ${CONTROL} ${CONTROL_NOCHE}`}
             >
               {Math.round(zoomScale * 100)}%
             </button>
@@ -398,10 +413,10 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                 e.stopPropagation()
                 zoomIn()
               }}
-              className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              className={`p-3 ${CONTROL} ${CONTROL_NOCHE}`}
               aria-label={isEnglish ? 'Zoom in' : 'Ampliar zoom'}
             >
-              <ZoomIn className="w-5 h-5 text-white" />
+              <ZoomIn className="w-5 h-5" />
             </button>
           </div>
 
@@ -409,7 +424,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
             <img
               src={zoomedPhoto}
               alt={isEnglish ? 'Expanded photo' : 'Foto ampliada'}
-              className="mx-auto rounded-lg shadow-2xl object-contain transition-transform duration-150"
+              className="mx-auto rounded-lg shadow-2xl object-contain transition-transform duration-150 motion-reduce:transition-none"
               style={{
                 width: '100%',
                 transform: `scale(${zoomScale})`,
@@ -421,22 +436,24 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
         </div>
       )}
 
-      {/* Gallery Modal - Enhanced */}
+      {/* La galería: una hoja niebla sobre el velo azul noche. */}
       {showGallery && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl max-w-5xl w-full max-h-[85vh] overflow-hidden shadow-2xl border border-white/20">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <div>
-                <h3 className="font-heading text-2xl text-primary">{title}</h3>
-                <p className="font-body text-sm text-secondary mt-1">
+        <div className="fixed inset-0 z-50 bg-noche/60 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-niebla rounded-3xl max-w-5xl w-full max-h-[85vh] overflow-hidden shadow-2xl border border-linea">
+            <div className="flex items-center justify-between gap-4 p-6 border-b border-linea">
+              <div className="min-w-0">
+                <Titular as="h3" tamano="hoja" alinear="inicio">
+                  {title}
+                </Titular>
+                <p className="text-sm text-tinta mt-1 tabular-nums">
                   {photos.length} {isEnglish ? 'photos' : 'fotos'}
                 </p>
               </div>
               <button
                 onClick={() => setShowGallery(false)}
-                className="p-3 hover:bg-gray-100 rounded-full transition-all duration-200 hover:scale-105"
+                className="shrink-0 p-3 rounded-full text-noche transition-[background-color,scale] duration-150 hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
               >
-                <X className="w-6 h-6 text-gray-600" />
+                <X className="w-6 h-6" />
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-100px)]">
@@ -445,23 +462,25 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                   <button
                     key={index}
                     onClick={() => goToPage(index + 1)}
-                    className={`relative aspect-square rounded-xl overflow-hidden group transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${currentPage === index + 1 ? 'ring-4 ring-accent ring-offset-2 scale-[1.02]' : ''
+                    className={`relative aspect-square rounded-xl overflow-hidden group transition-[scale,box-shadow] duration-200 hover:scale-[1.02] hover:shadow-lg motion-reduce:hover:scale-100 ${currentPage === index + 1 ? 'ring-2 ring-noche ring-offset-2 ring-offset-niebla scale-[1.02] motion-reduce:scale-100' : ''
                       }`}
                   >
                     <img
                       src={photo}
                       alt={`${isEnglish ? 'Photo' : 'Foto'} ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 motion-reduce:group-hover:scale-100"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
-                      <span className="text-white font-semibold text-lg drop-shadow-lg">
+                    {/* Velo plano de azul noche para leer el número sobre
+                        cualquier foto (antes, un degradado a negro). */}
+                    <div className="absolute inset-0 bg-noche/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
+                      <span className="text-niebla font-medium text-lg tabular-nums">
                         {index + 1}
                       </span>
                     </div>
                     {currentPage === index + 1 && (
                       <div className="absolute top-2 right-2">
-                        <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center">
-                          <Heart className="w-3 h-3 text-white fill-white" />
+                        <div className="w-6 h-6 bg-noche rounded-full flex items-center justify-center">
+                          <Heart className="w-3 h-3 text-niebla fill-niebla" />
                         </div>
                       </div>
                     )}
@@ -473,83 +492,56 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
         </div>
       )}
 
-      {/* Top Controls - Enhanced */}
-      <div data-flipbook-controls className={`flex items-center justify-between w-full max-w-[560px] gap-2 transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none') : 'opacity-100'
+      {/* Top Controls */}
+      <div data-flipbook-controls className={`flex items-center justify-between w-full max-w-[560px] gap-2 transition-[opacity,translate] duration-300 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 motion-reduce:translate-y-0 pointer-events-none') : 'opacity-100'
         }`}>
         <div className="flex items-center gap-2">
           <button
             onClick={goToCover}
-            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
+            className={`p-3 ${CONTROL} ${control}`}
             title={isEnglish ? 'Go to cover' : 'Ir a la portada'}
           >
-            <ChevronsLeft className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
+            <ChevronsLeft className="w-5 h-5" />
           </button>
 
           <button
             onClick={goToBack}
-            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90 text-primary'}`}
+            className={`p-3 ${CONTROL} ${control}`}
             title={isEnglish ? 'Go to back cover' : 'Ir al cierre'}
           >
-            <ChevronsRight className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
+            <ChevronsRight className="w-5 h-5" />
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowGallery(true)}
-            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
-              }`}
+            className={`p-3 ${CONTROL} ${control}`}
             title={isEnglish ? 'Open gallery (G)' : 'Ver galeria (G)'}
           >
-            <Grid3X3 className={`w-5 h-5 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
+            <Grid3X3 className="w-5 h-5" />
           </button>
           <button
             onClick={toggleFullscreen}
-            className={`p-2.5 sm:p-3 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
-              }`}
+            className={`p-3 ${CONTROL} ${control}`}
             title={isEnglish ? 'Fullscreen (F)' : 'Pantalla completa (F)'}
           >
             {isFullscreen ? (
-              <Minimize2 className="w-5 h-5 text-white" />
+              <Minimize2 className="w-5 h-5" />
             ) : (
-              <Maximize2 className="w-5 h-5 text-primary" />
+              <Maximize2 className="w-5 h-5" />
             )}
           </button>
         </div>
       </div>
 
-      {/* Flipbook Container */}
+      {/* Flipbook Container.
+          Sin el resplandor de color ni la sombra radial negra que había
+          debajo: el libro se levanta con una sola sombra teñida de azul
+          noche, y un filo de niebla lo separa del fondo en pantalla completa
+          (donde la portada de Nocturna es del mismo azul que el visor). */}
       <div className="relative">
-        {/* Ambient glow - enhanced */}
-        <div
-          className={`absolute inset-0 blur-[80px] transform scale-110 rounded-full transition-all duration-1000 ${isFlipping ? 'scale-125' : 'scale-110'
-            }`}
-          style={{ backgroundColor: styles.glowColor }}
-        />
-
-        {/* Floating particles for romantic/rustic templates */}
-        {(template === 'romantic' || template === 'rustic') && !isFullscreen && (
-          <FloatingParticles color={styles.accentColor} />
-        )}
-
-        {/* Book shadow - enhanced */}
-        <div
-          className="absolute inset-x-8 bottom-0 h-12 blur-3xl rounded-full transform translate-y-6"
-          style={{
-            background: `radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, transparent 70%)`
-          }}
-        />
-
-        <div
-          className="relative rounded-2xl overflow-hidden transition-transform duration-500"
-          style={{
-            boxShadow: `
-              0 30px 80px -20px rgba(0, 0, 0, 0.45), 
-              0 15px 30px -15px rgba(0, 0, 0, 0.25),
-              0 0 0 1px rgba(255,255,255,0.1)
-            `,
-          }}
-        >
+        <div className="relative rounded-2xl overflow-hidden shadow-[0_30px_80px_-20px_rgb(46_58_85/0.45),0_15px_30px_-15px_rgb(46_58_85/0.25)] ring-1 ring-niebla/10">
           <HTMLFlipBook
             ref={bookRef}
             width={bookWidth}
@@ -577,100 +569,63 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
             clickEventForward={true}
             useMouseEvents={true}
           >
-            {/* Cover Page - Premium Design */}
-            <Page className={`${styles.coverBg} flex items-center justify-center relative overflow-hidden`}>
-              {/* Decorative corner flourishes */}
-              <div className="absolute top-6 left-6 w-20 h-20">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
-                  <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                  <circle cx="50" cy="50" r="3" fill="currentColor" />
-                </svg>
-              </div>
-              <div className="absolute bottom-6 right-6 w-20 h-20 rotate-180">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
-                  <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                  <circle cx="50" cy="50" r="3" fill="currentColor" />
-                </svg>
-              </div>
+            {/* La portada: el nombre de la pareja es el titular, en marcador
+                y con sus estrellitas y corazón (del color de adorno de la
+                plantilla). Antes llevaba encima un corazón con resplandor y
+                un divisor con destellos: con los adornos del titular sobraban
+                dibujos alrededor del nombre. */}
+            <Page className="bg-(--pl-portada) flex items-center justify-center relative overflow-hidden">
+              <Filete className="top-6 left-6" />
+              <Filete className="bottom-6 right-6 rotate-180" />
 
-              {/* Main content */}
               <div className="text-center px-8 z-10">
-                {/* Decorative line top */}
-                <div className={`w-32 h-px mx-auto mb-8 ${isDark ? 'bg-white/30' : styles.accent}`} />
+                <div className="w-32 h-px mx-auto mb-8 bg-(--pl-regla)" />
 
-                {/* Heart icon with glow */}
-                <div className={`relative w-20 h-20 mx-auto mb-8`}>
-                  <div
-                    className="absolute inset-0 rounded-full animate-pulse"
-                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : styles.glowColor, filter: 'blur(15px)' }}
-                  />
-                  <div className={`relative w-full h-full rounded-full flex items-center justify-center ${isDark ? 'bg-white/20 border border-white/30' : `${styles.accent} border ${styles.border}`
-                    }`}>
-                    <Heart className={`w-10 h-10 ${isDark ? 'text-white' : styles.text}`} fill="currentColor" style={{ opacity: 0.9 }} />
-                  </div>
-                </div>
+                <h2 className="titular adornado mb-4 text-3xl md:text-[2.5rem] text-(--pl-titulo) [--tinta:var(--pl-adorno)]">
+                  <span className="min-w-0">{title}</span>
+                </h2>
 
-                {/* Title */}
-                <h1 className={`text-3xl md:text-4xl ${styles.font} mb-4 leading-tight ${isDark ? 'text-white' : styles.text
-                  }`}>
-                  {title}
-                </h1>
-
-                {/* Subtitle/Date */}
                 {weddingDate && (
-                  <div className={`flex items-center justify-center gap-2 mb-6 ${isDark ? 'text-white/70' : styles.textLight}`}>
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-sm font-body">{weddingDate}</span>
+                  <div className="flex items-center justify-center gap-2 mb-6 text-(--pl-texto)">
+                    <Calendar className="w-4 h-4" aria-hidden="true" />
+                    <span className="text-sm">{weddingDate}</span>
                   </div>
                 )}
 
-                {/* Decorative divider */}
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  <div className={`w-12 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
-                  <Sparkles className={`w-4 h-4 ${isDark ? 'text-white/60' : styles.textLight} opacity-60`} />
-                  <div className={`w-12 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
-                </div>
+                <div className="w-24 h-px mx-auto mb-6 bg-(--pl-regla)" />
 
-                {/* Photo count */}
-                <p className={`text-base ${isDark ? 'text-white/60' : styles.textLight}`}>
+                <p className="text-base text-(--pl-texto) tabular-nums">
                   {photos.length} {isEnglish ? 'special moments' : 'momentos especiales'}
                 </p>
 
-                {/* Hint text */}
-                <p className={`text-xs mt-6 ${isDark ? 'text-white/40' : styles.textLight} opacity-40`}>
+                <p className="text-xs mt-6 text-(--pl-texto)">
                   {isEnglish ? 'Tap to begin' : 'Toca para comenzar'} →
                 </p>
               </div>
             </Page>
 
-            {/* Photo Pages - Premium Design */}
+            {/* Las páginas de foto */}
             {photos.map((photo, index) => (
-              <Page key={`photo-${index}`} className={`${styles.pageBg} ${styles.pattern} relative`}>
+              <Page key={`photo-${index}`} className="bg-(--pl-pagina) relative">
                 <div className="h-full w-full flex flex-col p-4">
-                  {/* Photo frame - elegant design */}
                   <div className="flex-1 flex items-center justify-center py-2">
                     <div
-                      className={`relative rounded-lg overflow-hidden bg-white cursor-zoom-in group transition-all duration-300 hover:scale-[1.01]`}
+                      className="relative rounded-lg overflow-hidden bg-niebla cursor-zoom-in group shadow-[0_10px_40px_rgb(46_58_85/0.12),0_2px_10px_rgb(46_58_85/0.08)] transition-[scale] duration-300 hover:scale-[1.01] motion-reduce:hover:scale-100"
                       style={{
                         maxWidth: '92%',
                         maxHeight: '92%',
-                        boxShadow: `
-                          0 10px 40px rgba(0,0,0,0.12),
-                          0 2px 10px rgba(0,0,0,0.08),
-                          inset 0 0 0 1px rgba(255,255,255,0.5)
-                        `,
                       }}
                       onClick={() => openZoom(photo)}
                     >
-                      {/* Subtle border effect */}
-                      <div className={`absolute inset-0 border-4 ${styles.border} rounded-lg pointer-events-none z-10`} />
+                      {/* El marco, en el color de la plantilla */}
+                      <div className="absolute inset-0 border-4 border-(--pl-marco) rounded-lg pointer-events-none z-10" />
 
-                      {/* Loading skeleton */}
+                      {/* Mientras carga: papel azul plano, no un degradado gris */}
                       {!loadedImages.has(index) && (
-                        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center rounded">
+                        <div className="absolute inset-0 bg-papel flex items-center justify-center rounded">
                           <div className="text-center">
-                            <Heart className="w-8 h-8 text-gray-200 animate-pulse mx-auto mb-2" />
-                            <p className="text-xs text-gray-300">{isEnglish ? 'Loading...' : 'Cargando...'}</p>
+                            <Heart className="w-8 h-8 text-linea animate-pulse mx-auto mb-2" aria-hidden="true" />
+                            <p className="text-xs text-tinta">{isEnglish ? 'Loading...' : 'Cargando...'}</p>
                           </div>
                         </div>
                       )}
@@ -678,7 +633,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                       <img
                         src={photo}
                         alt={`${isEnglish ? 'Memory' : 'Recuerdo'} ${index + 1}`}
-                        className={`max-w-full max-h-[560px] w-auto h-auto object-contain rounded transition-all duration-500 ${loadedImages.has(index) ? 'opacity-100' : 'opacity-0'
+                        className={`max-w-full max-h-[560px] w-auto h-auto object-contain rounded transition-opacity duration-500 ${loadedImages.has(index) ? 'opacity-100' : 'opacity-0'
                           }`}
                         loading="lazy"
                         onLoad={() => handleImageLoad(index)}
@@ -686,72 +641,58 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
 
                       {/* Zoom indicator on hover */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                        <div className="bg-black/50 backdrop-blur-sm rounded-full p-3">
-                          <ZoomIn className="w-6 h-6 text-white" />
+                        <div className="bg-noche/60 rounded-full p-3">
+                          <ZoomIn className="w-6 h-6 text-niebla" />
                         </div>
                       </div>
-                      <div className="absolute top-3 left-3 bg-black/45 text-white text-xs px-2 py-1 rounded-full">
+                      <div className="absolute top-3 left-3 bg-noche/70 text-niebla text-xs px-2 py-1 rounded-full tabular-nums">
                         {index + 1}
                       </div>
                     </div>
                   </div>
 
-                  {/* Page number - elegant style */}
+                  {/* El folio */}
                   <div className="text-center py-2">
                     <div className="flex items-center justify-center gap-3">
-                      <div className={`w-8 h-px ${styles.accent} opacity-30`} />
-                      <span className={`text-xs ${styles.textLight} opacity-50 ${styles.font}`}>
+                      <div className="w-8 h-px bg-(--pl-marco)" />
+                      <span className="text-xs text-(--pl-folio) tabular-nums">
                         {index + 1}
                       </span>
-                      <div className={`w-8 h-px ${styles.accent} opacity-30`} />
+                      <div className="w-8 h-px bg-(--pl-marco)" />
                     </div>
                   </div>
                 </div>
               </Page>
             ))}
 
-            {/* Back Cover - Premium Design */}
-            <Page className={`${styles.coverBg} flex items-center justify-center relative overflow-hidden`}>
-              {/* Decorative corners */}
-              <div className="absolute top-6 left-6 w-20 h-20">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
-                  <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                  <circle cx="50" cy="50" r="3" fill="currentColor" />
-                </svg>
-              </div>
-              <div className="absolute bottom-6 right-6 w-20 h-20 rotate-180">
-                <svg viewBox="0 0 100 100" className={`w-full h-full ${isDark ? 'text-white/30' : styles.textLight} opacity-40`}>
-                  <path d="M0 0 Q 0 50 50 50 Q 0 50 0 100" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                  <circle cx="50" cy="50" r="3" fill="currentColor" />
-                </svg>
-              </div>
+            {/* El cierre: la frase y la firma en script, como el pie de una
+                pieza de la marca. */}
+            <Page className="bg-(--pl-portada) flex items-center justify-center relative overflow-hidden">
+              <Filete className="top-6 left-6" />
+              <Filete className="bottom-6 right-6 rotate-180" />
 
               <div className="text-center px-8 z-10">
-                {/* Heart icon */}
-                <div className={`${isDark ? 'bg-white/20' : styles.accent} rounded-full w-16 h-16 mx-auto mb-8 flex items-center justify-center border ${isDark ? 'border-white/30' : styles.border}`}>
-                  <Heart className={`w-8 h-8 ${isDark ? 'text-white' : styles.text}`} fill="currentColor" style={{ opacity: 0.9 }} />
+                <div className="rounded-full w-16 h-16 mx-auto mb-8 flex items-center justify-center border border-(--pl-regla)">
+                  <Heart className="w-8 h-8 text-(--pl-adorno)" strokeWidth={1.5} aria-hidden="true" />
                 </div>
 
-                {/* Thank you message */}
-                <p className={`${styles.font} ${isDark ? 'text-white' : styles.text} text-xl mb-2`}>
+                <p className="frase text-[2rem] text-(--pl-titulo)">
                   {isEnglish ? 'Thank you for sharing' : 'Gracias por compartir'}
                 </p>
-                <p className={`${styles.font} ${isDark ? 'text-white' : styles.text} text-xl mb-8`}>
+                <p className="frase text-[2rem] text-(--pl-titulo) mb-8">
                   {isEnglish ? 'these moments' : 'estos momentos'}
                 </p>
 
-                {/* Decorative divider */}
                 <div className="flex items-center justify-center gap-3 mb-8">
-                  <div className={`w-8 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
-                  <Heart className={`w-3 h-3 ${isDark ? 'text-white/60' : styles.textLight} opacity-60`} fill="currentColor" />
-                  <div className={`w-8 h-px ${isDark ? 'bg-white/30' : styles.accent}`} />
+                  <div className="w-8 h-px bg-(--pl-regla)" />
+                  <Heart className="w-3 h-3 text-(--pl-adorno)" strokeWidth={1.75} aria-hidden="true" />
+                  <div className="w-8 h-px bg-(--pl-regla)" />
                 </div>
 
-                {/* Branding */}
-                <p className={`text-sm ${isDark ? 'text-white/50' : styles.textLight} opacity-50`}>
+                <p className="text-sm text-(--pl-texto)">
                   {isEnglish ? 'Made with love at' : 'Creado con amor en'}
                 </p>
-                <p className={`text-lg ${isDark ? 'text-white' : styles.text} font-semibold mt-1`}>
+                <p className="frase text-[1.75rem] text-(--pl-titulo) mt-1">
                   Blue Book
                 </p>
               </div>
@@ -772,22 +713,23 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
         </div>
       </div>
 
-      {/* Bottom Navigation - Enhanced */}
-      <div data-flipbook-controls className={`flex items-center gap-2 sm:gap-4 w-full max-w-[560px] transition-all duration-500 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none') : 'opacity-100'
+      {/* Bottom Navigation */}
+      <div data-flipbook-controls className={`flex items-center gap-2 sm:gap-4 w-full max-w-[560px] transition-[opacity,translate] duration-300 ${isFullscreen ? (showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 motion-reduce:translate-y-0 pointer-events-none') : 'opacity-100'
         }`}>
         <button
           onClick={goToPrev}
           disabled={currentPage === 0}
-          className={`p-2.5 sm:p-4 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 active:scale-95 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
-            }`}
+          className={`p-2.5 sm:p-4 ${CONTROL} ${control}`}
           aria-label={isEnglish ? 'Previous page' : 'Pagina anterior'}
         >
-          <ChevronLeft className={`w-6 h-6 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
+          <ChevronLeft className="w-6 h-6" />
         </button>
 
-        {/* Progress bar - enhanced */}
+        {/* La barra de avance: tinta plana sobre azul línea (niebla sobre
+            niebla translúcida en pantalla completa). Antes era un degradado
+            del color de la plantilla. */}
         <div className="flex-1 min-w-0">
-          <div className={`flex-1 h-2 rounded-full overflow-hidden ${isFullscreen ? 'bg-white/10' : 'bg-gray-200'
+          <div className={`h-2 rounded-full overflow-hidden ${isFullscreen ? 'bg-niebla/20' : 'bg-linea'
             }`}>
             {/* translateX y no width: width recalcula layout en cada
                 fotograma. Tampoco scaleX, como en la barra del wizard: esta es
@@ -799,33 +741,31 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                 cuando la pagina ya termino de pasar, y la barra no deberia
                 seguir moviendose casi un segundo despues. */}
             <div
-              className="h-full w-full rounded-full transition-transform duration-300 ease-linear motion-reduce:transition-none"
+              className={`h-full w-full rounded-full transition-transform duration-300 ease-linear motion-reduce:transition-none ${isFullscreen ? 'bg-niebla' : 'bg-tinta'}`}
               style={{
                 transform: `translateX(${progressPercent - 100}%)`,
-                background: `linear-gradient(90deg, ${styles.accentColor}, ${styles.accentColor}dd)`,
               }}
             />
           </div>
-          <span className={`mt-2 block font-body text-xs sm:text-sm whitespace-nowrap truncate ${isFullscreen ? 'text-white/60' : 'text-secondary'
+          <span className={`mt-2 block text-xs sm:text-sm whitespace-nowrap truncate tabular-nums ${isFullscreen ? 'text-niebla' : 'text-tinta'
             }`}>
             {currentPage + 1} / {totalPages}
-            <span className="text-xs ml-2 opacity-70 hidden sm:inline">{`(${pageLabel})`}</span>
+            <span className="text-xs ml-2 hidden sm:inline">{`(${pageLabel})`}</span>
           </span>
         </div>
 
         <button
           onClick={goToNext}
           disabled={currentPage >= totalPages - 1}
-          className={`p-2.5 sm:p-4 rounded-full backdrop-blur-xl shadow-lg hover:shadow-xl disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 active:scale-95 ${isFullscreen ? 'bg-white/10 hover:bg-white/20' : 'bg-white/90'
-            }`}
+          className={`p-2.5 sm:p-4 ${CONTROL} ${control}`}
           aria-label={isEnglish ? 'Next page' : 'Pagina siguiente'}
         >
-          <ChevronRight className={`w-6 h-6 ${isFullscreen ? 'text-white' : 'text-primary'}`} />
+          <ChevronRight className="w-6 h-6" />
         </button>
       </div>
 
-      {/* Instructions - subtle */}
-      <p className={`font-body text-xs transition-all duration-500 ${isFullscreen ? 'text-white/30' : 'text-secondary/40'
+      {/* Instructions */}
+      <p className={`text-xs transition-opacity duration-500 ${isFullscreen ? 'text-niebla' : 'text-tinta'
         } ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
         {isEnglish
           ? 'Use ← → to navigate • Home/End for cover/back cover • F fullscreen • G gallery • Tap photo to zoom'
@@ -838,29 +778,28 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
           from { opacity: 0; transform: scale(0.97); }
           to { opacity: 1; transform: scale(1); }
         }
-        
-        @keyframes float-particle {
-          0%, 100% {
-            transform: translateY(0) rotate(0deg) scale(1);
-          }
-          50% {
-            transform: translateY(-15px) rotate(10deg) scale(1.1);
-          }
+
+        @keyframes fadeInPlano {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-        
+
         .animate-fadeIn {
-          animation: fadeIn 0.4s ease-out;
+          animation: fadeIn 250ms cubic-bezier(0.23, 1, 0.32, 1);
         }
-        
-        .animate-float-particle {
-          animation: float-particle 5s ease-in-out infinite;
+
+        /* Reducir movimiento conserva el fundido y quita la escala. */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-fadeIn {
+            animation-name: fadeInPlano;
+          }
         }
-        
+
         /* Smooth page flip shadows */
         .album-flipbook .stf__wrapper {
           margin: 0 auto;
         }
-        
+
         /* Better mobile touch */
         @media (max-width: 768px) {
           .album-flipbook .stf__parent {

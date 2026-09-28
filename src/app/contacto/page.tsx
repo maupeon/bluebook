@@ -47,10 +47,15 @@ function validate(form: FormState, en: boolean): Partial<Record<Field, string>> 
   return errors;
 }
 
+// Los campos van en papel azul dentro de la hoja niebla, con borde de campo
+// (3:1) y foco en azul noche. El error se dice en ladrillo, el único color que
+// no es azul, para que se distinga de la tinta en un vistazo.
 const INPUT =
-  "w-full rounded-xl border bg-white px-4 py-3 font-body text-[15px] text-navy placeholder:text-navy-muted/60 " +
-  "transition-[border-color,box-shadow] duration-150 focus:outline-none focus:ring-4 focus:ring-wash " +
-  "disabled:cursor-not-allowed disabled:bg-paper disabled:text-navy-muted";
+  "w-full rounded-xl border bg-papel px-4 py-3 text-[15px] text-noche " +
+  "transition-[border-color,box-shadow] duration-150 focus:border-noche focus:outline-none focus:ring-2 focus:ring-noche/20 " +
+  "disabled:cursor-not-allowed disabled:bg-papel-medio disabled:text-tinta";
+const BORDE = "border-linea-control";
+const BORDE_ERROR = "border-error";
 
 function FieldShell({
   id,
@@ -69,13 +74,13 @@ function FieldShell({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-2 flex items-baseline justify-between font-body text-sm font-medium text-navy">
+      <label htmlFor={id} className="mb-2 flex items-baseline justify-between text-sm font-medium text-noche">
         {label}
-        {optional && <span className="text-xs font-normal text-navy-muted">{en ? "Optional" : "Opcional"}</span>}
+        {optional && <span className="text-xs font-normal text-tinta">{en ? "Optional" : "Opcional"}</span>}
       </label>
       {children}
       {error && (
-        <p id={`${id}-error`} className="mt-1.5 flex items-center gap-1.5 font-body text-[13px] text-azul-deep">
+        <p id={`${id}-error`} className="mt-1.5 flex items-center gap-1.5 text-[13px] text-error">
           <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />
           {error}
         </p>
@@ -194,67 +199,71 @@ export default function ContactoPage() {
   ];
 
   return (
-    <div className="sb bg-paper">
+    <div className="bg-papel">
       <section className="relative overflow-hidden pb-24 pt-28 sm:pt-32 md:pb-32 lg:pt-36">
         <Container>
-          <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          {/* El encabezado, centrado y a lo ancho; debajo, los canales y el
+              formulario lado a lado. */}
+          <div className="mx-auto max-w-4xl text-center">
+            <Reveal>
+              <Eyebrow>{en ? "Contact" : "Contacto"}</Eyebrow>
+            </Reveal>
+            <Reveal delay={80}>
+              <Display className="mt-5">
+                {en ? (
+                  <>
+                    Let&apos;s talk about <Em>your wedding.</Em>
+                  </>
+                ) : (
+                  <>
+                    Hablemos de <Em>tu boda.</Em>
+                  </>
+                )}
+              </Display>
+            </Reveal>
+            <Reveal delay={160}>
+              <Lead className="mx-auto mt-6 max-w-md">
+                {en
+                  ? "Write to us wherever is easiest for you. A person answers, in under 24 hours."
+                  : "Escríbenos por donde te quede más cómodo. Te contesta una persona, en menos de 24 horas."}
+              </Lead>
+            </Reveal>
+          </div>
+
+          <div className="mt-14 grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             {/* Canales */}
             <div>
-              <Reveal>
-                <Eyebrow>{en ? "Contact" : "Contacto"}</Eyebrow>
-              </Reveal>
-              <Reveal delay={80}>
-                <Display className="mt-5">
-                  {en ? (
-                    <>
-                      Let&apos;s talk about <Em>your wedding.</Em>
-                    </>
-                  ) : (
-                    <>
-                      Hablemos de <Em>tu boda.</Em>
-                    </>
-                  )}
-                </Display>
-              </Reveal>
-              <Reveal delay={160}>
-                <Lead className="mt-6 max-w-md">
-                  {en
-                    ? "Write to us wherever is easiest for you. A person answers, in under 24 hours."
-                    : "Escríbenos por donde te quede más cómodo. Te contesta una persona, en menos de 24 horas."}
-                </Lead>
-              </Reveal>
-
-              <ul className="mt-10 space-y-3">
+              <ul className="space-y-3">
                 {channels.map(({ href, Icon, title, detail, note, external }, i) => (
                   <Reveal as="li" key={title} delay={200 + i * 60}>
                     <a
                       href={href}
                       target={external ? "_blank" : undefined}
                       rel={external ? "noopener noreferrer" : undefined}
-                      className="group flex items-center gap-4 rounded-2xl border border-hairline bg-white p-4 transition-[border-color,background-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.99] sm:p-5"
+                      className="group flex items-center gap-4 rounded-2xl border border-linea bg-niebla p-4 transition-[border-color,background-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.99] motion-reduce:active:scale-100 sm:p-5"
                     >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-wash text-azul-deep">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-papel text-noche">
                         <Icon className="h-5 w-5" strokeWidth={1.6} aria-hidden="true" />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-baseline gap-2">
-                          <span className="font-body text-[15px] font-semibold text-navy">{title}</span>
-                          <span className="font-body text-xs text-navy-muted">{note}</span>
+                          <span className="text-[15px] font-medium text-noche">{title}</span>
+                          <span className="text-xs text-tinta">{note}</span>
                         </span>
-                        <span className="block truncate font-body text-sm text-navy-soft">{detail}</span>
+                        <span className="block truncate text-sm text-tinta">{detail}</span>
                       </span>
-                      <Arrow className="h-4 w-4 shrink-0 text-navy-muted" />
+                      <Arrow className="h-4 w-4 shrink-0 text-tinta" />
                     </a>
                   </Reveal>
                 ))}
               </ul>
 
               <Reveal delay={400}>
-                <p className="mt-8 font-body text-sm text-navy-muted">
+                <p className="mt-8 text-sm text-tinta">
                   {en ? "Ready to start? " : "¿Lista para empezar? "}
                   <Link
                     href="/comenzar"
-                    className="font-semibold text-azul-deep underline decoration-wash-deep underline-offset-4 transition-colors hover:text-navy"
+                    className="font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
                   >
                     {en ? "Try it free for 7 days, no card." : "Pruébalo 7 días gratis, sin tarjeta."}
                   </Link>
@@ -264,20 +273,25 @@ export default function ContactoPage() {
 
             {/* Formulario */}
             <Reveal delay={160}>
-              <div className="relative overflow-hidden rounded-3xl border border-hairline bg-white p-6 shadow-[0_24px_60px_-40px_rgba(28,45,79,0.35)] sm:p-10">
+              <div className="relative overflow-hidden rounded-3xl border border-linea bg-niebla p-6 shadow-[0_24px_60px_-40px_rgb(46_58_85/0.35)] sm:p-10">
                 <Watercolor className="absolute -right-16 -top-16 h-56 w-72" seed={10} opacity={0.8} />
-                <Envelopes className="absolute right-4 top-4 hidden h-24 w-28 text-line sm:block" />
+                <Envelopes className="absolute right-4 top-4 hidden h-24 w-28 text-tinta sm:block" />
 
                 {status === "sent" ? (
                   <div role="status" className="relative flex min-h-[28rem] flex-col items-center justify-center py-8 text-center">
-                    <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-navy text-white">
+                    <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-noche text-niebla">
                       <Check className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
-                      <Sparkle className="absolute -right-5 -top-3 h-5 w-5 text-line" />
+                      <Sparkle className="absolute -right-5 -top-3 h-5 w-5 text-tinta" />
                     </span>
-                    <h2 ref={doneRef} tabIndex={-1} className="mt-6 font-heading text-3xl font-medium text-navy outline-none">
-                      {en ? `Got it${sentName ? `, ${sentName}` : ""}.` : `Listo${sentName ? `, ${sentName}` : ""}.`}
+                    {/* La pantalla de éxito lleva el titular de hoja. Con las
+                        clases sueltas y no con <Titular>, porque el foco tiene
+                        que caer en este h2 (ref) y el componente no lo pasa. */}
+                    <h2 ref={doneRef} tabIndex={-1} className="titular adornado mt-6 text-[1.75rem] sm:text-[2rem]">
+                      <span className="min-w-0">
+                        {en ? `Got it${sentName ? `, ${sentName}` : ""}.` : `Listo${sentName ? `, ${sentName}` : ""}.`}
+                      </span>
                     </h2>
-                    <p className="mt-3 max-w-sm font-body text-[15px] leading-relaxed text-navy-muted">
+                    <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-tinta">
                       {en
                         ? "Your message reached us. We'll answer by email in under 24 hours."
                         : "Tu mensaje ya nos llegó. Te contestamos por correo en menos de 24 horas."}
@@ -289,17 +303,19 @@ export default function ContactoPage() {
                         setTouched({});
                         setStatus("idle");
                       }}
-                      className="mt-8 font-body text-sm font-semibold text-azul-deep underline decoration-wash-deep underline-offset-4 hover:text-navy"
+                      className="mt-8 min-h-11 text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
                     >
                       {en ? "Send another message" : "Enviar otro mensaje"}
                     </button>
                   </div>
                 ) : (
                   <form ref={formRef} onSubmit={handleSubmit} noValidate className="relative">
-                    <h2 className="max-w-[16ch] font-heading text-3xl font-medium tracking-[-0.015em] text-navy">
+                    {/* Título de la hoja del formulario, no de la página: Work
+                        Sans. El titular de la página es el de arriba. */}
+                    <h2 className="max-w-[16ch] text-2xl font-medium text-noche">
                       {en ? "Or leave us a message" : "O déjanos un mensaje"}
                     </h2>
-                    <p className="mt-2 max-w-[40ch] font-body text-sm text-navy-muted">
+                    <p className="mt-2 max-w-[40ch] text-sm text-tinta">
                       {en ? "We'll answer at the email you give us." : "Te contestamos al correo que nos dejes."}
                     </p>
 
@@ -316,7 +332,7 @@ export default function ContactoPage() {
                             aria-invalid={!!shown("name")}
                             aria-describedby={shown("name") ? "contacto-name-error" : undefined}
                             placeholder={en ? "Sofía" : "Sofía"}
-                            className={`${INPUT} ${shown("name") ? "border-azul" : "border-hairline focus:border-azul"}`}
+                            className={`${INPUT} ${shown("name") ? BORDE_ERROR : BORDE}`}
                           />
                         </FieldShell>
                         <FieldShell id="contacto-email" label={en ? "Your email" : "Tu correo"} error={shown("email")} en={en}>
@@ -332,7 +348,7 @@ export default function ContactoPage() {
                             aria-invalid={!!shown("email")}
                             aria-describedby={shown("email") ? "contacto-email-error" : undefined}
                             placeholder={en ? "you@email.com" : "tu@correo.com"}
-                            className={`${INPUT} ${shown("email") ? "border-azul" : "border-hairline focus:border-azul"}`}
+                            className={`${INPUT} ${shown("email") ? BORDE_ERROR : BORDE}`}
                           />
                         </FieldShell>
                       </div>
@@ -348,7 +364,7 @@ export default function ContactoPage() {
                             value={form.phone}
                             onChange={(e) => set("phone", e.target.value)}
                             placeholder="+52 55 1234 5678"
-                            className={`${INPUT} border-hairline focus:border-azul`}
+                            className={`${INPUT} ${BORDE}`}
                           />
                         </FieldShell>
                         <FieldShell id="contacto-date" label={en ? "Wedding date" : "Fecha de la boda"} optional en={en}>
@@ -359,14 +375,14 @@ export default function ContactoPage() {
                             value={form.noDateYet ? "" : form.weddingDate}
                             disabled={form.noDateYet}
                             onChange={(e) => set("weddingDate", e.target.value)}
-                            className={`${INPUT} border-hairline focus:border-azul`}
+                            className={`${INPUT} ${BORDE}`}
                           />
-                          <label className="mt-2 flex cursor-pointer items-center gap-2 font-body text-[13px] text-navy-soft">
+                          <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 text-[13px] text-noche">
                             <input
                               type="checkbox"
                               checked={form.noDateYet}
                               onChange={(e) => set("noDateYet", e.target.checked)}
-                              className="h-4 w-4 rounded accent-[var(--navy)]"
+                              className="h-4 w-4 rounded accent-noche"
                             />
                             {en ? "We don't have a date yet" : "Aún no tenemos fecha"}
                           </label>
@@ -374,7 +390,7 @@ export default function ContactoPage() {
                       </div>
 
                       <fieldset>
-                        <legend className="mb-2 font-body text-sm font-medium text-navy">
+                        <legend className="mb-2 text-sm font-medium text-noche">
                           {en ? "What are you interested in?" : "¿Qué te interesa?"}
                         </legend>
                         <div
@@ -386,10 +402,10 @@ export default function ContactoPage() {
                             return (
                               <label
                                 key={option.id}
-                                className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2.5 font-body text-sm font-medium transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-wash ${
+                                className={`relative inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2.5 text-sm font-medium transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] motion-reduce:active:scale-100 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-noche ${
                                   checked
-                                    ? "border-navy bg-navy text-white"
-                                    : "border-hairline bg-white text-navy-soft hover:border-wash-deep hover:bg-wash-soft"
+                                    ? "border-noche bg-noche text-niebla"
+                                    : "border-linea-control/60 bg-papel text-noche hover:border-linea-control hover:bg-papel-medio"
                                 }`}
                               >
                                 <input
@@ -410,7 +426,7 @@ export default function ContactoPage() {
                           })}
                         </div>
                         {shown("interest") && (
-                          <p id="contacto-interest-error" className="mt-1.5 flex items-center gap-1.5 font-body text-[13px] text-azul-deep">
+                          <p id="contacto-interest-error" className="mt-1.5 flex items-center gap-1.5 text-[13px] text-error">
                             <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />
                             {shown("interest")}
                           </p>
@@ -432,7 +448,7 @@ export default function ContactoPage() {
                               ? "Tell us about your wedding or ask us anything."
                               : "Cuéntanos de tu boda o pregúntanos lo que quieras."
                           }
-                          className={`${INPUT} resize-y ${shown("message") ? "border-azul" : "border-hairline focus:border-azul"}`}
+                          className={`${INPUT} resize-y ${shown("message") ? BORDE_ERROR : BORDE}`}
                         />
                       </FieldShell>
 
@@ -451,15 +467,15 @@ export default function ContactoPage() {
                     </div>
 
                     {serverError && (
-                      <div role="alert" className="mt-6 flex items-start gap-3 rounded-xl bg-wash-soft px-4 py-3">
-                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-azul-deep" strokeWidth={2} aria-hidden="true" />
-                        <p className="font-body text-sm text-navy">
+                      <div role="alert" className="mt-6 flex items-start gap-3 rounded-xl bg-error-fondo px-4 py-3">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-error" strokeWidth={2} aria-hidden="true" />
+                        <p className="text-sm text-error">
                           {serverError}{" "}
                           <a
                             href={CONTACT_INFO.whatsappUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-semibold text-azul-deep underline underline-offset-4"
+                            className="font-medium text-error underline underline-offset-4"
                           >
                             {en ? "Open WhatsApp" : "Abrir WhatsApp"}
                           </a>
@@ -470,11 +486,11 @@ export default function ContactoPage() {
                     <button
                       type="submit"
                       disabled={status === "sending"}
-                      className="group mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full bg-navy px-7 py-3.5 font-body text-sm font-semibold text-white transition-[background-color,scale] duration-150 hover:bg-navy-soft active:scale-[0.98] disabled:cursor-wait disabled:opacity-80"
+                      className="group mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full bg-noche px-7 py-3.5 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-wait disabled:opacity-80"
                     >
                       {status === "sending" ? (
                         <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true" />
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-niebla/30 border-t-niebla" aria-hidden="true" />
                           {en ? "Sending…" : "Enviando…"}
                         </>
                       ) : (
@@ -484,9 +500,9 @@ export default function ContactoPage() {
                         </>
                       )}
                     </button>
-                    <p className="mt-4 text-center font-body text-xs text-navy-muted">
+                    <p className="mt-4 text-center text-xs text-tinta">
                       {en ? "By sending it you accept our " : "Al enviarlo aceptas nuestro "}
-                      <Link href="/privacidad" className="underline underline-offset-2 hover:text-navy">
+                      <Link href="/privacidad" className="text-noche underline decoration-linea-control underline-offset-2 transition-colors hover:decoration-noche">
                         {en ? "privacy policy" : "aviso de privacidad"}
                       </Link>
                       .

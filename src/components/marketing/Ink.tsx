@@ -2,7 +2,7 @@ import { useId, type ReactNode } from "react";
 
 /*
  * Ilustraciones de línea, en el estilo del Instagram de Blue Book: tinta
- * marino sobre papel, trazo fino y un poco tembloroso, con estrellitas
+ * azul sobre papel, trazo fino y un poco tembloroso, con estrellitas
  * alrededor.
  *
  * El temblor no está dibujado a mano: cada figura es geometría limpia y el
@@ -12,7 +12,9 @@ import { useId, type ReactNode } from "react";
  * vez y ya.
  *
  * Todas pintan con currentColor: el color lo decide quien las usa
- * (normalmente text-line).
+ * (normalmente text-tinta). Los rellenos (el frente del sobre, la foto, las
+ * hojas de la libreta) son papel azul, para que tapen el trazo de atrás como
+ * lo haría un papel de verdad.
  */
 
 interface InkProps {
@@ -191,7 +193,7 @@ export function Envelopes({ className, title }: InkProps) {
 
       {/* sobre de enfrente */}
       <g transform="rotate(-6 112 104)">
-        <rect x="36" y="58" width="152" height="100" rx="4" fill="var(--paper, #f6f5f2)" />
+        <rect x="36" y="58" width="152" height="100" rx="4" fill="var(--papel)" />
         {/* renglones de la dirección */}
         <path d="M50 122 H96 M50 132 H90 M50 142 H94" />
         {/* timbre */}
@@ -236,7 +238,7 @@ export function Polaroid({ className, title }: InkProps) {
       <rect x="38" y="136" width="22" height="7" rx="1.5" />
       {/* la foto que va saliendo */}
       <path d="M52 152 H148" />
-      <rect x="60" y="152" width="80" height="50" rx="1.5" fill="var(--paper, #f6f5f2)" />
+      <rect x="60" y="152" width="80" height="50" rx="1.5" fill="var(--papel)" />
       <rect x="66" y="157" width="68" height="32" rx="1" />
       <path d={heartPath(100, 173, 13)} />
       {/* estrellas */}
@@ -253,8 +255,8 @@ export function PlannerBook({ className, title }: InkProps) {
   const rows = [54, 68, 82, 96, 110];
   return (
     <Ink viewBox="0 0 240 160" className={className} title={title}>
-      <path d="M120 40 C 96 30, 58 30, 22 40 L22 132 C 58 122, 96 122, 120 132 Z" fill="var(--paper, #f6f5f2)" />
-      <path d="M120 40 C 144 30, 182 30, 218 40 L218 132 C 182 122, 144 122, 120 132 Z" fill="var(--paper, #f6f5f2)" />
+      <path d="M120 40 C 96 30, 58 30, 22 40 L22 132 C 58 122, 96 122, 120 132 Z" fill="var(--papel)" />
+      <path d="M120 40 C 144 30, 182 30, 218 40 L218 132 C 182 122, 144 122, 120 132 Z" fill="var(--papel)" />
       <path d="M22 132 V138 C 58 128, 96 128, 120 138 C 144 128, 182 128, 218 138 V132" />
       <path d="M120 40 V138" />
 
@@ -273,7 +275,7 @@ export function PlannerBook({ className, title }: InkProps) {
 
       {/* pluma */}
       <g transform="rotate(-32 186 104)">
-        <rect x="150" y="100" width="64" height="8" rx="4" fill="var(--paper, #f6f5f2)" />
+        <rect x="150" y="100" width="64" height="8" rx="4" fill="var(--papel)" />
         <path d="M214 100.5 L225 104 L214 107.5" />
         <path d="M160 100 V108 M164 97 V104" />
       </g>
@@ -316,7 +318,7 @@ export function DiscoBall({ className, title }: InkProps) {
 export function Toast({ className, title }: InkProps) {
   const flute = (
     <>
-      <path d="M-11 0 C -13 30, -9 52, 0 60 C 9 52, 13 30, 11 0 Z" fill="var(--paper, #f6f5f2)" />
+      <path d="M-11 0 C -13 30, -9 52, 0 60 C 9 52, 13 30, 11 0 Z" fill="var(--papel)" />
       <path d="M-11.5 14 C -4 16, 4 12, 11.5 14" />
       <circle cx="-3" cy="30" r="1.2" />
       <circle cx="3" cy="40" r="1" />
@@ -344,7 +346,7 @@ export function Rings({ className, title }: InkProps) {
       <circle cx="48" cy="64" r="20.5" />
       <circle cx="76" cy="64" r="24" />
       <circle cx="76" cy="64" r="20.5" />
-      <path d="M40 38 L48 28 L56 38 L48 44 Z" fill="var(--paper, #f6f5f2)" />
+      <path d="M40 38 L48 28 L56 38 L48 44 Z" fill="var(--papel)" />
       <path d="M40 38 H56 M44 38 L48 28 L52 38" />
       <path d={sparklePath(24, 22, 5)} />
       <path d={sparklePath(100, 26, 6)} />

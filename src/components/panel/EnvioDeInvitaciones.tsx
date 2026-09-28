@@ -26,10 +26,15 @@ interface Lote {
   errores: Array<{ nombre: string; error: string }>;
 }
 
+// Los botones de la marca: azul noche el principal, niebla con borde de campo
+// el secundario. Responden al presionar, no al soltar.
 const botonPrincipal =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50 disabled:hover:bg-noche disabled:active:scale-100";
 const botonSecundario =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-5 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50 disabled:active:scale-100";
+// Terciario: noche con el subrayado en azul línea.
+const claseEnlace =
+  "text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche";
 
 /**
  * Mandar la invitación elegida a los invitados, por WhatsApp.
@@ -68,11 +73,12 @@ export function EnvioDeInvitaciones({
 function EnvioEnPrueba() {
   const { isEnglish } = useLanguage();
   return (
-    <div className="rounded-xl bg-wash-soft px-5 py-4">
-      <p className="font-body text-sm leading-relaxed text-ink">
+    // Papel azul, el fondo de lo informativo, dentro de la tarjeta niebla.
+    <div className="rounded-xl bg-papel px-5 py-4">
+      <p className="text-sm leading-relaxed text-noche">
         {isEnglish ? MENSAJE_ENVIO_EN_PRUEBA.en : MENSAJE_ENVIO_EN_PRUEBA.es}
       </p>
-      <p className="mt-1 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+      <p className="mt-1 max-w-[60ch] text-sm leading-relaxed text-tinta">
         {isEnglish
           ? "Meanwhile, make sure each guest has their WhatsApp in Guests: when you send it, it reaches everyone at once."
           : "Mientras, dejen a cada invitado con su WhatsApp en Invitados: el día que la manden, les llega a todos de una vez."}
@@ -80,13 +86,13 @@ function EnvioEnPrueba() {
       <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1">
         <Link
           href="/panel/plan"
-          className="inline-flex min-h-[2.75rem] items-center font-body text-sm font-medium text-azul-deep underline underline-offset-4 transition-colors hover:text-ink"
+          className={`inline-flex min-h-[2.75rem] items-center text-sm font-medium ${claseEnlace}`}
         >
           {isEnglish ? "See the plans" : "Ver los planes"}
         </Link>
         <Link
           href="/panel/invitados"
-          className="inline-flex min-h-[2.75rem] items-center font-body text-sm text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+          className={`inline-flex min-h-[2.75rem] items-center text-sm ${claseEnlace}`}
         >
           {isEnglish ? "Go to Guests" : "Ir a Invitados"}
         </Link>
@@ -176,7 +182,7 @@ function EnvioActivo({
 
   if (!revision) {
     return (
-      <p className="font-body text-sm text-ink-muted">
+      <p className="text-sm text-tinta">
         {error ?? (isEnglish ? "Checking your guests…" : "Revisando a sus invitados…")}
       </p>
     );
@@ -190,7 +196,7 @@ function EnvioActivo({
   return (
     <div className="space-y-4">
       {revision.rechazo ? (
-        <div className="rounded-xl border border-sand bg-bone px-4 py-3 font-body text-sm text-ink">
+        <div className="rounded-xl border border-linea bg-papel px-4 py-3 text-sm text-noche">
           <p>{revision.rechazo.mensaje}</p>
           {/* Aquí mismo, no en Hoy: mandarlas a otra pantalla cortaba el envío
               justo cuando ya tenían la invitación elegida. */}
@@ -200,34 +206,35 @@ function EnvioActivo({
         </div>
       ) : null}
 
-      <ul className="grid gap-2 font-body text-sm text-ink sm:grid-cols-3">
-        <li className="rounded-xl border border-sand bg-white px-4 py-3">
-          <span className="block font-heading text-2xl">{porEnviar}</span>
+      {/* Las cifras en Work Sans Light, sobre papel azul (lo informativo). */}
+      <ul className="grid gap-2 text-sm text-noche sm:grid-cols-3">
+        <li className="rounded-xl bg-papel px-4 py-3">
+          <span className="block text-2xl font-light tabular-nums">{porEnviar}</span>
           {isEnglish ? "ready to receive it" : "listos para recibirla"}
         </li>
-        <li className="rounded-xl border border-sand bg-white px-4 py-3">
-          <span className="block font-heading text-2xl">{yaEnviadas}</span>
+        <li className="rounded-xl bg-papel px-4 py-3">
+          <span className="block text-2xl font-light tabular-nums">{yaEnviadas}</span>
           {isEnglish ? "already received it" : "ya la recibieron"}
         </li>
-        <li className="rounded-xl border border-sand bg-white px-4 py-3">
-          <span className="block font-heading text-2xl">{sinTelefono}</span>
+        <li className="rounded-xl bg-papel px-4 py-3">
+          <span className="block text-2xl font-light tabular-nums">{sinTelefono}</span>
           {isEnglish ? "without WhatsApp" : "sin WhatsApp"}
         </li>
       </ul>
 
       {sinTelefono > 0 ? (
-        <p className="font-body text-xs leading-relaxed text-ink-muted">
+        <p className="text-xs leading-relaxed text-tinta">
           {isEnglish ? "Missing WhatsApp: " : "Les falta el WhatsApp: "}
           {(revision.sinTelefonoNombres ?? []).join(", ")}
           {sinTelefono > (revision.sinTelefonoNombres?.length ?? 0) ? "…" : ""}{" "}
-          <Link href="/panel/invitados" className="text-azul-deep underline underline-offset-4 hover:text-ink">
+          <Link href="/panel/invitados" className={claseEnlace}>
             {isEnglish ? "Add it in Guests" : "Agréguenlo en Invitados"}
           </Link>
         </p>
       ) : null}
 
       {progreso ? (
-        <p role="status" className="font-body text-sm text-ink">
+        <p role="status" className="text-sm text-noche tabular-nums">
           {enviando
             ? isEnglish
               ? `Sending… ${progreso.enviadas} of ${progreso.total} sent`
@@ -239,7 +246,7 @@ function EnvioActivo({
       ) : null}
 
       {errores.length > 0 ? (
-        <ul className="space-y-1 font-body text-xs text-terra-deep">
+        <ul className="space-y-1 text-xs text-error">
           {errores.slice(0, 10).map((e, i) => (
             <li key={`${e.nombre}-${i}`}>
               {e.nombre}: {e.error}
@@ -249,15 +256,15 @@ function EnvioActivo({
       ) : null}
 
       {error ? (
-        <p role="alert" className="font-body text-sm text-terra-deep">
+        <p role="alert" className="text-sm text-error">
           {error}
         </p>
       ) : null}
 
       {revision.puede && !enviando ? (
         confirmando ? (
-          <div className="rounded-xl border border-ink bg-white p-4">
-            <p className="font-body text-sm text-ink">
+          <div className="rounded-xl border border-noche bg-niebla p-4">
+            <p className="text-sm text-noche">
               {isEnglish
                 ? `The invitation goes out on WhatsApp to ${porEnviar} guests right now. It can't be undone.`
                 : `La invitación sale por WhatsApp a ${porEnviar} invitados en este momento. No se puede deshacer.`}
@@ -280,7 +287,7 @@ function EnvioActivo({
                 {isEnglish ? `Send to ${porEnviar} guests` : `Enviar a ${porEnviar} invitados`}
               </button>
             ) : (
-              <p className="font-body text-sm text-ink-muted">
+              <p className="text-sm text-tinta">
                 {isEnglish
                   ? "Everyone with WhatsApp already has it."
                   : "Todos los que tienen WhatsApp ya la recibieron."}

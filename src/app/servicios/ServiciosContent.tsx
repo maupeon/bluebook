@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Check, LayoutDashboard } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
@@ -18,7 +17,8 @@ import {
   VendorsMock,
 } from "@/components/marketing/Mockups";
 import { Watercolor } from "@/components/marketing/Watercolor";
-import { Arrow, Container, Display, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
+import { Titular } from "@/components/marca/Titular";
+import { ButtonLink, Container, Display, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
 
 interface Service {
   id: string;
@@ -172,7 +172,7 @@ const SERVICES: Service[] = [
     },
     visual: (en) => (
       <div className="relative flex flex-col items-center gap-4">
-        <Cake className="h-44 w-auto text-line" />
+        <Cake className="h-44 w-auto text-tinta" />
         <PlannerNote en={en} />
       </div>
     ),
@@ -183,53 +183,51 @@ export function ServiciosContent() {
   const { isEnglish: en } = useLanguage();
 
   return (
-    <div className="sb bg-paper">
-      {/* Hero */}
+    <div className="bg-papel">
+      {/* Hero: el dibujo arriba, como en las piezas del Instagram, y debajo el
+          encabezado centrado a lo ancho. Antes el dibujo iba a la derecha y el
+          titular se quedaba en una columna. */}
       <section className="relative overflow-hidden pb-16 pt-28 sm:pt-32 md:pb-20 lg:pt-36">
         <Container>
-          <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_0.75fr]">
-            <div>
-              <Reveal>
-                <Eyebrow>{en ? "Services" : "Servicios"}</Eyebrow>
-              </Reveal>
-              <Reveal delay={80}>
-                <Display className="mt-5 max-w-3xl">
-                  {en ? (
-                    <>
-                      Everything Blue Book <Em>does for you.</Em>
-                    </>
-                  ) : (
-                    <>
-                      Todo lo que Blue Book <Em>hace por ti.</Em>
-                    </>
-                  )}
-                </Display>
-              </Reveal>
-              <Reveal delay={160}>
-                <Lead className="mt-6 max-w-xl">
-                  {en
-                    ? "Eight things that usually live in twenty places, together in one dashboard you share with your partner."
-                    : "Ocho cosas que normalmente viven en veinte lugares, juntas en un panel que compartes con tu pareja."}
-                </Lead>
-              </Reveal>
-            </div>
-            <Reveal delay={200} className="relative mx-auto hidden w-full max-w-sm lg:block">
-              <div className="relative flex aspect-square items-center justify-center">
-                <Watercolor className="absolute inset-0 h-full w-full" seed={7} />
-                <PlannerBook className="relative w-[82%] text-line" />
-              </div>
+          <div className="mx-auto max-w-4xl text-center">
+            <Reveal className="relative mx-auto hidden h-40 w-56 items-center justify-center sm:flex">
+              <Watercolor className="absolute inset-0 h-full w-full" tone="linea" opacity={0.55} seed={7} />
+              <PlannerBook className="relative w-[82%] text-tinta" />
+            </Reveal>
+            <Reveal delay={40}>
+              <Eyebrow className="sm:mt-8">{en ? "Services" : "Servicios"}</Eyebrow>
+            </Reveal>
+            <Reveal delay={80}>
+              <Display className="mt-5">
+                {en ? (
+                  <>
+                    Everything Blue Book <Em>does for you.</Em>
+                  </>
+                ) : (
+                  <>
+                    Todo lo que Blue Book <Em>hace por ti.</Em>
+                  </>
+                )}
+              </Display>
+            </Reveal>
+            <Reveal delay={160}>
+              <Lead className="mx-auto mt-6 max-w-xl">
+                {en
+                  ? "Eight things that usually live in twenty places, together in one dashboard you share with your partner."
+                  : "Ocho cosas que normalmente viven en veinte lugares, juntas en un panel que compartes con tu pareja."}
+              </Lead>
             </Reveal>
           </div>
 
           {/* Índice: salta a cada servicio sin buscarlo con el scroll. */}
           <Reveal delay={240}>
             <nav aria-label={en ? "Services on this page" : "Servicios en esta página"} className="mt-12">
-              <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+              <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0">
                 {SERVICES.map((service) => (
                   <li key={service.id} className="shrink-0">
                     <a
                       href={`#${service.id}`}
-                      className="inline-flex rounded-full border border-hairline bg-white px-4 py-2 font-body text-sm font-medium text-navy-soft transition-colors duration-150 hover:border-wash-deep hover:bg-wash-soft hover:text-navy"
+                      className="inline-flex min-h-11 items-center rounded-full border border-linea bg-niebla px-4 py-2 text-sm font-medium text-noche transition-colors duration-150 hover:border-linea-control hover:bg-papel-medio"
                     >
                       {en ? service.en.nav : service.es.nav}
                     </a>
@@ -241,53 +239,55 @@ export function ServiciosContent() {
         </Container>
       </section>
 
-      {/* Un servicio por bloque, alternando lado */}
-      <div className="bg-white">
+      {/* Un servicio por bloque, en una sola columna: rótulo con su número,
+          titular, texto y viñetas centrados, y debajo el dibujo del panel en
+          su hoja de papel azul. En dos columnas el titular no cabía en dos
+          líneas. */}
+      <div className="bg-niebla">
         {SERVICES.map((service, index) => {
           const copy = en ? service.en : service.es;
-          const flipped = index % 2 === 1;
           return (
-            <section key={service.id} id={service.id} className="scroll-mt-16 border-b border-hairline last:border-b-0">
+            <section key={service.id} id={service.id} className="scroll-mt-16 border-b border-linea last:border-b-0">
               <Container className="py-20 md:py-28">
-                <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-                  <div className={flipped ? "lg:order-2" : ""}>
-                    <Reveal>
-                      <div className="flex items-baseline gap-3">
-                        <span className="font-script text-[34px] leading-none text-azul" aria-hidden="true">
-                          {index + 1}.
-                        </span>
-                        <Eyebrow>{copy.eyebrow}</Eyebrow>
-                      </div>
-                    </Reveal>
-                    <Reveal delay={80}>
-                      <Heading className="mt-4 max-w-[16ch]">{copy.title}</Heading>
-                    </Reveal>
-                    <Reveal delay={140}>
-                      <Lead className="mt-5 max-w-[52ch] !text-base">{copy.body}</Lead>
-                    </Reveal>
-                    <Reveal delay={200}>
-                      <ul className="mt-7 space-y-3">
-                        {copy.bullets.map((bullet) => (
-                          <li key={bullet} className="flex items-start gap-3 font-body text-sm text-navy">
-                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-wash text-azul-deep">
-                              <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
-                            </span>
-                            {bullet}
-                          </li>
-                        ))}
-                      </ul>
-                    </Reveal>
-                  </div>
-
-                  <Reveal delay={120} className={flipped ? "lg:order-1" : ""}>
-                    <div className="relative overflow-hidden rounded-3xl bg-paper px-6 py-12 sm:px-12 sm:py-16">
-                      <Watercolor className="absolute inset-0 h-full w-full" seed={index * 3 + 2} opacity={0.9} />
-                      <Sparkle className="absolute right-6 top-6 h-5 w-5 text-line" />
-                      <Star className="absolute bottom-6 left-6 h-4 w-4 text-line" />
-                      <div className="relative mx-auto max-w-sm">{service.visual(en)}</div>
-                    </div>
+                <div className="mx-auto max-w-3xl text-center">
+                  <Reveal>
+                    {/* El número era script; el script nunca va en listas. Va
+                        en el rótulo, como el «02 — COLOR» de la guía. */}
+                    <Eyebrow>
+                      <span aria-hidden="true" className="tabular-nums">
+                        {String(index + 1).padStart(2, "0")} —{" "}
+                      </span>
+                      {copy.eyebrow}
+                    </Eyebrow>
+                  </Reveal>
+                  <Reveal delay={80}>
+                    <Heading className="mt-4">{copy.title}</Heading>
+                  </Reveal>
+                  <Reveal delay={140}>
+                    <Lead className="mx-auto mt-5 max-w-[52ch] !text-base">{copy.body}</Lead>
+                  </Reveal>
+                  <Reveal delay={200}>
+                    <ul className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6">
+                      {copy.bullets.map((bullet) => (
+                        <li key={bullet} className="flex items-start gap-2.5 text-left text-sm text-noche">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-papel text-noche">
+                            <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
+                          </span>
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
                   </Reveal>
                 </div>
+
+                <Reveal delay={120} className="mx-auto mt-12 max-w-2xl">
+                  <div className="relative overflow-hidden rounded-3xl bg-papel px-6 py-12 sm:px-12 sm:py-16">
+                    <Watercolor className="absolute inset-0 h-full w-full" tone="linea" opacity={0.55} seed={index * 3 + 2} />
+                    <Sparkle className="absolute right-6 top-6 h-5 w-5 text-tinta" />
+                    <Star className="absolute bottom-6 left-6 h-4 w-4 text-tinta" />
+                    <div className="relative mx-auto max-w-sm">{service.visual(en)}</div>
+                  </div>
+                </Reveal>
               </Container>
             </section>
           );
@@ -298,43 +298,37 @@ export function ServiciosContent() {
       <section className="py-24 md:py-32">
         <Container>
           <Reveal>
-            <div className="grid items-center gap-10 rounded-3xl border border-hairline bg-white p-8 sm:p-12 lg:grid-cols-[1fr_auto] lg:gap-16">
-              <div>
-                <div className="flex -space-x-2" aria-hidden="true">
-                  {[
-                    { l: en ? "Y" : "T", c: "bg-wash-deep" },
-                    { l: en ? "P" : "P", c: "bg-wash" },
-                    { l: "", c: "bg-navy text-white", icon: true },
-                  ].map((a, i) => (
-                    <span key={i} className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-white font-heading text-lg font-semibold text-navy ${a.c}`}>
-                      {a.icon ? <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} /> : a.l}
-                    </span>
-                  ))}
-                </div>
-                <h2 className="mt-6 font-heading text-3xl font-medium tracking-[-0.015em] text-navy sm:text-4xl">
-                  {en ? (
-                    <>
-                      One dashboard, <Em>for the three of you.</Em>
-                    </>
-                  ) : (
-                    <>
-                      Un solo panel, <Em>para los tres.</Em>
-                    </>
-                  )}
-                </h2>
-                <p className="mt-3 max-w-[56ch] font-body text-[15px] leading-relaxed text-navy-muted">
-                  {en
-                    ? "You and your partner see the same thing and, with the monthly plan, so does your planner. You sign in with your email and a code: no passwords to remember, from your phone or your laptop."
-                    : "Tú y tu pareja ven lo mismo y, con el plan mensual, también tu planner. Entras con tu correo y un código: sin contraseñas que recordar, desde el celular o la compu."}
-                </p>
+            <div className="rounded-3xl border border-linea bg-niebla p-8 text-center sm:p-12">
+              <div className="flex justify-center -space-x-2" aria-hidden="true">
+                {[
+                  { l: en ? "Y" : "T", c: "bg-linea" },
+                  { l: en ? "P" : "P", c: "bg-papel" },
+                  { l: "", c: "bg-noche text-niebla", icon: true },
+                ].map((a, i) => (
+                  <span key={i} className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-niebla text-lg font-medium text-noche ${a.c}`}>
+                    {a.icon ? <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} /> : a.l}
+                  </span>
+                ))}
               </div>
-              <Link
-                href="/acceso"
-                className="group inline-flex items-center gap-2 justify-self-start rounded-full border border-hairline px-6 py-3 font-body text-sm font-semibold text-navy transition-colors duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.97]"
-              >
+              <Titular className="mt-6">
+                {en ? (
+                  <>
+                    One dashboard, <Em>for the three of you.</Em>
+                  </>
+                ) : (
+                  <>
+                    Un solo panel, <Em>para los tres.</Em>
+                  </>
+                )}
+              </Titular>
+              <p className="mx-auto mt-4 max-w-[56ch] text-[15px] leading-relaxed text-tinta">
+                {en
+                  ? "You and your partner see the same thing and, with the monthly plan, so does your planner. You sign in with your email and a code: no passwords to remember, from your phone or your laptop."
+                  : "Tú y tu pareja ven lo mismo y, con el plan mensual, también tu planner. Entras con tu correo y un código: sin contraseñas que recordar, desde el celular o la compu."}
+              </p>
+              <ButtonLink href="/acceso" variant="secondary" size="md" arrow className="mt-8">
                 {en ? "Already a client? Sign in" : "¿Ya eres clienta? Entra"}
-                <Arrow />
-              </Link>
+              </ButtonLink>
             </div>
           </Reveal>
         </Container>

@@ -36,18 +36,16 @@ export default async function AccesoPage({
   }
 
   return (
-    <div className="sb panel-sb fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-x-hidden overflow-y-auto bg-bone">
-      <div
-        aria-hidden="true"
-        className="animate-drift pointer-events-none absolute -top-40 -right-40 h-[34rem] w-[34rem] rounded-full bg-wash opacity-[0.55] blur-3xl"
-      />
-
+    // Papel azul plano. Antes flotaba una mancha desenfocada detrás de la hoja:
+    // era un degradado con otro nombre, y la marca no los usa.
+    <div className="fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-x-hidden overflow-y-auto bg-papel">
       <div className="relative flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
         <div className="w-full max-w-md">
-          {/* La misma marca que la barra del sitio y la del panel. */}
+          {/* La misma marca que la barra del sitio y la del panel: el logotipo
+              en marcador, sin el interletrado que necesitaba la letra anterior. */}
           <div className="mb-10 flex items-center justify-center gap-3">
             <Image src="/icon.png" alt="" width={36} height={36} />
-            <span className="font-round text-xl uppercase leading-none tracking-[0.04em] text-ink">
+            <span className="font-round text-[23px] uppercase leading-none text-noche">
               Blue Book
             </span>
           </div>

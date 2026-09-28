@@ -6,7 +6,7 @@ import { Download, FileSpreadsheet } from "lucide-react";
 import type { PanelBundle } from "@/lib/couplePanel";
 import type { TipoDeArchivo } from "@/lib/archivosProveedores";
 import { useLanguage } from "@/components/LanguageProvider";
-import { Eyebrow } from "@/components/panel/sections";
+import { Eyebrow, SectionTitle } from "@/components/panel/sections";
 import { descargarArchivo } from "@/components/panel/descargarArchivo";
 
 interface Archivo {
@@ -124,10 +124,9 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
   return (
     <div className="panel-card p-6 sm:p-8">
       <Eyebrow>{isEnglish ? "For your vendors" : "Para sus proveedores"}</Eyebrow>
-      <h2 className="mt-3 font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
-        {isEnglish ? "The spreadsheets they ask for" : "Los Excel que les piden"}
-      </h2>
-      <p className="mt-3 max-w-2xl font-body text-sm leading-relaxed text-ink-muted">
+      {/* Título de tarjeta, no titular: el mismo que las demás secciones de Hoy. */}
+      <SectionTitle>{isEnglish ? "The spreadsheets they ask for" : "Los Excel que les piden"}</SectionTitle>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-tinta">
         {isEnglish
           ? "Built on the spot from what's in your panel, so they're never out of date. Open them, check them and send them."
           : "Se arman en el momento con lo que hay en su panel, así que nunca están viejos. Ábranlos, revísenlos y mándenlos."}
@@ -139,28 +138,28 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
           return (
             <li
               key={a.tipo}
-              className={`flex flex-col rounded-xl border border-sand p-4 ${apagado ? "bg-bone" : "bg-white"}`}
+              className={`flex flex-col rounded-xl border border-linea p-4 ${apagado ? "bg-papel" : "bg-niebla"}`}
             >
               <div className="flex items-start gap-3">
                 <FileSpreadsheet
-                  className={`mt-0.5 h-5 w-5 shrink-0 ${apagado ? "text-ink-muted" : "text-azul"}`}
+                  className={`mt-0.5 h-5 w-5 shrink-0 ${apagado ? "text-tinta/70" : "text-tinta"}`}
                   strokeWidth={1.5}
                 />
                 <div className="min-w-0">
-                  <p className="font-body text-sm font-semibold text-ink">{a.titulo}</p>
-                  <p className="mt-1 font-body text-xs leading-relaxed text-ink-muted">{a.para}</p>
+                  <p className="text-sm font-medium text-noche">{a.titulo}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-tinta">{a.para}</p>
                 </div>
               </div>
               <div className="mt-4 flex flex-1 flex-wrap items-end gap-x-4 gap-y-2">
                 {apagado ? (
-                  <p className="font-body text-xs text-ink-muted">
+                  <p className="text-xs text-tinta">
                     {a.falta}
                     {a.destrabar ? (
                       <>
                         {" "}
                         <Link
                           href={a.destrabar.href}
-                          className="inline-block py-2 font-medium text-azul-deep underline underline-offset-4 hover:text-ink"
+                          className="inline-block py-2 font-medium text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
                         >
                           {a.destrabar.texto}
                         </Link>
@@ -172,7 +171,7 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
                     type="button"
                     onClick={() => bajar(a.tipo)}
                     disabled={bajando != null}
-                    className="inline-flex min-h-[2.5rem] items-center gap-2 rounded-full border border-sand bg-white px-4 py-2 font-body text-sm text-ink transition-[background-color,border-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.97] disabled:opacity-60"
+                    className="inline-flex min-h-[2.5rem] items-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-4 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-60 disabled:active:scale-100"
                   >
                     <Download className="h-4 w-4" strokeWidth={1.6} />
                     {bajando === a.tipo
@@ -187,14 +186,14 @@ export function ArchivosParaProveedores({ bundle }: { bundle: PanelBundle }) {
                 {a.tipo === "barra" ? (
                   <Link
                     href="/panel/barra"
-                    className="pb-2 font-body text-sm text-azul-deep underline-offset-4 hover:text-ink hover:underline"
+                    className="pb-2 text-sm text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
                   >
                     {isEnglish ? "Build it" : "Armarla"}
                   </Link>
                 ) : null}
               </div>
               {error?.tipo === a.tipo ? (
-                <p role="alert" className="mt-2 font-body text-xs text-terra-deep">
+                <p role="alert" className="mt-2 text-xs text-error">
                   {error.mensaje}
                 </p>
               ) : null}

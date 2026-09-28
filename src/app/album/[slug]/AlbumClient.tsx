@@ -10,7 +10,6 @@ import {
   Share2,
   Mail,
   Send,
-  Heart,
   X,
   Sparkles,
   CalendarDays,
@@ -21,6 +20,7 @@ import {
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/components/LanguageProvider'
+import { Titular } from '@/components/marca/Titular'
 
 interface Props {
   album: AlbumPublico & { wedding_date?: string }
@@ -28,68 +28,30 @@ interface Props {
 
 const validTemplates = ['classic', 'modern', 'romantic', 'elegant', 'rustic'] as const
 
-const templateTheme = {
-  classic: {
-    name: 'Clásico',
-    shell:
-      'from-[#fff7ed] via-[#f6f8fb] to-[#fef4e7]',
-    card: 'from-[#ffffff] via-[#fffbf4] to-[#fff4d9]',
-    accent: '#b45309',
-    accentSoft: 'from-[#f59e0b] to-[#d97706]',
-    chip:
-      'border-amber-200/80 text-amber-800 bg-amber-50/80',
-    icon: 'text-amber-700',
-    muted: 'text-amber-900/70',
-  },
-  modern: {
-    name: 'Moderno',
-    shell:
-      'from-[#f1f5f9] via-[#f8fafc] to-[#edf2ff]',
-    card: 'from-[#ffffff] via-[#f8fafc] to-[#eef2ff]',
-    accent: '#334155',
-    accentSoft: 'from-[#334155] to-[#64748b]',
-    chip:
-      'border-slate-200/90 text-slate-800 bg-slate-50/80',
-    icon: 'text-slate-700',
-    muted: 'text-slate-800/70',
-  },
-  romantic: {
-    name: 'Romántico',
-    shell:
-      'from-[#fff1f2] via-[#fff8fb] to-[#ffe4e6]',
-    card: 'from-[#ffffff] via-[#fff1f5] to-[#ffe4ec]',
-    accent: '#be123c',
-    accentSoft: 'from-[#fb7185] to-[#f43f5e]',
-    chip:
-      'border-rose-200/90 text-rose-800 bg-rose-50/80',
-    icon: 'text-rose-700',
-    muted: 'text-rose-900/70',
-  },
-  elegant: {
-    name: 'Elegante',
-    shell:
-      'from-[#fefce8] via-[#fffbeb] to-[#f9fafb]',
-    card: 'from-[#fffdf7] via-[#fffef9] to-[#f8fafc]',
-    accent: '#b45309',
-    accentSoft: 'from-[#f59e0b] to-[#f97316]',
-    chip:
-      'border-amber-200/80 text-stone-900 bg-amber-100/70',
-    icon: 'text-stone-700',
-    muted: 'text-stone-900/70',
-  },
-  rustic: {
-    name: 'Rústico',
-    shell:
-      'from-[#fff7ed] via-[#fff5eb] to-[#fde68a]/20',
-    card: 'from-[#fff7ed] via-[#fff6e2] to-[#ffe4ca]',
-    accent: '#c2410c',
-    accentSoft: 'from-[#fb923c] to-[#f59e0b]',
-    chip:
-      'border-orange-200/90 text-orange-800 bg-orange-50/80',
-    icon: 'text-orange-700',
-    muted: 'text-orange-900/70',
-  },
+/*
+ * El nombre de cada plantilla. Antes cada una traía también el cromo de esta
+ * página (fondo en degradado, manchas de color, botones en degradado, fichas
+ * ámbar o rosas): todo eso es interfaz y ahora es la marca, igual para todas.
+ * La plantilla que eligió la pareja vive donde es contenido suyo: dentro del
+ * libro (components/Flipbook.tsx).
+ */
+const templateNames: Record<(typeof validTemplates)[number], string> = {
+  classic: 'Clásico',
+  modern: 'Moderno',
+  romantic: 'Romántico',
+  elegant: 'Elegante',
+  rustic: 'Rústico',
 }
+
+// Los botones de la marca (como ButtonLink en components/marketing/ui.tsx):
+// azul noche el principal, niebla con borde de campo el secundario. Responden
+// al presionar, no al soltar, y miden al menos 44px de alto.
+const BOTON =
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-full font-medium ' +
+  'transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 ' +
+  'motion-reduce:active:scale-100'
+const BOTON_PRINCIPAL = `${BOTON} bg-noche text-niebla hover:bg-noche-suave`
+const BOTON_SECUNDARIO = `${BOTON} border border-linea-control/60 bg-niebla text-noche hover:border-linea-control hover:bg-papel-medio`
 
 export default function AlbumClient({ album }: Props) {
   const { isEnglish } = useLanguage()
@@ -121,7 +83,7 @@ export default function AlbumClient({ album }: Props) {
     ? (album.template as (typeof validTemplates)[number])
     : 'classic'
 
-  const theme = templateTheme[template]
+  const templateName = templateNames[template]
   const hasDate = Boolean(album.wedding_date)
   const formatDateLabel = (value?: string | null) => {
     if (!value) return isEnglish ? 'Not set' : 'Sin definir'
@@ -185,87 +147,77 @@ export default function AlbumClient({ album }: Props) {
   }
 
   return (
-    <div
-      className={`min-h-screen relative overflow-hidden bg-gradient-to-b ${theme.shell} text-slate-900`}>
-      <div className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute -left-28 top-10 h-[420px] w-[420px] rounded-full blur-[130px] opacity-30"
-          style={{ background: `radial-gradient(circle at center, ${theme.accent}40, transparent 70%)` }}
-        />
-        <div
-          className="absolute right-[-120px] top-48 h-[360px] w-[360px] rounded-full blur-[120px] opacity-20"
-          style={{ background: `radial-gradient(circle at center, ${theme.accent}35, transparent 72%)` }}
-        />
-        <div
-          className="absolute bottom-[-100px] left-1/2 h-[380px] w-[380px] -translate-x-1/2 rounded-full blur-[130px] opacity-20"
-          style={{ background: `radial-gradient(circle at center, #fff 0%, ${theme.accent}20, transparent 75%)` }}
-        />
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-12 lg:py-16">
-        <header className="relative rounded-[28px] border border-white/70 bg-white/70 px-6 py-8 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:px-10 sm:py-10">
-          <div className="flex flex-wrap items-center gap-3">
-            <span
-              className={`inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium ${theme.chip}`}
-            >
-              <Sparkles className={`h-4 w-4 mr-2 ${theme.icon}`} />
+    // Papel niebla: es la página de la foto. Las superficies son niebla con
+    // filo de azul línea, y lo informativo dentro de ellas (cifras, avisos)
+    // va en papel azul. Sin las manchas de color ni el degradado de fondo que
+    // ponía cada plantilla.
+    <div className="min-h-screen bg-niebla">
+      <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12 lg:py-16">
+        <header className="panel-card px-6 py-8 sm:px-10 sm:py-10">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="inline-flex items-center rounded-full border border-linea bg-papel px-3 py-1.5 text-sm font-medium text-noche">
+              <Sparkles className="h-4 w-4 mr-2 text-tinta" aria-hidden="true" />
               {isEnglish ? 'Premium digital album' : 'Album digital premium'}
             </span>
-            <span className={`inline-flex items-center rounded-full border border-white/80 bg-white/80 px-3 py-1.5 text-sm ${theme.icon}`}>
-              {isEnglish ? 'Style' : 'Estilo'} {theme.name}
+            <span className="inline-flex items-center rounded-full border border-linea bg-papel px-3 py-1.5 text-sm text-noche">
+              {isEnglish ? 'Style' : 'Estilo'} {templateName}
             </span>
           </div>
 
-          <div className="mt-5 flex items-center gap-3 sm:gap-4 flex-wrap">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading text-slate-900">{album.title}</h1>
-            <div className="ml-auto flex flex-wrap items-center gap-2">
-              {adminToken && (
-                <Link
-                  href={`/album/${album.slug}/admin?token=${adminToken}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-white hover:text-slate-900"
-                >
-                  <Settings2 className="w-4 h-4" />
-                  {isEnglish ? 'Experience settings' : 'Ajustes de experiencia'}
-                </Link>
-              )}
-              <button
-                onClick={() => setShowShare(true)}
-                className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${theme.accentSoft} px-5 py-2.5 font-semibold text-white shadow-lg shadow-black/10 transition hover:brightness-110 active:scale-[0.98]`}>
-                <Share2 className="w-4 h-4" />
-                {isEnglish ? 'Share' : 'Compartir'}
-              </button>
-            </div>
-          </div>
+          {/* El nombre de la pareja es el titular de la página. Tamaño de
+              pantalla y no de portada: el título lo escribe la pareja (hasta
+              100 caracteres) y así cabe en dos líneas en escritorio. */}
+          <Titular as="h1" tamano="pantalla" className="mt-5">
+            {album.title}
+          </Titular>
 
-          <p className={`mt-3 max-w-3xl ${theme.muted}`}>
+          <p className="mx-auto mt-3 max-w-3xl text-center text-tinta">
             {isEnglish
               ? 'Enjoy a visual journey with smooth animations, clear controls, and an experience crafted to celebrate unique moments.'
               : 'Disfruta un recorrido visual con animaciones suaves, controles claros y una experiencia creada para celebrar momentos unicos.'}
           </p>
 
-            <div className="mt-7 grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm">
-                <p className="text-xs uppercase tracking-wider text-slate-500">
-                  {isEnglish ? 'Memories' : 'Recuerdos'}
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{album.photos.length}</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  {isEnglish ? 'selected photos' : 'fotos seleccionadas'}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm">
-                <p className="text-xs uppercase tracking-wider text-slate-500">
-                  {isEnglish ? 'Event date' : 'Fecha del evento'}
-                </p>
-                <p className={`mt-1 text-2xl font-semibold ${theme.icon}`}>
-                  {hasDate ? weddingDateLabel : (isEnglish ? 'To define' : 'Por definir')}
-                </p>
-              </div>
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm">
-              <p className="text-xs uppercase tracking-wider text-slate-500">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            {adminToken && (
+              <Link
+                href={`/album/${album.slug}/admin?token=${adminToken}`}
+                className={`${BOTON_SECUNDARIO} px-4 py-2.5 text-sm`}
+              >
+                <Settings2 className="w-4 h-4" aria-hidden="true" />
+                {isEnglish ? 'Experience settings' : 'Ajustes de experiencia'}
+              </Link>
+            )}
+            <button
+              onClick={() => setShowShare(true)}
+              className={`${BOTON_PRINCIPAL} px-5 py-2.5`}>
+              <Share2 className="w-4 h-4" aria-hidden="true" />
+              {isEnglish ? 'Share' : 'Compartir'}
+            </button>
+          </div>
+
+          <div className="mt-7 grid gap-3 sm:gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl bg-papel px-4 py-3">
+              <p className="rotulo">
+                {isEnglish ? 'Memories' : 'Recuerdos'}
+              </p>
+              <p className="mt-1 text-2xl font-medium text-noche tabular-nums">{album.photos.length}</p>
+              <p className="mt-1 text-sm text-tinta">
+                {isEnglish ? 'selected photos' : 'fotos seleccionadas'}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-papel px-4 py-3">
+              <p className="rotulo">
+                {isEnglish ? 'Event date' : 'Fecha del evento'}
+              </p>
+              <p className="mt-1 text-2xl font-medium text-noche tabular-nums">
+                {hasDate ? weddingDateLabel : (isEnglish ? 'To define' : 'Por definir')}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-papel px-4 py-3">
+              <p className="rotulo">
                 {isEnglish ? 'Last update' : 'Ultima actualizacion'}
               </p>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-noche tabular-nums">
                 {new Date(album.created_at).toLocaleDateString(isEnglish ? 'en-US' : 'es-MX', {
                   day: 'numeric',
                   month: 'long',
@@ -286,16 +238,15 @@ export default function AlbumClient({ album }: Props) {
               Este bloque tenia backdrop-blur-sm: los tres quedaban encerrados
               en la tarjeta en vez de cubrir la pantalla. Medido en un telefono
               de 375x812: la galeria media 300x513 y abria en y=908, fuera de la
-              vista. El blur aqui no aportaba nada visible: lo que hay detras
-              son manchas de color ya difuminadas a 120-130px. */}
-          <div className="rounded-[28px] border border-white/70 bg-gradient-to-b p-4 sm:p-6 shadow-[0_25px_80px_rgba(15,23,42,0.14)] bg-white/70" id="album-flipbook">
+              vista. panel-card sólo pone fondo, borde y sombra. */}
+          <div className="panel-card p-4 sm:p-6" id="album-flipbook">
             <div className="mb-5 flex flex-wrap gap-3">
-              <div className={`inline-flex items-center rounded-full bg-gradient-to-r ${theme.accentSoft} px-4 py-1.5 text-sm font-semibold text-white`}>
-                <Images className="w-4 h-4 mr-2" />
+              <div className="inline-flex items-center rounded-full border border-linea bg-papel px-4 py-1.5 text-sm font-medium text-noche">
+                <Images className="w-4 h-4 mr-2 text-tinta" aria-hidden="true" />
                 {isEnglish ? 'Immersive gallery' : 'Galeria inmersiva'}
               </div>
-              <div className="inline-flex items-center rounded-full bg-white/80 px-4 py-1.5 text-sm text-slate-600 border border-slate-200">
-                <CalendarDays className="w-4 h-4 mr-2" />
+              <div className="inline-flex items-center rounded-full border border-linea bg-papel px-4 py-1.5 text-sm text-noche">
+                <CalendarDays className="w-4 h-4 mr-2 text-tinta" aria-hidden="true" />
                 {weddingDateLabel}
               </div>
             </div>
@@ -304,8 +255,9 @@ export default function AlbumClient({ album }: Props) {
               // Montado, sin translate-y-0: en Tailwind 4 compila a
               // `translate: 0 0`, que no es `none` y tambien encierra los
               // fixed del Flipbook (ver arriba). Sin clase, translate vuelve a
-              // `none` al terminar la entrada.
-              className={`transition-all duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-4'}`}
+              // `none` al terminar la entrada. Con Reducir movimiento la
+              // entrada es sólo el fundido.
+              className={`transition-[opacity,translate] duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-4 motion-reduce:translate-y-0'}`}
             >
               <Flipbook
                 photos={album.photos}
@@ -316,27 +268,27 @@ export default function AlbumClient({ album }: Props) {
             </div>
           </div>
 
-          <aside className="rounded-[28px] border border-white/70 bg-white/70 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+          <aside className="panel-card p-5">
             <div className="space-y-5">
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                <p className="rotulo">
                   {isEnglish ? 'How to enjoy it best' : 'Como vivirlo mejor'}
                 </p>
-                <h2 className="font-heading text-2xl text-slate-900">
+                <h2 className="text-xl font-medium text-noche">
                   {isEnglish ? 'Your premium experience' : 'Tu experiencia premium'}
                 </h2>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-tinta">
                   {isEnglish
                     ? 'Navigation crafted to impress: visible controls, smooth transitions, and a dedicated view for sharing elegantly.'
                     : 'Navegacion pensada para sorprender: controles visibles, transicion suave y vista dedicada para compartir con elegancia.'}
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-white/85 border border-slate-100 p-4">
-                <p className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl bg-papel p-4">
+                <p className="text-sm font-medium text-noche">
                   {isEnglish ? 'Experience status' : 'Estado de experiencia'}
                 </p>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-tinta">
                   {isEnglish
                     ? 'Premium visual experience ready to share.'
                     : 'Experiencia visual premium lista para compartir.'}
@@ -344,18 +296,20 @@ export default function AlbumClient({ album }: Props) {
                 {adminToken && (
                   <Link
                     href={`/album/${album.slug}/admin?token=${adminToken}`}
-                    className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 hover:decoration-noche"
                   >
                     {isEnglish ? 'Adjust design and settings' : 'Ajustar diseno y configuracion'}
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                   </Link>
                 )}
               </div>
 
+              {/* Secundarios los dos: el botón lleno de la vista es el
+                  Compartir de arriba, que hace lo mismo. */}
               <div className="space-y-3">
                 <button
                   onClick={() => setShowShare(true)}
-                  className={`w-full rounded-2xl bg-gradient-to-r ${theme.accentSoft} px-4 py-3 text-white font-semibold shadow-lg shadow-black/10 transition hover:brightness-110`}
+                  className={`${BOTON_SECUNDARIO} w-full px-4 py-3`}
                 >
                   {isEnglish ? 'Share album on social' : 'Compartir album en redes'}
                 </button>
@@ -368,36 +322,34 @@ export default function AlbumClient({ album }: Props) {
                       behavior: 'smooth',
                     })
                   }}
-                  className="inline-flex items-center justify-center w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-white transition"
+                  className={`${BOTON_SECUNDARIO} w-full px-4 py-3 text-sm`}
                 >
                   {isEnglish ? 'Go to album start' : 'Ir al inicio del album'}
-                  <ExternalLink className="w-4 h-4 ml-2" />
+                  <ExternalLink className="w-4 h-4" aria-hidden="true" />
                 </a>
               </div>
 
-              <div className="rounded-2xl bg-gradient-to-b from-white to-slate-50 border border-slate-100 p-4">
-                <p className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl bg-papel p-4">
+                <p className="text-sm font-medium text-noche">
                   {isEnglish ? 'Recommended controls' : 'Controles recomendados'}
                 </p>
-                <ul className="mt-2 text-sm text-slate-600 space-y-2">
-                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {isEnglish ? 'Click or use arrows to move forward' : 'Clic o flechas para avanzar fotos'}</li>
-                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {isEnglish ? 'Key F for fullscreen' : 'Tecla F para pantalla completa'}</li>
-                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {isEnglish ? 'Key G to open quick gallery' : 'Tecla G para abrir galeria rapida'}</li>
+                <ul className="mt-2 text-sm text-tinta space-y-2">
+                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 shrink-0 rounded-full bg-tinta" /> {isEnglish ? 'Click or use arrows to move forward' : 'Clic o flechas para avanzar fotos'}</li>
+                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 shrink-0 rounded-full bg-tinta" /> {isEnglish ? 'Key F for fullscreen' : 'Tecla F para pantalla completa'}</li>
+                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 shrink-0 rounded-full bg-tinta" /> {isEnglish ? 'Key G to open quick gallery' : 'Tecla G para abrir galeria rapida'}</li>
                 </ul>
               </div>
 
-              <div className="rounded-2xl bg-white/90 border border-slate-100 p-4">
-                <p className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl bg-papel p-4">
+                <p className="text-sm font-medium text-noche">
                   {isEnglish ? 'Template' : 'Plantilla'}
                 </p>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-tinta">
                   {isEnglish
-                    ? `${theme.name}. Keeps visual consistency and premium typography for a more emotional and elegant album.`
-                    : `${theme.name}. Mantiene coherencia visual y tipografia premium para un album mas emotivo y elegante.`}
+                    ? `${templateName}. Keeps visual consistency and premium typography for a more emotional and elegant album.`
+                    : `${templateName}. Mantiene coherencia visual y tipografia premium para un album mas emotivo y elegante.`}
                 </p>
               </div>
-
-             
             </div>
           </aside>
         </div>
@@ -408,53 +360,56 @@ export default function AlbumClient({ album }: Props) {
           className="fixed inset-0 z-40 flex items-center justify-center p-4"
           onClick={() => setShowShare(false)}
         >
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          {/* Velo azul noche, sin desenfoque: el material translúcido es sólo
+              de la barra de navegación. */}
+          <div className="absolute inset-0 bg-noche/40" />
           <div
-            className="relative w-full max-w-lg rounded-3xl border border-white/40 bg-white/95 p-6 shadow-2xl"
+            className="panel-card relative w-full max-w-lg p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowShare(false)}
-              className="absolute top-4 right-4 rounded-full p-2 bg-slate-100 text-slate-700 hover:bg-slate-200"
+              className="absolute top-3 right-3 inline-flex h-11 w-11 items-center justify-center rounded-full text-noche transition-[background-color,scale] duration-150 hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
               aria-label={isEnglish ? 'Close' : 'Cerrar'}
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="text-center">
-              <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-gradient-to-r from-rose-100 to-amber-100 flex items-center justify-center">
-                <Heart className="h-6 w-6 text-rose-500" fill="currentColor" />
-              </div>
-              <h3 className="font-heading text-2xl text-slate-900">
+            {/* El corazón que había encima sobra: el titular trae los suyos. */}
+            <div className="px-10 pt-2 text-center">
+              <Titular as="h3" tamano="hoja">
                 {isEnglish ? 'Share this album' : 'Comparte este album'}
-              </h3>
-              <p className="text-sm text-slate-600 mt-1">{album.title}</p>
+              </Titular>
+              <p className="text-sm text-tinta mt-2">{album.title}</p>
             </div>
 
+            {/* Los cuatro en la marca, con su nombre y su icono: el verde de
+                WhatsApp, el azul de Facebook y el negro de X eran colores de
+                otras marcas en botones de la nuestra. */}
             <div className="grid grid-cols-2 gap-3 mt-6">
               <button
                 onClick={shareWhatsApp}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] text-white px-4 py-3 font-semibold hover:brightness-110"
+                className={`${BOTON_SECUNDARIO} px-4 py-3`}
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-4 h-4" aria-hidden="true" />
                 WhatsApp
               </button>
               <button
                 onClick={shareTelegram}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0088cc] text-white px-4 py-3 font-semibold hover:brightness-110"
+                className={`${BOTON_SECUNDARIO} px-4 py-3`}
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4" aria-hidden="true" />
                 Telegram
               </button>
               <button
                 onClick={shareFacebook}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1877F2] text-white px-4 py-3 font-semibold hover:brightness-110"
+                className={`${BOTON_SECUNDARIO} px-4 py-3`}
               >
                 Facebook
               </button>
               <button
                 onClick={shareTwitter}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#111827] text-white px-4 py-3 font-semibold hover:brightness-110"
+                className={`${BOTON_SECUNDARIO} px-4 py-3`}
               >
                 X
               </button>
@@ -463,28 +418,28 @@ export default function AlbumClient({ album }: Props) {
             <div className="grid grid-cols-2 gap-3 mt-3">
               <button
                 onClick={shareEmail}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 text-slate-700 px-4 py-3 font-semibold hover:bg-slate-200"
+                className={`${BOTON_SECUNDARIO} px-4 py-3`}
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4" aria-hidden="true" />
                 Email
               </button>
               <button
                 onClick={copyLink}
-                className={`inline-flex items-center justify-center gap-2 rounded-xl ${copied ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'} px-4 py-3 font-semibold`}
+                className={`${copied ? `${BOTON} border border-linea bg-papel text-noche` : BOTON_SECUNDARIO} px-4 py-3`}
               >
-                {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+                {copied ? <Check className="w-4 h-4 text-tinta" aria-hidden="true" /> : <Link2 className="w-4 h-4" aria-hidden="true" />}
                 {copied ? (isEnglish ? 'Copied!' : 'Copiado!') : (isEnglish ? 'Copy link' : 'Copiar link')}
               </button>
             </div>
 
-            <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-              <div className="text-[11px] text-slate-500 mb-1">
+            <div className="mt-4 rounded-xl border border-linea bg-papel px-4 py-3">
+              <div className="text-xs text-tinta mb-1">
                 {isEnglish ? 'Album link' : 'Enlace del album'}
               </div>
-              <div className="text-xs text-slate-700 break-all font-mono">{shareUrl}</div>
+              <div className="text-xs text-noche break-all">{shareUrl}</div>
             </div>
 
-            <p className="mt-4 text-xs text-slate-500 text-center">
+            <p className="mt-4 text-xs text-tinta text-center">
               {isEnglish
                 ? 'Tip: you can also use the Share button from the floating controls.'
                 : 'Consejo: tambien puedes tocar el boton "Compartir" desde el boton flotante si te da tiempo.'}

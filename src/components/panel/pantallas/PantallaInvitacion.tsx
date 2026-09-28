@@ -6,6 +6,7 @@ import { Check, ImageUp, Palette } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
+import { Titular } from "@/components/marca/Titular";
 import { EnvioDeInvitaciones } from "@/components/panel/EnvioDeInvitaciones";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { createClient } from "@/lib/supabase/client";
@@ -19,10 +20,19 @@ import type { InvitacionDeLaBoda } from "@/lib/invitaciones";
 const BUCKET = "invitaciones";
 const MAX_BYTES = 5 * 1024 * 1024;
 
+// Los botones de la marca: azul noche el principal (uno por tarjeta), niebla
+// con borde de campo el secundario. Responden al presionar, no al soltar.
 const botonPrincipal =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50 disabled:hover:bg-noche disabled:active:scale-100";
 const botonSecundario =
-  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone disabled:opacity-50";
+  "inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-5 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50 disabled:active:scale-100";
+// Los campos: papel azul dentro de la tarjeta niebla, borde de campo (3:1) y
+// foco en azul noche.
+const claseCampo =
+  "rounded-xl border border-linea-control/70 bg-papel text-sm text-noche outline-none transition-[border-color,box-shadow] duration-150 focus:border-noche focus:ring-2 focus:ring-noche/20";
+// Enlace en texto corrido: el subrayado en azul línea es lo que lo distingue.
+const claseEnlace =
+  "text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche";
 
 /**
  * La invitación que reciben los invitados: UNA imagen por boda, y los pases en
@@ -185,11 +195,12 @@ export function PantallaInvitacion({
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your invitation" : "Su invitación"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          {/* El <em> no se inclina: dentro del titular cambia a tinta. */}
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
             {isEnglish ? "What your guests " : "Lo que van a "}
-            <em className="italic text-azul">{isEnglish ? "will receive" : "recibir sus invitados"}</em>
-          </h1>
-          <p className="mt-4 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+            <em>{isEnglish ? "will receive" : "recibir sus invitados"}</em>
+          </Titular>
+          <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-tinta">
             {isEnglish
               ? "One image for everyone. The number of passes goes in the WhatsApp message, so each guest reads how many people their invitation covers."
               : "Una sola imagen para todos. Los pases van en el mensaje de WhatsApp: cada invitado lee para cuántas personas es la suya."}
@@ -198,19 +209,16 @@ export function PantallaInvitacion({
       </Reveal>
 
       {soloLectura ? (
-        <p className="mt-6 max-w-[60ch] rounded-xl bg-wash-soft px-4 py-3 font-body text-sm leading-relaxed text-ink">
+        <p className="mt-6 max-w-[60ch] rounded-xl border border-linea bg-niebla px-4 py-3 text-sm leading-relaxed text-noche">
           {isEnglish ? MENSAJE_SOLO_LECTURA.en : MENSAJE_SOLO_LECTURA.es}{" "}
-          <Link
-            href="/panel/plan"
-            className="font-medium text-azul-deep underline underline-offset-4 transition-colors hover:text-ink"
-          >
+          <Link href="/panel/plan" className={`font-medium ${claseEnlace}`}>
             {isEnglish ? "See the plans" : "Ver los planes"}
           </Link>
         </p>
       ) : null}
 
       {error ? (
-        <p role="alert" className="mt-6 rounded-xl border border-terra-light bg-white px-4 py-3 font-body text-sm text-terra-deep">
+        <p role="alert" className="mt-6 rounded-xl border border-error/40 bg-error-fondo px-4 py-3 text-sm text-error">
           {error}
         </p>
       ) : null}
@@ -223,19 +231,19 @@ export function PantallaInvitacion({
             <img
               src={elegida.url}
               alt={isEnglish ? "Your chosen invitation" : "Su invitación elegida"}
-              className="w-full rounded-xl border border-sand object-cover"
+              className="w-full rounded-xl border border-linea object-cover"
             />
             <div>
-              <p className="font-body text-xs font-medium uppercase tracking-[0.2em] text-pale-green-ink">
+              <p className="rotulo">
                 {isEnglish ? "Chosen" : "Elegida"}
               </p>
-              <p className="mt-2 font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
+              <p className="mt-2 text-xl font-medium text-noche">
                 {isEnglish ? "This is how it arrives" : "Así les llega"}
               </p>
-              <div className="mt-4 max-w-md whitespace-pre-line rounded-2xl rounded-tl-sm bg-pale-green px-4 py-3 font-body text-sm leading-relaxed text-ink">
+              <div className="mt-4 max-w-md whitespace-pre-line rounded-2xl rounded-tl-sm bg-papel px-4 py-3 text-sm leading-relaxed text-noche">
                 {mensajeDeInvitacion({ invitado: "María", pareja, fecha: fechaDeLaBoda, lugar, pases: 2 })}
               </div>
-              <p className="mt-3 max-w-md font-body text-xs leading-relaxed text-ink-muted">
+              <p className="mt-3 max-w-md text-xs leading-relaxed text-tinta">
                 {isEnglish
                   ? "Example for a guest with 2 passes. Each guest sees their own name and passes."
                   : "Ejemplo para una invitada con 2 pases. Cada invitado ve su nombre y sus pases."}
@@ -243,7 +251,7 @@ export function PantallaInvitacion({
             </div>
           </section>
         ) : (
-          <section className="rounded-2xl border border-dashed border-sand bg-white p-6 font-body text-sm text-ink-muted">
+          <section className="rounded-2xl border border-dashed border-linea bg-niebla p-6 text-sm text-tinta">
             {soloLectura
               ? isEnglish
                 ? "You didn't choose an invitation during the trial."
@@ -258,10 +266,10 @@ export function PantallaInvitacion({
       {elegida ? (
         <Reveal app className="mt-8">
           <section className="panel-card p-6">
-            <h2 className="font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
+            <h2 className="text-xl font-medium text-noche">
               {isEnglish ? "Send it to your guests" : "Mándenla a sus invitados"}
             </h2>
-            <p className="mt-2 mb-5 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+            <p className="mt-2 mb-5 max-w-[60ch] text-sm leading-relaxed text-tinta">
               {isEnglish
                 ? "It goes out on WhatsApp from Blue Book's number, only to guests who haven't received it. Their replies show up in Guests."
                 : "Sale por WhatsApp desde el número de Blue Book, solo a quien todavía no la ha recibido. Sus respuestas aparecen en Invitados."}
@@ -280,11 +288,11 @@ export function PantallaInvitacion({
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <Reveal app>
           <section className="h-full panel-card p-6">
-            <ImageUp className="h-6 w-6 text-azul" strokeWidth={1.5} />
-            <h2 className="mt-3 font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
+            <ImageUp className="h-6 w-6 text-tinta" strokeWidth={1.5} />
+            <h2 className="mt-3 text-xl font-medium text-noche">
               {isEnglish ? "We already have one" : "Ya la tenemos"}
             </h2>
-            <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+            <p className="mt-2 text-sm leading-relaxed text-tinta">
               {isEnglish
                 ? "Upload it as an image (JPG or PNG, up to 5 MB). If you have it as a PDF, export the page as an image first."
                 : "Súbanla como imagen (JPG o PNG, hasta 5 MB). Si la tienen en PDF, exporten la página como imagen primero."}
@@ -321,15 +329,15 @@ export function PantallaInvitacion({
 
         <Reveal app>
           <section className="panel-card p-6">
-            <Palette className="h-6 w-6 text-azul" strokeWidth={1.5} />
-            <h2 className="mt-3 font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
+            <Palette className="h-6 w-6 text-tinta" strokeWidth={1.5} />
+            <h2 className="mt-3 text-xl font-medium text-noche">
               {isEnglish ? "Create it with AI" : "Háganla con IA"}
             </h2>
             {/* Siempre montado: un aviso que aparece junto con su región no
                 siempre lo lee el lector de pantalla. */}
             <div role="status">
               {fechaNueva ? (
-                <p className="mt-2 font-body text-sm leading-relaxed text-ink">
+                <p className="mt-2 text-sm leading-relaxed text-noche">
                   {isEnglish
                     ? `Saved: ${formatLongDate(fechaNueva, true)}. Your plan's dates moved with it.`
                     : `Guardada: ${formatLongDate(fechaNueva, false)}. Las fechas de su plan ya se acomodaron.`}
@@ -338,7 +346,7 @@ export function PantallaInvitacion({
             </div>
             {!fechaDeLaBoda ? (
               soloLectura ? (
-                <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+                <p className="mt-2 text-sm leading-relaxed text-tinta">
                   {isEnglish
                     ? "It needs the wedding date, which is printed on the invitation."
                     : "Necesita la fecha de la boda, que va impresa en la invitación."}
@@ -348,11 +356,11 @@ export function PantallaInvitacion({
               )
             ) : (
               <>
-                <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+                <p className="mt-2 text-sm leading-relaxed text-tinta">
                   {isEnglish
                     ? "Pick a style. The text is printed from your wedding details: "
                     : "Elijan un estilo. El texto sale de los datos de su boda: "}
-                  <span className="text-ink">
+                  <span className="text-noche">
                     {pareja}
                     {" · "}
                     {fechaDeInvitacion(fechaDeLaBoda)}
@@ -369,8 +377,10 @@ export function PantallaInvitacion({
                       return (
                         <label
                           key={e.id}
-                          className={`flex cursor-pointer gap-3 rounded-xl border p-3 transition-colors ${
-                            activo ? "border-ink bg-bone" : "border-sand bg-white hover:bg-bone"
+                          className={`flex cursor-pointer gap-3 rounded-xl border p-3 transition-[background-color,border-color,box-shadow] duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-noche/40 ${
+                            activo
+                              ? "border-noche bg-papel ring-1 ring-noche"
+                              : "border-linea bg-niebla hover:border-linea-control hover:bg-papel-medio"
                           }`}
                         >
                           <input
@@ -381,16 +391,18 @@ export function PantallaInvitacion({
                             onChange={() => setEstilo(e.id)}
                             className="sr-only"
                           />
-                          <span className="flex shrink-0 overflow-hidden rounded-md border border-sand" aria-hidden>
+                          {/* La muestra es del estilo que elige la pareja
+                              (lib/invitacionEstilos.ts): conserva su paleta. */}
+                          <span className="flex shrink-0 overflow-hidden rounded-md border border-linea" aria-hidden>
                             {e.muestra.map((color) => (
                               <span key={color} className="h-10 w-3" style={{ backgroundColor: color }} />
                             ))}
                           </span>
                           <span>
-                            <span className="block font-body text-sm font-medium text-ink">
+                            <span className="block text-sm font-medium text-noche">
                               {isEnglish ? e.nombre.en : e.nombre.es}
                             </span>
-                            <span className="block font-body text-xs leading-snug text-ink-muted">
+                            <span className="block text-xs leading-snug text-tinta">
                               {isEnglish ? e.descripcion.en : e.descripcion.es}
                             </span>
                           </span>
@@ -399,9 +411,9 @@ export function PantallaInvitacion({
                     })}
                   </div>
 
-                  <label htmlFor="invitacion-detalles" className="mt-5 block font-body text-sm font-medium text-ink">
+                  <label htmlFor="invitacion-detalles" className="mt-5 block text-sm font-medium text-noche">
                     {isEnglish ? "A detail of your own" : "Un detalle suyo"}{" "}
-                    <span className="font-normal text-ink-muted">({isEnglish ? "optional" : "opcional"})</span>
+                    <span className="font-normal text-tinta">({isEnglish ? "optional" : "opcional"})</span>
                   </label>
                   <input
                     id="invitacion-detalles"
@@ -412,7 +424,7 @@ export function PantallaInvitacion({
                     placeholder={
                       isEnglish ? "e.g. lilac and gold, with marigolds" : "p. ej. lila y dorado, con cempasúchil"
                     }
-                    className="mt-2 w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink outline-none transition-colors placeholder:text-ink-soft/60 focus:border-azul focus:ring-2 focus:ring-azul/20"
+                    className={`${claseCampo} mt-2 w-full px-4 py-3`}
                   />
                 </fieldset>
 
@@ -426,14 +438,14 @@ export function PantallaInvitacion({
                         ? "Create invitation"
                         : "Crear invitación"}
                   </button>
-                  <span className="font-body text-xs text-ink-muted">
+                  <span className="text-xs text-tinta tabular-nums">
                     {isEnglish ? `${quedan} of ${limiteIA} left` : `Les quedan ${quedan} de ${limiteIA}`}
                     {enPrueba ? (isEnglish ? " in the trial" : " en la prueba") : null}
                   </span>
                 </div>
                 {/* En la prueba el tope es más bajo; se dice cuánto sube, sin apurar. */}
                 {enPrueba && !soloLectura ? (
-                  <p className="mt-3 max-w-[60ch] font-body text-xs leading-relaxed text-ink-muted">
+                  <p className="mt-3 max-w-[60ch] text-xs leading-relaxed text-tinta">
                     {quedan === 0
                       ? isEnglish
                         ? `You used the ones included in the trial. With your plan you can create up to ${LIMITE_IA_PAGADA}; meanwhile, choose one of your drafts or upload yours.`
@@ -442,10 +454,7 @@ export function PantallaInvitacion({
                         ? `With your plan, up to ${LIMITE_IA_PAGADA}.`
                         : `Con su plan, hasta ${LIMITE_IA_PAGADA}.`}{" "}
                     {quedan === 0 ? (
-                      <Link
-                        href="/panel/plan"
-                        className="text-azul-deep underline underline-offset-4 transition-colors hover:text-ink"
-                      >
+                      <Link href="/panel/plan" className={claseEnlace}>
                         {isEnglish ? "See the plans" : "Ver los planes"}
                       </Link>
                     ) : null}
@@ -460,7 +469,7 @@ export function PantallaInvitacion({
       {/* Borradores */}
       {invitaciones.length > 0 ? (
         <Reveal app className="mt-10">
-          <h2 className="font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
+          <h2 className="text-xl font-medium text-noche">
             {isEnglish ? "Your drafts" : "Sus borradores"}
           </h2>
           <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -470,10 +479,10 @@ export function PantallaInvitacion({
                 <img
                   src={inv.url}
                   alt={isEnglish ? "Invitation draft" : "Borrador de invitación"}
-                  className="aspect-[2/3] w-full rounded-lg border border-sand object-cover"
+                  className="aspect-[2/3] w-full rounded-lg border border-linea object-cover"
                   loading="lazy"
                 />
-                <p className="mt-3 font-body text-xs text-ink-muted">
+                <p className="mt-3 text-xs text-tinta">
                   {inv.origen === "ia"
                     ? `${isEnglish ? "AI" : "IA"} · ${nombreDeEstilo(inv.estilo) ?? ""}`
                     : isEnglish
@@ -482,19 +491,19 @@ export function PantallaInvitacion({
                 </p>
 
                 {inv.elegida ? (
-                  <p className="mt-2 inline-flex items-center gap-1.5 font-body text-sm font-medium text-pale-green-ink">
-                    <Check className="h-4 w-4" strokeWidth={2} />
+                  <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-noche">
+                    <Check className="h-4 w-4 text-tinta" strokeWidth={2} />
                     {isEnglish ? "Chosen" : "Elegida"}
                   </p>
                 ) : inv.origen === "ia" && confirmando === inv.id ? (
                   <div className="mt-2 space-y-2">
-                    <label className="flex items-start gap-2 font-body text-xs leading-snug text-ink">
+                    <label className="flex items-start gap-2 text-xs leading-snug text-noche">
                       <input
                         type="checkbox"
                         checked={revisado}
                         disabled={soloLectura}
                         onChange={(e) => setRevisado(e.target.checked)}
-                        className="mt-0.5"
+                        className="mt-0.5 accent-noche"
                       />
                       {isEnglish
                         ? "We checked that names, date and venue are spelled right."
@@ -576,12 +585,12 @@ function FechaAquiMismo({ alGuardar }: { alGuardar: (fecha: string) => void }) {
 
   return (
     <form onSubmit={guardar} className="mt-2">
-      <p className="font-body text-sm leading-relaxed text-ink-muted">
+      <p className="text-sm leading-relaxed text-tinta">
         {isEnglish
           ? "The date is printed on the invitation, so it goes first."
           : "La fecha va impresa en la invitación, así que va primero."}
       </p>
-      <label htmlFor="invitacion-fecha" className="mt-5 block font-body text-sm font-medium text-ink">
+      <label htmlFor="invitacion-fecha" className="mt-5 block text-sm font-medium text-noche">
         {isEnglish ? "When is the wedding?" : "¿Qué día es la boda?"}
       </label>
       <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -591,19 +600,19 @@ function FechaAquiMismo({ alGuardar }: { alGuardar: (fecha: string) => void }) {
           value={valor}
           onChange={(e) => setValor(e.target.value)}
           aria-describedby="invitacion-fecha-nota"
-          className="min-h-[2.75rem] rounded-xl border border-sand bg-white px-4 py-2 font-body text-sm text-ink outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20"
+          className={`${claseCampo} min-h-[2.75rem] px-4 py-2`}
         />
         <button type="submit" disabled={!valor || guardando} className={botonPrincipal}>
           {guardando ? (isEnglish ? "Saving…" : "Guardando…") : isEnglish ? "Save date" : "Guardar fecha"}
         </button>
       </div>
-      <p id="invitacion-fecha-nota" className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+      <p id="invitacion-fecha-nota" className="mt-2 text-xs leading-relaxed text-tinta">
         {isEnglish
           ? "Not sure yet? No problem: you can upload the one you have, or come back when you know."
           : "¿Todavía no la saben? No pasa nada: pueden subir la que ya tienen, o volver cuando la sepan."}
       </p>
       {error ? (
-        <p role="alert" className="mt-2 font-body text-sm text-terra-deep">
+        <p role="alert" className="mt-2 text-sm text-error">
           {error}
         </p>
       ) : null}

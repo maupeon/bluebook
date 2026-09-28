@@ -56,13 +56,9 @@ const productSchema = {
     availability: "https://schema.org/InStock",
     url: "https://bluebook.mx/album-digital",
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "500",
-    bestRating: "5",
-    worstRating: "1",
-  },
+  // Sin aggregateRating: aquí decía 4.9 con 500 reseñas y no hay reseñas
+  // reales detrás. Google castiga las calificaciones que no puede verificar.
+  // Vuelve cuando existan reseñas de clientas de verdad.
 };
 
 // SoftwareApplication Schema - For the digital product
@@ -76,11 +72,6 @@ const softwareSchema = {
     "@type": "Offer",
     price: "200",
     priceCurrency: "MXN",
-  },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    ratingCount: "500",
   },
 };
 

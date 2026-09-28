@@ -24,13 +24,13 @@ export function CasillaDeTerminos({
 }) {
   return (
     <label
-      className={`flex min-h-[44px] cursor-pointer items-start gap-3 font-body text-sm leading-relaxed text-navy ${className}`}
+      className={`flex min-h-[44px] cursor-pointer items-start gap-3 text-sm leading-relaxed text-noche ${className}`}
     >
       <input
         type="checkbox"
         checked={aceptada}
         onChange={(e) => alCambiar(e.target.checked)}
-        className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-line accent-navy"
+        className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-tinta accent-noche"
       />
       <span>
         {isEnglish ? "I accept the " : "Acepto los "}
@@ -38,7 +38,7 @@ export function CasillaDeTerminos({
           href="/terminos"
           target="_blank"
           rel="noopener"
-          className="font-medium underline underline-offset-2 hover:text-azul-deep"
+          className="font-medium underline decoration-linea-control underline-offset-2 transition-colors hover:decoration-noche"
         >
           {isEnglish ? "Terms and conditions" : "Términos y condiciones"}
         </Link>

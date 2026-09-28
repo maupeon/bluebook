@@ -35,11 +35,11 @@ function Slider({
   const fill = ((value - min) / (max - min)) * 100;
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-4 font-body text-sm">
-        <label htmlFor={id} className="text-navy-muted">
+      <div className="flex items-baseline justify-between gap-4 text-sm">
+        <label htmlFor={id} className="text-tinta">
           {label}
         </label>
-        <output htmlFor={id} className="font-semibold text-navy tabular-nums">
+        <output htmlFor={id} className="font-medium text-noche tabular-nums">
           {display}
         </output>
       </div>
@@ -67,6 +67,10 @@ function Slider({
  * Si con su boda la presencial sale igual o más barata, se lo dice. Una
  * calculadora que siempre da "ahorras" no se cree, y en bodas chicas con
  * mucho tiempo por delante es verdad que puede no convenir.
+ *
+ * El encabezado va centrado arriba y la calculadora debajo, en una hoja de
+ * papel azul (el papel de los precios) sobre la sección niebla. La cifra de
+ * Blue Book se distingue con el borde noche, no con un fondo oscuro.
  */
 export function Savings() {
   const { isEnglish: en } = useLanguage();
@@ -93,10 +97,10 @@ export function Savings() {
           : `Te ahorras entre ${pesos(saveLow)} y ${pesos(saveHigh)}.`;
 
   return (
-    <section id="ahorro" className="scroll-mt-16 bg-white py-24 md:py-32">
+    <section id="ahorro" className="scroll-mt-16 bg-niebla py-24 md:py-32">
       <Container>
-        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
-          <div>
+        <div className="mx-auto max-w-3xl">
+          <div className="text-center">
             <Reveal>
               <Eyebrow>{en ? "Do the math" : "Haz tu cuenta"}</Eyebrow>
             </Reveal>
@@ -114,7 +118,7 @@ export function Savings() {
               </Heading>
             </Reveal>
             <Reveal delay={160}>
-              <Lead className="mt-5 max-w-md">
+              <Lead className="mx-auto mt-5 max-w-xl">
                 {en
                   ? "An in-person planner usually charges 10–15% of your wedding. Blue Book costs the same whether your wedding costs a little or a lot."
                   : "Una planner presencial suele cobrar entre 10 y 15% de tu boda. Blue Book cuesta lo mismo, cueste lo que cueste tu boda."}
@@ -123,7 +127,7 @@ export function Savings() {
           </div>
 
           <Reveal delay={120}>
-            <div className="rounded-3xl border border-hairline bg-paper-warm p-6 sm:p-10">
+            <div className="mt-12 rounded-3xl border border-linea bg-papel p-6 sm:p-10">
               <div className="space-y-7">
                 <Slider
                   id="ahorro-presupuesto"
@@ -150,28 +154,28 @@ export function Savings() {
               </div>
 
               <dl className="mt-9 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-hairline bg-white p-5">
-                  <dt className="font-body text-xs font-semibold text-navy-muted">
+                <div className="rounded-2xl border border-linea bg-niebla p-5">
+                  <dt className="text-xs font-medium text-tinta">
                     {en ? "In-person planner (10–15%)" : "Planner presencial (10–15%)"}
                   </dt>
-                  <dd className="mt-2 whitespace-nowrap font-heading text-[1.6rem] font-medium leading-none tracking-[-0.02em] text-navy-soft tabular-nums sm:text-[1.45rem] lg:text-[1.6rem]">
+                  <dd className="mt-2 whitespace-nowrap text-[1.6rem] font-light leading-none text-tinta tabular-nums sm:text-[1.45rem] lg:text-[1.6rem]">
                     {pesos(low)}–{pesos(high)}
                   </dd>
                 </div>
-                <div className="rounded-2xl bg-navy p-5 text-white">
-                  <dt className="font-body text-xs font-semibold text-wash">
+                <div className="rounded-2xl border-2 border-noche bg-niebla p-5">
+                  <dt className="text-xs font-medium text-noche">
                     {en ? `Blue Book · ${months} months` : `Blue Book · ${months} ${months === 1 ? "mes" : "meses"}`}
                   </dt>
-                  <dd className="mt-2 font-heading text-[1.6rem] font-medium leading-none tracking-[-0.02em] tabular-nums sm:text-[1.45rem] lg:text-[1.6rem]">
+                  <dd className="mt-2 text-[1.6rem] font-light leading-none text-noche tabular-nums sm:text-[1.45rem] lg:text-[1.6rem]">
                     {pesos(blueBook)}
                   </dd>
                 </div>
               </dl>
 
-              <p aria-live="polite" className="mt-5 font-body text-[15px] font-semibold text-azul-deep">
+              <p aria-live="polite" className="mt-5 text-[15px] font-medium text-noche">
                 {verdict}
               </p>
-              <p className="mt-3 font-body text-xs leading-relaxed text-navy-muted">
+              <p className="mt-3 text-xs leading-relaxed text-tinta">
                 {en
                   ? "Reference figures: what an in-person planner charges varies by city and service, and Blue Book is month to month, so it stops whenever you cancel."
                   : "Cifras de referencia: lo que cobra una planner presencial varía por ciudad y servicio, y Blue Book es mes a mes, así que se detiene cuando lo cancelas."}

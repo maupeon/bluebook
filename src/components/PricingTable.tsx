@@ -39,7 +39,7 @@ export function PricingTable() {
     <section className="bg-[#FBF8F5] py-20" id="precios">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto mb-12 max-w-3xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8A6D60]">Álbum digital</p>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#8A6D60]">Álbum digital</p>
           <h2 className="mt-3 font-heading text-4xl text-[#1D2E4B]">Planes con QR en todos los niveles</h2>
         </div>
 
@@ -49,12 +49,12 @@ export function PricingTable() {
               key={plan.id}
               className={`rounded-3xl border p-6 shadow-lg ${
                 plan.featured
-                  ? "border-[#1D2E4B] bg-[#1D2E4B] text-white"
-                  : "border-[#E4D8CF] bg-white text-[#1D2E4B]"
+                  ? "border-[#1D2E4B] bg-[#1D2E4B] text-niebla"
+                  : "border-[#E4D8CF] bg-niebla text-[#1D2E4B]"
               }`}
             >
               {plan.badge && (
-                <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-[#F8D8CB] px-3 py-1 text-xs font-semibold text-[#8D3F2D]">
+                <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-[#F8D8CB] px-3 py-1 text-xs font-medium text-[#8D3F2D]">
                   <Crown className="h-3.5 w-3.5" />
                   {plan.badge}
                 </span>
@@ -80,10 +80,10 @@ export function PricingTable() {
               <button
                 onClick={() => handleCheckout(plan.id)}
                 disabled={loadingPlan === plan.id}
-                className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold transition ${
+                className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-medium transition ${
                   plan.featured
                     ? "bg-[#F7CAB8] text-[#5D2E22] hover:bg-[#F4BCAB]"
-                    : "bg-[#1D2E4B] text-white hover:bg-[#2A4164]"
+                    : "bg-[#1D2E4B] text-niebla hover:bg-[#2A4164]"
                 } disabled:opacity-70`}
               >
                 {loadingPlan === plan.id ? "Procesando..." : "Elegir plan"}

@@ -26,13 +26,16 @@ export default async function PanelLoading() {
         className="space-y-8 animate-pulse motion-reduce:animate-none"
         aria-hidden="true"
       >
+        {/* Los renglones en azul línea sobre el papel; las tarjetas, con la
+            misma superficie niebla y el mismo borde que las de verdad, para
+            que al llegar los datos nada cambie de sitio ni de tono. */}
         <div className="space-y-3">
-          <div className="h-3 w-28 rounded-full bg-sand-soft" />
-          <div className="h-10 w-2/3 max-w-md rounded-xl bg-sand-soft" />
-          <div className="h-3 w-48 rounded-full bg-sand-soft" />
+          <div className="h-3 w-28 rounded-full bg-linea/70" />
+          <div className="h-10 w-2/3 max-w-md rounded-xl bg-linea/70" />
+          <div className="h-3 w-48 rounded-full bg-linea/70" />
         </div>
-        <div className="h-40 rounded-2xl bg-sand-soft/70" />
-        <div className="h-40 rounded-2xl bg-sand-soft/70" />
+        <div className="h-40 rounded-2xl border border-linea bg-niebla" />
+        <div className="h-40 rounded-2xl border border-linea bg-niebla" />
       </div>
       <p role="status" className="sr-only">
         {isEnglish ? "Loading" : "Cargando"}

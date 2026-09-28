@@ -106,17 +106,17 @@ export function FAQ() {
   };
 
   return (
-    <section className="py-20 lg:py-32 bg-light" id="faq">
+    <section className="py-20 lg:py-32 bg-papel" id="faq">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="font-body text-sm font-semibold text-accent uppercase tracking-wider">
+          <span className="font-body text-sm font-medium text-tinta uppercase tracking-wider">
             {isEnglish ? "Frequently Asked Questions" : "Preguntas Frecuentes"}
           </span>
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-primary mt-4 mb-6">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-medium text-tinta mt-4 mb-6">
             {isEnglish ? "Any questions?" : "Tienen dudas?"}
           </h2>
-          <p className="font-body text-lg text-secondary">
+          <p className="font-body text-lg text-tinta">
             {isEnglish
               ? "Here you will find answers to the most common questions about the digital album. If you need more information, contact us anytime."
               : "Aqui encontraran respuestas a las preguntas mas comunes sobre el album digital. Si necesitan mas informacion, no duden en contactarnos."}
@@ -128,9 +128,9 @@ export function FAQ() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className={`bg-white rounded-2xl overflow-hidden transition-all duration-300 ${
+              className={`bg-niebla rounded-2xl overflow-hidden transition-all duration-300 ${
                 openIndex === index
-                  ? "shadow-lg shadow-primary/5 ring-1 ring-accent/20"
+                  ? "shadow-lg shadow-tinta/5 ring-1 ring-tinta/20"
                   : "hover:shadow-md"
               }`}
             >
@@ -139,14 +139,14 @@ export function FAQ() {
                 className="w-full px-6 py-5 flex items-center justify-between text-left"
                 aria-expanded={openIndex === index}
               >
-                <span className="font-heading text-lg font-semibold text-primary pr-8">
+                <span className="font-heading text-lg font-medium text-tinta pr-8">
                   {faq.question}
                 </span>
                 <span
                   className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                     openIndex === index
-                      ? "bg-accent text-primary rotate-180"
-                      : "bg-light text-secondary"
+                      ? "bg-tinta text-tinta rotate-180"
+                      : "bg-papel text-tinta"
                   }`}
                 >
                   {openIndex === index ? (
@@ -159,7 +159,7 @@ export function FAQ() {
 
               <Collapse open={openIndex === index}>
                 <div className="px-6 pb-6">
-                  <p className="font-body text-secondary leading-relaxed">
+                  <p className="font-body text-tinta leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

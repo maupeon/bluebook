@@ -4,6 +4,80 @@ import { formatMXN } from '@/lib/weddingPlans'
 
 const SUPPORT_EMAIL = CONTACT_INFO.email
 
+/*
+ * LA MARCA EN LOS CORREOS (guía del 28-sep-2026).
+ * Un cliente de correo no lee globals.css y casi ninguno carga fuentes web:
+ * todo va en estilos en línea, con los colores de la app. Fondo papel azul,
+ * tarjeta papel niebla con borde azul línea, texto tinta, títulos y botón
+ * azul noche con letra niebla. Sin degradados, sin negro, sin blanco puro.
+ *
+ * La letra va en pilas que caen con dignidad:
+ * - Work Sans para todo. Apple Mail e iOS la bajan del <link> de Google
+ *   Fonts; Gmail y Outlook no, y caen en Helvetica o Arial, que no tienen
+ *   Light: por eso el cuerpo va a 400 y no al 300 de la app. El énfasis es
+ *   500 Y azul noche, porque Arial no tiene 500 y sin el color se perdería.
+ * - Titulares en Caveat Brush y en mayúsculas: el «equivalente digital» del
+ *   marcador según la guía, porque BELLABOO (la de la web) no está en Google
+ *   Fonts y un correo no puede bajar el woff2 del sitio. Sin ella, Marker
+ *   Felt en un Mac y Arial en lo demás.
+ * - Outlook de escritorio, ante una fuente que no conoce, cae en Times New
+ *   Roman: el bloque [if mso] lo manda a Arial.
+ * El fondo va en un <div> y no sólo en <body>: Gmail tira los estilos del body.
+ */
+const MARCA = {
+  papel: '#E8EDF8',
+  niebla: '#F4F5F6',
+  tinta: '#55688C',
+  noche: '#2E3A55',
+  linea: '#C6D0E4',
+  // El aviso de la app (ocre sobre su fondo, 5:1): «Guarda este enlace».
+  aviso: '#7F5500',
+  avisoFondo: '#FBF3DB',
+} as const
+
+const LETRA = `'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif`
+const MARCADOR = `'Caveat Brush', 'Marker Felt', 'Helvetica Neue', Arial, sans-serif`
+
+const ESTILO = {
+  titular: `margin: 0; font-family: ${MARCADOR}; font-weight: 400; text-transform: uppercase; letter-spacing: 0.015em; line-height: 1.1; color: ${MARCA.noche};`,
+  // El rótulo de la app: versales separadas, en tinta.
+  rotulo: `margin: 0; font-size: 12px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: ${MARCA.tinta};`,
+  boton: `display: inline-block; background-color: ${MARCA.noche}; color: ${MARCA.niebla}; text-decoration: none; border-radius: 999px; font-family: ${LETRA}; font-weight: 500;`,
+  enlace: `color: ${MARCA.noche}; text-decoration: underline;`,
+  fuerte: `font-weight: 500; color: ${MARCA.noche};`,
+} as const
+
+/** El documento entero: la cabeza con las letras, el papel azul y la tarjeta niebla. */
+function documento(tarjeta: string): string {
+  return `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+          <!--[if mso]><style>body, table, td, div, p, a, li, h1, span, strong { font-family: Arial, Helvetica, sans-serif !important; }</style><![endif]-->
+        </head>
+        <body style="margin: 0; padding: 0; background-color: ${MARCA.papel};">
+          <div style="background-color: ${MARCA.papel}; padding: 40px 20px; font-family: ${LETRA}; font-weight: 400; color: ${MARCA.tinta};">
+            <div style="max-width: 600px; margin: 0 auto; background-color: ${MARCA.niebla}; border: 1px solid ${MARCA.linea}; border-radius: 16px; overflow: hidden;">
+              ${tarjeta}
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+}
+
+/** Una fila de datos de los avisos al equipo: la etiqueta en tinta, el valor en azul noche. */
+function filaDeDatos(etiqueta: string, valor: string): string {
+  return `
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid ${MARCA.linea}; color: ${MARCA.tinta}; font-size: 13px; white-space: nowrap;">${etiqueta}</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid ${MARCA.linea}; color: ${MARCA.noche}; font-size: 14px;">${valor}</td>
+          </tr>`
+}
+
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -31,75 +105,60 @@ export async function sendAdminEmail({ to, albumTitle, adminUrl }: SendAdminEmai
       replyTo: SUPPORT_EMAIL,
       to: [to],
       subject: `Tu álbum "${albumTitle}" está listo`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FDF8F3; margin: 0; padding: 40px 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-
-            <!-- Header -->
-            <div style="background: linear-gradient(135deg, #D4A574 0%, #B8860B 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">
+      html: documento(`
+            <!-- El titular, centrado sobre la misma tarjeta (antes, una franja con degradado dorado) -->
+            <div style="padding: 40px 30px 0; text-align: center;">
+              <h1 style="${ESTILO.titular} font-size: 32px;">
                 ¡Tu álbum está listo!
               </h1>
             </div>
 
-            <!-- Content -->
-            <div style="padding: 40px 30px;">
-              <p style="color: #5A616A; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                ¡Felicidades! Tu álbum digital <strong>"${albumTitle}"</strong> ha sido creado exitosamente.
+            <div style="padding: 28px 30px 40px;">
+              <p style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
+                ¡Felicidades! Tu álbum digital <strong style="${ESTILO.fuerte}">"${albumTitle}"</strong> ha sido creado exitosamente.
               </p>
 
-              <p style="color: #5A616A; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
+              <p style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
                 Desde tu panel de administración podrás:
               </p>
 
-              <ul style="color: #5A616A; font-size: 16px; line-height: 1.8; margin: 0 0 30px; padding-left: 20px;">
+              <ul style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.8; margin: 0 0 30px; padding-left: 20px;">
                 <li>Subir tus fotos favoritas</li>
                 <li>Invitar a otros a contribuir con sus fotos</li>
                 <li>Ordenar y organizar todas las fotos</li>
                 <li>Compartir el álbum final con tu familia y amigos</li>
               </ul>
 
-              <!-- CTA Button -->
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${adminUrl}" style="display: inline-block; background: linear-gradient(135deg, #D4A574 0%, #B8860B 100%); color: white; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 600;">
+                <a href="${adminUrl}" style="${ESTILO.boton} padding: 16px 40px; font-size: 16px;">
                   Ir a mi panel de administración
                 </a>
               </div>
 
-              <!-- Warning box -->
-              <div style="background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 12px; padding: 20px; margin-top: 30px;">
-                <p style="color: #92400E; font-size: 14px; margin: 0 0 10px; font-weight: 600;">
+              <!-- El aviso: ocre sobre su fondo, como en la app. El enlace, en una caja niebla. -->
+              <div style="background-color: ${MARCA.avisoFondo}; border-radius: 12px; padding: 20px; margin-top: 30px;">
+                <p style="color: ${MARCA.aviso}; font-size: 14px; margin: 0 0 10px; font-weight: 500;">
                   ⚠️ Guarda este enlace
                 </p>
-                <p style="color: #92400E; font-size: 14px; margin: 0 0 10px;">
+                <p style="color: ${MARCA.aviso}; font-size: 14px; margin: 0 0 10px;">
                   Este es tu enlace privado de administración. No lo compartas con nadie.
                 </p>
-                <p style="color: #78350F; font-size: 12px; margin: 0; word-break: break-all; background: #FDE68A; padding: 10px; border-radius: 6px;">
+                <p style="color: ${MARCA.noche}; font-size: 12px; margin: 0; word-break: break-all; background-color: ${MARCA.niebla}; border: 1px solid ${MARCA.linea}; padding: 10px; border-radius: 6px;">
                   ${adminUrl}
                 </p>
               </div>
             </div>
 
-            <!-- Footer -->
-            <div style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
-              <p style="color: #9CA3AF; font-size: 14px; margin: 0;">
+            <div style="padding: 30px; text-align: center; border-top: 1px solid ${MARCA.linea};">
+              <p style="color: ${MARCA.tinta}; font-size: 14px; margin: 0;">
                 ¿Tienes preguntas? Escríbenos a
-                <a href="mailto:${SUPPORT_EMAIL}" style="color: #D4A574;">${SUPPORT_EMAIL}</a>
+                <a href="mailto:${SUPPORT_EMAIL}" style="${ESTILO.enlace}">${SUPPORT_EMAIL}</a>
               </p>
-              <p style="color: #9CA3AF; font-size: 12px; margin: 15px 0 0;">
+              <p style="color: ${MARCA.tinta}; font-size: 12px; margin: 15px 0 0;">
                 © ${new Date().getFullYear()} Blue Book. Todos los derechos reservados.
               </p>
             </div>
-          </div>
-        </body>
-        </html>
-      `,
+      `),
     })
 
     if (error) {
@@ -135,60 +194,45 @@ export async function sendInviteEmail({ to, albumTitle, guestName, inviteUrl, ma
       replyTo: SUPPORT_EMAIL,
       to: [to],
       subject: `Te invitan a contribuir al álbum "${albumTitle}"`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FDF8F3; margin: 0; padding: 40px 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-
-            <!-- Header -->
-            <div style="background: linear-gradient(135deg, #D4A574 0%, #B8860B 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">
+      html: documento(`
+            <!-- El titular, centrado sobre la misma tarjeta (antes, una franja con degradado dorado) -->
+            <div style="padding: 40px 30px 0; text-align: center;">
+              <h1 style="${ESTILO.titular} font-size: 32px;">
                 ¡Te invitan a un álbum!
               </h1>
             </div>
 
-            <!-- Content -->
-            <div style="padding: 40px 30px;">
-              <p style="color: #5A616A; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
+            <div style="padding: 28px 30px 40px;">
+              <p style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
                 ¡Hola${guestName ? ` ${guestName}` : ''}!
               </p>
 
-              <p style="color: #5A616A; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                Te han invitado a contribuir con tus fotos al álbum <strong>"${albumTitle}"</strong>.
+              <p style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
+                Te han invitado a contribuir con tus fotos al álbum <strong style="${ESTILO.fuerte}">"${albumTitle}"</strong>.
               </p>
 
-              <p style="color: #5A616A; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
-                Puedes subir hasta <strong>${maxPhotos} fotos</strong> para compartir tus mejores momentos.
+              <p style="color: ${MARCA.tinta}; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
+                Puedes subir hasta <strong style="${ESTILO.fuerte}">${maxPhotos} fotos</strong> para compartir tus mejores momentos.
               </p>
 
-              <!-- CTA Button -->
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${inviteUrl}" style="display: inline-block; background: linear-gradient(135deg, #D4A574 0%, #B8860B 100%); color: white; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 600;">
+                <a href="${inviteUrl}" style="${ESTILO.boton} padding: 16px 40px; font-size: 16px;">
                   Subir mis fotos
                 </a>
               </div>
 
-              <p style="color: #9CA3AF; font-size: 14px; text-align: center; margin: 0;">
+              <p style="color: ${MARCA.tinta}; font-size: 14px; text-align: center; margin: 0;">
                 O copia este enlace: <br>
-                <span style="color: #D4A574; word-break: break-all;">${inviteUrl}</span>
+                <span style="color: ${MARCA.noche}; word-break: break-all;">${inviteUrl}</span>
               </p>
             </div>
 
-            <!-- Footer -->
-            <div style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
-              <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
+            <div style="padding: 30px; text-align: center; border-top: 1px solid ${MARCA.linea};">
+              <p style="color: ${MARCA.tinta}; font-size: 12px; margin: 0;">
                 © ${new Date().getFullYear()} Blue Book. Todos los derechos reservados.
               </p>
             </div>
-          </div>
-        </body>
-        </html>
-      `,
+      `),
     })
 
     if (error) {
@@ -243,7 +287,7 @@ export async function sendLeadNotificationEmail({ lead }: { lead: LeadNotificati
       : lead.partner1Name
 
     const waLink = (phone: string) =>
-      `<a href="https://wa.me/${phone.replace('+', '')}" style="color: #C96F5A;">${phone}</a>`
+      `<a href="https://wa.me/${phone.replace('+', '')}" style="${ESTILO.enlace}">${phone}</a>`
 
     const rows: Array<[string, string]> = [
       ['Servicio', serviceLabel],
@@ -270,33 +314,17 @@ export async function sendLeadNotificationEmail({ lead }: { lead: LeadNotificati
       ['Idioma', lead.language === 'en' ? 'Inglés' : 'Español'],
     ]
 
-    const tableRows = rows
-      .map(
-        ([label, value]) => `
-          <tr>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #5A6A84; font-size: 13px; white-space: nowrap;">${label}</td>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #1D2E4B; font-size: 14px;">${value}</td>
-          </tr>`
-      )
-      .join('')
+    const tableRows = rows.map(([label, value]) => filaDeDatos(label, value)).join('')
 
     const { data, error } = await resend.emails.send({
       from: 'Blue Book <hola@bluebook.mx>',
       replyTo: SUPPORT_EMAIL,
       to: [CONTACT_INFO.email],
       subject: `Nueva pareja: ${coupleLabel} — ${serviceLabel}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FBF8F5; margin: 0; padding: 40px 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #E4D8CF; border-radius: 16px; overflow: hidden;">
+      html: documento(`
             <div style="padding: 28px 30px 12px;">
-              <p style="margin: 0; color: #C96F5A; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Nueva solicitud</p>
-              <h1 style="margin: 8px 0 0; color: #1D2E4B; font-size: 22px; font-weight: 600;">
+              <p style="${ESTILO.rotulo}">Nueva solicitud</p>
+              <h1 style="${ESTILO.titular} margin-top: 10px; font-size: 26px;">
                 ${coupleLabel} — ${serviceLabel}
               </h1>
             </div>
@@ -304,14 +332,11 @@ export async function sendLeadNotificationEmail({ lead }: { lead: LeadNotificati
               <table style="width: 100%; border-collapse: collapse;">
                 ${tableRows}
               </table>
-              <p style="margin: 20px 16px 0; color: #5A6A84; font-size: 13px;">
+              <p style="margin: 20px 16px 0; color: ${MARCA.tinta}; font-size: 13px;">
                 Gestiónala en el panel (sección Clientes).
               </p>
             </div>
-          </div>
-        </body>
-        </html>
-      `,
+      `),
     })
 
     if (error) {
@@ -365,33 +390,17 @@ export async function sendPaymentNotificationEmail({
       ['Correo', email || '—'],
     ]
 
-    const tableRows = rows
-      .map(
-        ([label, value]) => `
-          <tr>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #5A6A84; font-size: 13px; white-space: nowrap;">${label}</td>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #E4D8CF; color: #1D2E4B; font-size: 14px;">${value}</td>
-          </tr>`
-      )
-      .join('')
+    const tableRows = rows.map(([label, value]) => filaDeDatos(label, value)).join('')
 
     const { data, error } = await resend.emails.send({
       from: 'Blue Book <hola@bluebook.mx>',
       replyTo: SUPPORT_EMAIL,
       to: [CONTACT_INFO.email],
       subject: `Pago recibido: ${partner1Name} — ${productLabel}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FBF8F5; margin: 0; padding: 40px 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #E4D8CF; border-radius: 16px; overflow: hidden;">
+      html: documento(`
             <div style="padding: 28px 30px 12px;">
-              <p style="margin: 0; color: #C96F5A; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Pago recibido</p>
-              <h1 style="margin: 8px 0 0; color: #1D2E4B; font-size: 22px; font-weight: 600;">
+              <p style="${ESTILO.rotulo}">Pago recibido</p>
+              <h1 style="${ESTILO.titular} margin-top: 10px; font-size: 26px;">
                 ${coupleLabel} — ${productLabel}
               </h1>
             </div>
@@ -399,7 +408,7 @@ export async function sendPaymentNotificationEmail({
               <table style="width: 100%; border-collapse: collapse;">
                 ${tableRows}
               </table>
-              <p style="margin: 20px 16px 0; color: #5A6A84; font-size: 13px;">
+              <p style="margin: 20px 16px 0; color: ${MARCA.tinta}; font-size: 13px;">
                 ${
                   bodaCreada
                     ? 'La boda ya está creada y la pareja puede entrar a su panel. Nace sin planner asignada: asígnasela en Planners.'
@@ -407,10 +416,7 @@ export async function sendPaymentNotificationEmail({
                 }
               </p>
             </div>
-          </div>
-        </body>
-        </html>
-      `,
+      `),
     })
 
     if (error) {
@@ -470,11 +476,11 @@ export async function sendContactMessageEmail(contact: ContactMessage) {
   try {
     const rows: Array<[string, string]> = [
       ['Nombre', escapeHtml(contact.name)],
-      ['Correo', `<a href="mailto:${escapeHtml(contact.email)}" style="color: #345E8F;">${escapeHtml(contact.email)}</a>`],
+      ['Correo', `<a href="mailto:${escapeHtml(contact.email)}" style="${ESTILO.enlace}">${escapeHtml(contact.email)}</a>`],
       [
         'WhatsApp',
         contact.phone
-          ? `<a href="https://wa.me/${contact.phone.replace(/\D/g, '')}" style="color: #345E8F;">${escapeHtml(contact.phone)}</a>`
+          ? `<a href="https://wa.me/${contact.phone.replace(/\D/g, '')}" style="${ESTILO.enlace}">${escapeHtml(contact.phone)}</a>`
           : '—',
       ],
       ['Fecha', contact.weddingDate ? escapeHtml(contact.weddingDate) : contact.noDateYet ? 'Aún sin fecha' : '—'],
@@ -482,33 +488,17 @@ export async function sendContactMessageEmail(contact: ContactMessage) {
       ['Idioma', contact.language === 'en' ? 'Inglés' : 'Español'],
     ]
 
-    const tableRows = rows
-      .map(
-        ([label, value]) => `
-          <tr>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #56657F; font-size: 13px; white-space: nowrap;">${label}</td>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #1C2D4F; font-size: 14px;">${value}</td>
-          </tr>`
-      )
-      .join('')
+    const tableRows = rows.map(([label, value]) => filaDeDatos(label, value)).join('')
 
     const { data, error } = await resend.emails.send({
       from: 'Blue Book <hola@bluebook.mx>',
       replyTo: contact.email,
       to: [CONTACT_INFO.email],
       subject: `Mensaje de ${contact.name} — ${CONTACT_INTEREST_LABELS[contact.interest]}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F6F5F2; margin: 0; padding: 40px 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #DDE2EA; border-radius: 16px; overflow: hidden;">
+      html: documento(`
             <div style="padding: 28px 30px 12px;">
-              <p style="margin: 0; color: #345E8F; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Formulario de contacto</p>
-              <h1 style="margin: 8px 0 0; color: #1C2D4F; font-size: 22px; font-weight: 600;">
+              <p style="${ESTILO.rotulo}">Formulario de contacto</p>
+              <h1 style="${ESTILO.titular} margin-top: 10px; font-size: 26px;">
                 ${escapeHtml(contact.name)}
               </h1>
             </div>
@@ -518,14 +508,11 @@ export async function sendContactMessageEmail(contact: ContactMessage) {
               </table>
             </div>
             <div style="padding: 8px 30px 28px;">
-              <p style="margin: 0 0 6px; color: #56657F; font-size: 13px;">Mensaje</p>
-              <p style="margin: 0; color: #1C2D4F; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(contact.message)}</p>
-              <p style="margin: 24px 0 0; color: #56657F; font-size: 13px;">Responde a este correo para contestarle directamente.</p>
+              <p style="margin: 0 0 6px; color: ${MARCA.tinta}; font-size: 13px;">Mensaje</p>
+              <p style="margin: 0; color: ${MARCA.noche}; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(contact.message)}</p>
+              <p style="margin: 24px 0 0; color: ${MARCA.tinta}; font-size: 13px;">Responde a este correo para contestarle directamente.</p>
             </div>
-          </div>
-        </body>
-        </html>
-      `,
+      `),
     })
 
     if (error) {
@@ -541,9 +528,9 @@ export async function sendContactMessageEmail(contact: ContactMessage) {
 }
 
 /**
- * Un aviso de la app: el mismo marco azul para todos (mensajes de la pareja,
- * cobros de la suscripción). Todo lo que entra es texto plano y se escapa
- * aquí; nadie arma HTML con datos de la base por fuera.
+ * Un aviso de la app: el mismo marco de la marca para todos (mensajes de la
+ * pareja, cobros de la suscripción). Todo lo que entra es texto plano y se
+ * escapa aquí; nadie arma HTML con datos de la base por fuera.
  */
 export interface AvisoEmail {
   to: string[]
@@ -564,35 +551,23 @@ export interface AvisoEmail {
 /** El HTML del aviso. Aparte para poder verlo sin mandarlo. */
 export function htmlDelAviso(aviso: AvisoEmail): string {
   const filas = (aviso.filas ?? [])
-    .map(
-      ([etiqueta, valor]) => `
-          <tr>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #56657F; font-size: 13px; white-space: nowrap;">${escapeHtml(etiqueta)}</td>
-            <td style="padding: 10px 16px; border-bottom: 1px solid #DDE2EA; color: #1C2D4F; font-size: 14px;">${escapeHtml(valor)}</td>
-          </tr>`
-    )
+    .map(([etiqueta, valor]) => filaDeDatos(escapeHtml(etiqueta), escapeHtml(valor)))
     .join('')
 
-  return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F6F5F2; margin: 0; padding: 40px 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #DDE2EA; border-radius: 16px; overflow: hidden;">
+  // La cita (el mensaje de la pareja) va en papel azul dentro de la tarjeta
+  // niebla: los dos únicos fondos de la marca.
+  return documento(`
             <div style="padding: 28px 30px 8px;">
-              <p style="margin: 0; color: #345E8F; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">${escapeHtml(aviso.eyebrow)}</p>
-              <h1 style="margin: 8px 0 0; color: #1C2D4F; font-size: 22px; font-weight: 600;">${escapeHtml(aviso.titulo)}</h1>
+              <p style="${ESTILO.rotulo}">${escapeHtml(aviso.eyebrow)}</p>
+              <h1 style="${ESTILO.titular} margin-top: 10px; font-size: 26px;">${escapeHtml(aviso.titulo)}</h1>
             </div>
             <div style="padding: 8px 30px 4px;">
               ${aviso.parrafos
-                .map((p) => `<p style="margin: 12px 0 0; color: #1C2D4F; font-size: 15px; line-height: 1.6;">${escapeHtml(p)}</p>`)
+                .map((p) => `<p style="margin: 12px 0 0; color: ${MARCA.tinta}; font-size: 15px; line-height: 1.6;">${escapeHtml(p)}</p>`)
                 .join('')}
               ${
                 aviso.cita
-                  ? `<div style="margin: 18px 0 0; padding: 14px 18px; background: #EDF2F9; border-radius: 12px; color: #1C2D4F; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(aviso.cita)}</div>`
+                  ? `<div style="margin: 18px 0 0; padding: 14px 18px; background-color: ${MARCA.papel}; border-radius: 12px; color: ${MARCA.noche}; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(aviso.cita)}</div>`
                   : ''
               }
             </div>
@@ -600,15 +575,12 @@ export function htmlDelAviso(aviso: AvisoEmail): string {
             <div style="padding: 22px 30px 28px;">
               ${
                 aviso.boton
-                  ? `<a href="${escapeHtml(aviso.boton.url)}" style="display: inline-block; background: #1C2D4F; color: white; text-decoration: none; padding: 12px 22px; border-radius: 999px; font-size: 14px; font-weight: 600;">${escapeHtml(aviso.boton.texto)}</a>`
+                  ? `<a href="${escapeHtml(aviso.boton.url)}" style="${ESTILO.boton} padding: 12px 22px; font-size: 14px;">${escapeHtml(aviso.boton.texto)}</a>`
                   : ''
               }
-              ${aviso.pie ? `<p style="margin: 18px 0 0; color: #56657F; font-size: 12px; line-height: 1.5;">${escapeHtml(aviso.pie)}</p>` : ''}
+              ${aviso.pie ? `<p style="margin: 18px 0 0; color: ${MARCA.tinta}; font-size: 12px; line-height: 1.5;">${escapeHtml(aviso.pie)}</p>` : ''}
             </div>
-          </div>
-        </body>
-        </html>
-      `
+      `)
 }
 
 export async function sendAvisoEmail(aviso: AvisoEmail) {

@@ -9,9 +9,14 @@ import { fechaValida } from "./respuestas";
  * DEVUELVE el recorrido: escribe su nombre y lo ve puesto como en una
  * invitación; pone la fecha y el lugar, y la tarjeta se completa.
  *
- * El «&» en Sacramento es el único acento manuscrito de la pantalla (ver
- * .impeccable.md: a lo mucho uno). Lo que falta se ve como hueco suave, no
- * como un campo pendiente: nada de «obligatorio».
+ * Es una pieza, como las del Instagram, y aquí salen las tres letras de la
+ * marca: «Save the date» y el «&» en script (Lazy Dog), los nombres en
+ * marcador (BELLABOO, mayúsculas: el titular de la pieza) y los datos en
+ * Work Sans. Papel niebla sobre el papel azul de la página, nunca crema; la
+ * acuarela de atrás en azul línea, tenue, para que se note sobre el papel.
+ *
+ * Lo que falta se ve en tinta y no en azul noche: un hueco suave, no un campo
+ * pendiente. Nada de «obligatorio».
  */
 export function SaveTheDate({
   nombre,
@@ -35,11 +40,12 @@ export function SaveTheDate({
   const lugarLimpio = lugar.trim();
   const conFecha = !sinFecha && fechaValida(fecha);
 
-  // Un nombre largo a 40px se sale de la tarjeta en un teléfono.
+  // Un nombre largo se sale de la tarjeta en un teléfono: el marcador en
+  // mayúsculas mide ~0.48em por letra, y a 38px trece letras ya son los
+  // ~250px que le quedan a la tarjeta en 375px. .titular trae la letra, las
+  // mayúsculas, el azul noche y el balanceo de líneas.
   const largo = Math.max(uno.length, dos.length) > 13;
-  const claseNombre = `font-heading font-medium leading-[1.05] tracking-[-0.01em] text-balance break-words ${
-    largo ? "text-[1.9rem]" : "text-[2.6rem]"
-  }`;
+  const claseNombre = `titular break-words ${largo ? "text-[1.85rem]" : "text-[2.4rem]"}`;
 
   return (
     <figure
@@ -48,32 +54,32 @@ export function SaveTheDate({
     >
       <Watercolor
         seed={7}
-        opacity={0.9}
+        tone="linea"
+        opacity={0.45}
         className="absolute -left-10 -top-8 h-[calc(100%+4rem)] w-[calc(100%+5rem)]"
       />
-      <div className="relative overflow-hidden rounded-[1.25rem] border border-hairline bg-paper-warm px-6 pb-9 pt-8 text-center shadow-[0_1px_2px_rgba(28,45,79,0.04),0_18px_40px_-24px_rgba(28,45,79,0.35)]">
-        <Star className="absolute left-5 top-5 h-4 w-4 text-line/50" />
-        <Star className="absolute bottom-6 right-6 h-3 w-3 text-line/40" />
+      {/* Sombra teñida de azul noche, doble: el contacto y la altura. */}
+      <div className="relative overflow-hidden rounded-[1.25rem] border border-linea bg-niebla px-6 pb-9 pt-7 text-center shadow-[0_1px_2px_rgb(46_58_85/0.05),0_18px_40px_-24px_rgb(46_58_85/0.3)]">
+        <Star className="absolute left-5 top-5 h-4 w-4 text-tinta/50" />
+        <Star className="absolute bottom-6 right-6 h-3 w-3 text-tinta/40" />
 
-        <p className="font-body text-[10px] font-semibold uppercase tracking-[0.32em] text-azul-deep">
-          Save the date
-        </p>
+        <p className="frase text-[1.9rem]">Save the date</p>
 
-        <p className={`mt-5 ${claseNombre} ${uno ? "text-navy" : "text-navy-muted/45"}`}>
+        <p className={`mt-4 ${claseNombre} ${uno ? "" : "text-tinta"}`}>
           {uno || (isEnglish ? "You" : "Tú")}
         </p>
-        <p aria-hidden="true" className="my-1 font-script text-[2.4rem] leading-none text-line">
+        <p aria-hidden="true" className="frase my-1 text-[2.25rem] leading-none text-tinta">
           &amp;
         </p>
-        <p className={`${claseNombre} ${dos ? "text-navy" : "text-navy-muted/45"}`}>
+        <p className={`${claseNombre} ${dos ? "" : "text-tinta"}`}>
           {dos || (isEnglish ? "your partner" : "tu pareja")}
         </p>
 
-        <div aria-hidden="true" className="mx-auto my-6 h-px w-14 bg-wash-deep" />
+        <div aria-hidden="true" className="mx-auto my-6 h-px w-14 bg-linea" />
 
         <p
-          className={`font-body text-[11px] font-semibold uppercase tracking-[0.2em] ${
-            conFecha ? "text-navy-soft" : "text-navy-muted/60"
+          className={`text-xs font-medium uppercase tracking-[0.18em] tabular-nums ${
+            conFecha ? "text-noche" : "text-tinta"
           }`}
         >
           {conFecha
@@ -87,8 +93,8 @@ export function SaveTheDate({
                 : "La fecha"}
         </p>
         <p
-          className={`mx-auto mt-2 max-w-[26ch] font-heading text-lg italic leading-snug text-balance break-words ${
-            lugarLimpio ? "text-navy-soft" : "text-navy-muted/45"
+          className={`mx-auto mt-2 max-w-[26ch] text-base leading-snug text-balance break-words ${
+            lugarLimpio ? "text-noche" : "text-tinta"
           }`}
         >
           {lugarLimpio || (isEnglish ? "The place" : "El lugar")}

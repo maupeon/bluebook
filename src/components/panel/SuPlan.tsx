@@ -47,15 +47,15 @@ export function BotonDelPortal({
         disabled={abriendo}
         className={
           principal
-            ? "inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-60"
-            : "inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-[background-color,border-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.98] disabled:opacity-60"
+            ? "inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-noche bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,border-color,scale] duration-150 hover:border-noche-suave hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-60"
+            : "inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-5 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-60"
         }
       >
         <CreditCard className="h-4 w-4" strokeWidth={1.6} />
         {abriendo ? (isEnglish ? "Opening…" : "Abriendo…") : texto}
       </button>
       {error ? (
-        <p role="alert" className="mt-2 font-body text-xs text-terra-deep">
+        <p role="alert" className="mt-2 text-xs text-error">
           {error}
         </p>
       ) : null}
@@ -111,17 +111,19 @@ export function SuPlan({ suscripcion: s }: { suscripcion: SuscripcionDeLaBoda })
     <div className="panel-card flex flex-wrap items-end justify-between gap-6 p-6 sm:p-8">
       <div className="max-w-xl">
         <Eyebrow>{isEnglish ? "Your plan" : "Su plan"}</Eyebrow>
-        <h2 className="mt-3 font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
+        {/* Título de tarjeta, no titular: Work Sans a tamaño de tarjeta. El
+            importe, en el peso del cuerpo y con cifras tabulares. */}
+        <h2 className="mt-3 text-2xl font-medium text-noche">
           {/* El nombre de lo que se cobra sale de un solo sitio. Aquí decía
               «Planner con IA» a mano, y no hay IA que planee. */}
           {isEnglish ? AGENT_PLAN.en.name : AGENT_PLAN.es.name}
           {importe ? (
-            <span className="ml-3 font-body text-sm font-normal tracking-normal text-ink-muted">{importe}</span>
+            <span className="ml-3 text-sm tabular-nums text-tinta">{importe}</span>
           ) : null}
         </h2>
         <p
-          className={`mt-3 font-body text-sm leading-relaxed ${
-            s.situacion === "pago_pendiente" ? "text-terra-deep" : "text-ink-muted"
+          className={`mt-3 text-sm leading-relaxed ${
+            s.situacion === "pago_pendiente" ? "text-error" : "text-tinta"
           }`}
         >
           {estado}
@@ -149,12 +151,12 @@ export function AvisoDePago({ suscripcion: s }: { suscripcion: SuscripcionDeLaBo
   const reintento = formatInstantDate(s.proximoIntentoEn, isEnglish);
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-terra/30 bg-terra-light px-5 py-4">
-        <AlertCircle className="h-5 w-5 shrink-0 text-terra-deep" strokeWidth={1.7} />
+      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-error/30 bg-error-fondo px-5 py-4">
+        <AlertCircle className="h-5 w-5 shrink-0 text-error" strokeWidth={1.7} />
         {/* min-w: en el teléfono el botón baja a su propio renglón en vez de
             exprimir el texto a una columna de una palabra. */}
-        <p className="min-w-[14rem] flex-1 font-body text-sm leading-relaxed text-ink">
-          <span className="font-semibold">
+        <p className="min-w-[14rem] flex-1 text-sm leading-relaxed text-noche">
+          <span className="font-medium">
             {isEnglish ? "We couldn't charge your plan." : "No pudimos cobrar su plan."}
           </span>{" "}
           {reintento

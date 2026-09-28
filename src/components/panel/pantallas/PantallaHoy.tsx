@@ -21,10 +21,13 @@ import { countdownPhrase } from "@/components/panel/dates";
 import { TasksSection, MessagesSection } from "@/components/panel/PanelDashboard";
 import { PlannerBook } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
+import { Titular } from "@/components/marca/Titular";
 
 /**
  * Una tarjeta que RESUME y lleva a su destino. No repite el detalle: dice el
  * número que importa, en una frase con su unidad, y se quita de en medio.
+ * La cifra va en Work Sans Light a tamaño grande (nunca en marcador ni en
+ * script), y la barra se rellena en noche o en tinta según la tarjeta.
  */
 function Resumen({
   eyebrow,
@@ -39,34 +42,34 @@ function Resumen({
   titular: string;
   detalle: string;
   progreso: number | null;
-  tono: "terra" | "verde";
+  tono: "noche" | "tinta";
   href: string;
   cta: string;
 }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col panel-card p-6 transition-[scale,box-shadow] duration-150 hover:shadow-[0_2px_10px_rgba(29,46,75,0.06)] active:scale-[0.99] sm:p-7"
+      className="group flex flex-col panel-card p-6 transition-[scale,border-color] duration-150 hover:border-linea-control active:scale-[0.99] active:duration-100 motion-reduce:active:scale-100 sm:p-7"
     >
       <Eyebrow>{eyebrow}</Eyebrow>
-      <p className="mt-2 font-heading text-[28px] leading-tight tracking-tight text-ink sm:text-[32px]">
+      <p className="mt-2 text-[28px] font-light leading-tight text-noche tabular-nums sm:text-[32px]">
         {titular}
       </p>
-      <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+      <p className="mt-2 text-sm leading-relaxed text-tinta">
         {detalle}
       </p>
       {progreso != null ? (
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-sand-soft">
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-papel">
           <div
-            className={`h-full rounded-full ${tono === "terra" ? "bg-navy" : "bg-azul"}`}
+            className={`h-full rounded-full ${tono === "noche" ? "bg-noche" : "bg-tinta"}`}
             style={{ width: `${Math.max(0, Math.min(100, progreso))}%` }}
           />
         </div>
       ) : null}
-      <span className="mt-5 inline-flex items-center gap-1.5 font-body text-sm text-azul-deep">
+      <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-noche">
         {cta}
         <ArrowRight
-          className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5"
+          className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none"
           strokeWidth={1.6}
         />
       </span>
@@ -76,20 +79,22 @@ function Resumen({
 
 /**
  * La cuenta regresiva, como en las maquetas del sitio (Mockups.tsx, PhoneHoy):
- * lavado azul, "faltan" en la manuscrita del Instagram y el número grande.
- * La manuscrita es decorativa: el número y la unidad se leen solos, y el
- * lector de pantalla recibe la frase completa.
+ * "faltan" en la frase (Lazy Dog) y el número grande en Work Sans Light,
+ * como los numerales de Apple. Va en una tarjeta niebla: la página ya es papel
+ * azul, y un recuadro del mismo papel no se veía. La frase es decorativa: el
+ * número y la unidad se leen solos, y el lector de pantalla recibe la frase
+ * completa.
  */
 function CuentaRegresiva({ dias, isEnglish }: { dias: number; isEnglish: boolean }) {
   const hoy = dias === 0;
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-wash px-6 py-5 md:min-w-[15rem]">
+    <div className="relative overflow-hidden rounded-2xl border border-linea bg-niebla px-6 py-5 md:min-w-[15rem]">
       <p className="sr-only">{countdownPhrase(dias, isEnglish)}</p>
       <div aria-hidden="true">
-        <p className="font-script text-[34px] leading-none text-line">
+        <p className="frase text-[34px] leading-none text-tinta">
           {hoy ? (isEnglish ? "today" : "hoy es") : dias === 1 ? (isEnglish ? "only" : "falta") : isEnglish ? "only" : "faltan"}
         </p>
-        <p className="mt-1 font-heading text-[3.4rem] font-medium leading-[0.95] tracking-[-0.02em] text-ink tabular-nums">
+        <p className="mt-1 text-[3.4rem] font-light leading-[0.95] tracking-[-0.02em] text-noche tabular-nums">
           {hoy ? (
             isEnglish ? "the day" : "el día"
           ) : (
@@ -106,8 +111,11 @@ function CuentaRegresiva({ dias, isEnglish }: { dias: number; isEnglish: boolean
   );
 }
 
+// Enlace terciario de la marca: noche con subrayado en azul línea que se
+// oscurece al pasar el cursor. La tinta del cuerpo y la del enlace son casi
+// iguales: el subrayado es lo que lo distingue.
 const claseEnlace =
-  "mt-1 inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm text-azul-deep underline-offset-4 hover:text-ink hover:underline";
+  "mt-1 inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche";
 
 interface LoQueYaEsta {
   clave: string;
@@ -159,7 +167,7 @@ function Bienvenida({
   return (
     <section
       aria-labelledby="bienvenida-titulo"
-      className={`animate-step-in relative mt-10 overflow-hidden rounded-2xl border border-sand bg-wash-soft px-6 py-7 transition-opacity duration-150 motion-reduce:transition-none sm:px-8 sm:py-9 ${
+      className={`animate-step-in relative mt-10 overflow-hidden rounded-2xl border border-linea bg-niebla px-6 py-7 transition-opacity duration-150 motion-reduce:transition-none sm:px-8 sm:py-9 ${
         cerrando ? "opacity-0" : "opacity-100"
       }`}
     >
@@ -167,21 +175,19 @@ function Bienvenida({
         aria-hidden="true"
         className="pointer-events-none absolute -right-10 -top-8 hidden h-56 w-80 lg:block"
       >
-        <Watercolor tone="wash" seed={7} className="absolute inset-0 h-full w-full" />
-        <PlannerBook className="absolute right-12 top-10 h-32 w-48 text-line" />
+        {/* Papel azul detrás del dibujo, sobre la tarjeta niebla. */}
+        <Watercolor seed={7} tone="papel" className="absolute inset-0 h-full w-full" />
+        <PlannerBook className="absolute right-12 top-10 h-32 w-48 text-tinta" />
       </div>
 
       <div className="relative max-w-xl">
         <Eyebrow>{isEnglish ? "Welcome" : "Bienvenidos"}</Eyebrow>
-        <h2
-          id="bienvenida-titulo"
-          className="mt-3 font-heading text-3xl font-medium tracking-[-0.015em] text-ink md:text-4xl"
-        >
+        <Titular as="h2" id="bienvenida-titulo" tamano="hoja" alinear="inicio" className="mt-3">
           {isEnglish
             ? "Everything you told us is already here"
             : "Todo lo que nos contaron ya está aquí"}
-        </h2>
-        <p className="mt-3 max-w-[52ch] font-body text-sm leading-relaxed text-ink-muted">
+        </Titular>
+        <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-tinta">
           {items.length > 0
             ? isEnglish
               ? "We used your answers to set up the first things. This already works:"
@@ -193,13 +199,13 @@ function Bienvenida({
       </div>
 
       {items.length > 0 ? (
-        <ul className="relative mt-6 grid border-t border-sand sm:grid-cols-2 sm:gap-x-10">
+        <ul className="relative mt-6 grid border-t border-linea sm:grid-cols-2 sm:gap-x-10">
           {items.map((item) => (
-            <li key={item.clave} className="border-b border-sand py-5">
-              <p className="font-heading text-[28px] font-medium leading-tight tracking-tight text-ink tabular-nums">
+            <li key={item.clave} className="border-b border-linea py-5">
+              <p className="text-[28px] font-light leading-tight text-noche tabular-nums">
                 {item.figura}
               </p>
-              <p className="mt-1 max-w-[42ch] font-body text-sm leading-relaxed text-ink-muted">
+              <p className="mt-1 max-w-[42ch] text-sm leading-relaxed text-tinta">
                 {item.texto}
               </p>
               {item.enlace ? (
@@ -225,7 +231,7 @@ function Bienvenida({
       <button
         type="button"
         onClick={cerrar}
-        className="relative mt-7 inline-flex min-h-[2.75rem] items-center rounded-full border border-ink bg-ink px-6 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98]"
+        className="relative mt-7 inline-flex min-h-[2.75rem] items-center rounded-full bg-noche px-6 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
       >
         {isEnglish ? "Let's start" : "Empezar"}
       </button>
@@ -457,14 +463,20 @@ export function PantallaHoy({
           <div>
             {/* Con cuenta regresiva a la vista, el renglón no la repite. */}
             <Eyebrow>{faltanDias ? (isEnglish ? "Your wedding" : "Su boda") : cuenta}</Eyebrow>
-            <h1
+            {/* Recibe el foco al cerrar la bienvenida (ref y tabIndex=-1), por
+                eso sin contorno: no es un control. El <em> no se inclina: la
+                CSS del titular lo pinta en tinta. */}
+            <Titular
+              as="h1"
+              tamano="pantalla"
+              alinear="inicio"
               ref={h1Ref}
               tabIndex={-1}
-              className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink outline-none md:text-5xl"
+              className="mt-3 outline-none"
             >
               {isEnglish ? "Hi, " : "Hola, "}
-              <em className="italic text-azul">{wedding.coupleName}</em>
-            </h1>
+              <em>{wedding.coupleName}</em>
+            </Titular>
             <DatosDeLaBoda
               weddingDate={wedding.weddingDate}
               venue={wedding.venue}
@@ -488,7 +500,7 @@ export function PantallaHoy({
               titular={dineroTitular}
               detalle={dineroDetalle}
               progreso={porcentajePagado}
-              tono="terra"
+              tono="noche"
               href="/panel/dinero"
               cta={
                 soloPresupuesto
@@ -506,7 +518,7 @@ export function PantallaHoy({
             titular={invitadosTitular}
             detalle={invitadosDetalle}
             progreso={porcentajeContestado}
-            tono="verde"
+            tono="tinta"
             href="/panel/invitados"
             cta={
               listaVacia

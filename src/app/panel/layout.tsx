@@ -41,7 +41,7 @@ export default async function PanelLayout({
     return (
       <div
         data-panel-overlay
-        className="sb panel-sb fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-bone"
+        className="fixed inset-0 z-[55] flex min-h-[100dvh] flex-col overflow-y-auto bg-papel"
       >
         <ScrollLock />
       <LimpiarLaVuelta siempre />
@@ -60,9 +60,9 @@ export default async function PanelLayout({
   ]);
 
   return (
-    // sb: la tipografía del sitio (sin ella los títulos caían en la fuente del
-    // sistema, ver globals.css). panel-sb: sus colores (tokens redefinidos).
-    <div data-panel-overlay className="sb panel-sb fixed inset-0 z-[55] flex flex-col bg-bone">
+    // La página es papel azul; la letra y los colores ya son los de la marca en
+    // toda la app (globals.css), así que el panel no redefine nada.
+    <div data-panel-overlay className="fixed inset-0 z-[55] flex flex-col bg-papel">
       <ScrollLock />
       <LimpiarLaVuelta siempre />
       <ResetScroll targetId={ID_SCROLLER} />

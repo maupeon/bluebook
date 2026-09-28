@@ -11,6 +11,7 @@ import QRCode from 'qrcode'
 import { isUnlimitedPhotosPlan } from '@/lib/albumPlans'
 import { parseJsonSafe } from '@/lib/http'
 import { useLanguage } from '@/components/LanguageProvider'
+import { Titular } from '@/components/marca/Titular'
 
 // El servidor entrega el album sin admin_token ni email de la pareja.
 type AlbumPublico = Omit<Album, 'admin_token' | 'email'>
@@ -50,6 +51,30 @@ declare global {
 interface InviteWithUrl extends AlbumInvite {
   share_url: string
 }
+
+// El widget de Cloudinary vive en un iframe y el QR se pinta en un canvas:
+// ninguno de los dos ve las variables de globals.css. Se les pasan los
+// valores ya resueltos de la marca, leídos de ahí mismo, para que no haya una
+// segunda copia de los colores que se desincronice.
+const colorDeMarca = (nombre: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(`--${nombre}`).trim()
+
+// Los botones y campos de la marca (como en components/marketing/ui.tsx).
+// Responden al presionar, no al soltar, y miden al menos 44px de alto.
+const BOTON =
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-full font-medium ' +
+  'transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 ' +
+  'motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-60'
+const BOTON_PRINCIPAL = `${BOTON} bg-noche text-niebla hover:bg-noche-suave`
+const BOTON_SECUNDARIO = `${BOTON} border border-linea-control/60 bg-niebla text-noche hover:border-linea-control hover:bg-papel-medio`
+// Botón de sólo icono (cerrar, compartir, borrar): 44px de lado.
+const BOTON_ICONO =
+  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-[background-color,scale] duration-150 ' +
+  'active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100'
+// Campo en papel azul dentro de la hoja niebla, borde de campo a 3:1.
+const CAMPO =
+  'w-full rounded-xl border border-linea-control bg-papel px-4 py-3 text-noche transition-[border-color,box-shadow] ' +
+  'focus:outline-none focus:border-noche focus:ring-2 focus:ring-noche/20'
 
 export default function AdminPage() {
   const { isEnglish } = useLanguage()
@@ -161,21 +186,30 @@ export default function AdminPage() {
         resourceType: 'image',
         clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp', 'heic'],
         maxFileSize: 15000000,
+        // El widget en la marca: ventana niebla, fuentes en papel azul,
+        // acciones en azul noche y el progreso de subida en tinta.
         styles: {
           palette: {
-            window: '#FFFFFF',
-            windowBorder: '#E5D4C0',
-            tabIcon: '#B8860B',
-            menuIcons: '#5A616A',
-            textDark: '#000000',
-            textLight: '#FFFFFF',
-            link: '#B8860B',
-            action: '#D4A574',
-            inactiveTabIcon: '#0E2F5A',
-            error: '#F44235',
-            inProgress: '#B8860B',
-            complete: '#20B832',
-            sourceBg: '#FDF8F3',
+            window: colorDeMarca('niebla'),
+            windowBorder: colorDeMarca('linea'),
+            tabIcon: colorDeMarca('noche'),
+            menuIcons: colorDeMarca('tinta'),
+            textDark: colorDeMarca('noche'),
+            textLight: colorDeMarca('niebla'),
+            link: colorDeMarca('noche'),
+            action: colorDeMarca('noche'),
+            inactiveTabIcon: colorDeMarca('tinta'),
+            error: colorDeMarca('error'),
+            inProgress: colorDeMarca('tinta'),
+            complete: colorDeMarca('noche'),
+            sourceBg: colorDeMarca('papel'),
+          },
+          fonts: {
+            default: null,
+            "'Work Sans', sans-serif": {
+              url: 'https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;500&display=swap',
+              active: true,
+            },
           },
         },
       },
@@ -344,9 +378,11 @@ export default function AdminPage() {
       const dataUrl = await QRCode.toDataURL(invite.share_url, {
         width: 720,
         margin: 2,
+        // Azul noche sobre niebla: 10:1, se escanea igual que negro sobre
+        // blanco y es la marca.
         color: {
-          dark: '#1E2E4A',
-          light: '#FFFFFF',
+          dark: colorDeMarca('noche'),
+          light: colorDeMarca('niebla'),
         },
       })
       setQrDataUrl(dataUrl)
@@ -399,57 +435,59 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-hero">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
+      <div className="min-h-screen flex items-center justify-center bg-papel">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-tinta" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen gradient-hero floral-pattern py-12 px-4 pt-24">
+    // Administrar es una pantalla informativa: papel azul, con las hojas en
+    // niebla (panel-card) y los campos en papel azul dentro de ellas.
+    <div className="min-h-screen bg-papel py-12 px-4 pt-24">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="font-heading text-3xl sm:text-4xl font-semibold text-primary mb-2">
+          <div className="min-w-0">
+            <Titular as="h1" tamano="pantalla" alinear="inicio" className="mb-2">
               {album?.title}
-            </h1>
-            <p className="font-body text-secondary">
+            </Titular>
+            <p className="text-tinta">
               {isEnglish ? 'Admin panel' : 'Panel de administracion'}
             </p>
           </div>
           <button
             onClick={viewAlbum}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary font-body font-semibold rounded-full shadow-md hover:shadow-lg transition-all"
+            className={`${BOTON_SECUNDARIO} shrink-0 px-6 py-3`}
           >
-            <Eye className="w-5 h-5" />
+            <Eye className="w-5 h-5" aria-hidden="true" />
             {isEnglish ? 'View album' : 'Ver album'}
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs: la activa en azul noche, la otra niebla con filo */}
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setActiveTab('photos')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-medium transition-all ${
+            className={`${BOTON} border px-6 py-3 ${
               activeTab === 'photos'
-                ? 'bg-accent text-white'
-                : 'bg-white text-primary hover:bg-accent/10'
+                ? 'border-noche bg-noche text-niebla'
+                : 'border-linea bg-niebla text-noche hover:bg-papel-medio'
             }`}
           >
-            <Upload className="w-5 h-5" />
+            <Upload className="w-5 h-5" aria-hidden="true" />
             {isEnglish ? `Photos (${photos.length})` : `Fotos (${photos.length})`}
           </button>
           <button
             onClick={() => setActiveTab('invites')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-medium transition-all ${
+            className={`${BOTON} border px-6 py-3 ${
               activeTab === 'invites'
-                ? 'bg-accent text-white'
-                : 'bg-white text-primary hover:bg-accent/10'
+                ? 'border-noche bg-noche text-niebla'
+                : 'border-linea bg-niebla text-noche hover:bg-papel-medio'
             }`}
           >
-            <Users className="w-5 h-5" />
+            <Users className="w-5 h-5" aria-hidden="true" />
             {isEnglish
               ? `Guests (${invites.filter(i => i.is_active).length})`
               : `Invitados (${invites.filter(i => i.is_active).length})`}
@@ -459,11 +497,11 @@ export default function AdminPage() {
         {/* Photos Tab */}
         {activeTab === 'photos' && (
           <>
-            <div className="bg-white rounded-2xl shadow-lg p-5 mb-6">
-              <p className="font-body text-lg text-primary mb-1">
+            <div className="panel-card p-5 mb-6">
+              <p className="text-lg font-medium text-noche mb-1">
                 {isEnglish ? 'Experience settings' : 'Ajustes de experiencia'}
               </p>
-              <p className="font-body text-sm text-secondary mb-4">
+              <p className="text-sm text-tinta mb-4">
                 {isEnglish
                   ? 'Set the date to make the album experience more personalized.'
                   : 'Define la fecha para que el album tenga una experiencia mas personalizada.'}
@@ -471,17 +509,17 @@ export default function AdminPage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block font-body text-sm font-semibold text-primary mb-2" htmlFor="album-date">
+                  <label className="block text-sm font-medium text-noche mb-2" htmlFor="album-date">
                     {isEnglish ? 'Event date' : 'Fecha del evento'}
                   </label>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-accent" />
+                    <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-tinta" aria-hidden="true" />
                     <input
                       id="album-date"
                       type="date"
                       value={albumDate}
                       onChange={(e) => setAlbumDate(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl font-body focus:outline-none focus:ring-2 focus:ring-accent/50"
+                      className={`${CAMPO} pl-10`}
                     />
                   </div>
                 </div>
@@ -492,16 +530,16 @@ export default function AdminPage() {
                 <button
                   onClick={saveAlbumSettings}
                   disabled={savingSettings}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent text-white font-body font-semibold hover:bg-accent/90 transition-all disabled:opacity-60"
+                  className={`${BOTON_PRINCIPAL} px-5 py-2.5`}
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="h-4 w-4" aria-hidden="true" />
                   {savingSettings
                     ? (isEnglish ? 'Saving...' : 'Guardando...')
                     : (isEnglish ? 'Save changes' : 'Guardar cambios')}
                 </button>
                 {settingsMessage && (
                   <p
-                    className={`text-sm ${settingsMessageType === 'error' ? 'text-red-600' : 'text-green-600'}`}
+                    className={`text-sm ${settingsMessageType === 'error' ? 'text-error' : 'text-noche'}`}
                     role="status"
                   >
                     {settingsMessage}
@@ -510,21 +548,23 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-5 mb-6">
-              <p className="font-body text-sm text-secondary mb-2">
+            <div className="panel-card p-5 mb-6">
+              <p className="text-sm text-tinta mb-2">
                 {isEnglish ? 'Plan capacity' : 'Capacidad del plan'}
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-semibold">
+                <span className="px-3 py-1 rounded-full bg-papel text-noche text-sm font-medium tabular-nums">
                   {albumHasLimit
                     ? `${photos.length} / ${albumLimit} ${isEnglish ? 'photos' : 'fotos'}`
                     : (isEnglish ? 'Unlimited photos' : 'Fotos ilimitadas')}
                 </span>
+                {/* Con lugar, tinta sobre papel; sin lugar, aviso: es el tope
+                    del plan, no un error de nadie. */}
                 {albumHasLimit && (
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium tabular-nums ${
                     (remainingAlbumPhotos || 0) > 0
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
+                      ? 'border border-linea bg-niebla text-noche'
+                      : 'bg-aviso-fondo text-aviso'
                   }`}>
                     {isEnglish
                       ? `${remainingAlbumPhotos} available`
@@ -535,18 +575,18 @@ export default function AdminPage() {
             </div>
 
             {/* Upload Button */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <div className="panel-card p-8 mb-8">
               <button
                 onClick={openUploadWidget}
-                className="w-full py-8 px-6 border-2 border-dashed border-accent/40 rounded-xl hover:border-accent hover:bg-accent/5 transition-all duration-300 flex flex-col items-center justify-center gap-3 group"
+                className="w-full py-8 px-6 border-2 border-dashed border-linea-control rounded-xl bg-papel hover:border-noche hover:bg-papel-medio transition-[border-color,background-color] duration-150 flex flex-col items-center justify-center gap-3 group"
               >
-                <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <Upload className="w-8 h-8 text-accent" />
+                <div className="w-16 h-16 rounded-full border border-linea bg-niebla flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-noche" aria-hidden="true" />
                 </div>
-                <span className="font-heading text-xl text-primary">
+                <span className="text-xl font-medium text-noche">
                   {isEnglish ? 'Upload photos' : 'Subir fotos'}
                 </span>
-                <span className="font-body text-secondary text-sm">
+                <span className="text-tinta text-sm">
                   {isEnglish
                     ? 'JPG, PNG, HEIC up to 15MB each'
                     : 'JPG, PNG, HEIC hasta 15MB cada una'}
@@ -561,12 +601,12 @@ export default function AdminPage() {
 
             {/* Photo Grid */}
             {photos.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+              <div className="panel-card p-6 mb-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="font-heading text-xl text-primary">
+                  <h2 className="text-xl font-medium text-noche tabular-nums">
                     {photos.length} {isEnglish ? `photo${photos.length !== 1 ? 's' : ''}` : `foto${photos.length !== 1 ? 's' : ''}`}
                   </h2>
-                  <p className="font-body text-sm text-secondary">
+                  <p className="text-sm text-tinta">
                     {isEnglish ? 'Drag to reorder' : 'Arrastra para reordenar'}
                   </p>
                 </div>
@@ -579,8 +619,8 @@ export default function AdminPage() {
                       onDragStart={() => handleDragStart(index)}
                       onDragOver={(e) => handleDragOver(e, index)}
                       onDragEnd={handleDragEnd}
-                      className={`relative aspect-square group cursor-move rounded-xl overflow-hidden shadow-md transition-all duration-200 ${
-                        draggedIndex === index ? 'opacity-50 scale-95' : ''
+                      className={`relative aspect-square group cursor-move rounded-xl overflow-hidden shadow-md transition-[opacity,scale] duration-200 ${
+                        draggedIndex === index ? 'opacity-50 scale-95 motion-reduce:scale-100' : ''
                       }`}
                     >
                       <img
@@ -590,30 +630,32 @@ export default function AdminPage() {
                       />
 
                       {/* Overlay */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="absolute inset-0 bg-noche/0 group-hover:bg-noche/40 transition-[background-color,opacity] flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        {/* Borrar: el icono en ladrillo sobre niebla, que es
+                            como se ve lo destructivo en la marca. */}
                         <button
                           onClick={() => removePhoto(photo.id)}
-                          className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          className={`${BOTON_ICONO} bg-niebla text-error hover:bg-error-fondo`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
 
                       {/* Number badge */}
-                      <span className="absolute bottom-2 left-2 bg-white/90 text-primary text-xs font-medium px-2 py-1 rounded-full shadow">
+                      <span className="absolute bottom-2 left-2 bg-niebla text-noche text-xs font-medium px-2 py-1 rounded-full shadow tabular-nums">
                         {index + 1}
                       </span>
 
                       {/* Uploaded by badge */}
                       {photo.uploaded_by_name && (
-                        <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow">
+                        <span className="absolute top-2 left-2 bg-noche text-niebla text-xs px-2 py-1 rounded-full shadow">
                           {photo.uploaded_by_name}
                         </span>
                       )}
 
                       {/* Drag handle */}
-                      <div className="absolute top-2 right-2 p-1 bg-white/90 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                        <GripVertical className="w-4 h-4 text-secondary" />
+                      <div className="absolute top-2 right-2 p-1 bg-niebla rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                        <GripVertical className="w-4 h-4 text-tinta" aria-hidden="true" />
                       </div>
                     </div>
                   ))}
@@ -622,8 +664,8 @@ export default function AdminPage() {
             )}
 
             {photos.length === 0 && (
-              <div className="text-center py-12 bg-white rounded-2xl shadow-lg">
-                <p className="font-body text-secondary">
+              <div className="panel-card text-center py-12">
+                <p className="text-tinta">
                   {isEnglish
                     ? 'There are no photos yet. Click the button above to start.'
                     : 'Aun no hay fotos. Haz clic en el boton de arriba para comenzar!'}
@@ -635,28 +677,28 @@ export default function AdminPage() {
 
         {/* Invites Tab */}
         {activeTab === 'invites' && (
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-heading text-xl text-primary">
+          <div className="panel-card p-6">
+            <div className="flex justify-between items-center gap-4 mb-6">
+              <h2 className="text-xl font-medium text-noche">
                 Gestionar invitados
               </h2>
               <button
                 onClick={() => setShowInviteModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white font-body font-medium rounded-full hover:bg-accent/90 transition-all"
+                className={`${BOTON_PRINCIPAL} shrink-0 px-4 py-2`}
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4" aria-hidden="true" />
                 Nueva invitación
               </button>
             </div>
 
-            <p className="font-body text-secondary mb-6">
+            <p className="text-tinta mb-6">
               Crea enlaces y comparte QR para que tus invitados suban sus fotos desde su celular.
             </p>
 
             {invites.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
-                <UserPlus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="font-body text-secondary">
+              <div className="text-center py-12 border-2 border-dashed border-linea rounded-xl">
+                <UserPlus className="w-12 h-12 text-tinta/70 mx-auto mb-4" aria-hidden="true" />
+                <p className="text-tinta">
                   No hay invitaciones aún. Crea una para compartir con tus invitados.
                 </p>
               </div>
@@ -667,27 +709,27 @@ export default function AdminPage() {
                     key={invite.id}
                     className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border ${
                       invite.is_active
-                        ? 'border-gray-200 bg-gray-50'
-                        : 'border-red-200 bg-red-50 opacity-60'
+                        ? 'border-linea bg-papel'
+                        : 'border-error/40 bg-error-fondo opacity-60'
                     }`}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-body font-semibold text-primary">
+                        <span className="font-medium text-noche">
                           {invite.guest_name || 'Sin nombre'}
                         </span>
                         {invite.is_general && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                          <span className="text-xs border border-linea bg-niebla text-noche px-2 py-0.5 rounded-full">
                             Link general
                           </span>
                         )}
                         {!invite.is_active && (
-                          <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                          <span className="text-xs border border-error/40 text-error px-2 py-0.5 rounded-full">
                             Revocado
                           </span>
                         )}
                       </div>
-                      <p className="font-body text-sm text-secondary">
+                      <p className="text-sm text-tinta tabular-nums">
                         {invite.photos_uploaded} / {invite.max_photos} fotos subidas
                       </p>
                     </div>
@@ -695,24 +737,24 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openQrForInvite(invite)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-primary font-body text-sm rounded-full hover:bg-gray-50 transition-all"
+                        className={`${BOTON_SECUNDARIO} px-4 py-2 text-sm`}
                       >
-                        <QrCode className="w-4 h-4" />
+                        <QrCode className="w-4 h-4" aria-hidden="true" />
                         QR
                       </button>
 
                       <button
                         onClick={() => copyToClipboard(invite.share_url, invite.id)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-primary font-body text-sm rounded-full hover:bg-gray-50 transition-all"
+                        className={`${BOTON_SECUNDARIO} px-4 py-2 text-sm`}
                       >
                         {copiedId === invite.id ? (
                           <>
-                            <Check className="w-4 h-4 text-green-500" />
+                            <Check className="w-4 h-4 text-tinta" aria-hidden="true" />
                             Copiado
                           </>
                         ) : (
                           <>
-                            <Copy className="w-4 h-4" />
+                            <Copy className="w-4 h-4" aria-hidden="true" />
                             Copiar link
                           </>
                         )}
@@ -720,7 +762,7 @@ export default function AdminPage() {
 
                       <button
                         onClick={() => shareInvite(invite)}
-                        className="p-2 text-primary hover:bg-gray-100 rounded-full transition-colors"
+                        className={`${BOTON_ICONO} text-noche hover:bg-papel-medio`}
                         title="Compartir invitación"
                       >
                         <Share2 className="w-4 h-4" />
@@ -729,7 +771,7 @@ export default function AdminPage() {
                       {invite.is_active && (
                         <button
                           onClick={() => revokeInvite(invite.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                          className={`${BOTON_ICONO} text-error hover:bg-error-fondo`}
                           title="Revocar invitación"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -745,29 +787,29 @@ export default function AdminPage() {
 
         {/* QR Modal */}
         {showQrModal && qrInvite && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="font-heading text-xl text-primary">
+          <div className="fixed inset-0 bg-noche/40 flex items-center justify-center z-50 p-4">
+            <div className="panel-card max-w-md w-full p-6">
+              <div className="flex justify-between items-start gap-4 mb-4">
+                <div className="min-w-0">
+                  <Titular as="h3" tamano="hoja" alinear="inicio">
                     QR para invitación
-                  </h3>
-                  <p className="font-body text-sm text-secondary">
+                  </Titular>
+                  <p className="text-sm text-tinta mt-1">
                     {qrInvite.guest_name || 'Invitado'}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowQrModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className={`${BOTON_ICONO} text-noche hover:bg-papel-medio`}
                 >
-                  <X className="w-5 h-5 text-secondary" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 flex justify-center mb-4">
+              <div className="bg-papel rounded-xl border border-linea p-4 flex justify-center mb-4">
                 {creatingQr ? (
                   <div className="w-56 h-56 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-tinta" />
                   </div>
                 ) : qrDataUrl ? (
                   <img
@@ -776,7 +818,7 @@ export default function AdminPage() {
                     className="w-56 h-56 rounded-lg"
                   />
                 ) : (
-                  <div className="w-56 h-56 flex items-center justify-center text-sm text-secondary text-center">
+                  <div className="w-56 h-56 flex items-center justify-center text-sm text-tinta text-center">
                     No se pudo generar el QR. Intenta de nuevo.
                   </div>
                 )}
@@ -786,25 +828,25 @@ export default function AdminPage() {
                 <button
                   onClick={downloadQr}
                   disabled={!qrDataUrl}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-full font-body font-medium disabled:opacity-50"
+                  className={`${BOTON_PRINCIPAL} px-4 py-2.5`}
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4" aria-hidden="true" />
                   Descargar
                 </button>
                 <button
                   onClick={() => shareInvite(qrInvite)}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-primary rounded-full font-body font-medium"
+                  className={`${BOTON_SECUNDARIO} px-4 py-2.5`}
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-4 h-4" aria-hidden="true" />
                   Compartir
                 </button>
               </div>
 
               <button
                 onClick={() => copyToClipboard(qrInvite.share_url, `qr-link-${qrInvite.id}`)}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-primary rounded-full font-body font-medium"
+                className={`${BOTON_SECUNDARIO} w-full px-4 py-2.5`}
               >
-                <Copy className="w-4 h-4" />
+                <Copy className="w-4 h-4" aria-hidden="true" />
                 {copiedId === `qr-link-${qrInvite.id}` ? 'Link copiado' : 'Copiar link'}
               </button>
             </div>
@@ -813,43 +855,43 @@ export default function AdminPage() {
 
         {/* Create Invite Modal */}
         {showInviteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-heading text-xl text-primary">
+          <div className="fixed inset-0 bg-noche/40 flex items-center justify-center z-50 p-4">
+            <div className="panel-card max-w-md w-full p-6">
+              <div className="flex justify-between items-center gap-4 mb-6">
+                <Titular as="h3" tamano="hoja" alinear="inicio">
                   Nueva invitación
-                </h3>
+                </Titular>
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className={`${BOTON_ICONO} text-noche hover:bg-papel-medio`}
                 >
-                  <X className="w-5 h-5 text-secondary" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block font-body text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-noche mb-2">
                     Tipo de invitación
                   </label>
                   <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex min-h-11 items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         checked={!newInviteIsGeneral}
                         onChange={() => setNewInviteIsGeneral(false)}
-                        className="w-4 h-4 text-accent"
+                        className="w-4 h-4 accent-noche"
                       />
-                      <span className="font-body text-secondary">Individual</span>
+                      <span className="text-noche">Individual</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex min-h-11 items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         checked={newInviteIsGeneral}
                         onChange={() => setNewInviteIsGeneral(true)}
-                        className="w-4 h-4 text-accent"
+                        className="w-4 h-4 accent-noche"
                       />
-                      <span className="font-body text-secondary">Link general</span>
+                      <span className="text-noche">Link general</span>
                     </label>
                   </div>
                 </div>
@@ -857,7 +899,7 @@ export default function AdminPage() {
                 {!newInviteIsGeneral && (
                   <>
                     <div>
-                      <label className="block font-body text-sm font-medium text-primary mb-2">
+                      <label className="block text-sm font-medium text-noche mb-2">
                         Nombre del invitado
                       </label>
                       <input
@@ -865,12 +907,12 @@ export default function AdminPage() {
                         value={newInviteName}
                         onChange={(e) => setNewInviteName(e.target.value)}
                         placeholder="Ej: Juan García"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl font-body focus:outline-none focus:ring-2 focus:ring-accent/50"
+                        className={CAMPO}
                       />
                     </div>
 
                     <div>
-                      <label className="block font-body text-sm font-medium text-primary mb-2">
+                      <label className="block text-sm font-medium text-noche mb-2">
                         Email del invitado (opcional)
                       </label>
                       <input
@@ -878,20 +920,20 @@ export default function AdminPage() {
                         value={newInviteEmail}
                         onChange={(e) => setNewInviteEmail(e.target.value)}
                         placeholder="Ej: juan@email.com"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl font-body focus:outline-none focus:ring-2 focus:ring-accent/50"
+                        className={CAMPO}
                       />
                     </div>
 
                     {newInviteEmail && (
                       <div>
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex min-h-11 items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={newInviteSendEmail}
                             onChange={(e) => setNewInviteSendEmail(e.target.checked)}
-                            className="w-4 h-4 text-accent rounded"
+                            className="w-4 h-4 rounded accent-noche"
                           />
-                          <span className="font-body text-secondary">
+                          <span className="text-noche">
                             Enviar invitación por email
                           </span>
                         </label>
@@ -901,7 +943,7 @@ export default function AdminPage() {
                 )}
 
                 <div>
-                  <label className="block font-body text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-noche mb-2">
                     Máximo de fotos permitidas
                   </label>
                   <input
@@ -910,10 +952,10 @@ export default function AdminPage() {
                     onChange={(e) => setNewInviteMaxPhotos(Number(e.target.value))}
                     min={1}
                     max={albumHasLimit ? albumLimit : 9999}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl font-body focus:outline-none focus:ring-2 focus:ring-accent/50"
+                    className={`${CAMPO} tabular-nums`}
                   />
                   {albumHasLimit && (
-                    <p className="mt-2 text-xs text-secondary">
+                    <p className="mt-2 text-xs text-tinta">
                       Tu plan permite un máximo total de {albumLimit} fotos.
                     </p>
                   )}
@@ -922,7 +964,7 @@ export default function AdminPage() {
                 <button
                   onClick={createInvite}
                   disabled={creatingInvite}
-                  className="w-full py-3 bg-accent text-white font-body font-semibold rounded-full hover:bg-accent/90 transition-all disabled:opacity-50"
+                  className={`${BOTON_PRINCIPAL} w-full py-3`}
                 >
                   {creatingInvite ? 'Creando...' : 'Crear invitación'}
                 </button>

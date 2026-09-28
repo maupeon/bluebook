@@ -44,26 +44,27 @@ export function Footer() {
     { href: `mailto:${CONTACT_INFO.email}`, label: en ? "Email" : "Correo", Icon: Mail },
   ];
 
+  // Antes era azul noche. La marca no tiene secciones oscuras: el pie es
+  // papel niebla, el papel de las frases (aquí el «Something blue»), con una
+  // regla en azul línea arriba por si la página termina también en niebla.
   return (
-    <footer className="sb-dark relative overflow-hidden bg-navy text-white">
-      <Sparkle className="absolute right-[6%] top-8 h-7 w-7 text-wash-deep/50" />
-      <Star className="absolute bottom-24 left-[46%] hidden h-5 w-5 text-wash-deep/40 lg:block" />
+    <footer className="relative overflow-hidden border-t border-linea bg-niebla">
+      <Sparkle className="absolute right-[6%] top-8 h-7 w-7 text-linea" />
+      <Star className="absolute bottom-24 left-[46%] hidden h-5 w-5 text-linea lg:block" />
 
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-20 sm:px-6 lg:px-8">
         <div className="grid gap-14 lg:grid-cols-[1.3fr_2fr]">
           <div>
             <Link href="/" className="inline-flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                <Image src="/icon.png" alt="" width={30} height={30} />
-              </span>
-              <span className="font-round text-xl uppercase tracking-[0.04em]">Blue Book</span>
+              <Image src="/icon.png" alt="" width={36} height={36} />
+              <span className="font-round text-[23px] uppercase leading-none text-noche">Blue Book</span>
             </Link>
-            <p className="mt-6 font-script text-[40px] leading-[1.05] text-wash" aria-hidden="true">
+            <p className="frase mt-6 text-[40px] leading-[1.05]" aria-hidden="true">
               Something blue.
               <br />
               For good luck.
             </p>
-            <p className="mt-5 max-w-sm font-body text-sm leading-relaxed text-white/70">
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-tinta">
               {en
                 ? "Your whole wedding in one place, with a real wedding planner looking after every detail."
                 : "Toda tu boda en un solo lugar, con una wedding planner real cuidando cada detalle."}
@@ -76,7 +77,7 @@ export function Footer() {
                     target={href.startsWith("http") ? "_blank" : undefined}
                     rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
                     aria-label={label}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors duration-150 hover:bg-white/20"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-linea text-noche transition-colors duration-150 hover:border-linea-control hover:bg-papel"
                   >
                     <Icon className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden="true" />
                   </a>
@@ -88,13 +89,13 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
             {columns.map((column) => (
               <nav key={column.title} aria-label={column.title}>
-                <h2 className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-wash-deep">{column.title}</h2>
+                <h2 className="rotulo">{column.title}</h2>
                 <ul className="mt-5 space-y-3">
                   {column.links.map((link) => (
                     <li key={link.href}>
                       <Link
                         href={link.href}
-                        className="font-body text-sm text-white/75 transition-colors duration-150 hover:text-white"
+                        className="text-sm text-tinta transition-colors duration-150 hover:text-noche"
                       >
                         {link.label}
                       </Link>
@@ -106,16 +107,16 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col gap-3 border-t border-white/10 pt-8 font-body text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-16 flex flex-col gap-3 border-t border-linea pt-8 text-xs text-tinta sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} Blue Book · {en ? CONTACT_INFO.cityEn : CONTACT_INFO.cityEs}
           </p>
           <p>
-            <a href={`mailto:${CONTACT_INFO.email}`} className="transition-colors hover:text-white">
+            <a href={`mailto:${CONTACT_INFO.email}`} className="transition-colors hover:text-noche">
               {CONTACT_INFO.email}
             </a>
             <span className="mx-2" aria-hidden="true">·</span>
-            <a href={CONTACT_INFO.whatsappUrl} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">
+            <a href={CONTACT_INFO.whatsappUrl} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-noche">
               {CONTACT_INFO.whatsappDisplay}
             </a>
           </p>

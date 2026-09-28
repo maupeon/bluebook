@@ -62,17 +62,17 @@ const testimonials: Testimonial[] = [
 
 export function Testimonials() {
   return (
-    <section className="py-20 lg:py-32 bg-white overflow-hidden">
+    <section className="py-20 lg:py-32 bg-niebla overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="font-body text-sm font-semibold text-accent uppercase tracking-wider">
+          <span className="font-body text-sm font-medium text-tinta uppercase tracking-wider">
             Testimonios
           </span>
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-primary mt-4 mb-6">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-medium text-tinta mt-4 mb-6">
             Lo que dicen las parejas
           </h2>
-          <p className="font-body text-lg text-secondary">
+          <p className="font-body text-lg text-tinta">
             Más de 500 parejas han creado su álbum digital con nosotros.
             Estas son algunas de sus historias.
           </p>
@@ -83,40 +83,40 @@ export function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-light rounded-2xl p-8 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative"
+              className="bg-papel rounded-2xl p-8 hover:shadow-xl hover:shadow-tinta/5 transition-all duration-500 group relative"
             >
               {/* Quote Icon */}
-              <Quote className="absolute top-6 right-6 w-10 h-10 text-accent/20 group-hover:text-accent/40 transition-colors" />
+              <Quote className="absolute top-6 right-6 w-10 h-10 text-tinta/20 group-hover:text-tinta/40 transition-colors" />
 
               {/* Rating */}
               <div className="flex gap-1 mb-4">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
                   <Star
                     key={i}
-                    className="w-4 h-4 text-accent fill-accent"
+                    className="w-4 h-4 text-tinta fill-tinta"
                   />
                 ))}
               </div>
 
               {/* Text */}
-              <p className="font-body text-secondary leading-relaxed mb-6 relative z-10">
+              <p className="font-body text-tinta leading-relaxed mb-6 relative z-10">
                 &ldquo;{testimonial.text}&rdquo;
               </p>
 
               {/* Author */}
               <div className="flex items-center gap-4">
                 {/* Avatar */}
-                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-                  <span className="font-heading text-sm font-semibold text-white">
+                <div className="w-12 h-12 rounded-full bg-tinta flex items-center justify-center">
+                  <span className="font-heading text-sm font-medium text-niebla">
                     {testimonial.avatar}
                   </span>
                 </div>
 
                 <div>
-                  <p className="font-heading text-lg font-semibold text-primary">
+                  <p className="font-heading text-lg font-medium text-tinta">
                     {testimonial.name}
                   </p>
-                  <p className="font-body text-sm text-secondary">
+                  <p className="font-body text-sm text-tinta">
                     {testimonial.location} · {testimonial.date}
                   </p>
                 </div>

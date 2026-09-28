@@ -65,19 +65,23 @@ const FAQ_EN: FaqItem[] = [
   },
 ];
 
+// Los fondos alternan los dos papeles de la marca: el encabezado y los planes
+// en papel azul (el papel de los precios), la calculadora en niebla, la
+// comparación en papel, el álbum y las dudas en niebla, y el cierre, una
+// tarjeta niebla sobre papel.
 export default function PreciosPage() {
   const { isEnglish: en } = useLanguage();
 
   return (
-    <div className="sb bg-paper">
+    <div className="bg-papel">
       {/* Hero */}
       <section className="pb-4 pt-28 sm:pt-32 lg:pt-36">
-        <Container>
+        <Container className="text-center">
           <Reveal>
             <Eyebrow>{en ? "Pricing" : "Precios"}</Eyebrow>
           </Reveal>
           <Reveal delay={80}>
-            <Display className="mt-5 max-w-3xl">
+            <Display className="mx-auto mt-5 max-w-3xl">
               {en ? (
                 <>
                   Clear prices, <Em>no percentages.</Em>
@@ -90,7 +94,7 @@ export default function PreciosPage() {
             </Display>
           </Reveal>
           <Reveal delay={160}>
-            <Lead className="mt-6 max-w-2xl">
+            <Lead className="mx-auto mt-6 max-w-2xl">
               {en
                 ? `${DIAS_DE_PRUEBA} days free, no card. Then ${price} a month for the platform and a real planner, or a single payment if you only want invitations. No lock-in, no surprises.`
                 : `${DIAS_DE_PRUEBA} días gratis, sin tarjeta. Después, ${price} al mes por la plataforma y una planner real, o un solo pago si solo quieres invitaciones. Sin plazos forzosos y sin sorpresas.`}
@@ -99,34 +103,35 @@ export default function PreciosPage() {
         </Container>
       </section>
 
-      <Plans id="planes" className="bg-paper" />
+      <Plans id="planes" className="bg-papel" />
       <Savings />
       <Versus id="diferencia" />
 
-      {/* Producto aparte: el álbum digital */}
-      <section className="pb-4 pt-24 md:pt-32">
+      {/* Producto aparte: el álbum digital. Es una tarjeta que lleva a otra
+          página, no el encabezado de una sección: su título va en Work Sans. */}
+      <section className="bg-niebla pb-4 pt-24 md:pt-32">
         <Container>
           <Reveal>
             <Link
               href="/album-digital"
-              className="group relative flex flex-col gap-8 overflow-hidden rounded-3xl border border-hairline bg-white p-8 transition-[border-color,background-color] duration-200 hover:border-wash-deep sm:flex-row sm:items-center md:p-10"
+              className="group relative flex flex-col gap-8 overflow-hidden rounded-3xl border border-linea bg-papel p-8 transition-[border-color,background-color] duration-200 hover:border-linea-control sm:flex-row sm:items-center md:p-10"
             >
               <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
-                <Watercolor className="absolute inset-0 h-full w-full" seed={8} />
-                <Polaroid className="relative h-28 w-28 text-line" />
+                <Watercolor className="absolute inset-0 h-full w-full" tone="linea" opacity={0.55} seed={8} />
+                <Polaroid className="relative h-28 w-28 text-tinta" />
               </div>
               <div className="flex-1">
                 <Eyebrow>{en ? "Also" : "También"}</Eyebrow>
-                <h2 className="mt-2 font-heading text-3xl font-medium tracking-[-0.015em] text-navy">
+                <h2 className="mt-2 text-2xl font-medium text-noche">
                   {en ? "Just looking for the digital album?" : "¿Solo buscas el álbum digital?"}
                 </h2>
-                <p className="mt-2 max-w-[56ch] font-body text-[15px] leading-relaxed text-navy-muted">
+                <p className="mt-2 max-w-[56ch] text-[15px] leading-relaxed text-tinta">
                   {en
                     ? "A flipbook with a QR code so your guests upload their photos from their phones. One payment, yours forever."
                     : "Un flipbook con QR para que tus invitados suban sus fotos desde el celular. Un solo pago y es tuyo para siempre."}
                 </p>
               </div>
-              <span className="inline-flex items-center gap-2 font-body text-sm font-semibold text-navy transition-colors group-hover:text-azul-deep">
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors group-hover:decoration-noche">
                 {en ? "See the album" : "Ver el álbum"}
                 <Arrow />
               </span>
@@ -149,18 +154,20 @@ export default function PreciosPage() {
           )
         }
         items={en ? FAQ_EN : FAQ_ES}
-        className="bg-paper"
+        className="bg-niebla"
       />
 
       <ClosingCTA
         title={
           en ? (
             <>
-              Start with <em className="block italic text-wash">{DIAS_DE_PRUEBA} free days.</em>
+              Start with <br />
+              <em>{DIAS_DE_PRUEBA} free days.</em>
             </>
           ) : (
             <>
-              Empieza con <em className="block italic text-wash">{DIAS_DE_PRUEBA} días gratis.</em>
+              Empieza con <br />
+              <em>{DIAS_DE_PRUEBA} días gratis.</em>
             </>
           )
         }

@@ -27,6 +27,15 @@ import {
 } from "@/components/panel/sections";
 
 /**
+ * El campo de la marca: borde de campo (3:1 sobre papel y niebla), texto en
+ * azul noche y el foco con anillo noche. Las tarjetas son niebla, así que un
+ * campo directo sobre ellas va en papel azul (campoEnTarjeta).
+ */
+const campoBase =
+  "w-full rounded-xl border border-linea-control/70 text-sm text-noche outline-none transition-[border-color,box-shadow] focus:border-noche focus:ring-2 focus:ring-noche/20";
+const campoEnTarjeta = `${campoBase} bg-papel`;
+
+/**
  * Las secciones INTERACTIVAS del panel: las tres que escriben.
  *
  * Antes este archivo tenía además el orquestador que pintaba las nueve
@@ -226,12 +235,12 @@ export function TasksSection({
       <SectionTitle>{isEnglish ? "Tasks" : "Tareas"}</SectionTitle>
 
       {error ? (
-        <div className="mt-5 flex items-start gap-2 rounded-xl bg-terra-light px-4 py-3">
+        <div className="mt-5 flex items-start gap-2 rounded-xl border border-error/30 bg-error-fondo px-4 py-3">
           <AlertCircle
-            className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep"
+            className="mt-0.5 h-4 w-4 flex-shrink-0 text-error"
             strokeWidth={1.5}
           />
-          <p className="font-body text-sm text-terra-deep">{error}</p>
+          <p className="text-sm text-error">{error}</p>
         </div>
       ) : null}
 
@@ -318,12 +327,12 @@ export function TasksSection({
           placeholder={
             isEnglish ? "Write something down…" : "Apunten algo…"
           }
-          className="min-h-[2.75rem] flex-1 rounded-xl border border-sand bg-bone px-4 py-2 font-body text-sm text-ink placeholder:text-ink-muted"
+          className={`min-h-[2.75rem] flex-1 ${campoEnTarjeta} px-4 py-2`}
         />
         <button
           type="submit"
           disabled={!nuevo.trim() || guardando}
-          className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full border border-ink bg-ink px-4 py-2 font-body text-sm text-white transition-transform duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full border border-noche bg-noche px-4 py-2 text-sm font-medium text-niebla transition-[background-color,border-color,scale] duration-150 hover:border-noche-suave hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus className="h-4 w-4" strokeWidth={1.8} />
           {isEnglish ? "Add" : "Apuntar"}
@@ -366,21 +375,21 @@ function BloqueDeTareas({
         type="button"
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
-        className="flex min-h-[2.25rem] w-full items-center gap-2 text-left"
+        className="flex min-h-11 w-full items-center gap-2 text-left"
       >
         <span
-          className={`font-body text-[11px] font-semibold uppercase tracking-[0.1em] ${
-            acento ? "text-terra-deep" : "text-ink-muted"
+          className={`text-[11px] font-medium uppercase tracking-[0.1em] ${
+            acento ? "text-error" : "text-tinta"
           }`}
         >
           {titulo}
         </span>
-        <span className="font-body text-[11px] text-ink-muted tabular-nums">
+        <span className="text-[11px] font-normal text-tinta tabular-nums">
           {tareas.length}
         </span>
         <span
           aria-hidden="true"
-          className={`ml-auto text-ink-muted transition-transform duration-150 ${
+          className={`ml-auto text-tinta transition-transform duration-150 motion-reduce:transition-none ${
             abierto ? "rotate-90" : ""
           }`}
         >
@@ -437,7 +446,7 @@ function TaskRow({
   }
 
   return (
-    <li className="border-b border-sand py-4 last:border-b-0">
+    <li className="border-b border-linea py-4 last:border-b-0">
       <div className="flex items-start gap-3">
         <button
           type="button"
@@ -453,10 +462,10 @@ function TaskRow({
                 ? "Mark as done"
                 : "Marcar como hecha"
           }
-          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] disabled:opacity-50 ${
+          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50 ${
             done
-              ? "border-azul bg-azul text-white"
-              : "border-sand bg-white hover:border-azul"
+              ? "border-noche bg-noche text-niebla"
+              : "border-linea-control bg-papel hover:border-noche"
           }`}
         >
           {/* La palomita se ANIMA, no aparece de la nada.
@@ -466,7 +475,7 @@ function TaskRow({
               Y el encogido baja del 10% al 3%: en un objetivo de 20 px, un 10%
               son 2 px — un salto, no un acuse de recibo. */}
           <Check
-            className="h-3.5 w-3.5 transition-[scale,opacity] duration-150"
+            className="h-3.5 w-3.5 transition-[scale,opacity] duration-150 motion-reduce:transition-[opacity]"
             strokeWidth={2}
             style={{ scale: done ? 1 : 0.6, opacity: done ? 1 : 0 }}
             aria-hidden="true"
@@ -476,10 +485,10 @@ function TaskRow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <p
-              className={`font-body text-sm ${
+              className={`text-sm ${
                 done
-                  ? "text-ink-soft line-through"
-                  : "font-medium text-ink"
+                  ? "text-tinta line-through"
+                  : "font-medium text-noche"
               }`}
             >
               {task.title}
@@ -493,7 +502,7 @@ function TaskRow({
                     ? `Remove "${task.title}"`
                     : `Quitar "${task.title}"`
                 }
-                className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-bone hover:text-terra-deep"
+                className="-my-1 ml-auto inline-flex h-11 w-11 items-center justify-center rounded-lg text-tinta transition-colors hover:bg-error-fondo hover:text-error"
               >
                 <Trash2 className="h-4 w-4" strokeWidth={1.6} />
               </button>
@@ -501,10 +510,10 @@ function TaskRow({
             {task.dueDate && !done ? (
               <span
                 suppressHydrationWarning
-                className={`rounded-full px-2.5 py-0.5 font-body text-[11px] uppercase tracking-[0.08em] tabular-nums ${
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] tabular-nums ${
                   overdue
-                    ? "bg-terra-light text-terra-deep"
-                    : "bg-pale-yellow text-pale-yellow-ink"
+                    ? "bg-error-fondo text-error"
+                    : "bg-aviso-fondo text-aviso"
                 }`}
               >
                 {formatShortDate(task.dueDate, isEnglish)}
@@ -515,7 +524,7 @@ function TaskRow({
           {/* La explicación del renglón del plan. Es de la PLANTILLA y de solo
               lectura: `notes`, que está más abajo, es el campo de la pareja. */}
           {task.detail ? (
-            <p className="mt-1 font-body text-xs leading-relaxed text-ink-muted">
+            <p className="mt-1 text-xs leading-relaxed text-tinta">
               {task.detail}
             </p>
           ) : null}
@@ -524,7 +533,7 @@ function TaskRow({
           <button
             type="button"
             onClick={() => setShowNotes((s) => !s)}
-            className="mt-1.5 font-body text-xs font-medium text-azul-deep transition-colors hover:text-navy"
+            className="mt-1.5 text-xs font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
           >
             {showNotes
               ? isEnglish
@@ -549,7 +558,7 @@ function TaskRow({
               placeholder={
                 isEnglish ? "Write a note..." : "Escriban una nota..."
               }
-              className="mt-2 w-full resize-y rounded-xl border border-sand bg-bone px-3 py-2 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20"
+              className={`mt-2 resize-y ${campoEnTarjeta} px-3 py-2`}
             />
           ) : null}
         </div>
@@ -647,7 +656,7 @@ export function MessagesSection({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-sand bg-cream p-8 md:p-10">
+    <div className="flex h-full flex-col panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Messages" : "Mensajes"}</Eyebrow>
       <SectionTitle>
         {conPlanner
@@ -659,7 +668,7 @@ export function MessagesSection({
             : "Equipo Blue Book"}
       </SectionTitle>
       {conPlanner ? null : (
-        <p className="mt-3 max-w-[46ch] font-body text-sm leading-relaxed text-ink-muted">
+        <p className="mt-3 max-w-[46ch] text-sm leading-relaxed text-tinta">
           {isEnglish
             ? "Write to us about anything you need, however small. A person from the team replies."
             : "Escríbannos lo que necesiten, por pequeño que sea. Les contesta una persona del equipo."}
@@ -667,12 +676,12 @@ export function MessagesSection({
       )}
 
       {unavailable ? (
-        <div className="mt-6 flex items-start gap-3 rounded-xl border border-sand bg-white px-4 py-4">
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-linea bg-papel px-4 py-4">
           <MessageCircle
-            className="mt-0.5 h-5 w-5 flex-shrink-0 text-azul"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 text-tinta"
             strokeWidth={1.5}
           />
-          <p className="font-body text-sm leading-relaxed text-ink-muted">
+          <p className="text-sm leading-relaxed text-tinta">
             {conPlanner
               ? isEnglish
                 ? "Chat with your planner will be available very soon."
@@ -703,6 +712,9 @@ export function MessagesSection({
               </div>
             ) : (
               messages.map((m) => {
+                // Lo de la pareja sale en azul noche, a la derecha, como lo
+                // saliente en el admin; lo de la planner (o del equipo), en
+                // niebla con su regla, a la izquierda.
                 const mine = m.author === "couple";
                 return (
                   <div
@@ -712,17 +724,17 @@ export function MessagesSection({
                     <div
                       className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
                         mine
-                          ? "bg-pale-green text-pale-green-ink"
-                          : "border border-sand bg-white text-ink"
+                          ? "rounded-br-md bg-noche text-niebla"
+                          : "rounded-bl-md border border-linea bg-niebla text-noche"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap break-words font-body text-sm leading-relaxed">
+                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                         {m.body}
                       </p>
                       <p
                         suppressHydrationWarning
-                        className={`mt-1 text-right font-body text-[10px] tabular-nums ${
-                          mine ? "text-pale-green-ink/70" : "text-ink-soft"
+                        className={`mt-1 text-right text-[10px] font-normal tabular-nums ${
+                          mine ? "text-niebla" : "text-tinta"
                         }`}
                       >
                         {formatTime(m.createdAt)}
@@ -735,12 +747,12 @@ export function MessagesSection({
           </div>
 
           {error ? (
-            <div className="mt-4 flex items-start gap-2 rounded-xl bg-terra-light px-4 py-3">
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-error/30 bg-error-fondo px-4 py-3">
               <AlertCircle
-                className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep"
+                className="mt-0.5 h-4 w-4 flex-shrink-0 text-error"
                 strokeWidth={1.5}
               />
-              <p className="font-body text-sm text-terra-deep">{error}</p>
+              <p className="text-sm text-error">{error}</p>
             </div>
           ) : null}
 
@@ -759,17 +771,17 @@ export function MessagesSection({
               placeholder={
                 isEnglish ? "Write a message..." : "Escriban un mensaje..."
               }
-              className="min-h-[2.75rem] flex-1 resize-y panel-card px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20"
+              className={`min-h-[2.75rem] flex-1 resize-y ${campoEnTarjeta} px-4 py-3`}
             />
             <button
               type="button"
               onClick={handleSend}
               disabled={sending || !draft.trim()}
               aria-label={isEnglish ? "Send" : "Enviar"}
-              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-ink text-white transition-all hover:bg-ink-soft active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-noche text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {sending ? (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-niebla/30 border-t-niebla" />
               ) : (
                 <Send className="h-4 w-4" strokeWidth={1.5} />
               )}
@@ -844,11 +856,14 @@ function formatGuestPhone(digits: string): string {
  * "Tal vez" se pinta si viene de WhatsApp, pero no se ofrece: es un estado que
  * la pareja no necesita poder poner a mano.
  */
+// Van: lleno en azul noche (confirmado). No pueden: error. Tal vez: aviso.
+// Sin contestar: sólo el contorno, como un control que todavía hay que tocar.
+// La palabra va siempre dentro: el color nunca es la única señal.
 const RESPUESTA_ESTILO = {
-  confirmed: "bg-pale-green text-pale-green-ink",
-  declined: "bg-terra-light text-terra-deep",
-  maybe: "bg-pale-blue text-pale-blue-ink",
-  pending: "bg-pale-yellow text-pale-yellow-ink",
+  confirmed: "border-noche bg-noche text-niebla",
+  declined: "border-error/30 bg-error-fondo text-error",
+  maybe: "border-aviso/30 bg-aviso-fondo text-aviso",
+  pending: "border-linea-control/60 bg-niebla text-noche",
 } as const;
 
 function textoRespuesta(
@@ -890,7 +905,7 @@ function GuestBadge({
         onChange={(e) =>
           onChange(e.target.value as "confirmed" | "declined" | "pending")
         }
-        className={`min-h-[2.25rem] flex-shrink-0 cursor-pointer appearance-none rounded-full px-3 py-1 text-center font-body text-[11px] uppercase tracking-[0.08em] transition-transform duration-150 active:scale-[0.97] ${cls}`}
+        className={`min-h-[2.25rem] flex-shrink-0 cursor-pointer appearance-none rounded-full border px-3 py-1 text-center text-[11px] font-medium uppercase tracking-[0.08em] transition-[scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${cls}`}
       >
         {confirmation === "maybe" ? (
           <option value="maybe">{textoRespuesta("maybe", isEnglish)}</option>
@@ -905,12 +920,12 @@ function GuestBadge({
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="mt-4 flex items-start gap-2 rounded-xl bg-terra-light px-4 py-3">
+    <div className="mt-4 flex items-start gap-2 rounded-xl border border-error/30 bg-error-fondo px-4 py-3">
       <AlertCircle
-        className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep"
+        className="mt-0.5 h-4 w-4 flex-shrink-0 text-error"
         strokeWidth={1.5}
       />
-      <p className="font-body text-sm text-terra-deep">{message}</p>
+      <p className="text-sm text-error">{message}</p>
     </div>
   );
 }
@@ -918,8 +933,15 @@ function ErrorBanner({ message }: { message: string }) {
 /** Cuántos invitados se pintan antes de pedir que se despliegue el resto. */
 const LIMITE_LISTA = 25;
 
-const guestInputClass =
-  "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20";
+// Los campos llevan el borde de campo (3:1) y el foco en azul noche. El fondo
+// depende de dónde viven: el formulario de alta es un recuadro de papel azul
+// dentro de la tarjeta, así que ahí el campo es niebla; la búsqueda y la
+// edición de una fila están directo sobre la tarjeta niebla, así que ahí es
+// papel. El placeholder lo pinta globals.css.
+const guestInputClass = `${campoBase} bg-niebla px-4 py-3`;
+const guestInputEnTarjeta = `${campoBase} bg-papel px-4 py-3`;
+const guestSelectClass =
+  "w-24 shrink-0 rounded-xl border border-linea-control/70 px-2 py-3 text-sm text-noche outline-none transition-[border-color,box-shadow] focus:border-noche focus:ring-2 focus:ring-noche/20";
 
 export function GuestListSection({
   guests: initialGuests,
@@ -1204,9 +1226,9 @@ export function GuestListSection({
             </>
           )}
         </div>
-        <span className="font-heading text-2xl font-medium tracking-[-0.015em] text-ink tabular-nums">
+        <span className="text-3xl font-light text-noche tabular-nums">
           {guests.length}{" "}
-          <span className="font-body text-sm uppercase tracking-[0.08em] text-ink-muted">
+          <span className="text-sm uppercase tracking-[0.08em] text-tinta">
             {isEnglish
               ? guests.length === 1
                 ? "guest"
@@ -1218,7 +1240,7 @@ export function GuestListSection({
         </span>
       </div>
 
-      <p className="mt-3 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+      <p className="mt-3 max-w-[60ch] text-sm leading-relaxed text-tinta">
         {conPlanner
           ? isEnglish
             ? "Build your list here. Your planner and the assistant send the invitations on WhatsApp and record the replies on their own. If someone tells you in person, you can set their answer yourself. No phone? Leave it blank."
@@ -1231,13 +1253,13 @@ export function GuestListSection({
       {/* Formulario de alta */}
       <form
         onSubmit={handleAdd}
-        className="mt-7 rounded-2xl border border-sand bg-bone p-5 md:p-6"
+        className="mt-7 rounded-2xl border border-linea bg-papel p-5 md:p-6"
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label
               htmlFor="guest-name"
-              className="mb-2 block font-body text-sm font-medium text-ink"
+              className="mb-2 block text-sm font-medium text-noche"
             >
               {isEnglish ? "Name" : "Nombre"}
             </label>
@@ -1255,10 +1277,10 @@ export function GuestListSection({
           <div>
             <label
               htmlFor="guest-phone"
-              className="mb-2 block font-body text-sm font-medium text-ink"
+              className="mb-2 block text-sm font-medium text-noche"
             >
               WhatsApp{" "}
-              <span className="font-normal normal-case tracking-normal text-ink-muted">
+              <span className="font-normal normal-case tracking-normal text-tinta">
                 ({isEnglish ? "optional" : "opcional"})
               </span>
             </label>
@@ -1271,7 +1293,7 @@ export function GuestListSection({
                   setCc(next);
                   setDigits((d) => d.slice(0, guestPhoneDigitsFor(next)));
                 }}
-                className="w-24 shrink-0 rounded-xl border border-sand bg-white px-2 py-3 font-body text-sm text-ink outline-none transition-colors focus:border-azul"
+                className={`${guestSelectClass} bg-niebla`}
               >
                 {GUEST_COUNTRY_CODES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -1297,7 +1319,7 @@ export function GuestListSection({
           <div>
             <label
               htmlFor="guest-seats"
-              className="mb-2 block font-body text-sm font-medium text-ink"
+              className="mb-2 block text-sm font-medium text-noche"
             >
               {isEnglish ? "Seats / passes" : "Pases / lugares"}
             </label>
@@ -1315,10 +1337,10 @@ export function GuestListSection({
           <div>
             <label
               htmlFor="guest-notes"
-              className="mb-2 block font-body text-sm font-medium text-ink"
+              className="mb-2 block text-sm font-medium text-noche"
             >
               {isEnglish ? "Notes" : "Notas"}
-              <span className="ml-1 font-normal text-ink-muted">
+              <span className="ml-1 font-normal text-tinta">
                 {isEnglish ? "(optional)" : "(opcional)"}
               </span>
             </label>
@@ -1341,10 +1363,10 @@ export function GuestListSection({
         <button
           type="submit"
           disabled={adding}
-          className="mt-5 inline-flex items-center gap-2 rounded-full bg-navy px-5 py-2.5 font-body text-sm font-medium text-white transition-all hover:bg-navy-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-noche px-5 py-2.5 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {adding ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-niebla/30 border-t-niebla" />
           ) : (
             <Plus className="h-4 w-4" strokeWidth={1.5} />
           )}
@@ -1387,9 +1409,9 @@ export function GuestListSection({
                     ? "Search by name, phone or note"
                     : "Buscar por nombre, teléfono o nota"
                 }
-                className={guestInputClass}
+                className={guestInputEnTarjeta}
               />
-              <p className="mt-2 font-body text-xs text-ink-soft">
+              <p className="mt-2 text-xs text-tinta">
                 {termino
                   ? isEnglish
                     ? `${filtrados.length} of ${guests.length}`
@@ -1428,7 +1450,7 @@ export function GuestListSection({
             <button
               type="button"
               onClick={() => setVerTodos(true)}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-sand bg-bone px-6 py-3 font-body text-sm font-medium text-ink transition-colors hover:border-azul hover:text-azul-deep"
+              className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-linea-control/60 bg-niebla px-6 py-3 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
             >
               {isEnglish
                 ? `Show ${ocultos} more`
@@ -1547,12 +1569,12 @@ function GuestRow({
 
   if (editing) {
     return (
-      <li className="border-b border-sand py-5 last:border-b-0">
+      <li className="border-b border-linea py-5 last:border-b-0">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label
               htmlFor={`edit-name-${guest.id}`}
-              className="mb-1.5 block font-body text-xs font-medium uppercase tracking-[0.08em] text-ink-muted"
+              className="mb-1.5 block text-xs font-medium uppercase tracking-[0.08em] text-tinta"
             >
               {isEnglish ? "Name" : "Nombre"}
             </label>
@@ -1562,16 +1584,16 @@ function GuestRow({
               value={name}
               maxLength={80}
               onChange={(e) => setName(e.target.value)}
-              className={guestInputClass}
+              className={guestInputEnTarjeta}
             />
           </div>
           <div>
             <label
               htmlFor={`edit-phone-${guest.id}`}
-              className="mb-1.5 block font-body text-xs font-medium uppercase tracking-[0.08em] text-ink-muted"
+              className="mb-1.5 block text-xs font-medium uppercase tracking-[0.08em] text-tinta"
             >
               WhatsApp{" "}
-              <span className="font-normal normal-case tracking-normal text-ink-muted">
+              <span className="font-normal normal-case tracking-normal text-tinta">
                 ({isEnglish ? "optional" : "opcional"})
               </span>
             </label>
@@ -1584,7 +1606,7 @@ function GuestRow({
                   setCc(next);
                   setDigits((d) => d.slice(0, guestPhoneDigitsFor(next)));
                 }}
-                className="w-24 shrink-0 rounded-xl border border-sand bg-white px-2 py-3 font-body text-sm text-ink outline-none transition-colors focus:border-azul"
+                className={`${guestSelectClass} bg-papel`}
               >
                 {GUEST_COUNTRY_CODES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -1599,14 +1621,14 @@ function GuestRow({
                 inputMode="numeric"
                 value={cc === OTRO_PAIS ? (digits ? `+${digits}` : "") : formatGuestPhone(digits)}
                 onChange={(e) => setDigits(sanitizeDigits(e.target.value, cc))}
-                className={guestInputClass}
+                className={guestInputEnTarjeta}
               />
             </div>
           </div>
           <div>
             <label
               htmlFor={`edit-seats-${guest.id}`}
-              className="mb-1.5 block font-body text-xs font-medium uppercase tracking-[0.08em] text-ink-muted"
+              className="mb-1.5 block text-xs font-medium uppercase tracking-[0.08em] text-tinta"
             >
               {isEnglish ? "Seats / passes" : "Pases / lugares"}
             </label>
@@ -1617,13 +1639,13 @@ function GuestRow({
               max={20}
               value={seats}
               onChange={(e) => setSeats(e.target.value)}
-              className={`${guestInputClass} tabular-nums`}
+              className={`${guestInputEnTarjeta} tabular-nums`}
             />
           </div>
           <div>
             <label
               htmlFor={`edit-notes-${guest.id}`}
-              className="mb-1.5 block font-body text-xs font-medium uppercase tracking-[0.08em] text-ink-muted"
+              className="mb-1.5 block text-xs font-medium uppercase tracking-[0.08em] text-tinta"
             >
               {isEnglish ? "Notes" : "Notas"}
             </label>
@@ -1633,7 +1655,7 @@ function GuestRow({
               value={notes}
               maxLength={500}
               onChange={(e) => setNotes(e.target.value)}
-              className={guestInputClass}
+              className={guestInputEnTarjeta}
             />
           </div>
         </div>
@@ -1645,10 +1667,10 @@ function GuestRow({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 font-body text-sm font-medium text-white transition-all hover:bg-ink-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-noche px-4 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-niebla/30 border-t-niebla" />
             ) : (
               <Check className="h-4 w-4" strokeWidth={1.5} />
             )}
@@ -1658,7 +1680,7 @@ function GuestRow({
             type="button"
             onClick={() => setEditing(false)}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full border border-sand bg-white px-4 py-2 font-body text-sm font-medium text-ink transition-colors hover:bg-bone disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-4 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-50"
           >
             <X className="h-4 w-4" strokeWidth={1.5} />
             {isEnglish ? "Cancel" : "Cancelar"}
@@ -1669,10 +1691,10 @@ function GuestRow({
   }
 
   return (
-    <li className="flex items-start justify-between gap-4 border-b border-sand py-4 last:border-b-0">
+    <li className="flex items-start justify-between gap-4 border-b border-linea py-4 last:border-b-0">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <p className="font-body text-sm font-medium text-ink">{guest.name}</p>
+          <p className="text-sm font-medium text-noche">{guest.name}</p>
           <GuestBadge
             confirmation={guest.confirmation}
             isEnglish={isEnglish}
@@ -1681,7 +1703,7 @@ function GuestRow({
             onChange={onAnswer}
           />
           {guest.seats > 1 ? (
-            <span className="font-body text-xs tabular-nums text-ink-muted">
+            <span className="text-xs tabular-nums text-tinta">
               {guest.seats} {isEnglish ? "passes" : "pases"}
             </span>
           ) : null}
@@ -1691,14 +1713,14 @@ function GuestRow({
             href={`https://wa.me/${waNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-flex items-center gap-1.5 font-body text-xs text-ink-muted tabular-nums transition-colors hover:text-azul-deep"
+            className="mt-1 inline-flex items-center gap-1.5 text-xs text-tinta tabular-nums decoration-linea-control underline-offset-4 transition-colors hover:text-noche hover:underline"
           >
             <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.5} />
             {guest.phone}
           </a>
         ) : null}
         {guest.notes ? (
-          <p className="mt-1 font-body text-xs italic text-ink-soft">
+          <p className="mt-1 text-xs text-tinta">
             {guest.notes}
           </p>
         ) : null}
@@ -1711,7 +1733,7 @@ function GuestRow({
           aria-label={
             isEnglish ? `Edit ${guest.name}` : `Editar a ${guest.name}`
           }
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-sand bg-white text-ink-muted transition-colors hover:bg-bone hover:text-ink"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-tinta transition-colors hover:bg-papel hover:text-noche"
         >
           <Pencil className="h-4 w-4" strokeWidth={1.5} />
         </button>
@@ -1721,7 +1743,7 @@ function GuestRow({
           aria-label={
             isEnglish ? `Remove ${guest.name}` : `Quitar a ${guest.name}`
           }
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-sand bg-white text-ink-muted transition-colors hover:bg-terra-light hover:text-terra-deep"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-tinta transition-colors hover:bg-error-fondo hover:text-error"
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.5} />
         </button>

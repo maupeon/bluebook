@@ -23,10 +23,10 @@ export function AvisoSimplificado({
   const domicilio = fraseDeDomicilio(isEnglish);
 
   return (
-    <p className={`font-body text-xs leading-relaxed text-navy-muted ${className}`}>
+    <p className={`text-xs leading-relaxed text-tinta ${className}`}>
       {isEnglish ? (
         <>
-          <strong className="font-semibold text-navy">Privacy notice.</strong> {nombre}
+          <strong className="font-medium text-noche">Privacy notice.</strong> {nombre}
           {domicilio} is responsible for your data. We use what you tell us (names, email, WhatsApp,
           your wedding&rsquo;s date and place, approximate guests and budget, and your priorities) to
           create and run your wedding panel, support you, and let you know about your trial and plan. We
@@ -36,7 +36,7 @@ export function AvisoSimplificado({
         </>
       ) : (
         <>
-          <strong className="font-semibold text-navy">Aviso de privacidad.</strong> {nombre}
+          <strong className="font-medium text-noche">Aviso de privacidad.</strong> {nombre}
           {domicilio} es responsable de tus datos. Usamos lo que nos cuentas (nombres, correo, WhatsApp,
           fecha y lugar de tu boda, invitados y presupuesto aproximados, y lo que más te importa) para crear y
           operar tu panel de boda, darte soporte y avisarte de tu prueba y tu plan. No te pedimos datos
@@ -44,7 +44,12 @@ export function AvisoSimplificado({
           propios fines. Para limitar su uso escríbenos a {RESPONSABLE.correoPrivacidad}. Aviso completo:{" "}
         </>
       )}
-      <Link href="/privacidad" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-navy">
+      <Link
+        href="/privacidad"
+        target="_blank"
+        rel="noopener"
+        className="text-noche underline decoration-linea-control underline-offset-2 transition-colors hover:decoration-noche"
+      >
         bluebook.mx/privacidad
       </Link>
       .

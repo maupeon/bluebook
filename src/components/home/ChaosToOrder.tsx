@@ -45,30 +45,34 @@ function ScrapCard({ scrap, en }: { scrap: Scrap; en: boolean }) {
   const text = en ? scrap.en : scrap.es;
   if (scrap.kind === "chat") {
     return (
-      <div className="max-w-[210px] rounded-2xl rounded-bl-md border border-hairline bg-white px-3.5 py-2.5 shadow-sm">
-        <p className="flex items-center gap-1.5 font-body text-[10.5px] font-semibold text-azul-deep">
+      <div className="max-w-[210px] rounded-2xl rounded-bl-md border border-linea bg-niebla px-3.5 py-2.5 shadow-sm">
+        <p className="flex items-center gap-1.5 text-[10.5px] font-medium text-noche">
           <MessageCircle className="h-3 w-3" strokeWidth={2} aria-hidden="true" />
           {en ? scrap.metaEn : scrap.metaEs}
         </p>
-        <p className="mt-0.5 font-body text-[13px] text-navy">{text}</p>
+        <p className="mt-0.5 text-[13px] text-noche">{text}</p>
       </div>
     );
   }
+  // La nota adhesiva, en azul línea para que se despegue del papel azul de
+  // atrás (sobre azul línea el texto va en noche). A mano, en script: es una
+  // nota manuscrita junto al mockup, y lo que dice vuelve a decirse en Work
+  // Sans en la columna ordenada.
   if (scrap.kind === "note") {
     return (
-      <div className="w-[190px] bg-wash px-4 pb-4 pt-3 shadow-[0_10px_20px_-14px_rgba(28,45,79,0.5)]">
-        <StickyNote className="h-3.5 w-3.5 text-azul-deep" strokeWidth={1.75} aria-hidden="true" />
-        <p className="mt-1 font-script text-[25px] leading-[1.05] text-navy">{text}</p>
+      <div className="w-[190px] bg-linea px-4 pb-4 pt-3 shadow-[0_10px_20px_-14px_rgb(46_58_85/0.5)]">
+        <StickyNote className="h-3.5 w-3.5 text-noche" strokeWidth={1.75} aria-hidden="true" />
+        <p className="mt-1 font-script text-[25px] leading-[1.05] text-noche">{text}</p>
       </div>
     );
   }
   const Icon = scrap.kind === "file" ? FileSpreadsheet : FileText;
   return (
-    <div className="flex items-center gap-2.5 rounded-xl border border-hairline bg-white px-3 py-2.5 shadow-sm">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-wash-soft text-azul-deep">
+    <div className="flex items-center gap-2.5 rounded-xl border border-linea bg-niebla px-3 py-2.5 shadow-sm">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-papel-medio text-noche">
         <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
       </span>
-      <p className="font-body text-[12px] font-medium text-navy">{text}</p>
+      <p className="text-[12px] font-medium text-noche">{text}</p>
     </div>
   );
 }
@@ -89,15 +93,18 @@ export function ChaosToOrder() {
       ];
 
   return (
-    <section className="relative bg-white py-24 md:py-32">
+    <section className="relative bg-niebla py-24 md:py-32">
       <Container>
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-16">
+        {/* El encabezado, centrado; las cifras de fuera, debajo y también al
+            centro. Antes iban lado a lado y el titular quedaba en media
+            columna, donde no cabía en dos líneas. */}
+        <div className="mx-auto max-w-3xl text-center">
           <div>
             <Reveal>
               <Eyebrow>{en ? "What nobody tells you" : "Lo que nadie te cuenta"}</Eyebrow>
             </Reveal>
             <Reveal delay={80}>
-              <Heading className="mt-4 max-w-2xl">
+              <Heading className="mt-4">
                 {en ? (
                   <>
                     Planning a wedding is <Em>a second job.</Em>
@@ -110,7 +117,7 @@ export function ChaosToOrder() {
               </Heading>
             </Reveal>
             <Reveal delay={160}>
-              <Lead className="mt-5 max-w-xl">
+              <Lead className="mx-auto mt-5 max-w-2xl">
                 {en
                   ? "And it usually lands on you: quotes in a chat, the guest list in a spreadsheet, deposits in your phone's notes, and all of it in your head. Blue Book brings it together so you're no longer the only one who remembers everything."
                   : "Y casi siempre acaba en ti: cotizaciones en un chat, la lista en un Excel, los anticipos en las notas del celular y la cuenta de todo en tu cabeza. Blue Book lo junta en un solo lugar para que dejes de ser la única que se acuerda de todo."}
@@ -120,27 +127,28 @@ export function ChaosToOrder() {
 
           {/* Cifras de fuera, no nuestras: Blue Book es nuevo y no las inventa. */}
           <Reveal delay={200}>
-            <figure className="rounded-2xl border border-hairline bg-paper p-6">
-              <figcaption className="font-body text-xs font-semibold text-navy-soft">
+            <figure className="mx-auto mt-10 max-w-xl rounded-2xl border border-linea bg-papel p-6">
+              <figcaption className="text-xs font-medium text-noche">
                 {en ? "The average wedding in Mexico" : "Una boda promedio en México"}
               </figcaption>
               <dl className="mt-4 grid grid-cols-3 gap-3">
                 {stats.map((s) => (
                   <div key={s.label} className="flex flex-col-reverse">
-                    <dt className="mt-1.5 font-body text-xs text-navy-muted">{s.label}</dt>
-                    <dd className="whitespace-nowrap font-heading text-[1.45rem] font-medium leading-none tracking-[-0.02em] text-navy tabular-nums sm:text-3xl">
+                    <dt className="mt-1.5 text-xs text-tinta">{s.label}</dt>
+                    {/* Cifra grande en Work Sans Light: pesa por tamaño, no por grosor. */}
+                    <dd className="whitespace-nowrap text-[1.45rem] font-light leading-none text-noche tabular-nums sm:text-3xl">
                       {s.value}
                     </dd>
                   </div>
                 ))}
               </dl>
-              <p className="mt-4 font-body text-[11px] text-navy-muted">
+              <p className="mt-4 text-[11px] text-tinta">
                 {en ? "Source: " : "Fuente: "}
                 <a
                   href="https://www.bodas.com.mx/articulos/organizacion-de-una-boda-datos-y-curiosidades-en-mexico--c10606"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline decoration-hairline underline-offset-2 hover:text-navy"
+                  className="text-noche underline decoration-linea-control underline-offset-2 hover:decoration-noche"
                 >
                   Bodas.com.mx, Informe del Sector Nupcial 2025
                 </a>
@@ -152,19 +160,19 @@ export function ChaosToOrder() {
         <div className="mt-16 grid items-center gap-6 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
           {/* Así se ve hoy */}
           <Reveal>
-            <p className="mb-4 text-center font-body text-xs font-semibold uppercase tracking-[0.16em] text-navy-muted lg:text-left">
+            <p className="rotulo mb-4 text-center lg:text-left">
               {en ? "Today" : "Hoy"}
             </p>
             {/* Amplia: papelitos regados. Angosta: una pila ordenada que
                 conserva el giro, porque encimados a 360px se tapaban. */}
-            <div className="relative hidden h-[440px] rounded-3xl bg-paper sm:block">
+            <div className="relative hidden h-[440px] rounded-3xl bg-papel sm:block">
               {SCRAPS.map((scrap) => (
                 <div key={scrap.es} className={`absolute ${scrap.place}`}>
                   <ScrapCard scrap={scrap} en={en} />
                 </div>
               ))}
             </div>
-            <ul className="flex flex-col items-center gap-3 rounded-3xl bg-paper px-4 py-6 sm:hidden">
+            <ul className="flex flex-col items-center gap-3 rounded-3xl bg-papel px-4 py-6 sm:hidden">
               {SCRAPS.map((scrap, i) => (
                 <li key={scrap.es} className={i % 2 ? "rotate-2 self-end" : "-rotate-2 self-start"}>
                   <ScrapCard scrap={scrap} en={en} />
@@ -173,8 +181,8 @@ export function ChaosToOrder() {
             </ul>
           </Reveal>
 
-          <div className="flex justify-center text-azul" aria-hidden="true">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-white">
+          <div className="flex justify-center text-tinta" aria-hidden="true">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-linea bg-niebla">
               <ArrowRight className="hidden h-5 w-5 lg:block" strokeWidth={1.75} />
               <ArrowDown className="h-5 w-5 lg:hidden" strokeWidth={1.75} />
             </span>
@@ -182,19 +190,19 @@ export function ChaosToOrder() {
 
           {/* En Blue Book */}
           <Reveal delay={120}>
-            <p className="mb-4 text-center font-body text-xs font-semibold uppercase tracking-[0.16em] text-azul-deep lg:text-left">
+            <p className="rotulo mb-4 text-center text-noche lg:text-left">
               {en ? "In Blue Book" : "En Blue Book"}
             </p>
             <MockCard className="p-2 sm:p-3">
-              <ul className="divide-y divide-hairline">
+              <ul className="divide-y divide-linea">
                 {ORDERED.map((row) => (
                   <li key={row.es} className="flex items-start gap-3 px-3 py-3.5">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-wash text-azul-deep">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-papel text-noche">
                       <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
                     </span>
                     <div>
-                      <p className="font-body text-sm font-semibold text-navy">{en ? row.en : row.es}</p>
-                      <p className="font-body text-[13px] text-navy-muted">{en ? row.detailEn : row.detailEs}</p>
+                      <p className="text-sm font-medium text-noche">{en ? row.en : row.es}</p>
+                      <p className="text-[13px] text-tinta">{en ? row.detailEn : row.detailEs}</p>
                     </div>
                   </li>
                 ))}

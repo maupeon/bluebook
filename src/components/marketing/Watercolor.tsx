@@ -2,8 +2,11 @@ import { useId } from "react";
 
 interface WatercolorProps {
   className?: string;
-  /** Token de color del lavado. */
-  tone?: "wash" | "wash-soft" | "wash-deep";
+  /**
+   * Token de color del lavado. «papel» sobre fondo niebla; «linea», con
+   * opacidad baja, sobre fondo papel azul (papel sobre papel no se ve).
+   */
+  tone?: "papel" | "linea";
   /** Cambia la forma de la mancha sin cambiar el color. */
   seed?: number;
   /** Opacidad de la mancha completa. */
@@ -18,7 +21,7 @@ interface WatercolorProps {
  * mojados) y una máscara con ruido fino (el pigmento se asienta disparejo).
  * Es estática: se rasteriza una vez. Va siempre detrás, sin eventos.
  */
-export function Watercolor({ className = "", tone = "wash", seed = 3, opacity = 1 }: WatercolorProps) {
+export function Watercolor({ className = "", tone = "papel", seed = 3, opacity = 1 }: WatercolorProps) {
   const id = `wc-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
     <svg

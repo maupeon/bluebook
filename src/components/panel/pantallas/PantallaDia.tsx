@@ -4,6 +4,7 @@ import type { PanelBundle } from "@/lib/couplePanel";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow, EmptyNote, RunOfShowSection } from "@/components/panel/sections";
+import { Titular } from "@/components/marca/Titular";
 
 export function PantallaDia({ bundle }: { bundle: PanelBundle }) {
   const { isEnglish } = useLanguage();
@@ -15,14 +16,13 @@ export function PantallaDia({ bundle }: { bundle: PanelBundle }) {
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "The day" : "El día"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          {/* El <em> no se inclina: dentro del titular cambia a tinta. */}
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
             {isEnglish ? "Your day, " : "Su día, "}
-            <em className="italic text-azul">
-              {isEnglish ? "hour by hour" : "hora por hora"}
-            </em>
-          </h1>
+            <em>{isEnglish ? "hour by hour" : "hora por hora"}</em>
+          </Titular>
           {hay ? (
-            <p className="mt-4 font-body text-sm text-ink-muted">
+            <p className="mt-4 text-sm text-tinta">
               {isEnglish
                 ? `${runOfShow.blocks.length} moments, from the first one to the last.`
                 : `${runOfShow.blocks.length} momentos, del primero al último.`}

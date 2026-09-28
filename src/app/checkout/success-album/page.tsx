@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import { nanoid } from "nanoid";
@@ -7,6 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 import { getAlbumPlan } from "@/lib/albumPlans";
 import { cookies } from "next/headers";
 import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
+import { Titular } from "@/components/marca/Titular";
+import { ButtonAnchor, ButtonLink } from "@/components/marketing/ui";
 
 export const metadata: Metadata = {
   title: "¡Tu álbum está listo!",
@@ -96,6 +97,12 @@ async function ensureAlbumForSession(sessionId: string) {
   return null;
 }
 
+/*
+ * Casi nunca se ve: si el álbum existe, redirige a su panel. Lo que queda son
+ * dos avisos sueltos (sin sesión, o reintentar), cada uno una hoja de papel
+ * niebla centrada sobre el papel azul, con el titular en marcador y un solo
+ * botón azul noche. Sin degradados ni flores.
+ */
 export default async function CheckoutSuccessAlbumPage({
   searchParams,
 }: {
@@ -108,22 +115,19 @@ export default async function CheckoutSuccessAlbumPage({
 
   if (!sessionId) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center gradient-hero floral-pattern px-4">
-        <div className="max-w-lg bg-white rounded-2xl shadow-xl p-8 text-center">
-          <h1 className="font-heading text-3xl text-primary mb-3">
+      <div className="flex min-h-screen items-center justify-center bg-papel px-4 pt-20">
+        <div className="panel-card w-full max-w-lg p-8 text-center">
+          <Titular as="h1" tamano="hoja" className="mb-3">
             {isEnglish ? "Session not found" : "No encontramos tu sesion"}
-          </h1>
-          <p className="font-body text-secondary mb-6">
+          </Titular>
+          <p className="mb-6 text-tinta">
             {isEnglish
               ? "We could not find your session. Please go back to the digital album and try checkout again."
               : "Regresa al album digital y vuelve a intentar el checkout."}
           </p>
-          <Link
-            href="/album-digital"
-            className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white font-body font-semibold rounded-full"
-          >
+          <ButtonLink href="/album-digital" size="md">
             {isEnglish ? "Back to digital album" : "Volver a album digital"}
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -136,22 +140,19 @@ export default async function CheckoutSuccessAlbumPage({
   }
 
   return (
-    <div className="min-h-screen pt-20 flex items-center justify-center gradient-hero floral-pattern px-4">
-      <div className="max-w-lg bg-white rounded-2xl shadow-xl p-8 text-center">
-        <h1 className="font-heading text-3xl text-primary mb-3">
+    <div className="flex min-h-screen items-center justify-center bg-papel px-4 pt-20">
+      <div className="panel-card w-full max-w-lg p-8 text-center">
+        <Titular as="h1" tamano="hoja" className="mb-3">
           {isEnglish ? "We are finishing your album" : "Estamos terminando tu album"}
-        </h1>
-        <p className="font-body text-secondary mb-6">
+        </Titular>
+        <p className="mb-6 text-tinta">
           {isEnglish
             ? "We could not create your album automatically on this attempt. Please try again in a few seconds."
             : "No fue posible crear el album automaticamente en este intento. Reintenta en unos segundos."}
         </p>
-        <a
-          href={`/checkout/success-album?session_id=${encodeURIComponent(sessionId)}`}
-          className="inline-flex items-center justify-center px-6 py-3 bg-accent text-white font-body font-semibold rounded-full"
-        >
+        <ButtonAnchor href={`/checkout/success-album?session_id=${encodeURIComponent(sessionId)}`} size="md">
           {isEnglish ? "Retry now" : "Reintentar ahora"}
-        </a>
+        </ButtonAnchor>
       </div>
     </div>
   );

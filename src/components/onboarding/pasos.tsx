@@ -35,18 +35,77 @@ import {
 // Respuesta al presionar y no al soltar, como ButtonLink del sitio. scale y no
 // transform: Tailwind 4 compila active:scale-* a la propiedad `scale`.
 export const BOTON_PRIMARIO =
-  "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-navy px-8 font-body text-sm font-semibold text-white " +
-  "transition-[background-color,scale] duration-150 hover:bg-navy-soft active:scale-[0.97] active:duration-100 " +
+  "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-noche px-8 text-sm font-medium text-niebla " +
+  "transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 " +
   "motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-60";
 
+// Papel niebla con borde de campo (3:1): se lee como botón sobre el papel azul.
 export const BOTON_SECUNDARIO =
-  "inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full border border-hairline bg-white px-8 font-body text-sm font-semibold text-navy " +
-  "transition-[background-color,border-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.97] active:duration-100 " +
+  "inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full border border-linea-control/60 bg-niebla px-8 text-sm font-medium text-noche " +
+  "transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 " +
   "motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-60";
 
+// El terciario («Todavía no sé», «Prefiero no decir»): azul noche subrayado en
+// azul línea. La tinta del cuerpo y la del enlace son casi iguales; lo que lo
+// distingue como acción es el subrayado.
 export const BOTON_TEXTO =
-  "inline-flex min-h-[44px] items-center justify-center rounded-full px-4 font-body text-sm font-medium text-navy-muted " +
-  "underline-offset-4 transition-colors hover:text-navy hover:underline disabled:opacity-50";
+  "inline-flex min-h-[44px] items-center justify-center rounded-full px-4 text-sm font-medium text-noche " +
+  "underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] hover:decoration-noche disabled:opacity-50";
+
+/*
+ * Los tamaños del titular de cada pantalla. «pantalla» y «hoja» son los de
+ * components/marca/Titular.tsx; «pregunta» es «pantalla» con un escalón más
+ * chico en teléfono y en tableta, porque la pregunta tiene que caber en dos
+ * líneas (BELLABOO en mayúsculas ≈ 0.5em por carácter con espacios, más los
+ * adornos):
+ *   - «¿Cuánto quieren gastar, más o menos?» pide 20 caracteres en su línea
+ *     larga: a 34px no cabe en 375px; a 28px sí.
+ *   - «¿A qué WhatsApp te escribimos si hace falta?» pide 25: a 44px necesita
+ *     unos 600px de columna. Por eso desde lg la columna de la pregunta mide
+ *     al menos eso (ver la retícula de Onboarding). En un teléfono de 375px
+ *     esa se va a tres líneas aun a 28px: no hay tamaño digno que la meta en dos.
+ */
+const TAMANOS_DE_TITULO = {
+  pregunta: "text-[1.75rem] sm:text-[2.25rem] md:text-[2.75rem]",
+  pantalla: "text-[1.875rem] sm:text-[2.75rem]",
+  hoja: "text-[1.625rem] sm:text-[2rem]",
+} as const;
+
+/**
+ * El titular de cada pantalla del recorrido: la pregunta ES el titular.
+ * Marcador, mayúsculas, azul noche, con estrellitas y corazones a los lados
+ * (.titular y .adornado de globals.css), y centrado: es un flujo de un solo
+ * foco, como la configuración del iPhone.
+ *
+ * Recibe el foco al cambiar de paso (para que un lector de pantalla anuncie la
+ * pregunta nueva). No usa <Titular> por el tamaño «pregunta», que sólo existe
+ * aquí. Sin contorno de foco: es un encabezado, no un control; el foco es
+ * para el lector de pantalla, no para la vista.
+ */
+export function TituloDePantalla({
+  tituloRef,
+  tamano = "pregunta",
+  amplio = false,
+  className = "",
+  children,
+}: {
+  tituloRef: RefObject<HTMLHeadingElement | null>;
+  tamano?: keyof typeof TAMANOS_DE_TITULO;
+  /** max-w-3xl en vez de 2xl: para el titular largo de «perdidas». */
+  amplio?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <h1
+      ref={tituloRef}
+      tabIndex={-1}
+      className={`titular adornado mx-auto w-full outline-none ${amplio ? "max-w-3xl" : "max-w-2xl"} ${TAMANOS_DE_TITULO[tamano]} ${className}`}
+    >
+      {children}
+    </h1>
+  );
+}
 
 /**
  * Lo que devuelve la respuesta. Entra con el mismo paso de 240ms del cambio
@@ -71,9 +130,14 @@ export function Regalo({
 }
 
 /**
- * El marco de cada pregunta: el título (que recibe el foco al cambiar de paso,
- * para que un lector de pantalla lo anuncie), la respuesta, lo que devuelve y
- * los botones. Enter avanza porque todo va dentro de un <form>.
+ * El marco de cada pregunta: el titular (que recibe el foco al cambiar de
+ * paso, para que un lector de pantalla lo anuncie), la respuesta, lo que
+ * devuelve y los botones. Enter avanza porque todo va dentro de un <form>.
+ *
+ * Todo va centrado en una columna: la pregunta arriba, la ayuda debajo, la
+ * respuesta en medio y los botones al pie. Cada paso centra lo suyo; lo que
+ * se lee como lista (las prioridades, el teléfono) conserva su texto a la
+ * izquierda dentro de la columna.
  */
 export function MarcoDePaso({
   tituloRef,
@@ -103,27 +167,23 @@ export function MarcoDePaso({
         onContinuar();
       }}
     >
-      <h1
-        ref={tituloRef}
-        tabIndex={-1}
-        className="font-heading text-[2.35rem] font-medium leading-[1.05] tracking-[-0.02em] text-navy text-balance outline-none sm:text-5xl"
-      >
-        {titulo}
-      </h1>
+      <TituloDePantalla tituloRef={tituloRef}>{titulo}</TituloDePantalla>
       {ayuda ? (
-        <p className="mt-4 max-w-[46ch] font-body text-[15px] leading-relaxed text-navy-muted text-pretty">
+        <p className="mx-auto mt-4 max-w-[46ch] text-center text-[15px] leading-relaxed text-tinta text-pretty">
           {ayuda}
         </p>
       ) : null}
 
-      <div className="mt-9 flex-1">{children}</div>
+      <div className="mx-auto mt-9 w-full max-w-xl flex-1 text-center">{children}</div>
 
       {/* En teléfono, pegada abajo. El save-the-date y los regalos viven dentro
           de cada pregunta, entre los campos y los botones, y a 375px empujaban
           «Continuar» debajo del pliegue en casi todos los pasos (medido: 909px
-          en una pantalla de 812). El contenido pasa por debajo de un degradado,
-          no de una línea dura. Desde sm se queda en su sitio. */}
-      <div className="sticky bottom-0 z-10 -mx-4 mt-10 flex items-center gap-3 bg-gradient-to-t from-paper from-60% to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8 sm:static sm:mx-0 sm:mt-12 sm:gap-4 sm:bg-none sm:p-0">
+          en una pantalla de 812). Antes el contenido pasaba por debajo de un
+          degradado; la marca no tiene degradados, así que la barra es papel
+          azul liso con un filo de azul línea arriba, como la barra de
+          herramientas del iPhone. Desde sm se queda en su sitio, sin filo. */}
+      <div className="sticky bottom-0 z-10 -mx-4 mt-10 flex items-center gap-3 border-t border-linea bg-papel px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:static sm:mx-0 sm:mt-12 sm:justify-center sm:gap-4 sm:border-0 sm:bg-transparent sm:p-0">
         <button type="submit" className={`${BOTON_PRIMARIO} flex-1 sm:flex-none`}>
           {etiquetaContinuar ?? (isEnglish ? "Continue" : "Continuar")}
         </button>
@@ -136,6 +196,23 @@ export function MarcoDePaso({
     </form>
   );
 }
+
+/*
+ * Los campos que se leen como una línea escrita. Al enfocarlos la línea pasa
+ * de borde de campo a azul noche y engorda a 2px (con una sombra, para no
+ * mover nada): ese es su anillo de foco, por eso pueden quitar el contorno.
+ */
+const CAMPO_EN_LINEA =
+  "border-b border-linea-control bg-transparent text-noche outline-none transition-[border-color,box-shadow] " +
+  "focus:border-noche focus:shadow-[0_1px_0_var(--noche)]";
+
+/* Los campos en caja: papel niebla sobre el papel azul, anillo azul noche al enfocar. */
+const CAMPO_EN_CAJA =
+  "border border-linea-control/70 bg-niebla text-noche outline-none transition-[border-color,box-shadow] " +
+  "focus:border-noche focus:ring-2 focus:ring-noche/20";
+
+/* La etiqueta en versales de un campo. */
+const ETIQUETA = "block text-xs font-medium uppercase tracking-[0.16em] text-tinta";
 
 /** Un campo que se lee como una línea escrita, no como una caja de trámite. */
 function CampoGrande({
@@ -157,12 +234,11 @@ function CampoGrande({
 }) {
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="block font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-muted"
-      >
+      <label htmlFor={id} className={ETIQUETA}>
         {etiqueta}
       </label>
+      {/* Work Sans Light a 30px: lo que escribe se ve grande y tranquilo, como
+          los numerales de Apple. El marcador se queda para la pregunta. */}
       <input
         id={id}
         type="text"
@@ -173,16 +249,16 @@ function CampoGrande({
         spellCheck={false}
         onChange={(e) => onCambio(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 min-h-[56px] w-full border-b border-wash-deep bg-transparent pb-1 font-heading text-[2rem] font-medium leading-tight text-navy placeholder:text-navy-muted/35 outline-none transition-colors focus:border-azul"
+        className={`mt-1 min-h-[56px] w-full pb-1 text-center text-3xl leading-tight ${CAMPO_EN_LINEA}`}
       />
     </div>
   );
 }
 
 function AvisoDeError({ children }: { children: ReactNode }) {
-  // terra solo para errores: es su único trabajo en la marca.
+  // El ladrillo apagado es sólo para errores: es lo único que no es azul.
   return (
-    <p role="alert" className="mt-3 font-body text-sm text-terra-deep">
+    <p role="alert" className="mt-3 text-sm text-error">
       {children}
     </p>
   );
@@ -325,10 +401,11 @@ export function PasoFecha({ r, cambiar, avanzar, tituloRef, isEnglish }: PropsDe
           cambiar({ fecha: e.target.value, sinFecha: false });
         }}
         aria-invalid={intento && problema ? true : undefined}
-        className="min-h-[60px] w-full max-w-xs rounded-2xl border border-hairline bg-white px-5 font-heading text-2xl font-medium text-navy outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20"
+        className={`mx-auto block min-h-[60px] w-full max-w-xs rounded-2xl px-5 text-center text-2xl ${CAMPO_EN_CAJA}`}
       />
 
       <div className="mt-4">
+        {/* Marcado: borde azul noche y la palomita. Sin marcar: el secundario. */}
         <button
           type="button"
           aria-pressed={r.sinFecha}
@@ -336,13 +413,13 @@ export function PasoFecha({ r, cambiar, avanzar, tituloRef, isEnglish }: PropsDe
             setIntento(false);
             cambiar(r.sinFecha ? { sinFecha: false } : { sinFecha: true, fecha: "" });
           }}
-          className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-5 font-body text-sm transition-colors ${
+          className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border bg-niebla px-5 text-sm text-noche transition-[background-color,border-color] ${
             r.sinFecha
-              ? "border-azul bg-wash-soft text-navy"
-              : "border-hairline bg-white text-navy-muted hover:border-wash-deep hover:text-navy"
+              ? "border-noche"
+              : "border-linea-control/60 hover:border-linea-control hover:bg-papel-medio"
           }`}
         >
-          {r.sinFecha ? <Check aria-hidden="true" className="h-4 w-4 text-azul-deep" strokeWidth={2} /> : null}
+          {r.sinFecha ? <Check aria-hidden="true" className="h-4 w-4 text-noche" strokeWidth={2} /> : null}
           {isEnglish ? "We don't have a date yet" : "Todavía no tenemos fecha"}
         </button>
       </div>
@@ -353,7 +430,9 @@ export function PasoFecha({ r, cambiar, avanzar, tituloRef, isEnglish }: PropsDe
         {faltan != null && faltan >= 0 && !problema ? (
           <div key={r.fecha}>
             <Regalo>
-              <p className="font-heading text-[2.75rem] font-medium leading-none tracking-[-0.02em] text-navy sm:text-[3.5rem]">
+              {/* Una cifra, no un titular: Work Sans Light grande, como los
+                  numerales de Apple. */}
+              <p className="text-4xl leading-none text-noche sm:text-6xl">
                 {faltan === 0 ? (
                   isEnglish ? (
                     "It's today!"
@@ -373,7 +452,7 @@ export function PasoFecha({ r, cambiar, avanzar, tituloRef, isEnglish }: PropsDe
               </p>
             </Regalo>
             <Regalo retraso={90}>
-              <p className="mt-4 max-w-[44ch] font-body text-[15px] leading-relaxed text-navy-soft">
+              <p className="mx-auto mt-4 max-w-[44ch] text-[15px] leading-relaxed text-tinta">
                 {isEnglish
                   ? "Your task plan already fits that date: every to-do comes with its own."
                   : "Tu plan de tareas ya se acomoda a esa fecha: cada pendiente trae la suya."}
@@ -382,7 +461,7 @@ export function PasoFecha({ r, cambiar, avanzar, tituloRef, isEnglish }: PropsDe
           </div>
         ) : r.sinFecha ? (
           <Regalo>
-            <p className="max-w-[40ch] font-heading text-2xl leading-snug text-navy">
+            <p className="mx-auto max-w-[40ch] text-xl leading-snug text-noche sm:text-2xl">
               {isEnglish
                 ? "No rush. When you have it, your plan adjusts on its own."
                 : "Sin prisa. Cuando la tengas, tu plan se acomoda solo."}
@@ -479,7 +558,7 @@ export function PasoInvitados({ r, avanzar, tituloRef, isEnglish }: PropsDePaso)
         accion: () => avanzar({ invitados: null }),
       }}
     >
-      <p className="flex items-baseline gap-3">
+      <p className="flex items-baseline justify-center gap-3">
         <label htmlFor="invitados-numero" className="sr-only">
           {isEnglish ? "Number of guests" : "Número de invitados"}
         </label>
@@ -492,9 +571,9 @@ export function PasoInvitados({ r, avanzar, tituloRef, isEnglish }: PropsDePaso)
             setIntento(false);
             setTexto(e.target.value.replace(/\D/g, "").slice(0, 4));
           }}
-          className="w-32 border-b border-wash-deep bg-transparent pb-1 font-heading text-[3.25rem] font-medium leading-none tracking-[-0.02em] text-navy tabular-nums outline-none transition-colors focus:border-azul"
+          className={`w-32 pb-1 text-center text-5xl leading-none tabular-nums ${CAMPO_EN_LINEA}`}
         />
-        <span className="font-body text-base text-navy-muted">{isEnglish ? "people" : "personas"}</span>
+        <span className="text-base text-tinta">{isEnglish ? "people" : "personas"}</span>
       </p>
 
       <input
@@ -510,10 +589,10 @@ export function PasoInvitados({ r, avanzar, tituloRef, isEnglish }: PropsDePaso)
         onKeyDown={enterEnvia}
         aria-label={isEnglish ? "Number of guests" : "Número de invitados"}
         aria-valuetext={isEnglish ? `${enSlider} people` : `${enSlider} personas`}
-        className="range-blue mt-6 w-full max-w-md"
+        className="range-blue mx-auto mt-6 block w-full max-w-md"
         style={{ "--fill": `${relleno}%` } as CSSProperties}
       />
-      <div className="flex max-w-md justify-between font-body text-xs text-navy-muted" aria-hidden="true">
+      <div className="mx-auto flex max-w-md justify-between text-xs text-tinta" aria-hidden="true">
         <span>{INVITADOS_SLIDER.min}</span>
         <span>{INVITADOS_SLIDER.max}+</span>
       </div>
@@ -527,13 +606,15 @@ export function PasoInvitados({ r, avanzar, tituloRef, isEnglish }: PropsDePaso)
       ) : null}
 
       {barra ? (
-        <div className="mt-10 flex max-w-lg items-start gap-5">
-          <Regalo className="hidden shrink-0 sm:block">
-            <Toast className="h-20 w-20 text-line" />
+        // El brindis encima del texto y no al lado: en la columna centrada,
+        // un dibujo a la izquierda descuadraba el bloque.
+        <div className="mx-auto mt-10 flex max-w-lg flex-col items-center gap-4">
+          <Regalo className="hidden sm:block">
+            <Toast className="h-16 w-16 text-tinta" />
           </Regalo>
           <div>
             <Regalo retraso={60}>
-              <p className="font-heading text-2xl leading-snug text-navy text-pretty">
+              <p className="text-xl leading-snug text-noche text-pretty sm:text-2xl">
                 {isEnglish ? (
                   <>
                     For {miles(n)} people, your bar comes to about{" "}
@@ -552,7 +633,7 @@ export function PasoInvitados({ r, avanzar, tituloRef, isEnglish }: PropsDePaso)
               </p>
             </Regalo>
             <Regalo retraso={150}>
-              <p className="mt-3 font-body text-[15px] leading-relaxed text-navy-muted">
+              <p className="mt-3 text-[15px] leading-relaxed text-tinta">
                 {isEnglish
                   ? "It's a wedding planner's recipe. I'll leave it worked out in your panel; there you pick brands and prices."
                   : "Es la receta de una wedding planner. Te la dejo calculada en tu panel; ahí eliges marcas y precios."}
@@ -630,12 +711,16 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
         accion: () => avanzar({ presupuesto: null }),
       }}
     >
-      <p className="flex items-baseline gap-3">
+      {/* La cifra centrada: el campo mide lo que cabe en ocho dígitos con sus
+          comas (9ch) y el texto va al centro, así «$ 180,000 MXN» no deja un
+          hueco de un solo lado. Sin color propio en el placeholder: el global
+          (tinta a 75%) ya lo distingue de una cifra escrita en azul noche. */}
+      <p className="flex items-baseline justify-center gap-3">
         <label htmlFor="presupuesto-numero" className="sr-only">
           {isEnglish ? "Budget in Mexican pesos" : "Presupuesto en pesos"}
         </label>
         <span className="relative inline-flex items-baseline">
-          <span aria-hidden="true" className="font-heading text-[2.6rem] font-medium leading-none text-navy">
+          <span aria-hidden="true" className="text-4xl leading-none text-noche sm:text-5xl">
             $
           </span>
           <input
@@ -649,10 +734,10 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
               const digitos = e.target.value.replace(/\D/g, "").slice(0, 8);
               setValor(digitos ? Number(digitos) : null);
             }}
-            className="w-[11ch] border-b border-wash-deep bg-transparent pb-1 font-heading text-[2.6rem] font-medium leading-none tracking-[-0.02em] text-navy tabular-nums outline-none transition-colors placeholder:text-navy/25 focus:border-azul sm:text-[3.25rem]"
+            className={`w-[9ch] pb-1 text-center text-4xl leading-none tabular-nums sm:text-5xl ${CAMPO_EN_LINEA}`}
           />
         </span>
-        <span className="font-body text-base text-navy-muted">MXN</span>
+        <span className="text-base text-tinta">MXN</span>
       </p>
 
       <input
@@ -674,10 +759,10 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
               : "Sin cifra todavía"
             : `${pesos(ESCALA_PRESUPUESTO[indice])} MXN`
         }
-        className="range-blue mt-6 w-full max-w-md"
+        className="range-blue mx-auto mt-6 block w-full max-w-md"
         style={{ "--fill": `${relleno}%` } as CSSProperties}
       />
-      <div className="flex max-w-md justify-between font-body text-xs text-navy-muted" aria-hidden="true">
+      <div className="mx-auto flex max-w-md justify-between text-xs text-tinta" aria-hidden="true">
         <span>$50,000</span>
         <span>$1,500,000+</span>
       </div>
@@ -700,20 +785,25 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
           el fondo queda bajo la barra fija de «Continuar», y un permiso que no
           se ve no es permiso. «Prefiero no decir» sigue al lado y no guarda
           nada. */}
-      <p className="mt-4 max-w-[52ch] font-body text-xs leading-relaxed text-navy-muted">
+      <p className="mx-auto mt-4 max-w-[52ch] text-xs leading-relaxed text-tinta">
         {isEnglish
           ? "If you continue with an amount, you authorize us to save it to set up your budget. It's information about your money, so the law asks for your express consent. You can withdraw it whenever you want."
           : "Si continúas con una cifra, nos autorizas a guardarla para armar tu presupuesto. Es un dato sobre tu dinero, así que la ley pide tu permiso expreso. Puedes retirarlo cuando quieras."}{" "}
-        <Link href="/privacidad" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-navy">
+        <Link
+          href="/privacidad"
+          target="_blank"
+          rel="noopener"
+          className="text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] hover:decoration-noche"
+        >
           {isEnglish ? "Privacy notice" : "Aviso de privacidad"}
         </Link>
       </p>
 
       {valido ? (
-        <div className="mt-10 max-w-lg">
+        <div className="mx-auto mt-10 max-w-lg">
           {porInvitado ? (
             <Regalo>
-              <p className="font-heading text-2xl leading-snug text-navy">
+              <p className="text-xl leading-snug text-noche sm:text-2xl">
                 {isEnglish ? (
                   <>
                     That&rsquo;s about <span className="tabular-nums">{pesos(porInvitado)}</span> per guest.
@@ -727,18 +817,22 @@ export function PasoPresupuesto({ r, avanzar, tituloRef, isEnglish }: PropsDePas
             </Regalo>
           ) : null}
           <Regalo retraso={porInvitado ? 90 : 0}>
-            <p className="mt-3 font-body text-[15px] leading-relaxed text-navy-soft">
+            <p className="mt-3 text-[15px] leading-relaxed text-tinta">
               {isEnglish
                 ? "It becomes the total of the budget in your panel."
                 : "Con esto arranca el presupuesto de tu panel."}
             </p>
           </Regalo>
           <Regalo retraso={porInvitado ? 180 : 90}>
-            <p className="mt-6 border-l-2 border-wash-deep pl-4 font-body text-sm leading-relaxed text-navy-muted">
+            {/* La referencia, separada por una regla de azul línea arriba: en
+                la columna centrada, la raya a la izquierda de una cita
+                quedaba colgando. <cite> viene inclinada del navegador y Work
+                Sans no tiene cursiva: de ahí el not-italic. */}
+            <p className="mx-auto mt-6 max-w-[44ch] border-t border-linea pt-4 text-sm leading-relaxed text-tinta">
               {isEnglish
                 ? `For reference, the average wedding in Mexico is around ${pesos(BODA_PROMEDIO_MX)} MXN.`
                 : `Como referencia, la boda promedio en México anda en ${pesos(BODA_PROMEDIO_MX)}.`}{" "}
-              <cite className="not-italic text-navy-muted/80">
+              <cite className="not-italic">
                 (Bodas.com.mx, {isEnglish ? "Wedding Industry Report" : "Informe del Sector Nupcial"} 2025)
               </cite>
             </p>
@@ -768,7 +862,7 @@ export function PasoPrioridades({ r, cambiar, avanzar, tituloRef, isEnglish }: P
       ayuda={
         <>
           {isEnglish ? "Pick up to three." : "Elige hasta tres."}{" "}
-          <span className="tabular-nums text-navy-soft" aria-live="polite">
+          <span className="font-medium tabular-nums text-noche" aria-live="polite">
             {elegidas.length > 0
               ? isEnglish
                 ? `${elegidas.length} of ${PRIORIDADES_A_ELEGIR}`
@@ -783,7 +877,12 @@ export function PasoPrioridades({ r, cambiar, avanzar, tituloRef, isEnglish }: P
         accion: () => avanzar({ prioridades: [] }),
       }}
     >
-      <ul className="grid gap-3 sm:grid-cols-2">
+      {/* Las opciones son una lista, como las filas de Ajustes: el texto a la
+          izquierda y la palomita a la derecha, dentro de la columna centrada.
+          Elegida: borde azul noche de 2px (borde más anillo, sin mover nada) y
+          el círculo lleno en azul noche. Apagada (ya van tres): tinta al 70%,
+          el único uso de la opacidad en el texto, que es para lo deshabilitado. */}
+      <ul className="grid gap-3 text-left sm:grid-cols-2">
         {PRIORIDADES.map((p) => {
           const activa = elegidas.includes(p.clave);
           const apagada = lleno && !activa;
@@ -794,19 +893,19 @@ export function PasoPrioridades({ r, cambiar, avanzar, tituloRef, isEnglish }: P
                 aria-pressed={activa}
                 aria-disabled={apagada || undefined}
                 onClick={() => alternar(p.clave)}
-                className={`flex min-h-[60px] w-full items-center justify-between gap-3 rounded-2xl border px-5 py-3 text-left font-body text-[15px] transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.98] motion-reduce:active:scale-100 ${
+                className={`flex min-h-[60px] w-full items-center justify-between gap-3 rounded-2xl border bg-niebla px-5 py-3 text-left text-[15px] transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.98] motion-reduce:active:scale-100 ${
                   activa
-                    ? "border-azul bg-wash-soft text-navy"
+                    ? "border-noche text-noche ring-1 ring-noche"
                     : apagada
-                      ? "border-hairline bg-white/60 text-navy-muted/60"
-                      : "border-hairline bg-white text-navy hover:border-wash-deep hover:bg-paper-warm"
+                      ? "border-linea text-tinta/70"
+                      : "border-linea-control/60 text-noche hover:border-linea-control hover:bg-papel-medio"
                 }`}
               >
                 <span>{isEnglish ? p.en : p.es}</span>
                 <span
                   aria-hidden="true"
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                    activa ? "border-azul bg-azul text-white" : "border-wash-deep"
+                    activa ? "border-noche bg-noche text-niebla" : "border-linea-control/60"
                   }`}
                 >
                   {activa ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : null}
@@ -818,14 +917,14 @@ export function PasoPrioridades({ r, cambiar, avanzar, tituloRef, isEnglish }: P
       </ul>
 
       {lleno ? (
-        <p className="mt-3 font-body text-sm text-navy-muted">
+        <p className="mt-3 text-sm text-tinta">
           {isEnglish ? "That's three. Remove one to swap it." : "Ya son tres. Quita una para cambiarla."}
         </p>
       ) : null}
 
       {elegidas.length > 0 ? (
         <Regalo className="mt-8">
-          <p className="max-w-[44ch] font-heading text-2xl leading-snug text-navy">
+          <p className="mx-auto max-w-[44ch] text-xl leading-snug text-noche sm:text-2xl">
             {isEnglish
               ? "The Blue Book team gets it, and helps you with that first."
               : "El equipo de Blue Book lo recibe y te ayuda primero con eso."}
@@ -871,12 +970,10 @@ export function PasoWhatsApp({ r, cambiar, avanzar, tituloRef, isEnglish }: Prop
         accion: () => avanzar({ telefono: "" }),
       }}
     >
-      <div className="flex max-w-md items-end gap-3">
+      {/* La lada y el número son una sola fila: se centra la fila, no el texto. */}
+      <div className="mx-auto flex max-w-md items-end gap-3 text-left">
         <div>
-          <label
-            htmlFor="lada"
-            className="block font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-muted"
-          >
+          <label htmlFor="lada" className={ETIQUETA}>
             {isEnglish ? "Code" : "Lada"}
           </label>
           <select
@@ -887,7 +984,7 @@ export function PasoWhatsApp({ r, cambiar, avanzar, tituloRef, isEnglish }: Prop
               const lada = e.target.value;
               cambiar({ lada, telefono: r.telefono.slice(0, digitosDeLada(lada)) });
             }}
-            className="mt-1 min-h-[56px] rounded-xl border border-hairline bg-white px-3 font-body text-sm text-navy outline-none focus:border-azul focus:ring-2 focus:ring-azul/20"
+            className={`mt-1 min-h-[56px] rounded-xl px-3 text-sm ${CAMPO_EN_CAJA}`}
           >
             {LADAS.map((l) => (
               <option key={l.lada} value={l.lada}>
@@ -897,10 +994,7 @@ export function PasoWhatsApp({ r, cambiar, avanzar, tituloRef, isEnglish }: Prop
           </select>
         </div>
         <div className="min-w-0 flex-1">
-          <label
-            htmlFor="telefono"
-            className="block font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-muted"
-          >
+          <label htmlFor="telefono" className={ETIQUETA}>
             WhatsApp
           </label>
           <input
@@ -915,7 +1009,7 @@ export function PasoWhatsApp({ r, cambiar, avanzar, tituloRef, isEnglish }: Prop
             }}
             placeholder={r.lada === "52" ? "55 1234 5678" : ""}
             aria-invalid={intento && incompleto ? true : undefined}
-            className="mt-1 min-h-[56px] w-full border-b border-wash-deep bg-transparent pb-1 font-heading text-[1.9rem] font-medium tracking-[0.01em] text-navy tabular-nums placeholder:text-navy-muted/35 outline-none transition-colors focus:border-azul"
+            className={`mt-1 min-h-[56px] w-full pb-1 text-3xl tracking-[0.01em] tabular-nums ${CAMPO_EN_LINEA}`}
           />
         </div>
       </div>

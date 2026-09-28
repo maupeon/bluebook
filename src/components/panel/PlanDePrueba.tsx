@@ -88,22 +88,23 @@ export function PlanDePrueba({ acceso }: { acceso: AccesoDeLaBoda }) {
     <div className="panel-card flex flex-wrap items-end justify-between gap-6 p-6 sm:p-8">
       <div className="max-w-xl">
         <Eyebrow>{isEnglish ? "Your plan" : "Su plan"}</Eyebrow>
-        <h2 className="mt-3 font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
+        {/* Título de tarjeta, no titular: Work Sans a tamaño de tarjeta. */}
+        <h2 className="mt-3 text-2xl font-medium text-noche">
           {titulo}
         </h2>
-        <p className="mt-3 font-body text-sm leading-relaxed text-ink-muted">{parrafo}</p>
+        <p className="mt-3 text-sm leading-relaxed text-tinta">{parrafo}</p>
         {!vencida ? (
-          <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">
+          <p className="mt-2 text-sm leading-relaxed text-tinta">
             {isEnglish ? MENSAJE_ENVIO_EN_PRUEBA.en : MENSAJE_ENVIO_EN_PRUEBA.es}
           </p>
         ) : null}
       </div>
       <Link
         href="/panel/plan"
-        className={`group inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border px-5 py-2 font-body text-sm transition-[background-color,border-color,scale] duration-150 active:scale-[0.98] ${
+        className={`group inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border px-5 py-2 text-sm font-medium transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
           vencida
-            ? "border-ink bg-ink text-white hover:bg-ink-soft"
-            : "border-sand bg-white text-ink hover:border-wash-deep hover:bg-wash-soft"
+            ? "border-noche bg-noche text-niebla hover:border-noche-suave hover:bg-noche-suave"
+            : "border-linea-control/60 bg-niebla text-noche hover:border-linea-control hover:bg-papel-medio"
         }`}
       >
         {isEnglish ? "Choose your plan" : "Elegir su plan"}

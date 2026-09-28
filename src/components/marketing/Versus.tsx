@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Minus, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
+import { Star } from "@/components/marketing/Ink";
 import { Container, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
@@ -26,6 +27,11 @@ const price = formatMXN(AGENT_PLAN.priceMxMonthly);
  * La diferencia entre una planner presencial y Blue Book, dicha con honestidad:
  * hay un renglón que gana la presencial (el día de la boda está ahí) y se
  * dice. Una comparación donde uno gana todo no se cree.
+ *
+ * La columna de Blue Book ya no es azul noche: es una franja de papel azul
+ * dentro de la tabla niebla, enmarcada con el borde noche de dos puntos, con
+ * su rótulo y la estrellita de la marca. Lo destacado se marca con línea y
+ * rótulo, nunca con un fondo oscuro.
  */
 const ROWS: Row[] = [
   {
@@ -96,15 +102,15 @@ const ROWS: Row[] = [
 function ToneMark({ tone, en, featured = false }: { tone: Tone; en: boolean; featured?: boolean }) {
   const Icon = tone === "win" ? Check : tone === "meh" ? Minus : X;
   const label = (en ? { win: "Yes", meh: "Partly", lose: "No" } : { win: "Sí", meh: "A medias", lose: "No" })[tone];
+  // En la columna destacada (papel azul) el «sí» es la insignia fuerte en
+  // noche; en las otras (niebla), una viñeta de papel.
   const style = featured
     ? tone === "win"
-      ? "bg-white text-navy"
-      : "bg-white/15 text-white"
+      ? "bg-noche text-niebla"
+      : "bg-niebla text-tinta ring-1 ring-linea"
     : tone === "win"
-      ? "bg-wash text-azul-deep"
-      : tone === "meh"
-        ? "bg-paper text-navy-muted ring-1 ring-hairline"
-        : "bg-paper text-navy-muted/80 ring-1 ring-hairline";
+      ? "bg-papel text-noche"
+      : "bg-papel text-tinta ring-1 ring-linea";
   return (
     <span className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${style}`}>
       <Icon className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
@@ -118,8 +124,8 @@ function CellView({ cell, en, featured = false }: { cell: Cell; en: boolean; fea
     <div className="flex items-start gap-2.5">
       <ToneMark tone={cell.tone} en={en} featured={featured} />
       <span
-        className={`font-body text-sm leading-snug ${
-          featured ? "font-medium text-white" : cell.tone === "lose" ? "text-navy-muted" : "text-navy-soft"
+        className={`text-sm leading-snug ${
+          featured ? "font-medium text-noche" : cell.tone === "lose" ? "text-tinta" : "text-noche"
         }`}
       >
         {en ? cell.en : cell.es}
@@ -139,9 +145,9 @@ export function Versus({ id }: { id?: string }) {
   };
 
   return (
-    <section id={id} className="scroll-mt-16 bg-paper py-24 md:py-32">
+    <section id={id} className="scroll-mt-16 bg-papel py-24 md:py-32">
       <Container>
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl text-center">
           <Reveal>
             <Eyebrow>{en ? "In-person planner vs. Blue Book" : "Planner presencial vs. Blue Book"}</Eyebrow>
           </Reveal>
@@ -159,7 +165,7 @@ export function Versus({ id }: { id?: string }) {
             </Heading>
           </Reveal>
           <Reveal delay={160}>
-            <Lead className="mt-5 max-w-2xl">
+            <Lead className="mx-auto mt-5 max-w-2xl">
               {en
                 ? "An in-person wedding planner is wonderful, and she charges like it. Blue Book gives you her order and her judgment for a fraction, with everything in sight on your dashboard. Here's the difference, no fine print."
                 : "Una wedding planner presencial es maravillosa, y cobra como tal. Blue Book te da su orden y su criterio por una fracción, con todo a la vista en tu panel. Esta es la diferencia, sin letras chiquitas."}
@@ -167,42 +173,52 @@ export function Versus({ id }: { id?: string }) {
           </Reveal>
         </div>
 
-        {/* Amplia: las tres columnas, Blue Book primero y en tinta. */}
+        {/* Amplia: las tres columnas, Blue Book primero y enmarcada. La tabla
+            deja un margen arriba y abajo para que el marco noche de la columna
+            flote dentro de ella; las reglas de cada renglón van en las otras
+            celdas, así no cortan la columna destacada. */}
         <Reveal delay={120} className="mt-14 hidden md:block">
-          <div role="table" aria-label={en ? "Comparison" : "Comparación"} className="overflow-hidden rounded-3xl border border-hairline bg-white">
+          <div role="table" aria-label={en ? "Comparison" : "Comparación"} className="overflow-hidden rounded-3xl border border-linea bg-niebla py-4">
             <div role="row" className="grid grid-cols-[1.1fr_1.15fr_1fr_1fr]">
               <div role="columnheader" className="p-6">
                 <span className="sr-only">{en ? "Aspect" : "Aspecto"}</span>
               </div>
-              <div role="columnheader" className="bg-navy px-6 pb-5 pt-6">
-                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-wash-deep">
+              <div role="columnheader" className="rounded-t-2xl border-x-2 border-t-2 border-noche bg-papel px-6 pb-5 pt-6">
+                <p className="rotulo flex items-center gap-1.5">
+                  <Star className="h-3.5 w-3.5 text-tinta" />
                   {en ? "Recommended" : "Recomendado"}
                 </p>
-                <p className="mt-1 font-heading text-2xl font-medium text-white">{names.bluebook}</p>
+                <p className="mt-1 text-xl font-medium text-noche">{names.bluebook}</p>
               </div>
               <div role="columnheader" className="px-6 pb-5 pt-6">
-                <p className="font-heading text-xl font-medium text-navy">{names.planner}</p>
+                <p className="text-lg font-medium text-noche">{names.planner}</p>
               </div>
               <div role="columnheader" className="px-6 pb-5 pt-6">
-                <p className="font-heading text-xl font-medium text-navy">{names.diy}</p>
+                <p className="text-lg font-medium text-noche">{names.diy}</p>
               </div>
             </div>
-            {ROWS.map((row, i) => (
-              <div role="row" key={row.es} className="grid grid-cols-[1.1fr_1.15fr_1fr_1fr] border-t border-hairline">
-                <div role="rowheader" className="p-5 pl-6 font-body text-sm font-semibold text-navy">
-                  {en ? row.en : row.es}
+            {ROWS.map((row, i) => {
+              const ultima = i === ROWS.length - 1;
+              return (
+                <div role="row" key={row.es} className="grid grid-cols-[1.1fr_1.15fr_1fr_1fr]">
+                  <div role="rowheader" className="border-t border-linea p-5 pl-6 text-sm font-medium text-noche">
+                    {en ? row.en : row.es}
+                  </div>
+                  <div
+                    role="cell"
+                    className={`border-x-2 border-noche bg-papel px-6 py-5 ${ultima ? "rounded-b-2xl border-b-2 pb-7" : ""}`}
+                  >
+                    <CellView cell={row.bluebook} en={en} featured />
+                  </div>
+                  <div role="cell" className="border-t border-linea px-6 py-5">
+                    <CellView cell={row.planner} en={en} />
+                  </div>
+                  <div role="cell" className="border-t border-linea px-6 py-5">
+                    <CellView cell={row.diy} en={en} />
+                  </div>
                 </div>
-                <div role="cell" className={`bg-navy px-6 py-5 ${i === ROWS.length - 1 ? "pb-7" : ""}`}>
-                  <CellView cell={row.bluebook} en={en} featured />
-                </div>
-                <div role="cell" className="px-6 py-5">
-                  <CellView cell={row.planner} en={en} />
-                </div>
-                <div role="cell" className="px-6 py-5">
-                  <CellView cell={row.diy} en={en} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Reveal>
 
@@ -213,7 +229,7 @@ export function Versus({ id }: { id?: string }) {
           <div
             role="radiogroup"
             aria-label={en ? "Compare Blue Book with" : "Comparar Blue Book con"}
-            className="grid grid-cols-2 gap-1 rounded-full border border-hairline bg-white p-1"
+            className="grid grid-cols-2 gap-1 rounded-full border border-linea bg-niebla p-1"
           >
             {(["planner", "diy"] as const).map((key) => (
               <button
@@ -222,8 +238,8 @@ export function Versus({ id }: { id?: string }) {
                 role="radio"
                 aria-checked={rival === key}
                 onClick={() => setRival(key)}
-                className={`rounded-full px-3 py-2.5 font-body text-[13px] font-semibold transition-colors duration-150 ${
-                  rival === key ? "bg-navy text-white" : "text-navy-muted"
+                className={`min-h-11 rounded-full px-3 py-2.5 text-[13px] font-medium transition-colors duration-150 ${
+                  rival === key ? "bg-noche text-niebla" : "text-tinta"
                 }`}
               >
                 {names[key]}
@@ -231,15 +247,18 @@ export function Versus({ id }: { id?: string }) {
             ))}
           </div>
 
-          <div className="mt-4 overflow-hidden rounded-3xl border border-hairline bg-white">
-            <div className="grid grid-cols-2 border-b border-hairline">
-              <p className="bg-navy px-4 py-3 font-heading text-lg font-medium text-white">{names.bluebook}</p>
-              <p className="px-4 py-3 font-heading text-lg font-medium text-navy">{names[rival]}</p>
+          <div className="mt-4 overflow-hidden rounded-3xl border border-linea bg-niebla">
+            <div className="grid grid-cols-2 border-b border-linea">
+              <p className="flex items-center gap-1.5 bg-papel px-4 py-3 text-base font-medium text-noche">
+                <Star className="h-3.5 w-3.5 shrink-0 text-tinta" />
+                {names.bluebook}
+              </p>
+              <p className="px-4 py-3 text-base font-medium text-noche">{names[rival]}</p>
             </div>
             <dl>
               {ROWS.map((row) => (
-                <div key={row.es} className="border-b border-hairline last:border-b-0">
-                  <dt className="px-4 pb-1 pt-4 font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-muted">
+                <div key={row.es} className="border-b border-linea last:border-b-0">
+                  <dt className="px-4 pb-1 pt-4 text-[11px] font-medium uppercase tracking-[0.12em] text-tinta">
                     {en ? row.en : row.es}
                   </dt>
                   <dd className="grid grid-cols-2 gap-3 px-4 pb-4 pt-1">
@@ -252,7 +271,7 @@ export function Versus({ id }: { id?: string }) {
           </div>
         </Reveal>
 
-        <p className="mt-6 max-w-[70ch] font-body text-xs leading-relaxed text-navy-muted">
+        <p className="mx-auto mt-6 max-w-[70ch] text-center text-xs leading-relaxed text-tinta">
           {en
             ? "Reference ranges for the Mexican market; what an in-person planner charges varies by city and service. On an average $180,000 MXN wedding, 10–15% is $18,000–$27,000."
             : "Rangos de referencia del mercado mexicano; lo que cobra una planner presencial varía por ciudad y servicio. En una boda promedio de $180,000, el 10–15% son $18,000–$27,000."}

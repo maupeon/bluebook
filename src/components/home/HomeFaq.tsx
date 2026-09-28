@@ -110,7 +110,7 @@ export function HomeFaq() {
             href={CONTACT_INFO.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-azul-deep underline decoration-wash-deep underline-offset-4 hover:text-navy"
+            className="font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
           >
             {en ? "Message us" : "Escríbenos"}
           </a>
@@ -118,7 +118,7 @@ export function HomeFaq() {
         </>
       }
       items={en ? HOME_FAQ_EN : HOME_FAQ_ES}
-      className="bg-paper"
+      className="bg-papel"
     />
   );
 }

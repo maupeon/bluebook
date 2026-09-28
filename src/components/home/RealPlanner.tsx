@@ -26,42 +26,47 @@ export function RealPlanner() {
       ];
 
   return (
-    <section className="relative overflow-hidden bg-paper py-24 md:py-32">
+    <section className="relative overflow-hidden bg-papel py-24 md:py-32">
       <Container>
-        <div className="grid items-center gap-14 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
-          <div>
-            <Reveal>
-              <Eyebrow>{en ? "Your planner" : "Tu planner"}</Eyebrow>
-            </Reveal>
-            <Reveal delay={80}>
-              <Heading className="mt-4">
-                {en ? (
-                  <>
-                    Behind the platform, <Em>a real planner.</Em>
-                  </>
-                ) : (
-                  <>
-                    Detrás de la plataforma, <Em>una planner de verdad.</Em>
-                  </>
-                )}
-              </Heading>
-            </Reveal>
-            <Reveal delay={160}>
-              <Lead className="mt-5 max-w-xl">
-                {en
-                  ? "Blue Book isn't an app that leaves you alone with a list. With the monthly plan, a professional wedding planner looks after your wedding, and she's one message away."
-                  : "Blue Book no es una app que te deja sola con una lista. Con el plan mensual, una wedding planner profesional cuida tu boda, y está a un mensaje de distancia."}
-              </Lead>
-            </Reveal>
+        {/* El encabezado va arriba y centrado: en media columna el titular
+            («Detrás de la plataforma, una planner de verdad.») se iba a tres
+            líneas. Debajo, lo que hace la planner junto al dibujo. */}
+        <div className="mx-auto max-w-3xl text-center">
+          <Reveal>
+            <Eyebrow>{en ? "Your planner" : "Tu planner"}</Eyebrow>
+          </Reveal>
+          <Reveal delay={80}>
+            <Heading className="mt-4">
+              {en ? (
+                <>
+                  Behind the platform, <Em>a real planner.</Em>
+                </>
+              ) : (
+                <>
+                  Detrás de la plataforma, <Em>una planner de verdad.</Em>
+                </>
+              )}
+            </Heading>
+          </Reveal>
+          <Reveal delay={160}>
+            <Lead className="mx-auto mt-5 max-w-2xl">
+              {en
+                ? "Blue Book isn't an app that leaves you alone with a list. With the monthly plan, a professional wedding planner looks after your wedding, and she's one message away."
+                : "Blue Book no es una app que te deja sola con una lista. Con el plan mensual, una wedding planner profesional cuida tu boda, y está a un mensaje de distancia."}
+            </Lead>
+          </Reveal>
+        </div>
 
-            <ul className="mt-9 grid gap-3 sm:grid-cols-2">
+        <div className="mt-14 grid items-center gap-14 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
+          <div>
+            <ul className="grid gap-3 sm:grid-cols-2">
               {duties.map(({ Icon, text }, i) => (
                 <Reveal as="li" key={text} delay={200 + i * 60}>
-                  <div className="flex h-full items-center gap-3 rounded-2xl border border-hairline bg-white px-4 py-3.5">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wash text-azul-deep">
+                  <div className="flex h-full items-center gap-3 rounded-2xl border border-linea bg-niebla px-4 py-3.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-papel text-noche">
                       <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                     </span>
-                    <span className="font-body text-sm font-medium text-navy">{text}</span>
+                    <span className="text-sm font-medium text-noche">{text}</span>
                   </div>
                 </Reveal>
               ))}
@@ -70,9 +75,11 @@ export function RealPlanner() {
             <Reveal delay={420}>
               {/* Antes decía que nada le llegaba a los invitados sin revisión: la
                   invitación de autoservicio (solo invitaciones) sale sin pasar
-                  por una planner, así que la frase ya no era cierta para todas. */}
-              <blockquote className="mt-10 border-l-2 border-wash-deep pl-5">
-                <p className="font-heading text-2xl font-medium italic leading-snug tracking-[-0.01em] text-navy sm:text-[1.7rem]">
+                  por una planner, así que la frase ya no era cierta para todas.
+                  Va en script, como los cierres del Instagram: lo que dice ya
+                  lo dijo el párrafo de arriba. */}
+              <blockquote className="mt-10 border-l-2 border-linea pl-5">
+                <p className="frase text-[2rem] sm:text-[2.4rem]">
                   {en
                     ? "On the other side of every message, a person."
                     : "Del otro lado de cada mensaje, una persona."}
@@ -83,10 +90,10 @@ export function RealPlanner() {
 
           <Reveal delay={200} className="relative mx-auto w-full max-w-md">
             <div className="relative flex aspect-[4/5] items-center justify-center">
-              <Watercolor className="absolute inset-0 h-full w-full" seed={9} />
-              <Cake className="relative w-[68%] text-line" title={en ? "A three-tier wedding cake" : "Un pastel de boda de tres pisos"} />
-              <Sparkle className="absolute right-[8%] top-[10%] h-6 w-6 text-line" />
-              <p className="absolute inset-x-0 bottom-[6%] text-center font-script text-[26px] leading-tight text-line sm:text-[30px]" aria-hidden="true">
+              <Watercolor className="absolute inset-0 h-full w-full" tone="linea" opacity={0.55} seed={9} />
+              <Cake className="relative w-[68%] text-tinta" title={en ? "A three-tier wedding cake" : "Un pastel de boda de tres pisos"} />
+              <Sparkle className="absolute right-[8%] top-[10%] h-6 w-6 text-tinta" />
+              <p className="absolute inset-x-0 bottom-[6%] text-center font-script text-[26px] leading-tight text-tinta sm:text-[30px]" aria-hidden="true">
                 Save the moments. Not just the day.
               </p>
             </div>

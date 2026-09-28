@@ -23,45 +23,50 @@ import { formatShortDate, daysUntil } from "@/components/panel/dates";
 
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    // Igual que el Eyebrow del sitio (marketing/ui.tsx). azul-deep y no azul:
-    // azul da 4.4:1 sobre papel, solo apto para texto grande, y este renglón
-    // va en 12 px y versalitas con tracking amplio, la combinación que más
-    // contraste pide. azul-deep da 6.1.
-    <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-azul-deep">
-      {children}
-    </p>
+    // El rótulo de la marca («02 — COLOR»), igual que el Eyebrow del sitio
+    // (marketing/ui.tsx): Work Sans Medium, versales, tinta. La tinta da 5.1:1
+    // sobre la niebla de las tarjetas y 4.8:1 sobre el papel: AA a 12 px.
+    <p className="rotulo">{children}</p>
   );
 }
 
+/**
+ * El título de una tarjeta («Tareas», «Su planner», «Su presupuesto»). No es
+ * un titular: los titulares de marcador son el h1 de cada pantalla. Aquí va
+ * Work Sans Medium en noche a tamaño de tarjeta; a 36px pesaba tanto como el
+ * titular que tiene encima.
+ */
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-2 font-heading text-3xl font-medium tracking-[-0.015em] text-ink md:text-4xl">
+    <h2 className="mt-2 text-2xl font-medium text-noche">
       {children}
     </h2>
   );
 }
 
+/** Un vacío dicho en voz baja. Sin cursiva: Work Sans no la tiene y el navegador la falsea. */
 export function EmptyNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-body text-sm italic leading-relaxed text-ink-soft">
+    <p className="text-sm leading-relaxed text-tinta">
       {children}
     </p>
   );
 }
 
-/** La rejilla de cifras del panel: misma métrica, mismo tamaño, misma tipografía. */
+/** La rejilla de cifras del panel: misma métrica, mismo tamaño, misma tipografía.
+ *  Work Sans Light a tamaño grande, con cifras tabulares, como los numerales de Apple. */
 function StatGrid({ stats }: { stats: { label: string; value: number }[] }) {
   return (
-    <div className="mt-7 grid grid-cols-2 border-t border-sand sm:grid-cols-4">
+    <div className="mt-7 grid grid-cols-2 border-t border-linea sm:grid-cols-4">
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="border-b border-sand px-1 py-5 sm:border-b-0 sm:border-r sm:px-6 sm:last:border-r-0 sm:first:pl-0"
+          className="border-b border-linea px-1 py-5 sm:border-b-0 sm:border-r sm:px-6 sm:last:border-r-0 sm:first:pl-0"
         >
-          <p className="font-heading text-4xl tracking-tight text-ink tabular-nums">
+          <p className="text-4xl font-light text-noche tabular-nums">
             {stat.value}
           </p>
-          <p className="mt-1 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+          <p className="mt-1 text-xs uppercase tracking-[0.08em] text-tinta">
             {stat.label}
           </p>
         </div>
@@ -168,8 +173,8 @@ export function BudgetSection({
           </EmptyNote>
           {/* Con la cifra, «Su dinero» la reparte sola por categoría: es lo
               primero que se gana al escribirla. */}
-          <p className="mt-3 font-body text-sm text-ink-muted">
-            <Link href="/panel/boda" className="text-azul-deep underline underline-offset-4 hover:text-ink">
+          <p className="mt-3 text-sm text-tinta">
+            <Link href="/panel/boda" className="text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche">
               {isEnglish ? "Set it in “Your wedding”" : "Escríbanlo en «Su boda»"}
             </Link>
             {isEnglish
@@ -192,15 +197,15 @@ export function BudgetSection({
           <div>
             <Eyebrow>{isEnglish ? "Budget" : "Presupuesto"}</Eyebrow>
             <SectionTitle>{isEnglish ? "Your budget" : "Su presupuesto"}</SectionTitle>
-            <p className="mt-5 font-heading text-5xl font-medium tracking-tight text-ink tabular-nums">
+            <p className="mt-5 text-5xl font-light text-noche tabular-nums">
               <span className="whitespace-nowrap">
                 {formatMXN(budgetTotal).replace(/ MXN$/, "")}
               </span>
-              <span className="ml-2 font-body text-sm font-normal tracking-[0.08em] text-ink-muted">
+              <span className="ml-2 text-sm tracking-[0.08em] text-tinta">
                 MXN
               </span>
             </p>
-            <p className="mt-2 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+            <p className="mt-2 text-xs uppercase tracking-[0.08em] text-tinta">
               {conPlanner
                 ? isEnglish
                   ? "Estimated"
@@ -210,7 +215,7 @@ export function BudgetSection({
                   : "Lo que tienen pensado"}
             </p>
           </div>
-          <p className="max-w-[46ch] font-body text-sm leading-relaxed text-ink-muted">
+          <p className="max-w-[46ch] text-sm leading-relaxed text-tinta">
             {conPlanner
               ? isEnglish
                 ? "Nothing is contracted yet. As your planner signs vendors, you'll see here what's paid and what's still free."
@@ -248,15 +253,15 @@ export function BudgetSection({
           <SectionTitle>
             {isEnglish ? "Your budget" : "Su presupuesto"}
           </SectionTitle>
-          <p className="mt-5 font-heading text-5xl font-medium tracking-tight text-ink tabular-nums">
+          <p className="mt-5 text-5xl font-light text-noche tabular-nums">
             <span className="whitespace-nowrap">
               {formatMXN(budgetTotal ?? contracted).replace(/ MXN$/, "")}
             </span>
-            <span className="ml-2 font-body text-sm font-normal tracking-[0.08em] text-ink-muted">
+            <span className="ml-2 text-sm tracking-[0.08em] text-tinta">
               MXN
             </span>
           </p>
-          <p className="mt-2 font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+          <p className="mt-2 text-xs uppercase tracking-[0.08em] text-tinta">
             {budgetTotal != null
               ? isEnglish
                 ? "Estimated"
@@ -268,10 +273,12 @@ export function BudgetSection({
         </div>
 
         <div className="flex flex-col justify-center">
-          {/* Barra de asignación */}
+          {/* Barra de asignación: pagado en azul noche, el saldo de lo
+              contratado en tinta y lo libre en azul línea. Tres tramos
+              planos, sin degradado. */}
           {safeTotal > 0 ? (
             <div
-              className="flex h-3 w-full overflow-hidden rounded-full bg-sand-soft"
+              className="flex h-3 w-full overflow-hidden rounded-full bg-papel-medio"
               role="img"
               aria-label={
                 isEnglish
@@ -279,10 +286,10 @@ export function BudgetSection({
                   : `Pagado ${formatMXN(paid)}, ${balance < 0 ? "pagado de más" : "saldo"} ${formatMXN(Math.abs(balance))}${available ? `, sin contratar ${formatMXN(Math.abs(available))}` : ""}`
               }
             >
-              <div className="h-full bg-navy" style={{ width: `${paidPct}%` }} />
-              <div className="h-full bg-azul" style={{ width: `${balancePct}%` }} />
+              <div className="h-full bg-noche" style={{ width: `${paidPct}%` }} />
+              <div className="h-full bg-tinta" style={{ width: `${balancePct}%` }} />
               <div
-                className="h-full bg-wash-deep"
+                className="h-full bg-linea"
                 style={{ width: `${availablePct}%` }}
               />
             </div>
@@ -292,12 +299,12 @@ export function BudgetSection({
             <BudgetFigure
               label={isEnglish ? "Contracted" : "Contratado"}
               value={formatMXN(contracted)}
-              dotClass="border-[1.5px] border-navy"
+              dotClass="border-[1.5px] border-noche"
             />
             <BudgetFigure
               label={isEnglish ? "Paid" : "Pagado"}
               value={formatMXN(paid)}
-              dotClass="bg-navy"
+              dotClass="bg-noche"
             />
             <BudgetFigure
               label={
@@ -313,7 +320,7 @@ export function BudgetSection({
               // Imprimir "-$185,000" al lado de una barra que lo esconde con
               // Math.max(0,...) hacía que la misma tarjeta se contradijera.
               value={formatMXN(Math.abs(balance))}
-              dotClass="bg-azul"
+              dotClass="bg-tinta"
             />
             {/* "Disponible" sólo se enseña cuando dice algo.
                 Con el estimado igual a lo contratado daba "Disponible $0" junto
@@ -333,13 +340,14 @@ export function BudgetSection({
                       : "Sin contratar"
                 }
                 value={formatMXN(Math.abs(available))}
-                dotClass={over ? "bg-terra-deep" : "bg-wash-deep"}
+                dotClass={over ? "bg-error" : "bg-linea"}
+                alerta={over}
               />
             ) : null}
           </div>
 
           {available === 0 ? (
-            <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+            <p className="mt-5 text-xs leading-relaxed text-tinta">
               {conPlanner
                 ? isEnglish
                   ? "Everything your planner estimated is already contracted."
@@ -351,7 +359,7 @@ export function BudgetSection({
           ) : null}
 
           {pending > 0 ? (
-            <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+            <p className="mt-5 text-xs leading-relaxed text-tinta">
               {isEnglish
                 ? `Of that balance, ${formatMXN(pending)} already has a scheduled date.`
                 : `De ese saldo, ${formatMXN(pending)} ya tiene fecha programada.`}
@@ -362,12 +370,12 @@ export function BudgetSection({
 
       {/* Los honorarios de la planner no son gasto con proveedores: van aparte. */}
       {(feesTotal ?? 0) > 0 || feesPaid > 0 || feesPending > 0 ? (
-        <div className="mt-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-4 rounded-xl border border-sand bg-bone px-5 py-4">
+        <div className="mt-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-4 rounded-xl border border-linea bg-papel px-5 py-4">
           <div>
-            <p className="font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+            <p className="text-xs uppercase tracking-[0.08em] text-tinta">
               {isEnglish ? "Planner fees" : "Honorarios de su planner"}
             </p>
-            <p className="mt-1 font-body text-xs text-ink-soft">
+            <p className="mt-1 text-xs text-tinta">
               {isEnglish
                 ? "Counted apart from vendor spending."
                 : "Van aparte del gasto con proveedores."}
@@ -377,12 +385,12 @@ export function BudgetSection({
             <BudgetFigure
               label={isEnglish ? "Paid" : "Pagado"}
               value={formatMXN(feesPaid)}
-              dotClass="bg-navy"
+              dotClass="bg-noche"
             />
             <BudgetFigure
               label={isEnglish ? "Due" : "Por pagar"}
               value={formatMXN(feesPending)}
-              dotClass="bg-azul"
+              dotClass="bg-tinta"
             />
           </div>
         </div>
@@ -395,26 +403,33 @@ function BudgetFigure({
   label,
   value,
   dotClass,
+  alerta = false,
 }: {
   label: string;
   value: string;
   dotClass: string;
+  /** Excedido: la etiqueta también va en error, para que no lo diga sólo el punto. */
+  alerta?: boolean;
 }) {
   const [cifra, moneda] = value.endsWith(" MXN") ? [value.slice(0, -4), "MXN"] : [value, null];
   return (
     <div>
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
-        <span className="whitespace-nowrap font-body text-xs uppercase tracking-[0.08em] text-ink-muted">
+        <span
+          className={`whitespace-nowrap text-xs uppercase tracking-[0.08em] ${
+            alerta ? "font-medium text-error" : "text-tinta"
+          }`}
+        >
           {label}
         </span>
       </div>
       {/* La cifra no se parte: "MXN" va aparte y chico, y es lo único que
           puede bajar de renglón cuando la columna es angosta. */}
-      <p className="mt-1.5 font-heading text-xl font-medium tracking-tight text-ink tabular-nums">
+      <p className="mt-1.5 text-xl font-medium text-noche tabular-nums">
         <span className="whitespace-nowrap">{cifra}</span>
         {moneda ? (
-          <span className="ml-1 font-body text-[11px] font-normal tracking-[0.08em] text-ink-muted">
+          <span className="ml-1 text-[11px] font-normal tracking-[0.08em] text-tinta">
             {moneda}
           </span>
         ) : null}
@@ -463,7 +478,7 @@ export function ChecklistSection({
       <SectionTitle>
         {isEnglish ? "Payment checklist" : "Checklist de pagos"}
       </SectionTitle>
-      <p className="mt-3 font-body text-sm text-ink-muted">
+      <p className="mt-3 text-sm text-tinta">
         {isEnglish
           ? "What's contracted, what's paid and what's left, vendor by vendor."
           : "Lo contratado, lo pagado y lo que falta, proveedor por proveedor."}
@@ -483,26 +498,26 @@ export function ChecklistSection({
         </div>
       ) : (
         <>
-          <div className="mt-7 flex flex-wrap gap-x-10 gap-y-5 border-t border-sand pt-6">
+          <div className="mt-7 flex flex-wrap gap-x-10 gap-y-5 border-t border-linea pt-6">
             <BudgetFigure
               label={isEnglish ? "Contracted" : "Contratado"}
               value={formatMXN(checklist.contracted)}
-              dotClass="border-[1.5px] border-navy"
+              dotClass="border-[1.5px] border-noche"
             />
             <BudgetFigure
               label={isEnglish ? "Paid" : "Pagado"}
               value={formatMXN(checklist.paid)}
-              dotClass="bg-navy"
+              dotClass="bg-noche"
             />
             <BudgetFigure
               label={isEnglish ? "Outstanding" : "Saldo"}
               value={formatMXN(checklist.balance)}
-              dotClass="bg-azul"
+              dotClass="bg-tinta"
             />
           </div>
 
           {unlinkedPaid > 0 ? (
-            <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+            <p className="mt-5 text-xs leading-relaxed text-tinta">
               {isEnglish
                 ? `Plus ${formatMXN(unlinkedPaid)} paid to vendors that isn't tied to any line item yet, so it isn't counted above.`
                 : `Además hay ${formatMXN(unlinkedPaid)} pagados a proveedores que no cuelgan de ninguna partida, por eso no suman aquí arriba.`}
@@ -512,25 +527,25 @@ export function ChecklistSection({
           <div className="mt-10 space-y-10">
             {checklist.categories.map((category) => (
               <section key={category.category}>
-                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-sand pb-2">
-                  <h3 className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-azul-deep">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-linea pb-2">
+                  <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-noche">
                     {humanizeCategory(category.category, isEnglish)}
                   </h3>
-                  <p className="font-body text-xs tabular-nums text-ink-muted">
+                  <p className="text-xs tabular-nums text-tinta">
                     {formatMXN(category.contracted)} ·{" "}
                     {isEnglish ? "outstanding" : "saldo"}{" "}
                     {formatMXN(category.balance)}
                   </p>
                 </div>
 
-                <div className="divide-y divide-sand">
+                <div className="divide-y divide-linea">
                   {category.vendors.map((vendor) => (
                     <div key={vendor.vendorId} className="py-5">
                       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                        <p className="font-body text-sm font-medium text-ink">
+                        <p className="text-sm font-medium text-noche">
                           {vendor.vendorName}
                         </p>
-                        <p className="font-body text-xs tabular-nums text-ink-muted">
+                        <p className="text-xs tabular-nums text-tinta">
                           {isEnglish ? "Paid" : "Pagado"}{" "}
                           {formatMXN(vendor.paid)} {isEnglish ? "of" : "de"}{" "}
                           {formatMXN(vendor.contracted)}
@@ -546,21 +561,21 @@ export function ChecklistSection({
                               className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1"
                             >
                               <div className="min-w-0 flex-1">
-                                <p className="font-body text-sm text-ink">
+                                <p className="text-sm text-noche">
                                   {item.concept}
                                 </p>
                                 {item.details ? (
-                                  <p className="mt-0.5 font-body text-xs text-ink-soft">
+                                  <p className="mt-0.5 text-xs text-tinta">
                                     {item.details}
                                   </p>
                                 ) : null}
                                 {hint ? (
-                                  <p className="mt-0.5 font-body text-xs tabular-nums text-ink-muted">
+                                  <p className="mt-0.5 text-xs tabular-nums text-tinta">
                                     {hint}
                                   </p>
                                 ) : null}
                                 {item.balance > 0 && item.nextDueDate ? (
-                                  <p className="mt-1 flex items-center gap-1.5 font-body text-xs text-ink-muted">
+                                  <p className="mt-1 flex items-center gap-1.5 text-xs text-tinta">
                                     <CalendarClock
                                       className="h-3.5 w-3.5"
                                       strokeWidth={1.5}
@@ -586,18 +601,18 @@ export function ChecklistSection({
                               <div className="flex-shrink-0 text-right">
                                 {item.montoCapturado ? (
                                   <>
-                                    <p className="font-heading text-lg tracking-tight text-ink tabular-nums">
+                                    <p className="text-lg text-noche tabular-nums">
                                       {formatMXN(item.contracted)}
                                     </p>
-                                    <p className="mt-0.5 font-body text-xs tabular-nums text-ink-muted">
+                                    <p className="mt-0.5 text-xs tabular-nums text-tinta">
                                       {isEnglish ? "Paid" : "Pagado"}{" "}
                                       {formatMXN(item.paid)}
                                     </p>
                                     <p
-                                      className={`font-body text-xs tabular-nums ${
+                                      className={`text-xs tabular-nums ${
                                         item.balance > 0
-                                          ? "text-azul-deep"
-                                          : "text-ink-soft"
+                                          ? "text-noche"
+                                          : "text-tinta"
                                       }`}
                                     >
                                       {item.balance > 0
@@ -610,7 +625,7 @@ export function ChecklistSection({
                                         "no han pagado": es que no hay nada
                                         capturado. Puede que ya esté pagada. */}
                                     {item.pagosCapturados === 0 && item.balance > 0 ? (
-                                      <p className="mt-0.5 font-body text-[11px] leading-snug text-ink-muted">
+                                      <p className="mt-0.5 text-[11px] font-normal leading-snug text-tinta">
                                         {isEnglish
                                           ? "No payments recorded yet"
                                           : "Sin pagos registrados"}
@@ -619,10 +634,10 @@ export function ChecklistSection({
                                   </>
                                 ) : (
                                   <>
-                                    <p className="font-heading text-lg tracking-tight text-ink-muted">
+                                    <p className="text-lg text-tinta">
                                       {isEnglish ? "No amount yet" : "Sin monto"}
                                     </p>
-                                    <p className="mt-0.5 max-w-[16ch] font-body text-xs leading-snug text-ink-muted">
+                                    <p className="mt-0.5 max-w-[16ch] text-xs leading-snug text-tinta">
                                       {conPlanner
                                         ? isEnglish
                                           ? "Your planner hasn't set the price of this one."
@@ -682,12 +697,12 @@ function SeatList({
       {seats.map((seat) => (
         <li
           key={seat.id}
-          className="flex items-baseline justify-between gap-3 font-body text-sm text-ink"
+          className="flex items-baseline justify-between gap-3 text-sm text-noche"
         >
           <span className="min-w-0">{seat.displayName}</span>
           {/* Una fila puede ser una pareja: el 2 sólo se dice cuando lo es. */}
           {seat.pax > 1 ? (
-            <span className="flex-shrink-0 font-body text-xs tabular-nums text-ink-muted">
+            <span className="flex-shrink-0 text-xs tabular-nums text-tinta">
               {seat.pax}
             </span>
           ) : null}
@@ -714,7 +729,7 @@ export function SeatingSection({
 
   if (!hasSeating) {
     return (
-      <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
+      <div className="panel-card p-6 sm:p-8 md:p-10">
         <Eyebrow>{isEnglish ? "Seating" : "Acomodo"}</Eyebrow>
         <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
         <div className="mt-5">
@@ -757,10 +772,10 @@ export function SeatingSection({
   const mismatch = seatedPeople !== seating.confirmedPeople;
 
   return (
-    <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
+    <div className="panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Seating" : "Acomodo"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Your tables" : "Sus mesas"}</SectionTitle>
-      <p className="mt-3 font-body text-sm text-ink-muted">
+      <p className="mt-3 text-sm text-tinta">
         {isEnglish
           ? "Who sits where, table by table."
           : "Quién se sienta dónde, mesa por mesa."}
@@ -769,7 +784,7 @@ export function SeatingSection({
       <StatGrid stats={stats} />
 
       {mismatch ? (
-        <p className="mt-5 font-body text-xs leading-relaxed text-ink-muted">
+        <p className="mt-5 text-xs leading-relaxed text-tinta">
           {isEnglish
             ? `The tables seat ${seatedPeople} and the guest list confirms ${seating.confirmedPeople}. The two lists rarely match to the person: this is where they stand today.`
             : `En las mesas hay ${seatedPeople} personas sentadas y la lista de confirmaciones suma ${seating.confirmedPeople}. Las dos listas casi nunca cuadran a la persona: así están hoy.`}
@@ -777,7 +792,7 @@ export function SeatingSection({
       ) : null}
 
       {seating.unassignedPax > 0 ? (
-        <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+        <p className="mt-2 text-xs leading-relaxed text-tinta">
           {isEnglish
             ? `${seating.unassignedPax} ${seating.unassignedPax === 1 ? "person is" : "people are"} on the list with no table yet.`
             : `Hay ${seating.unassignedPax} ${seating.unassignedPax === 1 ? "persona" : "personas"} en la lista que todavía no ${seating.unassignedPax === 1 ? "tiene" : "tienen"} mesa.`}
@@ -785,38 +800,39 @@ export function SeatingSection({
       ) : null}
 
       {seating.groupsWithoutSeat > 0 ? (
-        <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+        <p className="mt-2 text-xs leading-relaxed text-tinta">
           {isEnglish
             ? `${seating.groupsWithoutSeat} confirmed ${seating.groupsWithoutSeat === 1 ? "group doesn't" : "groups don't"} appear at any table yet.`
             : `${seating.groupsWithoutSeat} ${seating.groupsWithoutSeat === 1 ? "grupo confirmado no aparece" : "grupos confirmados no aparecen"} todavía en ninguna mesa.`}
         </p>
       ) : null}
 
+      {/* Cada mesa se hunde en papel azul dentro de la tarjeta niebla. */}
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         {seating.tables.map((table) => (
           <section
             key={table.id}
-            className="rounded-xl border border-sand bg-white px-5 py-4"
+            className="rounded-xl border border-linea bg-papel px-5 py-4"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h3 className="font-body text-sm font-medium text-ink">
+              <h3 className="text-sm font-medium text-noche">
                 {table.label}
               </h3>
               <div className="flex items-center gap-2">
-                <p className="font-body text-xs tabular-nums text-ink-muted">
+                <p className="text-xs tabular-nums text-tinta">
                   {tableOccupancy(table, isEnglish)}
                 </p>
                 {/* sobrecupo es null cuando nadie capturó capacidad: entonces
                     no hay nada que afirmar y la etiqueta no sale. */}
                 {table.overbooked ? (
-                  <span className="rounded-full bg-terra-light px-2.5 py-0.5 font-body text-[11px] uppercase tracking-[0.08em] text-terra-deep">
+                  <span className="rounded-full bg-error-fondo px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-error">
                     {isEnglish ? "Over capacity" : "Sobrecupo"}
                   </span>
                 ) : null}
               </div>
             </div>
             {table.zone ? (
-              <p className="mt-0.5 font-body text-xs text-ink-soft">
+              <p className="mt-0.5 text-xs text-tinta">
                 {table.zone}
               </p>
             ) : null}
@@ -826,11 +842,11 @@ export function SeatingSection({
       </div>
 
       {seating.unassigned.length > 0 ? (
-        <section className="mt-8 rounded-xl border border-sand bg-white px-5 py-4">
-          <h3 className="font-body text-sm font-medium text-ink">
+        <section className="mt-8 rounded-xl border border-linea bg-papel px-5 py-4">
+          <h3 className="text-sm font-medium text-noche">
             {isEnglish ? "Still without a table" : "Todavía sin mesa"}
           </h3>
-          <p className="mt-0.5 font-body text-xs text-ink-soft">
+          <p className="mt-0.5 text-xs text-tinta">
             {isEnglish
               ? "Already on the list; where they sit is still to be decided."
               : "Ya están en la lista; falta decidir dónde se sientan."}
@@ -859,7 +875,7 @@ export function PaymentsSection({
       <Eyebrow>{isEnglish ? "Payments" : "Pagos"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Payments" : "Pagos"}</SectionTitle>
       {conPlanner ? (
-        <p className="mt-3 font-body text-sm text-ink-muted">
+        <p className="mt-3 text-sm text-tinta">
           {isEnglish ? "Marked by your planner." : "Marcado por su planner."}
         </p>
       ) : null}
@@ -881,32 +897,34 @@ export function PaymentsSection({
               payment.dueDate != null &&
               (daysUntil(payment.dueDate) ?? 0) < 0;
 
+            // Pagado es el estado fuerte y cumplido: azul noche, como su tramo
+            // en la barra del presupuesto. Por pagar, aviso; vencido, error.
             const badge = paid
               ? {
                   text: isEnglish ? "Paid" : "Pagado",
-                  cls: "bg-pale-green text-pale-green-ink",
+                  cls: "bg-noche text-niebla",
                 }
               : overdue
                 ? {
                     text: isEnglish ? "Overdue" : "Vencido",
-                    cls: "bg-terra-light text-terra-deep",
+                    cls: "bg-error-fondo text-error",
                   }
                 : {
                     text: isEnglish ? "Upcoming" : "Por pagar",
-                    cls: "bg-pale-yellow text-pale-yellow-ink",
+                    cls: "bg-aviso-fondo text-aviso",
                   };
 
             return (
               <li
                 key={payment.id}
-                className="flex items-center justify-between gap-4 border-b border-sand py-4 last:border-b-0"
+                className="flex items-center justify-between gap-4 border-b border-linea py-4 last:border-b-0"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-body text-sm font-medium text-ink">
+                  <p className="truncate text-sm font-medium text-noche">
                     {payment.concept}
                   </p>
                   {payment.dueDate ? (
-                    <p className="mt-0.5 flex items-center gap-1.5 font-body text-xs text-ink-muted">
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-tinta">
                       <CalendarClock className="h-3.5 w-3.5" strokeWidth={1.5} />
                       <span className="tabular-nums">
                         {formatShortDate(payment.dueDate, isEnglish)}
@@ -915,11 +933,11 @@ export function PaymentsSection({
                   ) : null}
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-4">
-                  <span className="font-heading text-lg tracking-tight text-ink tabular-nums">
+                  <span className="text-lg text-noche tabular-nums">
                     {formatMXN(payment.amount)}
                   </span>
                   <span
-                    className={`rounded-full px-3 py-1 font-body text-[11px] uppercase tracking-[0.08em] ${badge.cls}`}
+                    className={`rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] ${badge.cls}`}
                   >
                     {badge.text}
                   </span>
@@ -943,7 +961,7 @@ export function VendorsSection({
   isEnglish: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-sand bg-cream p-8 md:p-10">
+    <div className="panel-card p-6 sm:p-8 md:p-10">
       <Eyebrow>{isEnglish ? "Vendors" : "Proveedores"}</Eyebrow>
       <SectionTitle>{isEnglish ? "Vendors" : "Proveedores"}</SectionTitle>
 
@@ -959,37 +977,40 @@ export function VendorsSection({
         <ul className="mt-6">
           {vendors.map((vendor) => {
             const status = vendor.status?.trim().toLowerCase();
+            // Tres pesos: contratado lleno en azul noche (decidido), en
+            // revisión en papel (sigue abierto) y descartado sólo el texto en
+            // tinta, sin relleno: ya no pide atención.
             const badge =
               status === "contratado" || status === "booked"
                 ? {
                     text: isEnglish ? "Booked" : "Contratado",
-                    cls: "bg-pale-green text-pale-green-ink",
+                    cls: "border-noche bg-noche text-niebla",
                   }
                 : status === "descartado" || status === "declined"
                   ? {
                       text: isEnglish ? "Dropped" : "Descartado",
-                      cls: "bg-sand-soft text-ink-muted",
+                      cls: "border-transparent text-tinta",
                     }
                   : {
                       text: isEnglish ? "In review" : "En revisión",
-                      cls: "bg-pale-blue text-pale-blue-ink",
+                      cls: "border-linea bg-papel text-noche",
                     };
 
             return (
               <li
                 key={vendor.id}
-                className="flex items-center justify-between gap-4 border-b border-sand py-4 last:border-b-0"
+                className="flex items-center justify-between gap-4 border-b border-linea py-4 last:border-b-0"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-body text-sm font-medium text-ink">
+                  <p className="truncate text-sm font-medium text-noche">
                     {vendor.name}
                   </p>
-                  <p className="mt-0.5 font-body text-xs text-ink-muted">
+                  <p className="mt-0.5 text-xs text-tinta">
                     {humanizeCategory(vendor.category, isEnglish)}
                   </p>
                 </div>
                 <span
-                  className={`flex-shrink-0 rounded-full px-3 py-1 font-body text-[11px] uppercase tracking-[0.08em] ${badge.cls}`}
+                  className={`flex-shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] ${badge.cls}`}
                 >
                   {badge.text}
                 </span>
@@ -1063,29 +1084,29 @@ function DetailList({
               <span
                 aria-hidden
                 className={`mt-[7px] h-[6px] w-[6px] flex-shrink-0 rounded-full ${
-                  done ? "bg-pale-green-ink" : "bg-sand"
+                  done ? "bg-noche" : "bg-linea"
                 }`}
               />
             ) : null}
 
             <div className="min-w-0 flex-1">
               <p
-                className={`font-body text-sm ${
-                  pendiente && done ? "text-ink-soft line-through" : "text-ink"
+                className={`text-sm ${
+                  pendiente && done ? "text-tinta line-through" : "text-noche"
                 }`}
               >
                 {title}
               </p>
               {body ? (
-                <p className="mt-0.5 font-body text-sm text-ink-soft">{body}</p>
+                <p className="mt-0.5 text-sm text-tinta">{body}</p>
               ) : null}
               {detail.personName ? (
-                <p className="mt-0.5 font-body text-xs text-ink-muted">
+                <p className="mt-0.5 text-xs text-tinta">
                   {detail.personName}
                 </p>
               ) : null}
               {detail.notes ? (
-                <p className="mt-0.5 font-body text-xs italic text-ink-soft">
+                <p className="mt-0.5 text-xs text-tinta">
                   {detail.notes}
                 </p>
               ) : null}
@@ -1093,7 +1114,11 @@ function DetailList({
 
             <div className="flex flex-shrink-0 items-center gap-2">
               {pendiente ? (
-                <span className="font-body text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+                <span
+                  className={`text-[11px] uppercase tracking-[0.08em] ${
+                    done ? "font-medium text-noche" : "font-normal text-tinta"
+                  }`}
+                >
                   {done
                     ? isEnglish
                       ? "Ready"
@@ -1106,7 +1131,7 @@ function DetailList({
               {/* El proveedor del detalle sólo aparece cuando no es el del
                   bloque: los papelitos del vals los tira otro, no el DJ. */}
               {detail.vendorName ? (
-                <span className="rounded-full border border-sand bg-white px-2.5 py-0.5 font-body text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+                <span className="rounded-full border border-linea bg-niebla px-2.5 py-0.5 text-[11px] font-normal uppercase tracking-[0.08em] text-tinta">
                   {detail.vendorName}
                 </span>
               ) : null}
@@ -1150,27 +1175,27 @@ function RunOfShowRow({
         onClick={() => setOpen((o) => !o)}
         disabled={inside === 0}
         aria-expanded={inside === 0 ? undefined : open}
-        className="flex w-full items-start gap-4 py-4 text-left transition-colors hover:text-azul-deep disabled:cursor-default"
+        className="flex w-full items-start gap-4 py-4 text-left disabled:cursor-default"
       >
         <span className="w-24 flex-shrink-0">
-          <span className="block font-heading text-lg tracking-tight text-ink tabular-nums">
+          <span className="block text-lg text-noche tabular-nums">
             {time || "—"}
           </span>
           {/* El evento cruza medianoche: el fin a la 1:00 a.m. es del día
               siguiente y la vista ya lo ordenó así. Aquí sólo se nombra. */}
           {block.dayOffset > 0 ? (
-            <span className="mt-0.5 block font-body text-[11px] uppercase tracking-[0.08em] text-azul-deep">
+            <span className="mt-0.5 block text-[11px] font-medium uppercase tracking-[0.08em] text-noche">
               {isEnglish ? "next day" : "madrugada"}
             </span>
           ) : null}
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block font-body text-sm font-medium text-ink">
+          <span className="block text-sm font-medium text-noche">
             {block.title}
           </span>
           {meta.length > 0 ? (
-            <span className="mt-0.5 block font-body text-xs text-ink-muted">
+            <span className="mt-0.5 block text-xs text-tinta">
               {meta.join(" · ")}
             </span>
           ) : null}
@@ -1178,7 +1203,7 @@ function RunOfShowRow({
 
         {inside > 0 ? (
           <ChevronDown
-            className={`mt-1 h-4 w-4 flex-shrink-0 text-ink-muted transition-transform ${
+            className={`mt-1 h-4 w-4 flex-shrink-0 text-tinta transition-transform duration-150 motion-reduce:transition-none ${
               open ? "rotate-180" : ""
             }`}
             strokeWidth={1.5}
@@ -1189,7 +1214,7 @@ function RunOfShowRow({
       {open ? (
         <div className="pb-6 sm:pl-28">
           {block.notes ? (
-            <p className="font-body text-sm italic leading-relaxed text-ink-soft">
+            <p className="text-sm leading-relaxed text-tinta">
               {block.notes}
             </p>
           ) : null}
@@ -1211,20 +1236,20 @@ function RunOfShowRow({
             return (
               <section
                 key={child.id}
-                className="mt-5 rounded-xl border border-sand bg-bone px-5 py-4"
+                className="mt-5 rounded-xl border border-linea bg-papel px-5 py-4"
               >
                 {/* h3, no h4: el título de la sección es h2 y saltar un nivel
                     rompe el índice de encabezados de un lector de pantalla. */}
-                <h3 className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-azul-deep">
+                <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-noche">
                   {child.title}
                 </h3>
                 {childMeta.length > 0 ? (
-                  <p className="mt-1 font-body text-xs text-ink-muted">
+                  <p className="mt-1 text-xs text-tinta">
                     {childMeta.join(" · ")}
                   </p>
                 ) : null}
                 {child.notes ? (
-                  <p className="mt-1 font-body text-xs italic text-ink-soft">
+                  <p className="mt-1 text-xs text-tinta">
                     {child.notes}
                   </p>
                 ) : null}
@@ -1258,21 +1283,21 @@ export function RunOfShowSection({
       <SectionTitle>
         {isEnglish ? "Your run of show" : "Su guion del día"}
       </SectionTitle>
-      <p className="mt-3 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+      <p className="mt-3 max-w-[60ch] text-sm leading-relaxed text-tinta">
         {isEnglish
           ? "Every moment of the day with its time and who runs it. Open one to see what it holds: the procession, the readings, the menu, the songs."
           : "Cada momento del día con su hora y quién lo lleva. Abran uno para ver lo que trae dentro: el cortejo, las lecturas, el menú, las canciones."}
       </p>
 
       {runOfShow.openTodos > 0 ? (
-        <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+        <p className="mt-2 text-xs leading-relaxed text-tinta">
           {isEnglish
             ? `Your planner still has ${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "thing" : "things"} to bring. She ticks them off as they're ready.`
             : `A su planner le quedan ${runOfShow.openTodos} ${runOfShow.openTodos === 1 ? "cosa" : "cosas"} por llevar. Ella las va marcando conforme las tiene.`}
         </p>
       ) : null}
 
-      <ul className="mt-8 divide-y divide-sand border-t border-sand">
+      <ul className="mt-8 divide-y divide-linea border-t border-linea">
         {runOfShow.blocks.map((block) => (
           <RunOfShowRow key={block.id} block={block} isEnglish={isEnglish} />
         ))}

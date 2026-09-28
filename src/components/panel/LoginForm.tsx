@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, MailCheck } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { Titular } from "@/components/marca/Titular";
 import { createClient, createOtpRequestClient } from "@/lib/supabase/client";
 import { GOOGLE_ACTIVO } from "@/lib/entrarConGoogle";
 
@@ -339,30 +340,36 @@ export function LoginForm({
   };
 
   const aviso = error ? (
-    <div className="mt-6 flex items-start gap-3 rounded-xl bg-terra-light px-4 py-3">
-      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-terra-deep" strokeWidth={1.5} />
-      <p className="font-body text-sm leading-relaxed text-terra-deep">{error}</p>
+    <div className="mt-6 flex items-start gap-3 rounded-xl bg-error-fondo px-4 py-3">
+      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-error" strokeWidth={1.5} />
+      <p className="text-sm leading-relaxed text-error">{error}</p>
     </div>
   ) : null;
 
+  // Los botones de la marca: el principal en azul noche, el secundario en
+  // niebla con borde de campo. Se transicionan sólo el color, el borde y la
+  // escala (transition-all animaba también el tamaño al cambiar el texto).
   const claseBoton =
-    "inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-7 py-3.5 font-body text-sm font-semibold text-white transition-all hover:bg-ink-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70";
+    "inline-flex w-full items-center justify-center gap-2 rounded-full bg-noche px-7 py-3.5 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-70";
 
   const claseBotonNeutro =
-    "inline-flex w-full items-center justify-center gap-2.5 rounded-full border border-sand bg-white px-7 py-3.5 font-body text-sm font-semibold text-ink transition-all hover:border-ink-soft/30 hover:bg-bone active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70";
+    "inline-flex w-full items-center justify-center gap-2.5 rounded-full border border-linea-control/60 bg-niebla px-7 py-3.5 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-70";
+
+  // Los campos: papel azul dentro de la hoja niebla, borde de campo y foco
+  // en azul noche.
+  const claseCampo =
+    "w-full rounded-xl border border-linea-control bg-papel px-4 py-3 text-noche transition-[border-color,box-shadow] duration-150 focus:border-noche focus:outline-none focus:ring-2 focus:ring-noche/20 disabled:opacity-60";
 
   if (paso === "codigo") {
     return (
       <div>
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-pale-green">
-          <MailCheck className="h-7 w-7 text-pale-green-ink" strokeWidth={1.5} />
+        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-papel">
+          <MailCheck className="h-7 w-7 text-noche" strokeWidth={1.5} />
         </div>
-        <h2 className="text-center font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
-          {isEnglish ? "Check your email" : "Revisen su correo"}
-        </h2>
-        <p className="mx-auto mt-3 max-w-[42ch] text-center font-body text-sm leading-relaxed text-ink-muted">
+        <Titular tamano="hoja">{isEnglish ? "Check your email" : "Revisen su correo"}</Titular>
+        <p className="mx-auto mt-3 max-w-[42ch] text-center text-sm leading-relaxed text-tinta">
           {isEnglish ? "We sent a code to " : "Enviamos un código a "}
-          <span className="font-medium text-ink">{correo}</span>
+          <span className="font-medium text-noche">{correo}</span>
           {isEnglish ? ". Type it below." : ". Escríbanlo aquí abajo."}
         </p>
 
@@ -372,7 +379,7 @@ export function LoginForm({
           <div>
             <label
               htmlFor="codigo"
-              className="mb-2 block font-body text-sm font-medium text-ink"
+              className="mb-2 block text-sm font-medium text-noche"
             >
               {isEnglish ? "Code" : "Código"}
             </label>
@@ -389,14 +396,14 @@ export function LoginForm({
               onChange={(e) => acceso.setCodigo(e.target.value)}
               placeholder="········"
               disabled={loading}
-              className="w-full rounded-xl border border-sand bg-bone px-4 py-3 text-center font-body text-2xl tracking-[0.25em] text-ink placeholder:text-ink-soft/40 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20 disabled:opacity-60"
+              className={`${claseCampo} text-center text-2xl tracking-[0.25em] tabular-nums`}
             />
           </div>
 
           <button type="submit" disabled={loading || codigo.length < MIN_CODIGO} className={claseBoton}>
             {loading ? (
               <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-niebla/30 border-t-niebla" />
                 {isEnglish ? "Signing in..." : "Entrando..."}
               </>
             ) : isEnglish ? (
@@ -412,7 +419,7 @@ export function LoginForm({
             type="button"
             disabled={loading || espera > 0}
             onClick={() => acceso.enviarCodigo(true)}
-            className="font-body text-sm font-medium text-azul-deep transition-colors hover:text-navy disabled:cursor-not-allowed disabled:text-ink-soft"
+            className="min-h-11 text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche disabled:cursor-not-allowed disabled:text-tinta disabled:no-underline"
           >
             {espera > 0
               ? isEnglish
@@ -425,7 +432,7 @@ export function LoginForm({
           <button
             type="button"
             onClick={acceso.volverAlCorreo}
-            className="inline-flex items-center gap-2 font-body text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-tinta transition-colors hover:text-noche"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
             {isEnglish ? "Use another email" : "Usar otro correo"}
@@ -437,12 +444,15 @@ export function LoginForm({
 
   return (
     <div>
-      <h2 className="font-heading text-3xl font-medium tracking-[-0.015em] text-ink">
+      {/* /acceso es una pantalla de un solo foco: el titular va centrado, en
+          el tamaño de una hoja porque vive dentro de la tarjeta. Es el h1 de
+          la página: no hay otro. */}
+      <Titular as="h1" tamano="hoja">
         {isEnglish ? "Your wedding panel" : "Su panel de boda"}
-      </h2>
+      </Titular>
       {/* Antes: «con el correo que registraron con su planner». Desde la prueba
           gratis la pareja se registra sola, así que el correo es el suyo. */}
-      <p className="mt-3 font-body text-sm leading-relaxed text-ink-muted">
+      <p className="mt-3 text-center text-sm leading-relaxed text-tinta">
         {isEnglish
           ? "Sign in with your wedding's email. We'll send you a code, no password needed."
           : "Entren con el correo de su boda. Les mandamos un código, sin contraseñas."}
@@ -459,7 +469,7 @@ export function LoginForm({
             className={`mt-7 ${claseBotonNeutro}`}
           >
             {conGoogle ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/20 border-t-ink" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-noche/20 border-t-noche" />
             ) : (
               <LogoGoogle />
             )}
@@ -472,7 +482,7 @@ export function LoginForm({
 
       <form onSubmit={pedirCodigo} className={`${GOOGLE_ACTIVO ? "mt-6" : "mt-7"} space-y-5`}>
         <div>
-          <label htmlFor="email" className="mb-2 block font-body text-sm font-medium text-ink">
+          <label htmlFor="email" className="mb-2 block text-sm font-medium text-noche">
             {isEnglish ? "Email" : "Correo electrónico"}
           </label>
           <input
@@ -485,14 +495,14 @@ export function LoginForm({
             onChange={(e) => acceso.setEmail(e.target.value)}
             placeholder={isEnglish ? "you@email.com" : "ustedes@correo.com"}
             disabled={loading}
-            className="w-full rounded-xl border border-sand bg-bone px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20 disabled:opacity-60"
+            className={`${claseCampo} text-sm`}
           />
         </div>
 
         <button type="submit" disabled={loading} className={claseBoton}>
           {loading ? (
             <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-niebla/30 border-t-niebla" />
               {isEnglish ? "Sending..." : "Enviando..."}
             </>
           ) : isEnglish ? (
@@ -505,11 +515,11 @@ export function LoginForm({
 
       {/* A quien llega aquí sin panel todavía: la puerta de entrada es otra.
           En «tú» porque le habla a quien todavía no tiene boda, no a la pareja. */}
-      <p className="mt-8 border-t border-sand pt-6 text-center font-body text-sm text-ink-muted">
+      <p className="mt-8 border-t border-linea pt-6 text-center text-sm text-tinta">
         {isEnglish ? "Don't have your panel yet? " : "¿Todavía no tienes tu panel? "}
         <Link
           href="/comenzar"
-          className="font-semibold text-azul-deep underline-offset-4 transition-colors hover:text-navy hover:underline"
+          className="font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
         >
           {isEnglish ? "Start for free" : "Empieza gratis"}
         </Link>
@@ -519,17 +529,18 @@ export function LoginForm({
 }
 
 /**
- * La «o» entre Google y el correo. En la serif y no en la de cuerpo:
- * Montserrat es geométrica y su "o" minúscula es un círculo perfecto, así que
- * sola entre dos rayas se lee como un símbolo y no como la palabra "o".
+ * La «o» entre Google y el correo. Antes iba en la serif porque la "o" de
+ * Montserrat era un círculo perfecto y, sola entre dos rayas, se leía como un
+ * símbolo. La de Work Sans es un óvalo y no un círculo: en Medium, a tamaño
+ * de texto, ya se lee como letra. El marcador queda para los titulares.
  */
 export function SeparadorO({ className = "" }: { className?: string }) {
   const { isEnglish } = useLanguage();
   return (
     <div className={`flex items-center gap-4 ${className}`} aria-hidden="true">
-      <span className="h-px flex-1 bg-sand" />
-      <span className="font-heading text-lg leading-none text-ink-muted">{isEnglish ? "or" : "o"}</span>
-      <span className="h-px flex-1 bg-sand" />
+      <span className="h-px flex-1 bg-linea" />
+      <span className="text-sm font-medium leading-none text-tinta">{isEnglish ? "or" : "o"}</span>
+      <span className="h-px flex-1 bg-linea" />
     </div>
   );
 }

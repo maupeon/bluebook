@@ -20,9 +20,14 @@ export const metadata: Metadata = {
 // presencial (lado a lado), qué tan fácil es empezar, quién está detrás,
 // cuánto cuesta, sus dudas y la decisión.
 // La página anterior del álbum digital vive en /album-digital.
+//
+// Los fondos alternan los dos papeles de la marca: papel azul (hero,
+// comparación, planner, preguntas) y niebla (el caos, todo en un lugar, los
+// pasos, los planes). Donde la sección es niebla, lo dibujado y los precios
+// van en tarjetas de papel azul; el cierre es una tarjeta niebla sobre papel.
 export default function Home() {
   return (
-    <div className="sb bg-paper">
+    <div className="bg-papel">
       <HomeHero />
       <ChaosToOrder />
       <AllInOne />

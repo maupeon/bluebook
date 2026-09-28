@@ -169,7 +169,7 @@ function CampoMonto({
     <div className="relative">
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-body text-sm text-ink-muted"
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-tinta"
       >
         $
       </span>
@@ -212,7 +212,7 @@ function CampoMonto({
           setEnFoco(false);
           confirmar(texto);
         }}
-        className="w-full rounded-xl border border-sand bg-white py-2.5 pl-7 pr-3 text-right font-body text-sm text-ink tabular-nums outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20 disabled:bg-bone disabled:text-ink-muted"
+        className="w-full rounded-xl border border-linea-control/70 bg-papel py-2.5 pl-7 pr-3 text-right text-sm text-noche tabular-nums outline-none transition-[border-color,box-shadow] duration-150 focus:border-noche focus:ring-2 focus:ring-noche/20 disabled:border-linea disabled:bg-transparent disabled:text-tinta"
       />
     </div>
   );
@@ -464,11 +464,11 @@ export function RepartoDelPresupuesto({
             ref={estadoRef}
             tabIndex={-1}
             role="status"
-            className={`max-w-[40ch] pt-1 font-body text-xs outline-none ${guardado === "error" && !bloqueado ? "text-terra-deep" : "text-ink-muted"}`}
+            className={`max-w-[40ch] pt-1 text-xs outline-none ${guardado === "error" && !bloqueado ? "text-error" : "text-tinta"}`}
           >
             {estadoGuardado}
             {bloqueado ? (
-              <Link href="/panel/plan" className={`ml-2 text-azul-deep underline underline-offset-4 hover:text-ink ${TOQUE}`}>
+              <Link href="/panel/plan" className={`ml-2 text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche ${TOQUE}`}>
                 {isEnglish ? "Choose a plan" : "Elegir plan"}
               </Link>
             ) : verReintentar ? (
@@ -480,7 +480,7 @@ export function RepartoDelPresupuesto({
                   setReintentando(true);
                   void guardar();
                 }}
-                className={`ml-2 text-azul-deep underline underline-offset-4 hover:text-ink aria-disabled:cursor-wait aria-disabled:opacity-60 ${TOQUE}`}
+                className={`ml-2 text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche aria-disabled:cursor-wait aria-disabled:opacity-60 ${TOQUE}`}
               >
                 {isEnglish ? "Try again" : "Reintentar"}
               </button>
@@ -488,14 +488,14 @@ export function RepartoDelPresupuesto({
           </p>
         </div>
 
-        <p className="mt-4 max-w-[62ch] font-body text-sm leading-relaxed text-ink-muted">
+        <p className="mt-4 max-w-[62ch] text-sm leading-relaxed text-tinta">
           {isEnglish
             ? "What we suggest sits inside the range Bodas.com.mx recommends for each part of the wedding. "
             : "Lo que sugerimos queda dentro del rango que Bodas.com.mx recomienda para cada parte de la boda. "}
           {empujadas ? (
             <>
               {isEnglish ? "Since you care most about " : "Como lo que más les importa es "}
-              <span className="text-ink">{empujadas}</span>
+              <span className="text-noche">{empujadas}</span>
               {isEnglish
                 ? ", that goes toward the top of its range (marked with a heart) and the rest stays closer to the bottom. "
                 : ", eso va hacia el tope de su rango (lo marcamos con un corazón) y lo demás se queda más cerca del mínimo. "}
@@ -507,18 +507,21 @@ export function RepartoDelPresupuesto({
         </p>
 
         {/* Las leyendas, una vez y no en cada renglón. Para lector de pantalla
-            sobran: cada barra dice su porcentaje y su rango. */}
-        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 font-body text-xs text-ink-muted" aria-hidden="true">
+            sobran: cada barra dice su porcentaje y su rango. Las categorías
+            no se distinguen por color: cada renglón lleva su nombre al lado.
+            El color sólo dice de quién es la cifra (tinta, lo sugerido; noche,
+            la suya), en tonos planos de la marca y sin degradados. */}
+        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-tinta" aria-hidden="true">
           <p className="flex items-center gap-2">
-            <span className="inline-block h-1.5 w-6 rounded-b-[2px] border-x-[1.5px] border-b-[1.5px] border-ink-muted" />
+            <span className="inline-block h-1.5 w-6 rounded-b-[2px] border-x-[1.5px] border-b-[1.5px] border-tinta" />
             {isEnglish ? "Recommended range" : "El rango recomendado"}
           </p>
           <p className="flex items-center gap-2">
-            <span className="inline-block h-2 w-6 rounded-full bg-azul" />
+            <span className="inline-block h-2 w-6 rounded-full bg-tinta" />
             {isEnglish ? "Suggested" : "Lo sugerido"}
           </p>
           <p className="flex items-center gap-2">
-            <span className="inline-block h-2 w-6 rounded-full bg-navy" />
+            <span className="inline-block h-2 w-6 rounded-full bg-noche" />
             {isEnglish ? "Your amount" : "Su cifra"}
           </p>
           <p>
@@ -528,7 +531,7 @@ export function RepartoDelPresupuesto({
           </p>
         </div>
         {personas != null ? (
-          <p className="mt-2 font-body text-xs text-ink-muted">
+          <p className="mt-2 text-xs text-tinta">
             {isEnglish
               ? `“Per guest” counts ${personas} ${personas === 1 ? "guest" : "guests"}${personasDeLaLista ? " from your list" : ", the ones you pictured"}.`
               : `«Por invitado» cuenta ${personas} ${personas === 1 ? "invitado" : "invitados"}${personasDeLaLista ? " de su lista" : ", los que imaginan"}.`}
@@ -536,7 +539,7 @@ export function RepartoDelPresupuesto({
         ) : null}
       </div>
 
-      <ul aria-label={isEnglish ? "Budget split by category" : "Reparto por categoría"} className="border-t border-sand">
+      <ul aria-label={isEnglish ? "Budget split by category" : "Reparto por categoría"} className="border-t border-linea">
         {categorias.map((r) => (
           <Renglon
             key={r.id}
@@ -589,7 +592,7 @@ export function RepartoDelPresupuesto({
         ))}
       </ul>
 
-      <div className="border-t border-sand px-6 py-5 sm:px-8 @2xl:px-10">
+      <div className="border-t border-linea px-6 py-5 sm:px-8 @2xl:px-10">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
             {puedeAgregar ? (
@@ -601,7 +604,7 @@ export function RepartoDelPresupuesto({
                   setNuevo(id);
                   setPlan((p) => agregar(p, id));
                 }}
-                className="inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm font-medium text-azul-deep underline-offset-4 hover:text-ink hover:underline"
+                className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
               >
                 <Plus className="h-4 w-4" strokeWidth={1.8} />
                 {isEnglish ? "Add something else" : "Agregar algo más"}
@@ -614,7 +617,7 @@ export function RepartoDelPresupuesto({
                   setPlan((p) => soltarTodas(p));
                   enfocar(() => botonAgregar.current ?? campos.current.values().next().value);
                 }}
-                className="inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+                className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
               >
                 <RotateCcw className="h-4 w-4" strokeWidth={1.6} />
                 {isEnglish ? "Everything back to the suggestion" : "Todo a lo sugerido"}
@@ -625,7 +628,7 @@ export function RepartoDelPresupuesto({
           <Cuadre reparto={reparto} isEnglish={isEnglish} />
         </div>
         {puedeAgregar ? (
-          <p className="mt-1 max-w-[62ch] font-body text-xs leading-relaxed text-ink-muted">
+          <p className="mt-1 max-w-[62ch] text-xs leading-relaxed text-tinta">
             {isEnglish
               ? "Rings and transport, which the guide leaves without a percentage, or the honeymoon: add them here if you'll pay for them."
               : "Anillos y transporte, que la guía deja sin porcentaje, o la luna de miel: agréguenlos aquí si los van a pagar."}
@@ -636,7 +639,7 @@ export function RepartoDelPresupuesto({
         </p>
 
         {contratado.sinCategoria.length > 0 ? (
-          <p className="mt-4 font-body text-xs leading-relaxed text-ink-muted">
+          <p className="mt-4 text-xs leading-relaxed text-tinta">
             {isEnglish ? "Also contracted, outside these categories: " : "También contratado, fuera de estas categorías: "}
             {contratado.sinCategoria.map((x, i) => (
               <span key={x.llave}>
@@ -648,10 +651,10 @@ export function RepartoDelPresupuesto({
           </p>
         ) : null}
 
-        <div className="mt-5 space-y-1 font-body text-[11px] leading-relaxed text-ink-muted">
+        <div className="mt-5 space-y-1 text-[11px] leading-relaxed text-tinta">
           <p>
             {isEnglish ? "Ranges: " : "Los rangos: "}
-            <a href={FUENTES.reparto.url} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+            <a href={FUENTES.reparto.url} target="_blank" rel="noopener" className="text-noche underline decoration-linea-control underline-offset-2 transition-[text-decoration-color] duration-150 hover:decoration-noche">
               {isEnglish ? FUENTES.reparto.en : FUENTES.reparto.es}
             </a>
             {isEnglish ? "; ceremony and unexpected costs: " : "; ceremonia e imprevistos: "}
@@ -659,7 +662,7 @@ export function RepartoDelPresupuesto({
               href={FUENTES.presupuestador.url}
               target="_blank"
               rel="noopener"
-              className="underline underline-offset-2 hover:text-ink"
+              className="text-noche underline decoration-linea-control underline-offset-2 transition-[text-decoration-color] duration-150 hover:decoration-noche"
             >
               {isEnglish ? FUENTES.presupuestador.en : FUENTES.presupuestador.es}
             </a>
@@ -697,7 +700,7 @@ function cuadreEnTexto(reparto: Reparto, isEnglish: boolean): string {
 function Cuadre({ reparto, isEnglish }: { reparto: Reparto; isEnglish: boolean }) {
   if (reparto.excedido > 0) {
     return (
-      <p className="max-w-[46ch] font-body text-sm text-terra-deep">
+      <p className="max-w-[46ch] text-sm text-error">
         {isEnglish ? (
           <>
             What you set goes over your budget by <strong className="tabular-nums">{pesos(reparto.excedido)}</strong>.
@@ -722,16 +725,16 @@ function Cuadre({ reparto, isEnglish }: { reparto: Reparto; isEnglish: boolean }
   }
   if (reparto.sinRepartir > 0) {
     return (
-      <p className="font-body text-sm text-ink">
+      <p className="text-sm text-noche">
         {isEnglish ? "Left unassigned: " : "Les quedan sin repartir "}
         <strong className="tabular-nums">{pesos(reparto.sinRepartir)}</strong>
       </p>
     );
   }
   return (
-    <p className="font-body text-sm text-ink-muted">
+    <p className="text-sm text-tinta">
       {isEnglish ? "All of it, split: " : "Repartido completo: "}
-      <span className="font-medium text-ink tabular-nums">{pesos(reparto.total)}</span>
+      <span className="font-medium text-noche tabular-nums">{pesos(reparto.total)}</span>
     </p>
   );
 }
@@ -816,16 +819,16 @@ function Renglon({
   const hayMeta = porPersona != null || contratado !== 0 || Boolean(c && r.aMano) || Boolean(c?.enlace);
 
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-x-4 gap-y-2 border-b border-sand-soft px-6 py-4 last:border-b-0 sm:px-8 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_4.5rem_9.5rem] @2xl:gap-y-1 @2xl:px-10">
+    <li className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-x-4 gap-y-2 border-b border-linea/60 px-6 py-4 last:border-b-0 sm:px-8 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_4.5rem_9.5rem] @2xl:gap-y-1 @2xl:px-10">
       {/* 1. El nombre (y lo que incluye) */}
       <div className="col-start-1 row-start-1 min-w-0 self-center">
         {c ? (
           <>
-            <p className="flex items-center gap-1.5 font-body text-[15px] font-medium text-ink">
+            <p className="flex items-center gap-1.5 text-[15px] font-medium text-noche">
               {nombre}
               {r.empujada ? (
                 <>
-                  <Heart aria-hidden="true" className="h-3.5 w-3.5 shrink-0 fill-azul text-azul" strokeWidth={1.6} />
+                  <Heart aria-hidden="true" className="h-3.5 w-3.5 shrink-0 fill-tinta text-tinta" strokeWidth={1.6} />
                   <span className="sr-only">
                     {isEnglish
                       ? ` (toward the top of its range, because of ${prioridadesEnFrase(seLeEmpuja, true)})`
@@ -835,7 +838,7 @@ function Renglon({
               ) : null}
             </p>
             {c.incluye ? (
-              <p className="font-body text-xs text-ink-muted">{isEnglish ? c.incluye.en : c.incluye.es}</p>
+              <p className="text-xs text-tinta">{isEnglish ? c.incluye.en : c.incluye.es}</p>
             ) : null}
           </>
         ) : (
@@ -849,14 +852,14 @@ function Renglon({
               onChange={(e) => onNombre?.(e.target.value)}
               placeholder={isEnglish ? "What is it?" : "¿Qué es?"}
               aria-label={isEnglish ? "What it is" : "Qué es"}
-              className="w-full min-w-0 border-b border-sand bg-transparent pb-1 font-body text-[15px] font-medium text-ink outline-none placeholder:font-normal placeholder:text-ink-muted focus:border-azul disabled:text-ink-muted"
+              className="w-full min-w-0 border-b border-linea-control/70 bg-transparent pb-1 text-[15px] font-medium text-noche outline-none transition-[border-color] duration-150 placeholder:font-normal focus:border-noche disabled:border-linea disabled:text-tinta"
             />
             {!soloLectura ? (
               <button
                 type="button"
                 onClick={onQuitar}
                 aria-label={isEnglish ? `Remove ${r.nombre || "this row"}` : `Quitar ${r.nombre || "este renglón"}`}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-bone hover:text-terra-deep"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-tinta transition-colors hover:bg-error-fondo hover:text-error"
               >
                 <Trash2 className="h-4 w-4" strokeWidth={1.6} />
               </button>
@@ -883,7 +886,7 @@ function Renglon({
       {hayMeta ? (
         <div
           id={idMeta}
-          className="col-span-2 row-start-2 flex flex-wrap gap-x-4 gap-y-1 font-body text-xs leading-relaxed text-ink-muted @2xl:col-span-1 @2xl:col-start-1"
+          className="col-span-2 row-start-2 flex flex-wrap gap-x-4 gap-y-1 text-xs leading-relaxed text-tinta @2xl:col-span-1 @2xl:col-start-1"
         >
           {porPersona != null ? (
             <span className="tabular-nums">
@@ -891,7 +894,7 @@ function Renglon({
             </span>
           ) : null}
           {contratado !== 0 ? (
-            <span className={excedeContrato ? "text-terra-deep" : undefined}>
+            <span className={excedeContrato ? "text-error" : undefined}>
               {isEnglish ? "Contracted " : "Contratado "}
               <span className="tabular-nums">{pesos(contratado)}</span>
               {excedeContrato
@@ -916,7 +919,7 @@ function Renglon({
             <button
               type="button"
               onClick={onSoltar}
-              className={`text-left text-azul-deep underline-offset-2 hover:text-ink hover:underline ${TOQUE}`}
+              className={`text-left text-noche underline decoration-linea-control underline-offset-2 transition-[text-decoration-color] duration-150 hover:decoration-noche ${TOQUE}`}
             >
               {isEnglish ? "Back to the suggestion" : "Volver a lo sugerido"}
             </button>
@@ -924,7 +927,7 @@ function Renglon({
           {c?.enlace ? (
             <Link
               href={c.enlace.href}
-              className={`text-azul-deep underline-offset-2 hover:text-ink hover:underline ${TOQUE}`}
+              className={`text-noche underline decoration-linea-control underline-offset-2 transition-[text-decoration-color] duration-150 hover:decoration-noche ${TOQUE}`}
             >
               {isEnglish ? c.enlace.en : c.enlace.es}
             </Link>
@@ -934,12 +937,13 @@ function Renglon({
 
       {/* 4. La barra: su parte del presupuesto, con el rango recomendado como
           corchete debajo (no detrás: detrás, la barra lo tapaba justo cuando
-          caía dentro). */}
+          caía dentro). Riel en papel azul, relleno plano en tinta (lo
+          sugerido) o en noche (su cifra). */}
       <div
         className={`col-span-2 ${hayMeta ? "row-start-3 @2xl:row-span-2" : "row-start-2"} @2xl:col-span-1 @2xl:col-start-2 @2xl:row-start-1 @2xl:self-center`}
       >
         <div
-          className="relative mb-2 h-2.5 w-full rounded-full bg-sand-soft"
+          className="relative mb-2 h-2.5 w-full rounded-full bg-papel"
           role="img"
           aria-label={
             rangoTexto
@@ -953,27 +957,27 @@ function Renglon({
         >
           <span
             aria-hidden="true"
-            className={`absolute inset-y-0 left-0 rounded-full ${r.aMano ? "bg-navy" : "bg-azul"}`}
+            className={`absolute inset-y-0 left-0 rounded-full ${r.aMano ? "bg-noche" : "bg-tinta"}`}
             style={{ width: `${enBarra(parte)}%` }}
           />
           {c ? (
             max > min ? (
               <span
                 aria-hidden="true"
-                className="absolute top-full mt-0.5 h-1.5 rounded-b-[2px] border-x-[1.5px] border-b-[1.5px] border-ink-muted"
+                className="absolute top-full mt-0.5 h-1.5 rounded-b-[2px] border-x-[1.5px] border-b-[1.5px] border-tinta"
                 style={{ left: `${enBarra(min)}%`, width: `${enBarra(max) - enBarra(min)}%` }}
               />
             ) : (
               // Un rango de una sola cifra (ceremonia, imprevistos) es una marca.
               <span
                 aria-hidden="true"
-                className="absolute top-full mt-0.5 h-1.5 w-[1.5px] bg-ink-muted"
+                className="absolute top-full mt-0.5 h-1.5 w-[1.5px] bg-tinta"
                 style={{ left: `${enBarra(min)}%` }}
               />
             )
           ) : null}
         </div>
-        <p aria-hidden="true" className="font-body text-[11px] text-ink-muted tabular-nums @2xl:hidden">
+        <p aria-hidden="true" className="text-[11px] text-tinta tabular-nums @2xl:hidden">
           {parteTexto}
         </p>
       </div>
@@ -983,8 +987,8 @@ function Renglon({
         aria-hidden="true"
         className={`hidden text-right @2xl:col-start-3 @2xl:row-start-1 @2xl:block @2xl:self-center ${hayMeta ? "@2xl:row-span-2" : ""}`}
       >
-        <p className="font-body text-xs text-ink tabular-nums">{porciento(parte)}</p>
-        {rangoTexto ? <p className="font-body text-[11px] text-ink-muted tabular-nums">{rangoTexto}</p> : null}
+        <p className="text-xs text-noche tabular-nums">{porciento(parte)}</p>
+        {rangoTexto ? <p className="text-[11px] text-tinta tabular-nums">{rangoTexto}</p> : null}
       </div>
 
       {/* 6. A todo lo ancho del renglón: en la columna del nombre quedaba en
@@ -992,7 +996,7 @@ function Renglon({
           cifra es de la Ciudad de México y la boda puede ser en otra parte. */}
       {referencia ? (
         <p
-          className={`col-span-2 ${hayMeta ? "row-start-4" : "row-start-3"} max-w-[70ch] font-body text-xs leading-relaxed text-ink-muted @2xl:col-span-4 @2xl:row-start-3`}
+          className={`col-span-2 ${hayMeta ? "row-start-4" : "row-start-3"} max-w-[70ch] text-xs leading-relaxed text-tinta @2xl:col-span-4 @2xl:row-start-3`}
         >
           {isEnglish
             ? "For reference: in Mexico City the wedding menu alone averages "
@@ -1001,7 +1005,7 @@ function Renglon({
             href={FUENTES[referencia.fuente].url}
             target="_blank"
             rel="noopener"
-            className={`underline underline-offset-2 hover:text-ink ${TOQUE}`}
+            className={`text-noche underline decoration-linea-control underline-offset-2 transition-[text-decoration-color] duration-150 hover:decoration-noche ${TOQUE}`}
           >
             {isEnglish ? `${pesos(referencia.monto)} per person` : `${pesos(referencia.monto)} por persona`}
           </a>

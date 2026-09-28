@@ -6,6 +6,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
+import { Titular } from "@/components/marca/Titular";
 import { SuPlan } from "@/components/panel/SuPlan";
 import { diaDeFinDePrueba } from "@/components/panel/PlanDePrueba";
 import { Watercolor } from "@/components/marketing/Watercolor";
@@ -31,8 +32,24 @@ export interface SugerenciaDeInvitados {
   origen: "estimado" | "lista";
 }
 
+// El botón principal de la marca: azul noche, uno por tarjeta. Responde al
+// presionar, no al soltar.
 const botonPrincipal =
-  "group inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-2.5 font-body text-sm font-medium text-white transition-[background-color,scale,opacity] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-60 sm:w-auto";
+  "group inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-full bg-noche px-5 py-2.5 text-sm font-medium text-niebla transition-[background-color,scale,opacity] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-60 disabled:hover:bg-noche disabled:active:scale-100 sm:w-auto";
+
+// El secundario: niebla con borde de campo.
+const botonSecundario =
+  "inline-flex min-h-[2.75rem] w-full items-center justify-center rounded-full border border-linea-control/60 bg-niebla px-5 py-2.5 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 sm:w-auto";
+
+// Terciario: noche con el subrayado en azul línea.
+const claseEnlace =
+  "text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche";
+
+// El precio de cada plan va en una franja de papel azul a todo lo ancho de la
+// tarjeta: la guía deja el papel azul para lo informativo y los precios. La
+// cifra, en Work Sans Light (nunca en marcador ni en script).
+const franjaDePrecio = "-mx-6 mt-5 border-y border-linea bg-papel px-6 py-5 sm:-mx-8 sm:px-8";
+const claseCifra = "text-5xl font-light leading-none text-noche tabular-nums";
 
 const flecha =
   "h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none";
@@ -42,10 +59,10 @@ const cifra = (n: number) => `$${n.toLocaleString("es-MX")}`;
 
 function Incluye({ cosas }: { cosas: string[] }) {
   return (
-    <ul className="mt-6 space-y-3 border-t border-sand pt-6">
+    <ul className="mt-6 space-y-3 border-t border-linea pt-6">
       {cosas.map((cosa) => (
-        <li key={cosa} className="flex gap-3 font-body text-sm leading-relaxed text-ink-soft">
-          <Check aria-hidden="true" className="mt-[3px] h-4 w-4 shrink-0 text-azul" strokeWidth={1.8} />
+        <li key={cosa} className="flex gap-3 text-sm leading-relaxed text-tinta">
+          <Check aria-hidden="true" className="mt-[3px] h-4 w-4 shrink-0 text-tinta" strokeWidth={1.8} />
           <span>{cosa}</span>
         </li>
       ))}
@@ -212,13 +229,14 @@ function ElegirPlan({
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your plan" : "Su plan"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          {/* El <em> no se inclina: dentro del titular cambia a tinta. */}
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
             {isEnglish ? "Choose how to " : "Elijan cómo "}
-            <em className="italic text-azul">{isEnglish ? "keep going" : "seguir"}</em>
-          </h1>
-          <p className="mt-4 max-w-2xl font-body text-sm leading-relaxed text-ink-muted">{intro}</p>
+            <em>{isEnglish ? "keep going" : "seguir"}</em>
+          </Titular>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-tinta">{intro}</p>
           {pagoEnCamino ? (
-            <p className="mt-5 max-w-2xl rounded-2xl bg-wash-soft px-5 py-4 font-body text-sm leading-relaxed text-ink">
+            <p className="mt-5 max-w-2xl rounded-2xl border border-linea bg-niebla px-5 py-4 text-sm leading-relaxed text-noche">
               {isEnglish
                 ? "If you already paid, it'll show up here in a few minutes. There's no need to pay again."
                 : "Si ya pagaron, en unos minutos se refleja aquí. No hace falta pagar otra vez."}
@@ -235,21 +253,16 @@ function ElegirPlan({
             className="panel-card flex h-full flex-col p-6 sm:p-8"
           >
             <Eyebrow>{isEnglish ? "Month to month" : "Mes con mes"}</Eyebrow>
-            <h2
-              id="plan-mensual"
-              className="mt-3 font-heading text-3xl font-medium tracking-[-0.015em] text-ink"
-            >
+            <h2 id="plan-mensual" className="mt-3 text-2xl font-medium text-noche">
               {isEnglish ? AGENT_PLAN.en.name : AGENT_PLAN.es.name}
             </h2>
-            <p className="mt-4 flex items-baseline gap-2">
-              <span className="font-heading text-5xl font-medium leading-none tracking-[-0.02em] text-ink tabular-nums">
-                {cifra(AGENT_PLAN.priceMxMonthly)}
-              </span>
-              <span className="font-body text-sm text-ink-muted">
-                {isEnglish ? "MXN a month" : "MXN al mes"}
-              </span>
-            </p>
-            <p className="mt-4 font-body text-sm leading-relaxed text-ink-muted">
+            <div className={franjaDePrecio}>
+              <p className="flex min-h-[3rem] items-baseline gap-2">
+                <span className={claseCifra}>{cifra(AGENT_PLAN.priceMxMonthly)}</span>
+                <span className="text-sm text-tinta">{isEnglish ? "MXN a month" : "MXN al mes"}</span>
+              </p>
+            </div>
+            <p className="mt-5 text-sm leading-relaxed text-tinta">
               {isEnglish
                 ? "For when you'd rather not carry it alone: a real person looking after your wedding with you."
                 : "Para no cargarla solos: una persona de verdad cuidando su boda con ustedes."}
@@ -288,7 +301,7 @@ function ElegirPlan({
                 {enviando === "planner" ? null : <ArrowRight aria-hidden="true" className={flecha} strokeWidth={1.6} />}
               </button>
               {error?.plan === "planner" ? (
-                <p role="alert" className="mt-3 font-body text-sm text-terra-deep">
+                <p role="alert" className="mt-3 text-sm text-error">
                   {error.texto}
                 </p>
               ) : null}
@@ -303,35 +316,30 @@ function ElegirPlan({
             className="panel-card flex h-full flex-col p-6 sm:p-8"
           >
             <Eyebrow>{isEnglish ? "One payment" : "Un solo pago"}</Eyebrow>
-            <h2
-              id="plan-invitaciones"
-              className="mt-3 font-heading text-3xl font-medium tracking-[-0.015em] text-ink"
-            >
+            <h2 id="plan-invitaciones" className="mt-3 text-2xl font-medium text-noche">
               {isEnglish ? "Invitations" : "Invitaciones"}
             </h2>
-            <p className="mt-4 flex min-h-[3rem] items-baseline gap-2" aria-live="polite">
-              {tramo?.priceMx != null ? (
-                <>
-                  <span className="font-heading text-5xl font-medium leading-none tracking-[-0.02em] text-ink tabular-nums">
-                    {cifra(tramo.priceMx)}
+            <div className={franjaDePrecio}>
+              <p className="flex min-h-[3rem] items-baseline gap-2" aria-live="polite">
+                {tramo?.priceMx != null ? (
+                  <>
+                    <span className={claseCifra}>{cifra(tramo.priceMx)}</span>
+                    <span className="text-sm text-tinta">{isEnglish ? "MXN, once" : "MXN, una vez"}</span>
+                  </>
+                ) : tramo ? (
+                  <span className="text-3xl font-light leading-none text-noche">
+                    {isEnglish ? "We'll quote it" : "Se los cotizamos"}
                   </span>
-                  <span className="font-body text-sm text-ink-muted">
-                    {isEnglish ? "MXN, once" : "MXN, una vez"}
+                ) : (
+                  <span className="text-sm text-tinta">
+                    {isEnglish ? "Depends on how many guests you'll have." : "Depende de cuántos invitados tengan."}
                   </span>
-                </>
-              ) : tramo ? (
-                <span className="font-heading text-3xl font-medium leading-none text-ink">
-                  {isEnglish ? "We'll quote it" : "Se los cotizamos"}
-                </span>
-              ) : (
-                <span className="font-body text-sm text-ink-muted">
-                  {isEnglish ? "Depends on how many guests you'll have." : "Depende de cuántos invitados tengan."}
-                </span>
-              )}
-            </p>
+                )}
+              </p>
+            </div>
 
             <fieldset className="mt-5">
-              <legend className="font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+              <legend className="text-[11px] font-medium uppercase tracking-[0.1em] text-tinta">
                 {isEnglish ? "How many guests" : "Cuántos invitados"}
               </legend>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -340,10 +348,12 @@ function ElegirPlan({
                   return (
                     <label
                       key={t.id}
-                      className={`inline-flex min-h-[2.75rem] cursor-pointer items-center rounded-full border px-4 font-body text-sm transition-[background-color,border-color,color] duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-azul/40 ${
+                      // Lo elegido se marca con borde noche (el anillo lo engruesa
+                      // sin mover nada), no con fondo oscuro.
+                      className={`inline-flex min-h-[2.75rem] cursor-pointer items-center rounded-full border px-4 text-sm transition-[background-color,border-color,color,box-shadow] duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-noche/40 ${
                         elegido
-                          ? "border-azul bg-wash text-ink"
-                          : "border-sand bg-white text-ink-soft hover:border-wash-deep hover:bg-wash-soft"
+                          ? "border-noche bg-papel text-noche ring-1 ring-noche"
+                          : "border-linea-control/60 bg-niebla text-tinta hover:border-linea-control hover:bg-papel-medio hover:text-noche"
                       }`}
                     >
                       <input
@@ -364,7 +374,7 @@ function ElegirPlan({
                 })}
               </div>
               {razonDelTramo ? (
-                <p className="mt-3 font-body text-xs text-ink-muted">{razonDelTramo}</p>
+                <p className="mt-3 text-xs text-tinta">{razonDelTramo}</p>
               ) : null}
             </fieldset>
 
@@ -390,7 +400,7 @@ function ElegirPlan({
               {cotizacionPedida ? (
                 <p
                   role="status"
-                  className="rounded-2xl bg-wash-soft px-5 py-4 font-body text-sm leading-relaxed text-ink"
+                  className="rounded-2xl bg-papel px-5 py-4 text-sm leading-relaxed text-noche"
                 >
                   {isEnglish
                     ? "Done. Our team will write to your email with the quote."
@@ -424,7 +434,7 @@ function ElegirPlan({
                 </button>
               )}
               {error?.plan === "invitations" ? (
-                <p role="alert" className="mt-3 font-body text-sm text-terra-deep">
+                <p role="alert" className="mt-3 text-sm text-error">
                   {error.texto}
                 </p>
               ) : null}
@@ -434,12 +444,12 @@ function ElegirPlan({
       </div>
 
       <Reveal app className="mt-8 mb-4">
-        <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-muted">
+        <p className="max-w-2xl text-xs leading-relaxed text-tinta">
           {!vencida ? `${isEnglish ? MENSAJE_ENVIO_EN_PRUEBA.en : MENSAJE_ENVIO_EN_PRUEBA.es} ` : null}
           {isEnglish
             ? "Payments go through Stripe. Questions before choosing? Write to us from the chat in "
             : "Los pagos se hacen en Stripe. ¿Dudas antes de elegir? Escríbannos desde el chat de "}
-          <Link href="/panel" className="font-semibold text-azul-deep underline underline-offset-4">
+          <Link href="/panel" className={`font-medium ${claseEnlace}`}>
             {isEnglish ? "Today" : "Hoy"}
           </Link>
           .
@@ -457,22 +467,25 @@ function Listo({ mensual, isEnglish }: { mensual: boolean; isEnglish: boolean })
       <Reveal app>
         <div className="panel-card overflow-hidden px-6 py-10 text-center sm:px-12 sm:py-14">
           <div className="relative mx-auto flex h-40 w-56 items-center justify-center">
-            <Watercolor className="absolute inset-0 h-full w-full" seed={mensual ? 9 : 5} />
+            {/* Papel azul detrás del dibujo, sobre la tarjeta niebla. */}
+            <Watercolor tone="papel" className="absolute inset-0 h-full w-full" seed={mensual ? 9 : 5} />
             {mensual ? (
-              <Rings className="relative h-28 w-auto text-line" />
+              <Rings className="relative h-28 w-auto text-tinta" />
             ) : (
-              <Envelopes className="relative h-32 w-auto text-line" />
+              <Envelopes className="relative h-32 w-auto text-tinta" />
             )}
-            <Sparkle className="absolute right-2 top-2 h-5 w-5 text-line" />
+            <Sparkle className="absolute right-2 top-2 h-5 w-5 text-tinta" />
           </div>
-          {/* La manuscrita, la única de la pantalla. Decorativa: el título se lee solo. */}
-          <p aria-hidden="true" className="mt-6 font-script text-[40px] leading-none text-line">
+          {/* La frase (Lazy Dog), la única de la pantalla: una nota junto al
+              dibujo. Decorativa: el titular se lee solo. */}
+          <p aria-hidden="true" className="frase mt-6 text-[40px] leading-none text-tinta">
             {isEnglish ? "all set" : "listo"}
           </p>
-          <h1 className="mt-2 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          {/* Pantalla de un solo foco: el titular va centrado. */}
+          <Titular as="h1" tamano="pantalla" className="mt-2">
             {isEnglish ? "Your plan is active" : "Su plan ya está activo"}
-          </h1>
-          <p className="mx-auto mt-4 max-w-md font-body text-sm leading-relaxed text-ink-muted">
+          </Titular>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-tinta">
             {mensual
               ? isEnglish
                 ? "Your whole panel stays open, and we'll assign your planner so she can write to you very soon. Everything you'd already added is right where you left it."
@@ -487,10 +500,7 @@ function Listo({ mensual, isEnglish }: { mensual: boolean; isEnglish: boolean })
               <ArrowRight aria-hidden="true" className={flecha} strokeWidth={1.6} />
             </Link>
             {!mensual ? (
-              <Link
-                href="/panel/invitacion"
-                className="inline-flex min-h-[2.75rem] w-full items-center justify-center rounded-full border border-sand bg-white px-5 py-2.5 font-body text-sm text-ink transition-[background-color,border-color,scale] duration-150 hover:border-wash-deep hover:bg-wash-soft active:scale-[0.98] sm:w-auto"
-              >
+              <Link href="/panel/invitacion" className={botonSecundario}>
                 {isEnglish ? "Go to the invitation" : "Ir a la invitación"}
               </Link>
             ) : null}
@@ -515,11 +525,12 @@ function YaTienenPlan({
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "Your plan" : "Su plan"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          {/* El <em> no se inclina: dentro del titular cambia a tinta. */}
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
             {isEnglish ? "You already have " : "Ya tienen "}
-            <em className="italic text-azul">{isEnglish ? "your plan" : "su plan"}</em>
-          </h1>
-          <p className="mt-4 max-w-2xl font-body text-sm leading-relaxed text-ink-muted">
+            <em>{isEnglish ? "your plan" : "su plan"}</em>
+          </Titular>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-tinta">
             {suscripcion
               ? isEnglish
                 ? "Your panel is fully open. Here you can see your monthly plan and its charges, change your card or cancel it."
@@ -538,7 +549,7 @@ function YaTienenPlan({
         <Reveal app className="mt-8">
           <Link
             href="/panel"
-            className="group inline-flex min-h-[2.75rem] items-center gap-2 font-body text-sm font-semibold text-azul-deep underline-offset-4 hover:underline"
+            className={`group inline-flex min-h-[2.75rem] items-center gap-2 text-sm font-medium ${claseEnlace}`}
           >
             {isEnglish ? "Back to Today" : "Volver a Hoy"}
             <ArrowRight aria-hidden="true" className={flecha} strokeWidth={1.6} />

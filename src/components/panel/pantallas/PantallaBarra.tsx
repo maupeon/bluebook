@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { AlertCircle, Download, Plus, RotateCcw, Trash2 } from "lucide-react";
 import type { PanelBundle } from "@/lib/couplePanel";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
+import { Titular } from "@/components/marca/Titular";
 import { formatLongDate } from "@/components/panel/dates";
 import { descargarArchivo } from "@/components/panel/descargarArchivo";
 import {
@@ -30,8 +31,10 @@ import { PRECIOS_CONSULTADOS, preciosDe, referenciaDe } from "@/lib/barraPrecios
 
 type Guardado = "guardado" | "pendiente" | "guardando" | "error";
 
+// Los campos van en papel azul dentro de la tarjeta niebla, con borde de
+// campo (3:1) y foco en azul noche.
 const inputClass =
-  "w-full rounded-xl border border-sand bg-white px-3 py-2.5 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20";
+  "w-full rounded-xl border border-linea-control/70 bg-papel px-3 py-2.5 text-sm text-noche outline-none transition-[border-color,box-shadow] duration-150 focus:border-noche focus:ring-2 focus:ring-noche/20";
 
 function pesos(n: number): string {
   return `$${n.toLocaleString("es-MX", { maximumFractionDigits: 2 })}`;
@@ -82,7 +85,7 @@ function CampoNumero({
   return (
     <div className={`relative ${className}`}>
       {prefijo ? (
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-body text-sm text-ink-muted">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-tinta">
           {prefijo}
         </span>
       ) : null}
@@ -301,11 +304,12 @@ export function PantallaBarra({
       <Reveal app>
         <header>
           <Eyebrow>{isEnglish ? "The bar" : "La barra"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          {/* El <em> no se inclina: dentro del titular cambia a tinta. */}
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
             {isEnglish ? "What to buy for " : "Qué comprar para "}
-            <em className="italic text-azul">{isEnglish ? "the bar" : "la barra"}</em>
-          </h1>
-          <p className="mt-4 max-w-2xl font-body text-sm leading-relaxed text-ink-muted">
+            <em>{isEnglish ? "the bar" : "la barra"}</em>
+          </Titular>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-tinta">
             {/* La receta es la tabla de una wedding planner real (lib/barra.ts).
                 Sin planner asignada, "su planner" le atribuía la receta a
                 alguien que la pareja no tiene. */}
@@ -324,7 +328,7 @@ export function PantallaBarra({
         <div className="panel-card p-6 sm:p-7">
           <label
             htmlFor="personas-barra"
-            className="block font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted"
+            className="block text-[11px] font-medium uppercase tracking-[0.1em] text-tinta"
           >
             {isEnglish ? "For how many people" : "Para cuánta gente"}
           </label>
@@ -342,9 +346,9 @@ export function PantallaBarra({
                   if (n > 0) ponerPersonas(n);
                 }}
                 onBlur={() => setTextoPersonas(String(personas))}
-                className="w-28 border-b border-sand bg-transparent pb-1 font-heading text-[34px] font-medium leading-none tracking-tight text-ink tabular-nums outline-none focus:border-azul"
+                className="w-28 border-b border-linea-control/70 bg-transparent pb-1 text-[34px] font-light leading-none text-noche tabular-nums outline-none transition-[border-color] duration-150 focus:border-noche"
               />
-              <span className="font-body text-base text-ink-soft">{isEnglish ? "people" : "personas"}</span>
+              <span className="text-base text-tinta">{isEnglish ? "people" : "personas"}</span>
             </p>
             <div className="flex flex-wrap gap-2 pb-1">
               {/* "Confirmados: 0" no es un punto de partida: con cero no sale. */}
@@ -353,8 +357,8 @@ export function PantallaBarra({
                   type="button"
                   onClick={() => ponerPersonas(confirmadas)}
                   aria-pressed={personas === confirmadas}
-                  className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
-                    personas === confirmadas ? "border-azul bg-wash-soft text-ink" : "border-sand bg-white text-ink-soft hover:bg-bone"
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+                    personas === confirmadas ? "border-noche bg-papel text-noche" : "border-linea bg-niebla text-tinta hover:border-linea-control hover:bg-papel-medio"
                   }`}
                 >
                   {isEnglish ? `Confirmed: ${confirmadas}` : `Confirmados: ${confirmadas}`}
@@ -365,8 +369,8 @@ export function PantallaBarra({
                   type="button"
                   onClick={() => ponerPersonas(estimados)}
                   aria-pressed={personas === estimados}
-                  className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
-                    personas === estimados ? "border-azul bg-wash-soft text-ink" : "border-sand bg-white text-ink-soft hover:bg-bone"
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+                    personas === estimados ? "border-noche bg-papel text-noche" : "border-linea bg-niebla text-tinta hover:border-linea-control hover:bg-papel-medio"
                   }`}
                 >
                   {isEnglish ? `What you pictured: ${estimados}` : `Los que imaginan: ${estimados}`}
@@ -377,8 +381,8 @@ export function PantallaBarra({
                   type="button"
                   onClick={() => ponerPersonas(maximo)}
                   aria-pressed={personas === maximo}
-                  className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
-                    personas === maximo ? "border-azul bg-wash-soft text-ink" : "border-sand bg-white text-ink-soft hover:bg-bone"
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+                    personas === maximo ? "border-noche bg-papel text-noche" : "border-linea bg-niebla text-tinta hover:border-linea-control hover:bg-papel-medio"
                   }`}
                 >
                   {isEnglish ? `If everyone says yes: ${maximo}` : `Si todos dicen que sí: ${maximo}`}
@@ -390,9 +394,9 @@ export function PantallaBarra({
           {/* El aviso de que el número va a subir va ARRIBA, pegado a la cifra
               que afecta, no en letra chica al final de la pantalla. */}
           {faltanPorContestar > 0 ? (
-            <div className="mt-4 flex gap-3 rounded-xl border border-pale-yellow bg-pale-yellow/40 p-4">
-              <AlertCircle className="h-[18px] w-[18px] shrink-0 text-pale-yellow-ink" strokeWidth={1.7} />
-              <p className="min-w-0 font-body text-[13px] leading-relaxed text-ink">
+            <div className="mt-4 flex gap-3 rounded-xl border border-aviso/20 bg-aviso-fondo p-4">
+              <AlertCircle className="h-[18px] w-[18px] shrink-0 text-aviso" strokeWidth={1.7} />
+              <p className="min-w-0 text-[13px] leading-relaxed text-noche">
                 {isEnglish
                   ? `${faltanPorContestar} ${faltanPorContestar === 1 ? "group hasn't" : "groups haven't"} replied yet, so the confirmed count can only go up. Buying for today's number means coming up short.`
                   : `${faltanPorContestar === 1 ? "Falta 1 grupo" : `Faltan ${faltanPorContestar} grupos`} por contestar, así que los confirmados sólo pueden subir. Surtir para el conteo de hoy es quedarse corto.`}
@@ -409,11 +413,14 @@ export function PantallaBarra({
             onChange={(e) => ponerPersonas(Number(e.target.value))}
             aria-label={isEnglish ? "People" : "Personas"}
             aria-valuetext={isEnglish ? `${personas} people` : `${personas} personas`}
-            className="mt-4 h-11 w-full cursor-pointer accent-azul"
+            // El slider de la marca (globals.css): riel en tinta hasta el valor
+            // y azul línea después, pulgar azul noche. Igual que el del onboarding.
+            className="range-blue mt-4 w-full"
+            style={{ "--fill": `${Math.max(0, Math.min(100, ((Math.min(personas, 700) - 20) / 680) * 100))}%` } as CSSProperties}
           />
 
           {fuera && tipo === "completa" ? (
-            <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+            <p className="mt-2 text-xs leading-relaxed text-tinta">
               {isEnglish
                 ? `Heads up: your number is outside the ${RANGO_TABLA.min}–${RANGO_TABLA.max} range the original table covers, so the suggestion is an extrapolation. ${conPlanner ? "Check it with your planner." : "Check it with whoever sells it to you."}`
                 : `Ojo: su número queda fuera del rango de ${RANGO_TABLA.min} a ${RANGO_TABLA.max} que cubre la tabla original, así que lo sugerido es una extrapolación. ${conPlanner ? "Confírmenlo con su planner." : "Confírmenlo con quien se la venda."}`}
@@ -421,7 +428,7 @@ export function PantallaBarra({
           ) : null}
 
           <fieldset className="mt-6">
-            <legend className="font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            <legend className="text-[11px] font-medium uppercase tracking-[0.1em] text-tinta">
               {isEnglish ? "What you're serving" : "Qué van a servir"}
             </legend>
             {/* Sólo dos opciones. Había una tercera, "vino y cerveza", que
@@ -442,8 +449,10 @@ export function PantallaBarra({
                   role="radio"
                   aria-checked={tipo === o.valor}
                   onClick={() => setPlan((p) => ({ ...p, tipo: o.valor }))}
-                  className={`min-h-[2.75rem] rounded-full border px-4 py-2 font-body text-sm transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] ${
-                    tipo === o.valor ? "border-ink bg-ink text-white" : "border-sand bg-white text-ink-soft hover:bg-bone"
+                  className={`min-h-[2.75rem] rounded-full border px-4 py-2 text-sm transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+                    tipo === o.valor
+                      ? "border-noche bg-noche text-niebla"
+                      : "border-linea-control/60 bg-niebla text-noche hover:border-linea-control hover:bg-papel-medio"
                   }`}
                 >
                   {o.texto}
@@ -456,19 +465,19 @@ export function PantallaBarra({
 
       <Reveal app className="mt-8">
         <div className="panel-card overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sand px-5 py-4 sm:px-7">
-            <h2 className="font-heading text-2xl font-medium tracking-[-0.015em] text-ink">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linea px-5 py-4 sm:px-7">
+            <h2 className="text-xl font-medium text-noche">
               {isEnglish ? "Your shopping list" : "Su lista de compra"}
             </h2>
             <p
               role="status"
-              className={`font-body text-xs ${guardado === "error" ? "text-terra-deep" : "text-ink-muted"}`}
+              className={`text-xs ${guardado === "error" ? "text-error" : "text-tinta"}`}
             >
               {estadoGuardado}
               {soloLectura ? (
                 <Link
                   href="/panel/plan"
-                  className="ml-2 text-azul-deep underline underline-offset-4 hover:text-ink"
+                  className="ml-2 text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
                 >
                   {isEnglish ? "Choose a plan" : "Elegir plan"}
                 </Link>
@@ -476,7 +485,7 @@ export function PantallaBarra({
                 <button
                   type="button"
                   onClick={() => void guardar()}
-                  className="ml-2 text-azul-deep underline underline-offset-4 hover:text-ink"
+                  className="ml-2 text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
                 >
                   {isEnglish ? "Try again" : "Reintentar"}
                 </button>
@@ -485,7 +494,7 @@ export function PantallaBarra({
           </div>
 
           {/* Encabezados de columna, sólo donde las columnas existen. */}
-          <div className="hidden grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)_7.5rem_8rem_7.5rem_2.25rem] gap-4 border-b border-sand-soft px-7 py-2.5 font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted lg:grid">
+          <div className="hidden grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)_7.5rem_8rem_7.5rem_2.25rem] gap-4 border-b border-linea/60 px-7 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-tinta lg:grid">
             <span>{isEnglish ? "Drink" : "Bebida"}</span>
             <span>{isEnglish ? "Brand" : "Marca"}</span>
             <span className="text-right">{isEnglish ? "Amount" : "Cantidad"}</span>
@@ -521,21 +530,21 @@ export function PantallaBarra({
           </ul>
 
           {tipo === "sin_alcohol" && agregadas.length === 0 ? (
-            <p className="px-5 py-6 font-body text-sm leading-relaxed text-ink-muted sm:px-7">
+            <p className="px-5 py-6 text-sm leading-relaxed text-tinta sm:px-7">
               {isEnglish
                 ? "Without alcohol there's no recipe to suggest from. Add what you'll buy: soft drinks, water, ice."
                 : "Sin alcohol no hay receta de la cual sugerir. Agreguen lo que vayan a comprar: refrescos, agua, hielo."}
             </p>
           ) : null}
 
-          <div className="flex flex-wrap items-center gap-2 border-t border-sand-soft px-5 py-4 sm:px-7">
-            <span className="mr-1 font-body text-xs text-ink-muted">{isEnglish ? "Add:" : "Agregar:"}</span>
+          <div className="flex flex-wrap items-center gap-2 border-t border-linea/60 px-5 py-4 sm:px-7">
+            <span className="mr-1 text-xs text-tinta">{isEnglish ? "Add:" : "Agregar:"}</span>
             {RAPIDOS.map((r) => (
               <button
                 key={r.es}
                 type="button"
                 onClick={() => agregarLinea(isEnglish ? r.en : r.es, r.unidad)}
-                className="rounded-full border border-sand bg-white px-3 py-1.5 font-body text-xs text-ink-soft transition-colors hover:border-wash-deep hover:bg-wash-soft"
+                className="rounded-full border border-linea-control/60 bg-niebla px-3 py-1.5 text-xs text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
               >
                 {isEnglish ? r.en : r.es}
               </button>
@@ -543,24 +552,26 @@ export function PantallaBarra({
             <button
               type="button"
               onClick={() => agregarLinea()}
-              className="inline-flex items-center gap-1 rounded-full border border-sand bg-white px-3 py-1.5 font-body text-xs text-ink-soft transition-colors hover:border-wash-deep hover:bg-wash-soft"
+              className="inline-flex items-center gap-1 rounded-full border border-linea-control/60 bg-niebla px-3 py-1.5 text-xs text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={1.8} />
               {isEnglish ? "Something else" : "Otra cosa"}
             </button>
           </div>
 
-          <div className="flex flex-wrap items-end justify-between gap-6 border-t border-sand bg-bone px-5 py-6 sm:px-7">
+          {/* El total va sobre papel azul, el fondo de los precios, y en Work
+              Sans Light: la cifra grande se lee como los numerales de Apple. */}
+          <div className="flex flex-wrap items-end justify-between gap-6 border-t border-linea bg-papel px-5 py-6 sm:px-7">
             <div>
-              <p className="font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+              <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-tinta">
                 {isEnglish ? "Estimated total" : "Total estimado"}
               </p>
-              <p className="mt-1.5 font-heading text-4xl font-medium tracking-tight text-ink tabular-nums">
+              <p className="mt-1.5 text-4xl font-light text-noche tabular-nums">
                 {pesos(total)}{" "}
-                <span className="font-body text-sm font-normal tracking-[0.08em] text-ink-muted">MXN</span>
+                <span className="text-sm font-normal tracking-[0.08em] text-tinta">MXN</span>
               </p>
               {sinPrecio > 0 ? (
-                <p className="mt-1 font-body text-xs text-ink-muted">
+                <p className="mt-1 text-xs text-tinta">
                   {isEnglish
                     ? `${sinPrecio} ${sinPrecio === 1 ? "item" : "items"} still without a price.`
                     : `${sinPrecio === 1 ? "Falta el precio de 1 renglón" : `Faltan los precios de ${sinPrecio} renglones`}.`}
@@ -572,7 +583,7 @@ export function PantallaBarra({
                 <button
                   type="button"
                   onClick={todoALoSugerido}
-                  className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-sand bg-white px-4 py-2 font-body text-sm text-ink transition-colors hover:bg-wash-soft"
+                  className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-linea-control/60 bg-niebla px-4 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
                 >
                   <RotateCcw className="h-4 w-4" strokeWidth={1.6} />
                   {isEnglish ? "Back to suggested amounts" : "Volver a lo sugerido"}
@@ -582,14 +593,14 @@ export function PantallaBarra({
                 type="button"
                 onClick={descargar}
                 disabled={bajando}
-                className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-ink bg-ink px-5 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:opacity-60"
+                className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-full bg-noche px-5 py-2 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:opacity-60 disabled:hover:bg-noche disabled:active:scale-100"
               >
                 <Download className="h-4 w-4" strokeWidth={1.6} />
                 {bajando ? (isEnglish ? "Preparing…" : "Armándolo…") : isEnglish ? "Download Excel" : "Descargar Excel"}
               </button>
             </div>
             {errorDescarga ? (
-              <p role="alert" className="w-full font-body text-sm text-terra-deep">
+              <p role="alert" className="w-full text-sm text-error">
                 {errorDescarga}
               </p>
             ) : null}
@@ -598,7 +609,7 @@ export function PantallaBarra({
       </Reveal>
 
       <Reveal app className="mt-6 mb-4">
-        <div className="max-w-2xl space-y-2 font-body text-xs leading-relaxed text-ink-muted">
+        <div className="max-w-2xl space-y-2 text-xs leading-relaxed text-tinta">
           <p>
             {isEnglish
               ? `Reference prices come from stores in Mexico City, checked on ${formatLongDate(PRECIOS_CONSULTADOS, true)}. They change often and vary by store: put in the price from your own quote.`
@@ -653,11 +664,11 @@ function RenglonBarra({
   const valorSelect = ref ? `${ref.marca}|${ref.ml}` : otra || l.marca ? "otra" : "";
 
   return (
-    <li className="grid grid-cols-2 gap-x-3 gap-y-3 border-b border-sand-soft px-5 py-4 last:border-b-0 sm:px-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)_7.5rem_8rem_7.5rem_2.25rem] lg:items-start lg:gap-4">
+    <li className="grid grid-cols-2 gap-x-3 gap-y-3 border-b border-linea/60 px-5 py-4 last:border-b-0 sm:px-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)_7.5rem_8rem_7.5rem_2.25rem] lg:items-start lg:gap-4">
       {/* Bebida */}
       <div className="min-w-0 lg:pt-2">
         {l.clave ? (
-          <p className="font-body text-sm font-medium text-ink">{isEnglish ? recetaDe(l.clave).en : l.bebida}</p>
+          <p className="text-sm font-medium text-noche">{isEnglish ? recetaDe(l.clave).en : l.bebida}</p>
         ) : (
           <input
             type="text"
@@ -670,7 +681,7 @@ function RenglonBarra({
           />
         )}
         {sug != null ? (
-          <p className="mt-1 font-body text-xs text-ink-muted">
+          <p className="mt-1 text-xs text-tinta">
             {isEnglish ? "Suggested: " : "Sugerido: "}
             <span className="tabular-nums">
               {l.unidad === "botella" ? enCajas(sug, isEnglish) : `${sug} ${unidad}`}
@@ -681,7 +692,7 @@ function RenglonBarra({
                 <button
                   type="button"
                   onClick={() => onCambio({ cantidad: sug, aMano: false })}
-                  className="text-azul-deep underline-offset-4 hover:text-ink hover:underline"
+                  className="text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
                 >
                   {isEnglish ? "use it" : "usarlo"}
                 </button>
@@ -692,8 +703,8 @@ function RenglonBarra({
       </div>
 
       {/* Subtotal (en el teléfono va arriba, junto a la bebida) */}
-      <p className="text-right font-body text-sm font-medium text-ink tabular-nums lg:order-5 lg:pt-2.5">
-        {s == null ? <span className="text-ink-muted">—</span> : pesos(s)}
+      <p className="text-right text-sm font-medium text-noche tabular-nums lg:order-5 lg:pt-2.5">
+        {s == null ? <span className="text-tinta">—</span> : pesos(s)}
       </p>
 
       {/* Marca */}
@@ -739,13 +750,13 @@ function RenglonBarra({
           />
         ) : null}
         {ref ? (
-          <p className="mt-1 font-body text-[11px] text-ink-muted">
+          <p className="mt-1 text-[11px] text-tinta">
             {isEnglish ? "Reference: " : "Referencia: "}
             <a
               href={ref.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-azul-deep underline-offset-4 hover:text-ink hover:underline"
+              className="text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
             >
               {ref.tienda}
             </a>
@@ -761,7 +772,7 @@ function RenglonBarra({
           etiqueta={isEnglish ? `Amount of ${nombre}` : `Cantidad de ${nombre}`}
         />
         {l.clave ? (
-          <p className="mt-1 text-right font-body text-[11px] text-ink-muted">{unidad}</p>
+          <p className="mt-1 text-right text-[11px] text-tinta">{unidad}</p>
         ) : (
           <input
             type="text"
@@ -770,7 +781,7 @@ function RenglonBarra({
             onChange={(e) => onCambio({ unidad: e.target.value })}
             placeholder={isEnglish ? "unit" : "unidad"}
             aria-label={isEnglish ? `Unit of ${nombre}` : `Unidad de ${nombre}`}
-            className="mt-1 w-full bg-transparent text-right font-body text-[11px] text-ink-muted outline-none placeholder:text-ink-soft/60 focus:text-ink"
+            className="mt-1 w-full rounded-sm bg-transparent text-right text-[11px] text-tinta focus:text-noche"
           />
         )}
       </div>
@@ -788,7 +799,7 @@ function RenglonBarra({
           <button
             type="button"
             onClick={() => onCambio({ precio: ref.precio })}
-            className="mt-1 block w-full text-right font-body text-[11px] text-azul-deep underline-offset-4 hover:text-ink hover:underline"
+            className="mt-1 block w-full text-right text-[11px] text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] duration-150 hover:decoration-noche"
           >
             {isEnglish ? `Reference ${pesos(ref.precio)}` : `Referencia ${pesos(ref.precio)}`}
           </button>
@@ -803,7 +814,7 @@ function RenglonBarra({
             type="button"
             onClick={onQuitar}
             aria-label={isEnglish ? `Remove ${nombre}` : `Quitar ${nombre}`}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-terra-light hover:text-terra-deep"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-tinta transition-colors hover:bg-error-fondo hover:text-error"
           >
             <Trash2 className="h-4 w-4" strokeWidth={1.5} />
           </button>

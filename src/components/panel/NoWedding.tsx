@@ -7,6 +7,7 @@ import { CONTACT_INFO } from "@/lib/language";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { PlannerBook } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
+import { Titular } from "@/components/marca/Titular";
 
 /**
  * Una sesión sin boda: entró con un correo que no tiene ninguna.
@@ -22,6 +23,11 @@ import { Watercolor } from "@/components/marketing/Watercolor";
  *
  * Habla de «tú», como el onboarding: todavía no hay una boda compartida con
  * nadie, es la conversación con quien se registra.
+ *
+ * Es una pantalla de un solo foco, así que el titular va centrado, y a tamaño
+ * de hoja porque vive dentro de una tarjeta de 36rem: a tamaño de pantalla,
+ * en un teléfono de 375px, «Tu boda todavía no está aquí» pasaba de dos
+ * líneas.
  */
 export function NoWedding({ email }: { email?: string | null }) {
   const { isEnglish } = useLanguage();
@@ -30,14 +36,14 @@ export function NoWedding({ email }: { email?: string | null }) {
     <div className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-xl panel-card px-6 py-10 text-center sm:px-10">
         <div aria-hidden="true" className="relative mx-auto h-28 w-44">
-          <Watercolor tone="wash" seed={5} className="absolute -left-4 -top-4 h-[calc(100%+2rem)] w-[calc(100%+2rem)]" />
-          <PlannerBook className="relative h-full w-full text-line" />
+          <Watercolor seed={5} className="absolute -left-4 -top-4 h-[calc(100%+2rem)] w-[calc(100%+2rem)]" />
+          <PlannerBook className="relative h-full w-full text-tinta" />
         </div>
 
-        <h1 className="mt-6 font-heading text-3xl font-medium tracking-[-0.015em] text-ink md:text-4xl">
+        <Titular as="h1" tamano="hoja" className="mt-6">
           {isEnglish ? "Your wedding isn't here yet" : "Tu boda todavía no está aquí"}
-        </h1>
-        <p className="mx-auto mt-4 max-w-[44ch] font-body text-sm leading-relaxed text-ink-muted">
+        </Titular>
+        <p className="mx-auto mt-4 max-w-[44ch] text-sm leading-relaxed text-tinta">
           {isEnglish
             ? `Tell us about it in a couple of minutes and your panel is ready right away: ${DIAS_DE_PRUEBA} days free, no card.`
             : `Cuéntanos de ella en un par de minutos y tu panel queda listo al momento: ${DIAS_DE_PRUEBA} días gratis, sin tarjeta.`}
@@ -45,23 +51,23 @@ export function NoWedding({ email }: { email?: string | null }) {
 
         <Link
           href="/comenzar"
-          className="mt-8 inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full bg-navy px-7 py-3.5 font-body text-sm font-semibold text-white transition-[background-color,scale] duration-150 hover:bg-navy-soft active:scale-[0.98]"
+          className="mt-8 inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-full bg-noche px-7 py-3.5 text-sm font-medium text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
         >
           {isEnglish ? "Start your free trial" : "Empieza tu prueba gratis"}
           <ArrowRight className="h-4 w-4" strokeWidth={1.6} />
         </Link>
 
         {/* Lo secundario: las causas de antes, para quien sí tiene boda. */}
-        <div className="mx-auto mt-10 max-w-[44ch] border-t border-sand pt-6">
-          <p className="font-body text-sm leading-relaxed text-ink-muted">
+        <div className="mx-auto mt-10 max-w-[44ch] border-t border-linea pt-6">
+          <p className="text-sm leading-relaxed text-tinta">
             {isEnglish
               ? "Already started or paid? Sign in with the email you used then. If you asked for a quote, your wedding shows up here once it's confirmed."
               : "¿Ya la empezaste o ya pagaste? Entra con el correo que usaste entonces. Si pediste cotización, tu boda aparece aquí en cuanto se confirme."}
           </p>
           {email ? (
-            <p className="mt-3 font-body text-sm leading-relaxed text-ink-soft">
+            <p className="mt-3 text-sm leading-relaxed text-tinta">
               {isEnglish ? "You're signed in as " : "Entraste como "}
-              <span className="break-all font-medium text-ink">{email}</span>.
+              <span className="break-all font-medium text-noche">{email}</span>.
             </p>
           ) : null}
 
@@ -72,7 +78,7 @@ export function NoWedding({ email }: { email?: string | null }) {
             <form action="/auth/signout?a=acceso" method="post">
               <button
                 type="submit"
-                className="min-h-[2.75rem] font-body text-sm font-medium text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+                className="min-h-[2.75rem] text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
               >
                 {isEnglish ? "Sign in with another email" : "Entrar con otro correo"}
               </button>
@@ -81,7 +87,7 @@ export function NoWedding({ email }: { email?: string | null }) {
               href={CONTACT_INFO.whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[2.75rem] items-center gap-1.5 font-body text-sm font-medium text-azul-deep underline-offset-4 transition-colors hover:text-ink hover:underline"
+              className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
             >
               {isEnglish ? "Write to the team" : "Escribirle al equipo"}
               <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} />

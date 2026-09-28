@@ -79,9 +79,12 @@ export function Steps() {
   const { isEnglish: en } = useLanguage();
 
   return (
-    <section id="como-funciona" className="scroll-mt-16 bg-white py-24 md:py-32">
+    // La sección va en niebla para alternar con sus vecinas (la comparación y
+    // la planner van en papel); los pasos mismos, con su dibujo, van en
+    // tarjetas de papel azul, que es el papel de lo dibujado y de los pasos.
+    <section id="como-funciona" className="scroll-mt-16 bg-niebla py-24 md:py-32">
       <Container>
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl text-center">
           <Reveal>
             <Eyebrow>{en ? "How it works" : "Cómo funciona"}</Eyebrow>
           </Reveal>
@@ -105,14 +108,18 @@ export function Steps() {
             const copy = en ? english : es;
             return (
               <Reveal as="li" key={es.title} delay={i * 100}>
-                <div className="relative flex h-full flex-col overflow-hidden rounded-3xl bg-paper p-6 sm:p-8 lg:p-6">
+                <div className="relative flex h-full flex-col overflow-hidden rounded-3xl bg-papel p-6 sm:p-8 lg:p-6">
                   <div className="relative flex h-44 items-center justify-center">
-                    <Watercolor className="absolute inset-0 h-full w-full" seed={i * 4 + 1} />
-                    <Art className="relative h-36 w-auto max-w-[80%] text-line" />
+                    <Watercolor className="absolute inset-0 h-full w-full" tone="linea" opacity={0.55} seed={i * 4 + 1} />
+                    <Art className="relative h-36 w-auto max-w-[80%] text-tinta" />
                   </div>
-                  <p className="mt-6 font-script text-[34px] leading-none text-azul">{i + 1}.</p>
-                  <h3 className="mt-1 font-heading text-2xl font-medium tracking-[-0.01em] text-navy">{copy.title}</h3>
-                  <p className="mt-2 font-body text-sm leading-relaxed text-navy-muted">{copy.body}</p>
+                  {/* El número era script, y el script nunca va en listas: el
+                      paso lleva el marcador, que es la otra letra a mano. */}
+                  <p className="mt-6 font-marcador text-[34px] leading-none text-tinta">
+                    {i + 1}.
+                  </p>
+                  <h3 className="mt-2 text-xl font-medium text-noche">{copy.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-tinta">{copy.body}</p>
                 </div>
               </Reveal>
             );

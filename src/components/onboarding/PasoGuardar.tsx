@@ -15,7 +15,7 @@ import {
   useCodigoPorCorreo,
 } from "@/components/panel/LoginForm";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
-import { BOTON_PRIMARIO, BOTON_SECUNDARIO } from "./pasos";
+import { BOTON_PRIMARIO, BOTON_SECUNDARIO, TituloDePantalla } from "./pasos";
 
 /**
  * A dónde vuelve quien entra con Google (o con el enlace del correo en esta
@@ -30,7 +30,7 @@ function Spinner({ claro = true }: { claro?: boolean }) {
     <span
       aria-hidden="true"
       className={`h-4 w-4 animate-spin rounded-full border-2 ${
-        claro ? "border-white/30 border-t-white" : "border-navy/20 border-t-navy"
+        claro ? "border-niebla/30 border-t-niebla" : "border-noche/20 border-t-noche"
       }`}
     />
   );
@@ -38,8 +38,8 @@ function Spinner({ claro = true }: { claro?: boolean }) {
 
 function AvisoDeError({ children }: { children: string }) {
   return (
-    <div role="alert" className="mt-6 rounded-xl bg-terra-light px-4 py-3">
-      <p className="font-body text-sm leading-relaxed text-terra-deep">{children}</p>
+    <div role="alert" className="mx-auto mt-6 w-full max-w-md rounded-xl bg-error-fondo px-4 py-3 text-center">
+      <p className="text-sm leading-relaxed text-error">{children}</p>
     </div>
   );
 }
@@ -50,6 +50,10 @@ function AvisoDeError({ children }: { children: string }) {
  *  - Google: sale y vuelve a RUTA_DE_VUELTA (las respuestas esperan en sessionStorage).
  *  - código por correo: los dos pasos de /acceso, en esta misma pantalla. Al
  *    verificar ya hay sesión y se guarda sin salir de aquí.
+ *
+ * Como las preguntas, va centrado: el titular, la entrada y una columna de
+ * max-w-md con los botones a lo ancho. El aviso de privacidad se queda a la
+ * izquierda: son seis renglones de letra chica y centrados no se leen.
  */
 export function PasoGuardar({
   tituloRef,
@@ -125,16 +129,12 @@ export function PasoGuardar({
 
   return (
     <div className="flex flex-1 flex-col">
-      <h1
-        ref={tituloRef}
-        tabIndex={-1}
-        className="font-heading text-[2.35rem] font-medium leading-[1.05] tracking-[-0.02em] text-navy text-balance outline-none sm:text-5xl"
-      >
+      <TituloDePantalla tituloRef={tituloRef}>
         {isEnglish
           ? `Your ${DIAS_DE_PRUEBA}-day trial starts today.`
           : `Tu prueba de ${DIAS_DE_PRUEBA} días empieza hoy.`}
-      </h1>
-      <p className="mt-4 max-w-[46ch] font-body text-[15px] leading-relaxed text-navy-muted text-pretty">
+      </TituloDePantalla>
+      <p className="mx-auto mt-4 max-w-[46ch] text-center text-[15px] leading-relaxed text-tinta text-pretty">
         {isEnglish
           ? "No card. Save your wedding and step into your panel: everything you told me is waiting there."
           : "Sin tarjeta. Guarda tu boda y entra a tu panel: ahí te espera todo lo que me contaste."}
@@ -142,9 +142,9 @@ export function PasoGuardar({
 
       {error ? <AvisoDeError>{error}</AvisoDeError> : null}
 
-      <div className="mt-9 max-w-md">
+      <div className="mx-auto mt-9 w-full max-w-md">
         <CasillaDeTerminos
-          className="mb-6"
+          className="mb-6 justify-center"
           aceptada={aceptaTerminos}
           alCambiar={alAceptarTerminos}
           isEnglish={isEnglish}
@@ -163,14 +163,14 @@ export function PasoGuardar({
                 "Guardar y entrar"
               )}
             </button>
-            <p className="mt-4 font-body text-sm leading-relaxed text-navy-muted">
+            <p className="mt-4 text-center text-sm leading-relaxed text-tinta">
               {isEnglish ? "It's saved with " : "Se guarda con "}
-              <span className="font-medium text-navy">{correoDeSesion}</span>.{" "}
+              <span className="font-medium text-noche">{correoDeSesion}</span>.{" "}
               <button
                 type="button"
                 onClick={noSoyYo}
                 disabled={ocupado}
-                className="inline-flex min-h-[44px] items-center font-medium text-azul-deep underline-offset-4 hover:text-navy hover:underline disabled:opacity-50"
+                className="inline-flex min-h-[44px] items-center font-medium text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] hover:decoration-noche disabled:opacity-50"
               >
                 {isEnglish ? "Not you?" : "¿No eres tú?"}
               </button>
@@ -178,9 +178,9 @@ export function PasoGuardar({
           </>
         ) : acceso.paso === "codigo" ? (
           <>
-            <p className="font-body text-[15px] leading-relaxed text-navy-soft">
+            <p className="text-center text-[15px] leading-relaxed text-tinta">
               {isEnglish ? "I sent a code to " : "Te mandé un código a "}
-              <span className="font-medium text-navy">{acceso.correo}</span>
+              <span className="font-medium text-noche">{acceso.correo}</span>
               {isEnglish ? ". Type it here." : ". Escríbelo aquí."}
             </p>
             <form
@@ -206,7 +206,7 @@ export function PasoGuardar({
                 onChange={(e) => acceso.setCodigo(e.target.value)}
                 placeholder="········"
                 disabled={ocupado}
-                className="min-h-[60px] w-full rounded-2xl border border-hairline bg-white px-4 text-center font-body text-2xl tracking-[0.25em] text-navy tabular-nums placeholder:text-navy-muted/35 outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20 disabled:opacity-60"
+                className="min-h-[60px] w-full rounded-2xl border border-linea-control/70 bg-niebla px-4 text-center text-2xl tracking-[0.25em] text-noche tabular-nums outline-none transition-[border-color,box-shadow] focus:border-noche focus:ring-2 focus:ring-noche/20 disabled:opacity-60"
               />
               <button
                 type="submit"
@@ -225,12 +225,12 @@ export function PasoGuardar({
                 )}
               </button>
             </form>
-            <div className="mt-5 flex flex-col items-start gap-1">
+            <div className="mt-5 flex flex-col items-center gap-1">
               <button
                 type="button"
                 disabled={ocupado || acceso.espera > 0}
                 onClick={() => acceso.enviarCodigo(true)}
-                className="inline-flex min-h-[44px] items-center font-body text-sm font-medium text-azul-deep transition-colors hover:text-navy disabled:cursor-not-allowed disabled:text-navy-muted"
+                className="inline-flex min-h-[44px] items-center text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color,color] hover:decoration-noche disabled:cursor-not-allowed disabled:text-tinta disabled:no-underline"
               >
                 {acceso.espera > 0
                   ? isEnglish
@@ -244,7 +244,7 @@ export function PasoGuardar({
                 type="button"
                 onClick={acceso.volverAlCorreo}
                 disabled={ocupado}
-                className="inline-flex min-h-[44px] items-center gap-2 font-body text-sm font-medium text-navy-muted transition-colors hover:text-navy"
+                className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-tinta transition-colors hover:text-noche"
               >
                 <ArrowLeft className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
                 {isEnglish ? "Use another email" : "Usar otro correo"}
@@ -274,7 +274,7 @@ export function PasoGuardar({
             >
               <label
                 htmlFor="correo"
-                className="block font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-muted"
+                className="block text-center text-xs font-medium uppercase tracking-[0.16em] text-tinta"
               >
                 {isEnglish ? "Your email" : "Tu correo"}
               </label>
@@ -287,7 +287,9 @@ export function PasoGuardar({
                 onChange={(e) => acceso.setEmail(e.target.value)}
                 placeholder={isEnglish ? "you@email.com" : "tu@correo.com"}
                 disabled={ocupado}
-                className="mt-1 min-h-[56px] w-full border-b border-wash-deep bg-transparent pb-1 font-body text-lg text-navy placeholder:text-navy-muted/40 outline-none transition-colors focus:border-azul disabled:opacity-60"
+                // Una línea escrita, como los nombres: al enfocarla pasa a azul
+                // noche y engorda a 2px (su anillo de foco).
+                className="mt-1 min-h-[56px] w-full border-b border-linea-control bg-transparent pb-1 text-center text-lg text-noche outline-none transition-[border-color,box-shadow] focus:border-noche focus:shadow-[0_1px_0_var(--noche)] disabled:opacity-60"
               />
               <button type="submit" disabled={bloqueado} className={`${BOTON_PRIMARIO} mt-6 w-full`}>
                 {acceso.loading ? (
@@ -301,7 +303,7 @@ export function PasoGuardar({
                   "Mándame un código"
                 )}
               </button>
-              <p className="mt-3 font-body text-xs leading-relaxed text-navy-muted">
+              <p className="mt-3 text-center text-xs leading-relaxed text-tinta">
                 {isEnglish
                   ? "No password: every time you come back, you sign in with a code."
                   : "Sin contraseñas: cada vez que vuelvas, entras con un código."}

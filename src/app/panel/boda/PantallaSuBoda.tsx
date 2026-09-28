@@ -6,6 +6,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
+import { Titular } from "@/components/marca/Titular";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { parseJsonSafe } from "@/lib/http";
 import {
@@ -27,8 +28,11 @@ import type { PerfilDeLaBoda } from "@/lib/perfilDeLaBoda";
  * Un solo formulario y un solo botón, que solo manda lo que cambió.
  */
 
+// Los campos viven en una tarjeta niebla: son papel azul con borde de campo
+// (3:1). En solo lectura se funden con la tarjeta y pierden el borde fuerte,
+// que es lo que los hacía leerse como algo que se llena.
 const inputClass =
-  "w-full rounded-xl border border-sand bg-white px-4 py-3 font-body text-sm text-ink placeholder:text-ink-soft/60 outline-none transition-colors focus:border-azul focus:ring-2 focus:ring-azul/20 disabled:bg-bone disabled:text-ink-muted";
+  "w-full rounded-xl border border-linea-control/70 bg-papel px-4 py-3 text-sm text-noche outline-none transition-[border-color,box-shadow] focus:border-noche focus:ring-2 focus:ring-noche/20 disabled:border-linea disabled:bg-niebla disabled:text-tinta";
 
 const miles = (d: string) => (d ? Number(d).toLocaleString("es-MX") : "");
 
@@ -52,10 +56,10 @@ function Bloque({
   children: React.ReactNode;
 }) {
   return (
-    <section className="grid gap-4 border-t border-sand py-8 first:border-t-0 first:pt-0 md:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] md:gap-10">
+    <section className="grid gap-4 border-t border-linea py-8 first:border-t-0 first:pt-0 md:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] md:gap-10">
       <div>
-        <h2 className="font-heading text-xl font-medium tracking-[-0.01em] text-ink">{titulo}</h2>
-        <p className="mt-2 font-body text-sm leading-relaxed text-ink-muted">{ayuda}</p>
+        <h2 className="text-xl font-medium text-noche">{titulo}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-tinta">{ayuda}</p>
       </div>
       <div className="min-w-0">{children}</div>
     </section>
@@ -179,19 +183,19 @@ export function PantallaSuBoda({
       <Reveal app>
         <header>
           <Eyebrow>{en ? "Your wedding" : "Su boda"}</Eyebrow>
-          <h1 className="mt-3 font-heading text-4xl font-medium tracking-[-0.02em] text-ink md:text-5xl">
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
             {en ? "What you told us" : "Lo que nos contaron"}
-          </h1>
-          <p className="mt-4 max-w-[60ch] font-body text-sm leading-relaxed text-ink-muted">
+          </Titular>
+          <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-tinta">
             {en ? "If something changed, change it here." : "Si algo cambió, cámbienlo aquí."}
           </p>
         </header>
       </Reveal>
 
       {soloLectura ? (
-        <p className="mt-8 max-w-2xl rounded-xl bg-wash-soft px-4 py-3 font-body text-sm text-ink">
+        <p className="mt-8 max-w-2xl rounded-xl border border-linea bg-niebla px-4 py-3 text-sm text-noche">
           {en ? "Your trial ended: here are your details. To change them, " : "Su prueba terminó: aquí están sus datos. Para cambiarlos, "}
-          <Link href="/panel/plan" className="font-medium text-azul-deep underline underline-offset-2 hover:text-ink">
+          <Link href="/panel/plan" className="font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche">
             {en ? "choose your plan" : "elijan su plan"}
           </Link>
           .
@@ -211,7 +215,7 @@ export function PantallaSuBoda({
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-2 block font-body text-sm font-medium text-ink">{en ? "One of you" : "Uno"}</span>
+                  <span className="mb-2 block text-sm font-medium text-noche">{en ? "One of you" : "Uno"}</span>
                   <input
                     type="text"
                     value={v.n1}
@@ -223,7 +227,7 @@ export function PantallaSuBoda({
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block font-body text-sm font-medium text-ink">{en ? "The other" : "El otro"}</span>
+                  <span className="mb-2 block text-sm font-medium text-noche">{en ? "The other" : "El otro"}</span>
                   <input
                     type="text"
                     value={v.n2}
@@ -247,11 +251,11 @@ export function PantallaSuBoda({
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-2 block font-body text-sm font-medium text-ink">{en ? "Date" : "Fecha"}</span>
+                  <span className="mb-2 block text-sm font-medium text-noche">{en ? "Date" : "Fecha"}</span>
                   <input type="date" value={v.fecha} onChange={(e) => cambia("fecha", e.target.value)} className={inputClass} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block font-body text-sm font-medium text-ink">{en ? "Venue" : "Lugar"}</span>
+                  <span className="mb-2 block text-sm font-medium text-noche">{en ? "Venue" : "Lugar"}</span>
                   <input
                     type="text"
                     value={v.lugar}
@@ -266,13 +270,13 @@ export function PantallaSuBoda({
                 <button
                   type="button"
                   onClick={() => cambia("fecha", "")}
-                  className="mt-3 inline-flex min-h-[2.75rem] items-center font-body text-sm text-azul-deep underline-offset-4 hover:text-ink hover:underline"
+                  className="mt-3 inline-flex min-h-[2.75rem] items-center text-sm text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
                 >
                   {en ? "We don't have a date yet" : "Todavía no tenemos fecha"}
                 </button>
               ) : null}
               {sinFechaAhora ? (
-                <p className="mt-2 font-body text-xs leading-relaxed text-ink-muted">
+                <p className="mt-2 text-xs leading-relaxed text-tinta">
                   {en
                     ? "Without a date, your plan's tasks lose theirs. When you set another one, those that are already overdue by then leave the plan."
                     : "Sin fecha, los pendientes del plan se quedan sin la suya. Cuando pongan otra, los que para entonces ya estén vencidos salen del plan."}
@@ -289,7 +293,7 @@ export function PantallaSuBoda({
               }
             >
               <label className="block max-w-xs">
-                <span className="mb-2 block font-body text-sm font-medium text-ink">{en ? "About how many?" : "¿Unas cuántas?"}</span>
+                <span className="mb-2 block text-sm font-medium text-noche">{en ? "About how many?" : "¿Unas cuántas?"}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -310,9 +314,9 @@ export function PantallaSuBoda({
               }
             >
               <label className="block max-w-xs">
-                <span className="mb-2 block font-body text-sm font-medium text-ink">{en ? "Pesos (MXN)" : "Pesos (MXN)"}</span>
+                <span className="mb-2 block text-sm font-medium text-noche">{en ? "Pesos (MXN)" : "Pesos (MXN)"}</span>
                 <span className="relative block">
-                  <span aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-body text-sm text-ink-muted">
+                  <span aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-tinta">
                     $
                   </span>
                   <input
@@ -329,12 +333,12 @@ export function PantallaSuBoda({
                 <button
                   type="button"
                   onClick={() => cambia("presupuesto", "")}
-                  className="mt-3 inline-flex min-h-[2.75rem] items-center font-body text-sm text-azul-deep underline-offset-4 hover:text-ink hover:underline"
+                  className="mt-3 inline-flex min-h-[2.75rem] items-center text-sm text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche"
                 >
                   {en ? "Remove the budget" : "Quitar el presupuesto"}
                 </button>
               ) : null}
-              <p className="mt-2 max-w-[52ch] font-body text-xs leading-relaxed text-ink-muted">
+              <p className="mt-2 max-w-[52ch] text-xs leading-relaxed text-tinta">
                 {en
                   ? "By saving an amount you authorize us to keep it for your budget; it's information about your money, so the law asks for your express consent. You can remove it whenever you want; removing it also deletes how you split it. "
                   : "Al guardar una cifra nos autorizan a guardarla para su presupuesto: es un dato sobre su dinero y la ley pide su permiso expreso. Pueden quitarla cuando quieran; si la quitan, se borra también cómo la repartieron. "}
@@ -343,7 +347,7 @@ export function PantallaSuBoda({
                     ? "Your planner sees it too."
                     : "Su planner también la ve."
                   : null}{" "}
-                <Link href="/privacidad" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+                <Link href="/privacidad" target="_blank" rel="noopener" className="text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche">
                   {en ? "Privacy notice" : "Aviso de privacidad"}
                 </Link>
               </p>
@@ -374,8 +378,10 @@ export function PantallaSuBoda({
                             elegida ? v.prioridades.filter((x) => x !== p.clave) : [...v.prioridades, p.clave]
                           )
                         }
-                        className={`inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full border px-4 py-2 font-body text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                          elegida ? "border-ink bg-ink text-white" : "border-sand bg-white text-ink hover:bg-bone"
+                        className={`inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-40 ${
+                          elegida
+                            ? "border-noche bg-noche font-medium text-niebla"
+                            : "border-linea-control/60 bg-niebla text-noche hover:border-linea-control hover:bg-papel-medio"
                         }`}
                       >
                         {elegida ? <Check className="h-3.5 w-3.5" strokeWidth={2} /> : null}
@@ -389,30 +395,30 @@ export function PantallaSuBoda({
           </fieldset>
 
           {error ? (
-            <p role="alert" className="mt-2 rounded-xl bg-terra-light px-4 py-3 font-body text-sm text-terra-deep">
+            <p role="alert" className="mt-2 rounded-xl border border-error/30 bg-error-fondo px-4 py-3 text-sm text-error">
               {error}
             </p>
           ) : null}
 
           {listo ? (
-            <div role="status" className="mt-2 rounded-xl bg-wash-soft px-4 py-3 font-body text-sm text-ink">
+            <div role="status" className="mt-2 rounded-xl bg-papel px-4 py-3 text-sm text-noche">
               <p className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-azul" strokeWidth={2} />
+                <Check className="h-4 w-4 text-tinta" strokeWidth={2} />
                 {en ? "Saved." : "Guardado."}
               </p>
               {listo.enviadasDesactualizadas ? (
-                <p className="mt-1 text-ink-muted">
+                <p className="mt-1 text-tinta">
                   {en
                     ? `The ${invitacionesEnviadas} ${invitacionesEnviadas === 1 ? "group" : "groups"} who already got the invitation have the previous details.`
                     : `${invitacionesEnviadas === 1 ? "El grupo que ya recibió" : `Los ${invitacionesEnviadas} grupos que ya recibieron`} la invitación ${invitacionesEnviadas === 1 ? "tiene" : "tienen"} los datos de antes.`}
                 </p>
               ) : null}
               {listo.invitacionDesactualizada ? (
-                <p className="mt-1 text-ink-muted">
+                <p className="mt-1 text-tinta">
                   {en
                     ? "The invitation image you already made keeps the previous details. "
                     : "La imagen de invitación que ya hicieron conserva los datos de antes. "}
-                  <Link href="/panel/invitacion" className="inline-flex items-center gap-1 font-medium text-azul-deep underline-offset-4 hover:underline">
+                  <Link href="/panel/invitacion" className="inline-flex items-center gap-1 font-medium text-noche underline decoration-linea-control underline-offset-4 transition-colors hover:decoration-noche">
                     {en ? "Make it again" : "Háganla de nuevo"}
                     <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.6} />
                   </Link>
@@ -426,7 +432,7 @@ export function PantallaSuBoda({
               <button
                 type="submit"
                 disabled={!hayCambios || guardando}
-                className="inline-flex min-h-[2.75rem] items-center rounded-full border border-ink bg-ink px-6 py-2 font-body text-sm text-white transition-[background-color,scale] duration-150 hover:bg-ink-soft active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex min-h-[2.75rem] items-center rounded-full border border-noche bg-noche px-6 py-2 text-sm font-medium text-niebla transition-[background-color,border-color,scale] duration-150 hover:border-noche-suave hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {guardando ? (en ? "Saving…" : "Guardando…") : en ? "Save changes" : "Guardar cambios"}
               </button>
@@ -437,7 +443,7 @@ export function PantallaSuBoda({
                     setV(guardado);
                     setError(null);
                   }}
-                  className="inline-flex min-h-[2.75rem] items-center rounded-full border border-sand bg-white px-5 py-2 font-body text-sm text-ink transition-colors hover:bg-bone"
+                  className="inline-flex min-h-[2.75rem] items-center rounded-full border border-linea-control/60 bg-niebla px-5 py-2 text-sm font-medium text-noche transition-[background-color,border-color,scale] duration-150 hover:border-linea-control hover:bg-papel-medio active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100"
                 >
                   {en ? "Undo" : "Deshacer"}
                 </button>
