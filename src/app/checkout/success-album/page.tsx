@@ -118,15 +118,15 @@ export default async function CheckoutSuccessAlbumPage({
       <div className="flex min-h-screen items-center justify-center bg-papel px-4 pt-20">
         <div className="panel-card w-full max-w-lg p-8 text-center">
           <Titular as="h1" tamano="hoja" className="mb-3">
-            {isEnglish ? "Session not found" : "No encontramos tu sesion"}
+            {isEnglish ? "Session not found" : "No encontramos tu sesión"}
           </Titular>
           <p className="mb-6 text-tinta">
             {isEnglish
               ? "We could not find your session. Please go back to the digital album and try checkout again."
-              : "Regresa al album digital y vuelve a intentar el checkout."}
+              : "Regresa al álbum digital y vuelve a intentar el checkout."}
           </p>
           <ButtonLink href="/album-digital" size="md">
-            {isEnglish ? "Back to digital album" : "Volver a album digital"}
+            {isEnglish ? "Back to digital album" : "Volver a álbum digital"}
           </ButtonLink>
         </div>
       </div>
@@ -143,12 +143,12 @@ export default async function CheckoutSuccessAlbumPage({
     <div className="flex min-h-screen items-center justify-center bg-papel px-4 pt-20">
       <div className="panel-card w-full max-w-lg p-8 text-center">
         <Titular as="h1" tamano="hoja" className="mb-3">
-          {isEnglish ? "We are finishing your album" : "Estamos terminando tu album"}
+          {isEnglish ? "We are finishing your album" : "Estamos terminando tu álbum"}
         </Titular>
         <p className="mb-6 text-tinta">
           {isEnglish
             ? "We could not create your album automatically on this attempt. Please try again in a few seconds."
-            : "No fue posible crear el album automaticamente en este intento. Reintenta en unos segundos."}
+            : "No fue posible crear el álbum automáticamente en este intento. Reintenta en unos segundos."}
         </p>
         <ButtonAnchor href={`/checkout/success-album?session_id=${encodeURIComponent(sessionId)}`} size="md">
           {isEnglish ? "Retry now" : "Reintentar ahora"}

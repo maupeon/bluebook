@@ -110,7 +110,7 @@ export default function AlbumClient({ album }: Props) {
   const shareWhatsApp = () => {
     const text = isEnglish
       ? `View our album: ${album.title}`
-      : `Mira nuestro album: ${album.title}`
+      : `Mira nuestro álbum: ${album.title}`
     const url = `https://wa.me/?text=${encodeURIComponent(text + '\n\n' + shareUrl)}`
     window.open(url, '_blank')
   }
@@ -123,7 +123,7 @@ export default function AlbumClient({ album }: Props) {
   const shareTwitter = () => {
     const text = isEnglish
       ? `View our album: ${album.title}`
-      : `Mira nuestro album: ${album.title}`
+      : `Mira nuestro álbum: ${album.title}`
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`
     window.open(url, '_blank', 'width=600,height=400')
   }
@@ -131,17 +131,17 @@ export default function AlbumClient({ album }: Props) {
   const shareEmail = () => {
     const subject = isEnglish
       ? `View our album: ${album.title}`
-      : `Mira nuestro album: ${album.title}`
+      : `Mira nuestro álbum: ${album.title}`
     const body = isEnglish
       ? `I invite you to view our album:\n\n${album.title}\n\n${shareUrl}`
-      : `Te invito a ver nuestro album:\n\n${album.title}\n\n${shareUrl}`
+      : `Te invito a ver nuestro álbum:\n\n${album.title}\n\n${shareUrl}`
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
   const shareTelegram = () => {
     const text = isEnglish
       ? `View our album: ${album.title}`
-      : `Mira nuestro album: ${album.title}`
+      : `Mira nuestro álbum: ${album.title}`
     const url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`
     window.open(url, '_blank')
   }
@@ -157,7 +157,7 @@ export default function AlbumClient({ album }: Props) {
           <div className="flex flex-wrap items-center justify-center gap-3">
             <span className="inline-flex items-center rounded-full border border-linea bg-papel px-3 py-1.5 text-sm font-medium text-noche">
               <Sparkles className="h-4 w-4 mr-2 text-tinta" aria-hidden="true" />
-              {isEnglish ? 'Premium digital album' : 'Album digital premium'}
+              {isEnglish ? 'Premium digital album' : 'Álbum digital premium'}
             </span>
             <span className="inline-flex items-center rounded-full border border-linea bg-papel px-3 py-1.5 text-sm text-noche">
               {isEnglish ? 'Style' : 'Estilo'} {templateName}
@@ -174,7 +174,7 @@ export default function AlbumClient({ album }: Props) {
           <p className="mx-auto mt-3 max-w-3xl text-center text-tinta">
             {isEnglish
               ? 'Enjoy a visual journey with smooth animations, clear controls, and an experience crafted to celebrate unique moments.'
-              : 'Disfruta un recorrido visual con animaciones suaves, controles claros y una experiencia creada para celebrar momentos unicos.'}
+              : 'Disfruta un recorrido visual con animaciones suaves, controles claros y una experiencia creada para celebrar momentos únicos.'}
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
@@ -215,7 +215,7 @@ export default function AlbumClient({ album }: Props) {
             </div>
             <div className="rounded-2xl bg-papel px-4 py-3">
               <p className="rotulo">
-                {isEnglish ? 'Last update' : 'Ultima actualizacion'}
+                {isEnglish ? 'Last update' : 'Última actualización'}
               </p>
               <p className="mt-1 text-sm text-noche tabular-nums">
                 {new Date(album.created_at).toLocaleDateString(isEnglish ? 'en-US' : 'es-MX', {
@@ -243,7 +243,7 @@ export default function AlbumClient({ album }: Props) {
             <div className="mb-5 flex flex-wrap gap-3">
               <div className="inline-flex items-center rounded-full border border-linea bg-papel px-4 py-1.5 text-sm font-medium text-noche">
                 <Images className="w-4 h-4 mr-2 text-tinta" aria-hidden="true" />
-                {isEnglish ? 'Immersive gallery' : 'Galeria inmersiva'}
+                {isEnglish ? 'Immersive gallery' : 'Galería inmersiva'}
               </div>
               <div className="inline-flex items-center rounded-full border border-linea bg-papel px-4 py-1.5 text-sm text-noche">
                 <CalendarDays className="w-4 h-4 mr-2 text-tinta" aria-hidden="true" />
@@ -272,7 +272,7 @@ export default function AlbumClient({ album }: Props) {
             <div className="space-y-5">
               <div className="space-y-1">
                 <p className="rotulo">
-                  {isEnglish ? 'How to enjoy it best' : 'Como vivirlo mejor'}
+                  {isEnglish ? 'How to enjoy it best' : 'Cómo vivirlo mejor'}
                 </p>
                 <h2 className="text-xl font-medium text-noche">
                   {isEnglish ? 'Your premium experience' : 'Tu experiencia premium'}
@@ -280,7 +280,7 @@ export default function AlbumClient({ album }: Props) {
                 <p className="text-sm text-tinta">
                   {isEnglish
                     ? 'Navigation crafted to impress: visible controls, smooth transitions, and a dedicated view for sharing elegantly.'
-                    : 'Navegacion pensada para sorprender: controles visibles, transicion suave y vista dedicada para compartir con elegancia.'}
+                    : 'Navegación pensada para sorprender: controles visibles, transición suave y vista dedicada para compartir con elegancia.'}
                 </p>
               </div>
 
@@ -298,7 +298,7 @@ export default function AlbumClient({ album }: Props) {
                     href={`/album/${album.slug}/admin?token=${adminToken}`}
                     className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-noche underline decoration-linea-control underline-offset-4 hover:decoration-noche"
                   >
-                    {isEnglish ? 'Adjust design and settings' : 'Ajustar diseno y configuracion'}
+                    {isEnglish ? 'Adjust design and settings' : 'Ajustar diseño y configuración'}
                     <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                   </Link>
                 )}
@@ -311,7 +311,7 @@ export default function AlbumClient({ album }: Props) {
                   onClick={() => setShowShare(true)}
                   className={`${BOTON_SECUNDARIO} w-full px-4 py-3`}
                 >
-                  {isEnglish ? 'Share album on social' : 'Compartir album en redes'}
+                  {isEnglish ? 'Share album on social' : 'Compartir álbum en redes'}
                 </button>
                 <a
                   href="#"
@@ -324,7 +324,7 @@ export default function AlbumClient({ album }: Props) {
                   }}
                   className={`${BOTON_SECUNDARIO} w-full px-4 py-3 text-sm`}
                 >
-                  {isEnglish ? 'Go to album start' : 'Ir al inicio del album'}
+                  {isEnglish ? 'Go to album start' : 'Ir al inicio del álbum'}
                   <ExternalLink className="w-4 h-4" aria-hidden="true" />
                 </a>
               </div>
@@ -336,7 +336,7 @@ export default function AlbumClient({ album }: Props) {
                 <ul className="mt-2 text-sm text-tinta space-y-2">
                   <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 shrink-0 rounded-full bg-tinta" /> {isEnglish ? 'Click or use arrows to move forward' : 'Clic o flechas para avanzar fotos'}</li>
                   <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 shrink-0 rounded-full bg-tinta" /> {isEnglish ? 'Key F for fullscreen' : 'Tecla F para pantalla completa'}</li>
-                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 shrink-0 rounded-full bg-tinta" /> {isEnglish ? 'Key G to open quick gallery' : 'Tecla G para abrir galeria rapida'}</li>
+                  <li className="flex gap-2 items-center"><span className="w-1.5 h-1.5 shrink-0 rounded-full bg-tinta" /> {isEnglish ? 'Key G to open quick gallery' : 'Tecla G para abrir galería rápida'}</li>
                 </ul>
               </div>
 
@@ -347,7 +347,7 @@ export default function AlbumClient({ album }: Props) {
                 <p className="mt-2 text-sm text-tinta">
                   {isEnglish
                     ? `${templateName}. Keeps visual consistency and premium typography for a more emotional and elegant album.`
-                    : `${templateName}. Mantiene coherencia visual y tipografia premium para un album mas emotivo y elegante.`}
+                    : `${templateName}. Mantiene coherencia visual y tipografía premium para un álbum más emotivo y elegante.`}
                 </p>
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function AlbumClient({ album }: Props) {
             {/* El corazón que había encima sobra: el titular trae los suyos. */}
             <div className="px-10 pt-2 text-center">
               <Titular as="h3" tamano="hoja">
-                {isEnglish ? 'Share this album' : 'Comparte este album'}
+                {isEnglish ? 'Share this album' : 'Comparte este álbum'}
               </Titular>
               <p className="text-sm text-tinta mt-2">{album.title}</p>
             </div>
@@ -428,13 +428,13 @@ export default function AlbumClient({ album }: Props) {
                 className={`${copied ? `${BOTON} border border-linea bg-papel text-noche` : BOTON_SECUNDARIO} px-4 py-3`}
               >
                 {copied ? <Check className="w-4 h-4 text-tinta" aria-hidden="true" /> : <Link2 className="w-4 h-4" aria-hidden="true" />}
-                {copied ? (isEnglish ? 'Copied!' : 'Copiado!') : (isEnglish ? 'Copy link' : 'Copiar link')}
+                {copied ? (isEnglish ? 'Copied!' : '¡Copiado!') : (isEnglish ? 'Copy link' : 'Copiar link')}
               </button>
             </div>
 
             <div className="mt-4 rounded-xl border border-linea bg-papel px-4 py-3">
               <div className="text-xs text-tinta mb-1">
-                {isEnglish ? 'Album link' : 'Enlace del album'}
+                {isEnglish ? 'Album link' : 'Enlace del álbum'}
               </div>
               <div className="text-xs text-noche break-all">{shareUrl}</div>
             </div>
@@ -442,7 +442,7 @@ export default function AlbumClient({ album }: Props) {
             <p className="mt-4 text-xs text-tinta text-center">
               {isEnglish
                 ? 'Tip: you can also use the Share button from the floating controls.'
-                : 'Consejo: tambien puedes tocar el boton "Compartir" desde el boton flotante si te da tiempo.'}
+                : 'Consejo: también puedes tocar el botón "Compartir" desde el botón flotante si te da tiempo.'}
             </p>
           </div>
         </div>

@@ -170,7 +170,7 @@ export default function AdminPage() {
       alert(
         isEnglish
           ? `This album already reached the ${albumLimit} photo limit for its plan.`
-          : `Este album ya alcanzo el limite de ${albumLimit} fotos de su plan.`
+          : `Este álbum ya alcanzó el límite de ${albumLimit} fotos de su plan.`
       )
       return
     }
@@ -351,7 +351,7 @@ export default function AdminPage() {
 
     const payload = await parseJsonSafe<{ album?: AlbumPublico; error?: string }>(res)
     if (!res.ok || !payload.data?.album) {
-      setSettingsMessage(payload.data?.error || (isEnglish ? 'Could not save settings' : 'No se pudo guardar la configuracion'))
+      setSettingsMessage(payload.data?.error || (isEnglish ? 'Could not save settings' : 'No se pudo guardar la configuración'))
       setSettingsMessageType('error')
       setSavingSettings(false)
       return
@@ -408,10 +408,10 @@ export default function AdminPage() {
   const shareInvite = async (invite: InviteWithUrl) => {
     const title = isEnglish
       ? `Share photos of ${album?.title || 'our album'}`
-      : `Comparte fotos de ${album?.title || 'nuestro album'}`
+      : `Comparte fotos de ${album?.title || 'nuestro álbum'}`
     const text = isEnglish
       ? 'Upload your wedding photos here:'
-      : 'Sube tus fotos de la boda aqui:'
+      : 'Sube tus fotos de la boda aquí:'
 
     if (navigator.share) {
       try {
@@ -453,7 +453,7 @@ export default function AdminPage() {
               {album?.title}
             </Titular>
             <p className="text-tinta">
-              {isEnglish ? 'Admin panel' : 'Panel de administracion'}
+              {isEnglish ? 'Admin panel' : 'Panel de administración'}
             </p>
           </div>
           <button
@@ -504,7 +504,7 @@ export default function AdminPage() {
               <p className="text-sm text-tinta mb-4">
                 {isEnglish
                   ? 'Set the date to make the album experience more personalized.'
-                  : 'Define la fecha para que el album tenga una experiencia mas personalizada.'}
+                  : 'Define la fecha para que el álbum tenga una experiencia más personalizada.'}
               </p>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -593,7 +593,7 @@ export default function AdminPage() {
                   {albumHasLimit
                     ? (isEnglish
                         ? ` · Total limit ${albumLimit} photos`
-                        : ` · Limite total ${albumLimit} fotos`)
+                        : ` · Límite total ${albumLimit} fotos`)
                     : ''}
                 </span>
               </button>
@@ -668,7 +668,7 @@ export default function AdminPage() {
                 <p className="text-tinta">
                   {isEnglish
                     ? 'There are no photos yet. Click the button above to start.'
-                    : 'Aun no hay fotos. Haz clic en el boton de arriba para comenzar!'}
+                    : 'Aún no hay fotos. ¡Haz clic en el botón de arriba para comenzar!'}
                 </p>
               </div>
             )}

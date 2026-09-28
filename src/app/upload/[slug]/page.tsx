@@ -146,7 +146,7 @@ export default function UploadPage() {
             or: 'o',
             menu: {
               files: 'Mis archivos',
-              web: isEnglish ? 'Web address' : 'Direccion web',
+              web: isEnglish ? 'Web address' : 'Dirección web',
             },
           },
         },
@@ -229,7 +229,7 @@ export default function UploadPage() {
           <p className="text-tinta">
             {isEnglish
               ? 'Upload your wedding photos to create your digital album'
-              : 'Sube las fotos de tu boda para crear tu album digital'}
+              : 'Sube las fotos de tu boda para crear tu álbum digital'}
           </p>
         </div>
 
@@ -248,7 +248,7 @@ export default function UploadPage() {
             <span className="text-tinta text-sm">
               {isEnglish
                 ? 'JPG, PNG, HEIC up to 15MB each • Maximum 150 photos'
-                : 'JPG, PNG, HEIC hasta 15MB cada una • Maximo 150 fotos'}
+                : 'JPG, PNG, HEIC hasta 15MB cada una • Máximo 150 fotos'}
             </span>
           </button>
         </div>
@@ -326,7 +326,7 @@ export default function UploadPage() {
               ) : (
                 <>
                   <Eye className="w-5 h-5" aria-hidden="true" />
-                  {isEnglish ? 'Create my album' : 'Crear mi album'}
+                  {isEnglish ? 'Create my album' : 'Crear mi álbum'}
                 </>
               )}
             </button>
@@ -339,7 +339,7 @@ export default function UploadPage() {
             <p className="text-tinta">
               {isEnglish
                 ? "You haven't uploaded photos yet. Click the button above to get started."
-                : 'Aun no has subido fotos. Haz clic en el boton de arriba para comenzar!'}
+                : 'Aún no has subido fotos. ¡Haz clic en el botón de arriba para comenzar!'}
             </p>
           </div>
         )}

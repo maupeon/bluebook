@@ -4,8 +4,8 @@ import { resolveAlbumAccess, type AlbumAccessReason } from '@/lib/validateAccess
 
 const MENSAJES: Record<AlbumAccessReason, string> = {
   album_not_found: 'Album no encontrado.',
-  invite_revoked: 'Esta invitacion ha sido revocada.',
-  unauthorized: 'Invitacion no valida o expirada.'
+  invite_revoked: 'Esta invitación ha sido revocada.',
+  unauthorized: 'Invitación no válida o expirada.'
 }
 
 const ESTADOS: Record<AlbumAccessReason, number> = {

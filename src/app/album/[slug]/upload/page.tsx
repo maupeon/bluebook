@@ -81,7 +81,7 @@ export default function GuestUploadPage() {
 
   const fetchData = useCallback(async () => {
     if (!token) {
-      setError(isEnglish ? 'No access token was provided.' : 'No se proporciono un token de acceso.')
+      setError(isEnglish ? 'No access token was provided.' : 'No se proporcionó un token de acceso.')
       setLoading(false)
       return
     }
@@ -95,14 +95,14 @@ export default function GuestUploadPage() {
       if (session?.reason === 'album_not_found') {
         setError(isEnglish ? 'Album not found.' : 'Album no encontrado.')
       } else if (session?.reason === 'invite_revoked') {
-        setError(isEnglish ? 'This invite has been revoked.' : 'Esta invitacion ha sido revocada.')
+        setError(isEnglish ? 'This invite has been revoked.' : 'Esta invitación ha sido revocada.')
       } else if (session?.reason === 'unauthorized') {
-        setError(isEnglish ? 'Invalid or expired invite.' : 'Invitacion no valida o expirada.')
+        setError(isEnglish ? 'Invalid or expired invite.' : 'Invitación no válida o expirada.')
       } else {
         setError(summarizeHttpError(
           sessionRes.status,
           sessionPayload.raw,
-          isEnglish ? 'Invalid or expired invite.' : 'Invitacion no valida o expirada.'
+          isEnglish ? 'Invalid or expired invite.' : 'Invitación no válida o expirada.'
         ))
       }
       setLoading(false)
@@ -116,7 +116,7 @@ export default function GuestUploadPage() {
     }
 
     if (!session.invite) {
-      setError(isEnglish ? 'Invalid or expired invite.' : 'Invitacion no valida o expirada.')
+      setError(isEnglish ? 'Invalid or expired invite.' : 'Invitación no válida o expirada.')
       setLoading(false)
       return
     }
@@ -151,7 +151,7 @@ export default function GuestUploadPage() {
     }
 
     if (effectiveRemaining <= 0) {
-      alert(isEnglish ? 'You reached the photo limit allowed.' : 'Has alcanzado el limite de fotos permitido.')
+      alert(isEnglish ? 'You reached the photo limit allowed.' : 'Has alcanzado el límite de fotos permitido.')
       return
     }
 
@@ -233,7 +233,7 @@ export default function GuestUploadPage() {
   const removePhoto = async (photoId: string) => {
     // El boton ahora esta siempre a la vista en el telefono, donde un toque
     // al hacer scroll es facil. Borrar no tiene vuelta atras: se pregunta.
-    if (!confirm(isEnglish ? 'Delete this photo from the album?' : 'Eliminar esta foto del album?')) return
+    if (!confirm(isEnglish ? 'Delete this photo from the album?' : '¿Eliminar esta foto del álbum?')) return
 
     const res = await fetch(`/api/albums/${slug}/photos?photoId=${photoId}&token=${token}`, {
       method: 'DELETE',
@@ -295,7 +295,7 @@ export default function GuestUploadPage() {
             </p>
           )}
           <p className="text-tinta">
-            {isEnglish ? 'Upload your photos to contribute to the album' : 'Sube tus fotos para contribuir al album'}
+            {isEnglish ? 'Upload your photos to contribute to the album' : 'Sube tus fotos para contribuir al álbum'}
           </p>
         </div>
 
@@ -327,7 +327,7 @@ export default function GuestUploadPage() {
                 ? (isEnglish
                     ? `You can upload ${effectiveRemaining} more photo${effectiveRemaining !== 1 ? 's' : ''}`
                     : `Puedes subir ${effectiveRemaining} foto${effectiveRemaining !== 1 ? 's' : ''} mas`)
-                : (isEnglish ? 'You reached the photo limit' : 'Has alcanzado el limite de fotos')
+                : (isEnglish ? 'You reached the photo limit' : 'Has alcanzado el límite de fotos')
               }
             </div>
           </div>
@@ -414,7 +414,7 @@ export default function GuestUploadPage() {
             className={`${BOTON_PRINCIPAL} px-8 py-4`}
           >
             <Eye className="w-5 h-5" aria-hidden="true" />
-            {isEnglish ? 'View full album' : 'Ver el album completo'}
+            {isEnglish ? 'View full album' : 'Ver el álbum completo'}
             <ExternalLink className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>

@@ -30,7 +30,7 @@ export default async function CheckoutSuccessPage() {
       ]
     : [
         "Revisen su email para el enlace de acceso",
-        "Elijan el diseno perfecto para sus invitaciones",
+        "Elijan el diseño perfecto para sus invitaciones",
         "Personalicen los detalles y empiecen a enviar",
       ];
 
@@ -43,7 +43,7 @@ export default async function CheckoutSuccessPage() {
         </div>
 
         <Titular as="h1" tamano="pantalla" className="mb-4">
-          {isEnglish ? "Congratulations!" : "Enhorabuena!"}
+          {isEnglish ? "Congratulations!" : "¡Enhorabuena!"}
         </Titular>
 
         <p className="mb-10 text-lg text-tinta sm:text-xl">
@@ -54,20 +54,20 @@ export default async function CheckoutSuccessPage() {
           <div className="mb-6 flex items-center justify-center gap-3">
             <Heart className="h-6 w-6 shrink-0 text-tinta" />
             <span className="frase text-[2rem]">
-              {isEnglish ? "Welcome to Blue Book!" : "Bienvenidos a Blue Book!"}
+              {isEnglish ? "Welcome to Blue Book!" : "¡Bienvenidos a Blue Book!"}
             </span>
           </div>
 
           <p className="mb-6 text-tinta">
             {isEnglish
               ? "In the next few hours you will receive an email with the steps to start creating your invitations and configure your account."
-              : "En las proximas horas recibiran un email con los pasos para empezar a crear sus invitaciones y configurar su cuenta."}
+              : "En las próximas horas recibirán un email con los pasos para empezar a crear sus invitaciones y configurar su cuenta."}
           </p>
 
           {/* Papel azul dentro de la tarjeta niebla: es lo informativo. */}
           <div className="rounded-xl bg-papel p-6 text-left">
             <h3 className="mb-4 text-base font-medium text-noche">
-              {isEnglish ? "What happens next?" : "Que viene ahora?"}
+              {isEnglish ? "What happens next?" : "¿Qué viene ahora?"}
             </h3>
             <ol className="space-y-3">
               {pasos.map((paso, i) => (
@@ -92,7 +92,7 @@ export default async function CheckoutSuccessPage() {
         </div>
 
         <p className="mt-10 text-sm text-tinta">
-          {isEnglish ? "Any questions? Write to us at " : "Tienen alguna pregunta? Escribannos a "}
+          {isEnglish ? "Any questions? Write to us at " : "¿Tienen alguna pregunta? Escríbannos a "}
           <a
             href={`mailto:${CONTACT_INFO.email}`}
             className="text-noche underline decoration-linea-control underline-offset-4 transition-[text-decoration-color] hover:decoration-noche"

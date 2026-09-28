@@ -35,12 +35,12 @@ export async function PUT(
   )
 
   if (photos.length !== rawPhotos.length) {
-    return NextResponse.json({ error: 'La lista de fotos tiene un formato invalido' }, { status: 400 })
+    return NextResponse.json({ error: 'La lista de fotos tiene un formato inválido' }, { status: 400 })
   }
 
   if (photos.length > MAX_LEGACY_PHOTOS) {
     return NextResponse.json(
-      { error: `El album no puede tener mas de ${MAX_LEGACY_PHOTOS} fotos.` },
+      { error: `El álbum no puede tener más de ${MAX_LEGACY_PHOTOS} fotos.` },
       { status: 400 }
     )
   }
@@ -49,7 +49,7 @@ export async function PUT(
 
   if (access.role !== 'admin') {
     return NextResponse.json(
-      { error: 'Solo el administrador puede guardar las fotos del album' },
+      { error: 'Solo el administrador puede guardar las fotos del álbum' },
       { status: 403 }
     )
   }

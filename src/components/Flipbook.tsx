@@ -517,7 +517,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
           <button
             onClick={() => setShowGallery(true)}
             className={`p-3 ${CONTROL} ${control}`}
-            title={isEnglish ? 'Open gallery (G)' : 'Ver galeria (G)'}
+            title={isEnglish ? 'Open gallery (G)' : 'Ver galería (G)'}
           >
             <Grid3X3 className="w-5 h-5" />
           </button>
@@ -720,7 +720,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
           onClick={goToPrev}
           disabled={currentPage === 0}
           className={`p-2.5 sm:p-4 ${CONTROL} ${control}`}
-          aria-label={isEnglish ? 'Previous page' : 'Pagina anterior'}
+          aria-label={isEnglish ? 'Previous page' : 'Página anterior'}
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -758,7 +758,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
           onClick={goToNext}
           disabled={currentPage >= totalPages - 1}
           className={`p-2.5 sm:p-4 ${CONTROL} ${control}`}
-          aria-label={isEnglish ? 'Next page' : 'Pagina siguiente'}
+          aria-label={isEnglish ? 'Next page' : 'Página siguiente'}
         >
           <ChevronRight className="w-6 h-6" />
         </button>
@@ -769,7 +769,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
         } ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
         {isEnglish
           ? 'Use ← → to navigate • Home/End for cover/back cover • F fullscreen • G gallery • Tap photo to zoom'
-          : 'Usa ← → para navegar • Home/End para portada/cierre • F pantalla completa • G galeria • Click en foto para ampliar'}
+          : 'Usa ← → para navegar • Home/End para portada/cierre • F pantalla completa • G galería • Click en foto para ampliar'}
       </p>
 
       {/* Styles */}
