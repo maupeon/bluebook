@@ -334,28 +334,55 @@ export function libroBanquete(w: CoupleWedding, bundle: PanelBundle, filas: Fila
 
 // ----- Mesas y puerta -----
 
+/** Primero las sillas elegidas en orden; luego el resto por nombre. */
+function porSilla(a: PanelSeat, b: PanelSeat): number {
+  return (a.silla ?? 999) - (b.silla ?? 999) || porNombre(a.displayName, b.displayName);
+}
+
 /** Para la hostess y el mobiliario: mesa por mesa, y la lista de la puerta. */
 export function libroMesas(w: CoupleWedding, bundle: PanelBundle): ExcelJS.Workbook {
   const wb = nuevoLibro();
   const { seating } = bundle;
 
+  // La columna de la silla sólo sale si alguien eligió una en el plano (0038).
+  // Vacía en todas las filas sería ruido, y así el archivo de quien no usa
+  // sillas —la boda piloto, con el acomodo de su planner— sale como siempre.
+  const conSillas = [...seating.tables.flatMap((t) => t.seats), ...seating.unassigned].some(
+    (a) => a.silla != null
+  );
+  const notaDeSillas =
+    "La silla es la que eligieron en el plano, contando desde arriba en el sentido del reloj. Vacía: en la mesa, sin silla fija.";
+
   const { ws: porMesa } = hojaConEncabezado(
     wb,
     "Por mesa",
     `Mesas — ${w.coupleName}`,
-    [lineaDeLaBoda(w), "El total de cada mesa es el que lleva el acomodo de su planner."],
     [
+      lineaDeLaBoda(w),
+      "El total de cada mesa es el que lleva el acomodo de su planner.",
+      ...(conSillas ? [notaDeSillas] : []),
+    ],
+    [
+      // La silla primero: es el orden de las tarjetas de lugar. Ancha para que
+      // quepa el nombre de la mesa en el renglón que la encabeza.
+      ...(conSillas ? [{ titulo: "Silla", ancho: 12, alinear: "center" as const }] : []),
       { titulo: "Nombre", ancho: 36 },
       { titulo: "Personas", ancho: 11, alinear: "right" },
     ]
   );
   const grupo = (titulo: string, nota: string, asientos: PanelSeat[], total: number, sobrecupo: boolean) => {
-    filaDeGrupo(porMesa, titulo, nota);
-    for (const a of [...asientos].sort((x, y) => porNombre(x.displayName, y.displayName))) {
-      filaDeDatos(porMesa, [a.displayName, a.pax]);
+    const cabeza = filaDeGrupo(porMesa, titulo, nota);
+    if (conSillas) cabeza.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+    for (const a of [...asientos].sort(conSillas ? porSilla : (x, y) => porNombre(x.displayName, y.displayName))) {
+      filaDeDatos(porMesa, conSillas ? [a.silla, a.displayName, a.pax] : [a.displayName, a.pax]);
     }
-    const t = filaDeTotal(porMesa, [sobrecupo ? "Total · SOBRECUPO" : "Total", total]);
-    if (sobrecupo) t.getCell(1).font = { name: "Calibri", size: 10, bold: true, color: { argb: COLOR.terra } };
+    const t = conSillas
+      ? filaDeTotal(porMesa, ["Total", sobrecupo ? "SOBRECUPO" : "", total])
+      : filaDeTotal(porMesa, [sobrecupo ? "Total · SOBRECUPO" : "Total", total]);
+    if (conSillas) t.getCell(1).alignment = { horizontal: "left", vertical: "top" };
+    if (sobrecupo) {
+      t.getCell(conSillas ? 2 : 1).font = { name: "Calibri", size: 10, bold: true, color: { argb: COLOR.terra } };
+    }
     porMesa.addRow([]);
   };
   for (const t of seating.tables) {
@@ -378,37 +405,50 @@ export function libroMesas(w: CoupleWedding, bundle: PanelBundle): ExcelJS.Workb
   // La puerta: la misma lista en orden alfabético, con una columna para palomear.
   const asientos = [
     ...seating.tables.flatMap((t) => t.seats.map((a) => ({ ...a, mesa: tituloMesa(t.label) }))),
-    ...seating.unassigned.map((a) => ({ ...a, mesa: "Sin mesa" })),
+    // Sin mesa no hay silla que decir (la base la suelta al quitar la mesa).
+    ...seating.unassigned.map((a) => ({ ...a, silla: null, mesa: "Sin mesa" })),
   ].sort((a, b) => porNombre(a.displayName, b.displayName));
 
   const { ws: puerta, filaEncabezado } = hojaConEncabezado(
     wb,
     "Puerta",
     `Lista de acceso — ${w.coupleName}`,
-    [lineaDeLaBoda(w), "En orden alfabético. La última columna es para palomear a quien llega."],
+    [
+      lineaDeLaBoda(w),
+      conSillas
+        ? "En orden alfabético, con su mesa y su silla. La última columna es para palomear a quien llega."
+        : "En orden alfabético. La última columna es para palomear a quien llega.",
+    ],
     [
       { titulo: "Nombre", ancho: 36 },
       { titulo: "Mesa", ancho: 14 },
+      ...(conSillas ? [{ titulo: "Silla", ancho: 7, alinear: "center" as const }] : []),
       { titulo: "Personas", ancho: 10, alinear: "right" },
       { titulo: "Llegó", ancho: 8, alinear: "center" },
     ],
     { filtro: true }
   );
   const primera = filaEncabezado + 1;
+  const colPersonas = conSillas ? "D" : "C";
+  const colLlego = conSillas ? 5 : 4;
   for (const a of asientos) {
-    const fila = filaDeDatos(puerta, [a.displayName, a.mesa, a.pax, ""]);
-    fila.getCell(4).border = {
+    const fila = filaDeDatos(
+      puerta,
+      conSillas ? [a.displayName, a.mesa, a.silla, a.pax, ""] : [a.displayName, a.mesa, a.pax, ""]
+    );
+    fila.getCell(colLlego).border = {
       top: { style: "thin", color: { argb: COLOR.navyMuted } },
       bottom: { style: "thin", color: { argb: COLOR.navyMuted } },
       left: { style: "thin", color: { argb: COLOR.navyMuted } },
       right: { style: "thin", color: { argb: COLOR.navyMuted } },
     };
   }
-  filaDeTotal(puerta, [
-    "Total",
-    "",
-    suma(`C${primera}`, `C${Math.max(primera, puerta.rowCount)}`, asientos.reduce((s, a) => s + a.pax, 0)),
-  ]);
+  const totalPuerta = suma(
+    `${colPersonas}${primera}`,
+    `${colPersonas}${Math.max(primera, puerta.rowCount)}`,
+    asientos.reduce((s, a) => s + a.pax, 0)
+  );
+  filaDeTotal(puerta, conSillas ? ["Total", "", "", totalPuerta] : ["Total", "", totalPuerta]);
 
   return wb;
 }

@@ -80,6 +80,13 @@ export function hojaConEncabezado(
     if (c.formato) ws.getColumn(i + 1).numFmt = c.formato;
     if (c.alinear) ws.getColumn(i + 1).alignment = { horizontal: c.alinear, vertical: "top" };
   });
+  // Y por lo mismo, si la primera columna va centrada (la silla, en «Mesas y
+  // puerta»), el título y los subtítulos de la celda A se centraban en esa
+  // columna angosta y se desbordaban hacia la izquierda, cortados por el
+  // margen. Van siempre a la izquierda.
+  for (let r = 1; r <= filaEncabezado - 2; r++) {
+    ws.getCell(r, 1).alignment = { horizontal: "left", vertical: "middle" };
+  }
   const fila = ws.getRow(filaEncabezado);
   columnas.forEach((c, i) => {
     const celda = fila.getCell(i + 1);

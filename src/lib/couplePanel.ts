@@ -249,6 +249,12 @@ export interface PanelSeat {
   displayName: string;
   /** Personas que ocupa la fila: la lista real trae filas de 1 y de 2. */
   pax: number;
+  /**
+   * La silla que eligieron en el plano (0038), de 1 a la capacidad en el
+   * sentido del reloj desde arriba. null = en la mesa sin silla fija (o sin
+   * mesa). Sólo una persona (pax 1) tiene silla.
+   */
+  silla: number | null;
 }
 
 export interface PanelTable {
@@ -630,7 +636,10 @@ export async function getPanelChecklist(
 // aparte porque ninguna vista publica fila por fila el nombre que va impreso en
 // la lista de la puerta.
 const MESAS_COLUMNS = "table_id, label, capacity, zone, pax, sobrecupo";
-const SEAT_COLUMNS = "id, table_id, display_name, pax";
+const SEAT_COLUMNS = "id, table_id, display_name, pax, silla";
+// Las de antes de la 0038: si el código llega antes que la migración, el
+// acomodo se lee sin silla en vez de esconderse entero.
+const SEAT_COLUMNS_SIN_SILLA = "id, table_id, display_name, pax";
 const INVITADOS_COLUMNS = "boletos, personas_confirmadas, personas_canceladas";
 const CONCILIACION_COLUMNS =
   "personas_confirmadas, pax_acomodado, pax_sin_mesa, grupos_confirmados_sin_acomodar";
@@ -649,6 +658,7 @@ type SeatRow = {
   table_id: string | null;
   display_name: string | null;
   pax: unknown;
+  silla?: unknown;
 };
 
 type InvitadoRow = {
@@ -688,19 +698,22 @@ async function fetchSeating(
   supabase: AdminClient,
   weddingId: string
 ): Promise<SeatingSummary> {
-  const [mesasRes, seatsRes, invitadosRes, conciliacionRes] = await Promise.all([
+  const leerAsientos = (columnas: string) =>
+    supabase
+      .from("seat_assignments")
+      .select(columnas)
+      .eq("wedding_id", weddingId)
+      .order("sort_order", { ascending: true })
+      .order("display_name", { ascending: true });
+
+  const [mesasRes, seatsConSilla, invitadosRes, conciliacionRes] = await Promise.all([
     supabase
       .from("v_mesas")
       .select(MESAS_COLUMNS)
       .eq("wedding_id", weddingId)
       .order("sort_order", { ascending: true })
       .order("label", { ascending: true }),
-    supabase
-      .from("seat_assignments")
-      .select(SEAT_COLUMNS)
-      .eq("wedding_id", weddingId)
-      .order("sort_order", { ascending: true })
-      .order("display_name", { ascending: true }),
+    leerAsientos(SEAT_COLUMNS),
     supabase
       .from("v_invitados")
       .select(INVITADOS_COLUMNS)
@@ -711,6 +724,10 @@ async function fetchSeating(
       .eq("wedding_id", weddingId)
       .maybeSingle(),
   ]);
+
+  const seatsRes = isMissingColumn(seatsConSilla.error, "silla")
+    ? await leerAsientos(SEAT_COLUMNS_SIN_SILLA)
+    : seatsConSilla;
 
   const lecturas: Array<[PgError, string]> = [
     [mesasRes.error, "v_mesas"],
@@ -750,10 +767,12 @@ async function fetchSeating(
   // igual: antes que perderla de la lista, se enseña sin mesa.
   const unassigned: PanelSeat[] = [];
   for (const row of (seatsRes.data ?? []) as unknown as SeatRow[]) {
+    const silla = toNumOrNull(row.silla);
     const seat: PanelSeat = {
       id: row.id,
       displayName: (row.display_name ?? "").trim(),
       pax: toNum(row.pax),
+      silla: silla != null && silla > 0 ? silla : null,
     };
     const table = row.table_id ? byTable.get(row.table_id) : undefined;
     if (table) table.seats.push(seat);
