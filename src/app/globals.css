@@ -238,27 +238,21 @@
      tinta y a la mitad del alto de la letra, así crecen con el titular. En
      línea con el texto y no en las orillas de la caja: con text-wrap: balance
      las líneas quedan más cortas que la caja y los adornos se alejaban. */
-  .adornado::before,
-  .adornado::after {
-    /* Un espacio de no separación con la estrella o el corazón como máscara:
-       es texto y no una caja, así que no abre un corte de línea y el adorno
-       nunca se queda solo en un renglón; va pegado a la primera y a la última
-       palabra. El ancho lo da el interletrado. */
-    content: "\00a0";
-    font-family: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: 0.3em;
-    background-color: var(--tinta);
-    -webkit-mask: var(--adorno) center / contain no-repeat;
-    mask: var(--adorno) center / contain no-repeat;
+  .adorno-icono {
+    display: inline-block;
+    width: 0.6em;
+    height: 0.6em;
+    vertical-align: 0.15em;
+    color: var(--tinta);
     position: relative;
   }
-  .adornado::before {
-    --adorno: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 8.5C19.5 15 21.4 17.2 28.5 18.2C21.5 19.1 19.6 21.4 18.9 28.5C18.3 21.5 16.2 19.3 9.5 18.3C16.3 17.3 18.4 15.1 19 8.5Z'/%3E%3Cpath d='M6.5 3C6.8 5.6 7.6 6.3 10 6.6C7.6 6.9 6.8 7.7 6.4 10.2C6.1 7.7 5.3 6.9 3 6.6C5.4 6.3 6.2 5.5 6.5 3Z'/%3E%3C/svg%3E");
+  /* El WORD JOINER de AdornosDelTitular mantiene cada SVG unido a su palabra,
+     sin máscaras ni fondos pintados sobre una caja de texto inline. */
+  .adorno-inicio .adorno-icono {
     top: -0.08em;
     margin-inline-end: 0.28em;
   }
-  .adornado::after {
-    --adorno: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 27.5C6.2 22.4 3.4 18 4.6 13.4C5.8 9.2 10.6 8.6 13.4 12.4C16.4 8.3 21.6 8.9 22.7 13.1C23.9 17.8 20.6 22.3 13.5 27.5Z'/%3E%3Cpath d='M26.5 3.5C26.8 5.9 27.5 6.6 29.6 6.9C27.5 7.2 26.8 7.9 26.4 10.2C26.1 7.9 25.4 7.2 23.4 6.9C25.4 6.6 26.2 5.9 26.5 3.5Z'/%3E%3C/svg%3E");
+  .adorno-fin .adorno-icono {
     top: 0.06em;
     margin-inline-start: 0.28em;
   }
@@ -266,7 +260,7 @@
   /* En la app el título arranca en el borde del contenido y los adornos se
      juntan al final: corazón y estrellita, sin nada que empuje la primera
      letra fuera de la retícula. */
-  .adornado-fin::before {
+  .adornado-fin > .adorno-inicio {
     display: none;
   }
 

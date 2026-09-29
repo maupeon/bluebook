@@ -8,6 +8,7 @@ import { Reveal } from "@/components/Reveal";
 import { Envelopes, Sparkle } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { Arrow, Container, Display, Em, Eyebrow, Lead } from "@/components/marketing/ui";
+import { AdornosDelTitular } from "@/components/marca/Titular";
 import { CONTACT_INFO } from "@/lib/language";
 import { parseJsonSafe } from "@/lib/http";
 
@@ -283,13 +284,11 @@ export default function ContactoPage() {
                       <Check className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
                       <Sparkle className="absolute -right-5 -top-3 h-5 w-5 text-tinta" />
                     </span>
-                    {/* La pantalla de éxito lleva el titular de hoja. Con las
-                        clases sueltas y no con <Titular>, porque el foco tiene
-                        que caer en este h2 (ref) y el componente no lo pasa. */}
+                    {/* El h2 conserva el foco y el tamaño propio de este aviso. */}
                     <h2 ref={doneRef} tabIndex={-1} className="titular adornado mt-6 text-[1.75rem] sm:text-[2rem]">
-                      <span className="min-w-0">
+                      <AdornosDelTitular>
                         {en ? `Got it${sentName ? `, ${sentName}` : ""}.` : `Listo${sentName ? `, ${sentName}` : ""}.`}
-                      </span>
+                      </AdornosDelTitular>
                     </h2>
                     <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-tinta">
                       {en

@@ -17,7 +17,7 @@ import {
   Calendar,
 } from 'lucide-react'
 import { useLanguage } from '@/components/LanguageProvider'
-import { Titular } from '@/components/marca/Titular'
+import { AdornosDelTitular, Titular } from '@/components/marca/Titular'
 
 interface FlipbookProps {
   photos: string[]
@@ -582,7 +582,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                 <div className="w-32 h-px mx-auto mb-8 bg-(--pl-regla)" />
 
                 <h2 className="titular adornado mb-4 text-3xl md:text-[2.5rem] text-(--pl-titulo) [--tinta:var(--pl-adorno)]">
-                  <span className="min-w-0">{title}</span>
+                  <AdornosDelTitular><span className="min-w-0">{title}</span></AdornosDelTitular>
                 </h2>
 
                 {weddingDate && (

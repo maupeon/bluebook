@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { Check } from "lucide-react";
 import { Toast } from "@/components/marketing/Ink";
+import { AdornosDelTitular } from "@/components/marca/Titular";
 import { planInicial, RANGO_TABLA } from "@/lib/barra";
 import { SaveTheDate } from "./SaveTheDate";
 import {
@@ -102,7 +103,7 @@ export function TituloDePantalla({
       tabIndex={-1}
       className={`titular adornado mx-auto w-full outline-none ${amplio ? "max-w-3xl" : "max-w-2xl"} ${TAMANOS_DE_TITULO[tamano]} ${className}`}
     >
-      {children}
+      <AdornosDelTitular>{children}</AdornosDelTitular>
     </h1>
   );
 }
