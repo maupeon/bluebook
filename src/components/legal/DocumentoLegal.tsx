@@ -24,6 +24,8 @@ export function DocumentoLegal({
   eyebrow,
   titulo,
   actualizado,
+  vigente,
+  anuncio,
   intro,
   secciones,
   isEnglish,
@@ -32,6 +34,10 @@ export function DocumentoLegal({
   titulo: string;
   /** Fecha legible de la última actualización. */
   actualizado: string;
+  /** Si el texto rige desde otro día que el de su publicación. */
+  vigente?: string;
+  /** Un cambio que viene: se enseña arriba, antes de la introducción. */
+  anuncio?: ReactNode;
   intro: ReactNode;
   secciones: SeccionLegal[];
   isEnglish: boolean;
@@ -55,7 +61,19 @@ export function DocumentoLegal({
         <p className="mt-5 text-sm text-tinta">
           {isEnglish ? "Last updated: " : "Última actualización: "}
           {actualizado}
+          {vigente ? (
+            <>
+              <br />
+              {isEnglish ? "In effect from: " : "Vigente desde: "}
+              {vigente}
+            </>
+          ) : null}
         </p>
+        {anuncio ? (
+          <div className="mx-auto mt-6 max-w-2xl rounded-2xl border border-linea bg-niebla px-5 py-4 text-left text-sm leading-relaxed text-noche text-pretty">
+            {anuncio}
+          </div>
+        ) : null}
         {recordatorio ? (
           <p className="mx-auto mt-6 max-w-2xl rounded-xl bg-aviso-fondo px-4 py-3 text-sm text-aviso">
             {isEnglish ? "Development only — missing in lib/legal.ts: " : "Solo en desarrollo — falta en lib/legal.ts: "}

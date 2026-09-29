@@ -30,6 +30,31 @@ export type Asistente =
       /** Dónde corre el asistente: también trata los datos mientras redacta (p. ej. "Hetzner"). */
       servidor: { nombre: string; donde: { es: string; en: string } };
       vigenteDesde: { es: string; en: string };
+      /**
+       * El mismo día, para la máquina (YYYY-MM-DD, hora de la Ciudad de
+       * México). Antes de ese día el aviso ya lo cuenta, con un anuncio arriba,
+       * y el despertador del servidor no hace rondas (RONDAS_DESDE).
+       */
+      desde: string;
     };
 
-export const ASISTENTE: Asistente = { activo: false };
+// Encendido el 29-sep-2026, vigente desde el 6-oct (avisado con 7 días). Las
+// nueve bodas que ya existían quedaron fuera del asistente
+// (weddings.sin_asistente_desde): sólo recibieron invitaciones y
+// confirmaciones, y sus parejas no aceptaron este cambio.
+export const ASISTENTE: Asistente = {
+  activo: true,
+  proveedor: "OpenRouter",
+  donde: {
+    es: "Estados Unidos (el modelo corre en Azure, DigitalOcean o DeepInfra, también en Estados Unidos)",
+    en: "United States (the model runs on Azure, DigitalOcean or DeepInfra, also in the United States)",
+  },
+  servidor: { nombre: "Hetzner", donde: { es: "Alemania (Unión Europea)", en: "Germany (European Union)" } },
+  vigenteDesde: { es: "6 de octubre de 2026", en: "October 6, 2026" },
+  desde: "2026-10-06",
+};
+
+/** ¿Ya rige? Medianoche de la Ciudad de México (UTC−6, sin horario de verano desde 2022). */
+export function asistenteVigente(ahora: Date = new Date()): boolean {
+  return ASISTENTE.activo && ahora.getTime() >= Date.parse(`${ASISTENTE.desde}T00:00:00-06:00`);
+}

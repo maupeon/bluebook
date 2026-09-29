@@ -5,7 +5,7 @@ import { DocumentoLegal, Enlace, Lista, Tabla, type SeccionLegal } from "@/compo
 import { RESPONSABLE, datoLegal, fraseDeDomicilio } from "@/lib/legal";
 import { GOOGLE_ACTIVO } from "@/lib/entrarConGoogle";
 import { GOOGLE_SHEETS_ACTIVO } from "@/lib/googleSheets";
-import { ASISTENTE } from "@/lib/asistente";
+import { ASISTENTE, asistenteVigente } from "@/lib/asistente";
 
 // El Aviso de privacidad INTEGRAL. Ley Federal de Protección de Datos
 // Personales en Posesión de los Particulares, publicada en el DOF el
@@ -24,9 +24,9 @@ import { ASISTENTE } from "@/lib/asistente";
 // que no existían. Si el producto cambia (analítica, publicidad, un agente de
 // IA que decida algo, borrado automático), este aviso cambia ANTES.
 //
-// El asistente que redacta respuestas a los invitados ya está escrito aquí,
-// detrás de ASISTENTE.activo (lib/asistente.ts): aparece el día que se
-// enciende, no antes. Ahí está lo que hay que hacer antes de encenderlo.
+// El asistente que redacta respuestas a los invitados está escrito aquí,
+// detrás de ASISTENTE.activo (lib/asistente.ts). Se encendió antes de su fecha
+// de vigencia: hasta ese día la portada lo anuncia y dice desde cuándo rige.
 //
 // Las listas de datos son cerradas: los Lineamientos del aviso (2013) no
 // admiten «entre otros».
@@ -814,12 +814,28 @@ export default async function PrivacidadPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Privacy notice" : "Aviso de privacidad"}
-      actualizado={
-        ASISTENTE.activo
-          ? ASISTENTE.vigenteDesde[isEnglish ? "en" : "es"]
-          : isEnglish
-            ? "September 29, 2026"
-            : "29 de septiembre de 2026"
+      actualizado={isEnglish ? "September 29, 2026" : "29 de septiembre de 2026"}
+      vigente={ASISTENTE.activo ? ASISTENTE.vigenteDesde[isEnglish ? "en" : "es"] : undefined}
+      anuncio={
+        ASISTENTE.activo && !asistenteVigente() ? (
+          isEnglish ? (
+            <p>
+              <strong>Change in effect from {ASISTENTE.vigenteDesde.en}.</strong> From that day, an artificial
+              intelligence assistant may draft proposed replies to guests&rsquo; WhatsApp messages; a person on the
+              team reviews each one before it is sent. It is explained in &ldquo;What we use it for&rdquo;, &ldquo;Who
+              we share your data with&rdquo; and &ldquo;If you&rsquo;re a guest&rdquo;. Weddings that were already with us
+              before this change do not go through the assistant.
+            </p>
+          ) : (
+            <p>
+              <strong>Cambio que rige desde el {ASISTENTE.vigenteDesde.es}.</strong> Desde ese día, un asistente de
+              inteligencia artificial puede redactar propuestas de respuesta a los mensajes de WhatsApp de los
+              invitados; una persona del equipo revisa cada una antes de mandarla. Lo explicamos en «Para qué los
+              usamos», «Con quién compartimos tus datos» y «Si eres invitado». Las bodas que ya estaban con nosotros
+              antes de este cambio no pasan por el asistente.
+            </p>
+          )
+        ) : undefined
       }
       intro={
         isEnglish ? (
