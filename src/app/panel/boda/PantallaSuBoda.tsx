@@ -76,6 +76,7 @@ export function PantallaSuBoda({
   invitacionesEnviadas,
   tienePlanner,
   soloLectura,
+  asistente,
 }: {
   perfil: PerfilDeLaBoda;
   weddingDate: string | null;
@@ -87,6 +88,8 @@ export function PantallaSuBoda({
   invitacionesEnviadas: number;
   tienePlanner: boolean;
   soloLectura: boolean;
+  /** «Su asistente por WhatsApp» (0044), aparte del formulario. */
+  asistente?: React.ReactNode;
 }) {
   const { isEnglish: en } = useLanguage();
   const refrescar = useRefrescoDelPanel();
@@ -452,6 +455,12 @@ export function PantallaSuBoda({
           )}
         </form>
       </Reveal>
+
+      {asistente ? (
+        <Reveal app className="mt-8">
+          {asistente}
+        </Reveal>
+      ) : null}
     </div>
   );
 }

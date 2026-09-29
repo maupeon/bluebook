@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { PRIORIDADES, type ClavePrioridad } from "@/components/onboarding/respuestas";
 import { nombreDeLaBoda, partirNombres, type PerfilDeLaBoda } from "@/lib/perfilDeLaBoda";
 import { PantallaSuBoda } from "./PantallaSuBoda";
+import { AsistenteWhatsApp } from "@/components/panel/AsistenteWhatsApp";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,7 @@ export default async function Pagina() {
       invitacionesEnviadas={enviadas ?? 0}
       tienePlanner={wedding.tienePlanner}
       soloLectura={!acceso.puedeEditar}
+      asistente={<AsistenteWhatsApp />}
     />
   );
 }

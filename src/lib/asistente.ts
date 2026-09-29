@@ -31,6 +31,13 @@ export type Asistente =
       servidor: { nombre: string; donde: { es: string; en: string } };
       vigenteDesde: { es: string; en: string };
       /**
+       * El asistente de la PAREJA (0044): la pareja liga su WhatsApp y su
+       * asistente le contesta directo, sin revisión, con los datos de su boda
+       * (dinero incluido). Cambia la tabla de proveedores, el consentimiento y
+       * las decisiones automatizadas del aviso.
+       */
+      pareja: boolean;
+      /**
        * El mismo día, para la máquina (YYYY-MM-DD, hora de la Ciudad de
        * México). Antes de ese día el aviso ya lo cuenta, con un anuncio arriba,
        * y el despertador del servidor no hace rondas (RONDAS_DESDE).
@@ -52,6 +59,7 @@ export const ASISTENTE: Asistente = {
   servidor: { nombre: "Hetzner", donde: { es: "Alemania (Unión Europea)", en: "Germany (European Union)" } },
   vigenteDesde: { es: "6 de octubre de 2026", en: "October 6, 2026" },
   desde: "2026-10-06",
+  pareja: true,
 };
 
 /** ¿Ya rige? Medianoche de la Ciudad de México (UTC−6, sin horario de verano desde 2022). */
