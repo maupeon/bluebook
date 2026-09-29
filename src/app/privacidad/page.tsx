@@ -5,6 +5,7 @@ import { DocumentoLegal, Enlace, Lista, Tabla, type SeccionLegal } from "@/compo
 import { RESPONSABLE, datoLegal, fraseDeDomicilio } from "@/lib/legal";
 import { GOOGLE_ACTIVO } from "@/lib/entrarConGoogle";
 import { GOOGLE_SHEETS_ACTIVO } from "@/lib/googleSheets";
+import { ASISTENTE } from "@/lib/asistente";
 
 // El Aviso de privacidad INTEGRAL. Ley Federal de Protección de Datos
 // Personales en Posesión de los Particulares, publicada en el DOF el
@@ -22,6 +23,10 @@ import { GOOGLE_SHEETS_ACTIVO } from "@/lib/googleSheets";
 // anterior prometía fotos «encriptadas», «cookies analíticas» y un borrado
 // que no existían. Si el producto cambia (analítica, publicidad, un agente de
 // IA que decida algo, borrado automático), este aviso cambia ANTES.
+//
+// El asistente que redacta respuestas a los invitados ya está escrito aquí,
+// detrás de ASISTENTE.activo (lib/asistente.ts): aparece el día que se
+// enciende, no antes. Ahí está lo que hay que hacer antes de encenderlo.
 //
 // Las listas de datos son cerradas: los Lineamientos del aviso (2013) no
 // admiten «entre otros».
@@ -108,6 +113,7 @@ function seccionesEs(): SeccionLegal[] {
             menú de tus invitados podrían revelar su salud o su religión: te pedimos no escribir ahí esa información y,
             si hace falta, anotar solo el tipo de menú (por ejemplo, «vegetariano»). Si aun así se capturan, los
             tratamos solo para esa boda y con las medidas de este aviso.
+            {ASISTENTE.activo ? " El asistente que redacta respuestas a los invitados no recibe las notas ni la restricción para el menú." : ""}
           </p>
         </>
       ),
@@ -124,7 +130,14 @@ function seccionesEs(): SeccionLegal[] {
             <li>Crear tu cuenta, verificar tu correo y dejarte entrar.</li>
             <li>Operar tu panel: tu lista de invitados, presupuesto, pagos, pendientes y el resto de tus herramientas.</li>
             <li>Generar la imagen de tu invitación con inteligencia artificial, solo cuando tú lo pides.</li>
-            <li>Enviar tus invitaciones por WhatsApp a tus invitados y registrar sus respuestas.</li>
+            <li>Enviar tus invitaciones por WhatsApp a tus invitados, registrar sus respuestas y contestar los mensajes que le escriban a tu boda.</li>
+            {ASISTENTE.activo ? (
+              <li>
+                Para contestar más rápido esos mensajes, un asistente de inteligencia artificial puede redactar una
+                propuesta de respuesta. Una persona del equipo la lee y decide si la manda, la corrige o la descarta:
+                ningún mensaje sale sin esa revisión.
+              </li>
+            ) : null}
             <li>Alojar tu álbum digital y las fotos de tus invitados.</li>
             <li>Que una planner del equipo acompañe tu boda (plan mensual) y que el equipo te dé soporte.</li>
             <li>Cobrarte, darte comprobantes y avisarte de tu prueba, tus cobros y los cambios del servicio.</li>
@@ -136,8 +149,10 @@ function seccionesEs(): SeccionLegal[] {
             pediremos antes tu consentimiento, y negarte no afectará el servicio.
           </p>
           <p>
-            <strong>Decisiones automatizadas.</strong> No tomamos decisiones sobre ti de forma automatizada. La
-            inteligencia artificial solo genera la imagen de tu invitación cuando tú lo pides.
+            <strong>Decisiones automatizadas.</strong> No tomamos decisiones sobre ti de forma automatizada.{" "}
+            {ASISTENTE.activo
+              ? "La inteligencia artificial genera la imagen de tu invitación cuando tú lo pides y redacta propuestas de respuesta a tus invitados, pero ninguna respuesta sale sin que una persona la revise, y el asistente no puede cambiar confirmaciones, pases, mesas ni ningún otro dato."
+              : "La inteligencia artificial solo genera la imagen de tu invitación cuando tú lo pides."}
           </p>
         </>
       ),
@@ -193,6 +208,15 @@ function seccionesEs(): SeccionLegal[] {
               ],
               ["Meta (WhatsApp), a través de Kapso", "Enviar invitaciones y recibir las respuestas", "Estados Unidos y otros países"],
               ["Cloudinary", "Fotos del álbum digital", "Estados Unidos"],
+              ...(ASISTENTE.activo
+                ? [
+                    [
+                      ASISTENTE.proveedor,
+                      "Redactar propuestas de respuesta a los mensajes de WhatsApp de los invitados. Recibe esa conversación; del invitado, lo que dice la sección «Si eres invitado»; de la boda, los nombres de la pareja, la fecha, el lugar y lo que dejaron escrito para los invitados. Nunca teléfonos, notas, restricciones para el menú ni datos de dinero. Está configurado para no guardarlos ni usarlos para entrenar modelos",
+                      ASISTENTE.donde.es,
+                    ],
+                  ]
+                : []),
             ]}
           />
           <p>
@@ -219,9 +243,19 @@ function seccionesEs(): SeccionLegal[] {
         <Lista>
           <li>Tus datos los capturó la pareja que te invita (o su planner) para invitarte a su boda.</li>
           <li>
-            Los usamos solo para mandarte su invitación por WhatsApp, registrar tu respuesta y, si subes fotos,
-            mostrarlas en su álbum.
+            Los usamos solo para mandarte su invitación por WhatsApp, registrar tu respuesta, contestar los mensajes
+            que le escribas a esa boda y, si subes fotos, mostrarlas en su álbum.
           </li>
+          {ASISTENTE.activo ? (
+            <li>
+              Si le escribes al WhatsApp de la boda, un asistente de inteligencia artificial puede leer esa
+              conversación para proponer una respuesta. Para eso recibe tu nombre, tus pases, tus acompañantes, si ya
+              confirmaste, tu mesa y lo que la pareja o su planner dejaron escrito para los invitados (horarios, lugar,
+              código de vestimenta, mesa de regalos, hospedaje). Una persona del equipo revisa cada respuesta antes de
+              que salga. Si prefieres que tus mensajes no pasen por el asistente, escríbenos a {correo}: los contesta
+              directamente una persona.
+            </li>
+          ) : null}
           <li>
             Si no quieres recibir mensajes de esa boda, o quieres que borremos tus datos, escríbenos a {correo} o
             pídeselo a la pareja. Tienes los mismos derechos que cualquier persona (sección 7).
@@ -277,6 +311,12 @@ function seccionesEs(): SeccionLegal[] {
             Puedes no darnos tu WhatsApp, no darnos tu presupuesto («Prefiero no decir») y no generar invitaciones con
             IA: el panel funciona igual.
           </li>
+          {ASISTENTE.activo ? (
+            <li>
+              Puedes pedir que los mensajes de los invitados de tu boda no pasen por el asistente de inteligencia
+              artificial: los contesta directamente una persona del equipo.
+            </li>
+          ) : null}
           <li>No te mandamos publicidad.</li>
         </Lista>
       ),
@@ -452,6 +492,7 @@ function seccionesEn(): SeccionLegal[] {
             restriction could reveal their health or religion: please don&rsquo;t write that there and, if needed, note
             only the type of menu (for example, &ldquo;vegetarian&rdquo;). If it&rsquo;s entered anyway, we process it
             only for that wedding and with the safeguards in this notice.
+            {ASISTENTE.activo ? " The assistant that drafts replies to guests doesn't receive notes or menu restrictions." : ""}
           </p>
         </>
       ),
@@ -468,7 +509,14 @@ function seccionesEn(): SeccionLegal[] {
             <li>Create your account, verify your email and let you in.</li>
             <li>Run your panel: your guest list, budget, payments, to-dos and the rest of your tools.</li>
             <li>Generate your invitation image with artificial intelligence, only when you ask.</li>
-            <li>Send your invitations to your guests over WhatsApp and record their replies.</li>
+            <li>Send your invitations to your guests over WhatsApp, record their replies and answer the messages they send about your wedding.</li>
+            {ASISTENTE.activo ? (
+              <li>
+                To answer those messages faster, an artificial intelligence assistant may draft a proposed reply. A
+                person from the team reads it and decides whether to send it, edit it or discard it: no message goes out
+                without that review.
+              </li>
+            ) : null}
             <li>Host your digital album and your guests&rsquo; photos.</li>
             <li>Have a planner from the team look after your wedding (monthly plan) and give you support.</li>
             <li>Charge you, give you receipts and let you know about your trial, your charges and changes to the service.</li>
@@ -480,8 +528,10 @@ function seccionesEn(): SeccionLegal[] {
             saying no won&rsquo;t affect the service.
           </p>
           <p>
-            <strong>Automated decisions.</strong> We don&rsquo;t make automated decisions about you. Artificial
-            intelligence only generates your invitation image when you ask.
+            <strong>Automated decisions.</strong> We don&rsquo;t make automated decisions about you.{" "}
+            {ASISTENTE.activo
+              ? "Artificial intelligence generates your invitation image when you ask and drafts proposed replies to your guests, but no reply goes out without a person reviewing it, and the assistant can't change RSVPs, seats, tables or any other data."
+              : "Artificial intelligence only generates your invitation image when you ask."}
           </p>
         </>
       ),
@@ -536,6 +586,15 @@ function seccionesEn(): SeccionLegal[] {
               ],
               ["Meta (WhatsApp), through Kapso", "Sending invitations and receiving replies", "United States and other countries"],
               ["Cloudinary", "Digital album photos", "United States"],
+              ...(ASISTENTE.activo
+                ? [
+                    [
+                      ASISTENTE.proveedor,
+                      "Drafting proposed replies to guests' WhatsApp messages. It receives that conversation; about the guest, what the \"If you're a guest\" section says; about the wedding, the couple's names, the date, the place and what they wrote down for guests. Never phone numbers, notes, menu restrictions or financial data. It's set up not to keep them or use them to train models",
+                      ASISTENTE.donde.en,
+                    ],
+                  ]
+                : []),
             ]}
           />
           <p>
@@ -562,9 +621,19 @@ function seccionesEn(): SeccionLegal[] {
         <Lista>
           <li>Your data was added by the couple inviting you (or their planner) to invite you to their wedding.</li>
           <li>
-            We use it only to send you their invitation over WhatsApp, record your reply and, if you upload photos, show
-            them in their album.
+            We use it only to send you their invitation over WhatsApp, record your reply, answer the messages you send
+            about that wedding and, if you upload photos, show them in their album.
           </li>
+          {ASISTENTE.activo ? (
+            <li>
+              If you write to the wedding&rsquo;s WhatsApp, an artificial intelligence assistant may read that
+              conversation to propose a reply. For that it receives your name, your seats, your plus-ones, whether you
+              already confirmed, your table and what the couple or their planner wrote down for guests (times, place,
+              dress code, gift registry, lodging). A person from the team reviews every reply before it goes out. If
+              you&rsquo;d rather your messages didn&rsquo;t go through the assistant, write to {correo}: a person will
+              answer them directly.
+            </li>
+          ) : null}
           <li>
             If you don&rsquo;t want messages about that wedding, or want us to delete your data, write to {correo} or ask
             the couple. You have the same rights as anyone else (section 7).
@@ -620,6 +689,12 @@ function seccionesEn(): SeccionLegal[] {
             You can skip giving us your WhatsApp or your budget (&ldquo;I&rsquo;d rather not say&rdquo;) and not
             generate invitations with AI: the panel works the same.
           </li>
+          {ASISTENTE.activo ? (
+            <li>
+              You can ask that your guests&rsquo; messages not go through the artificial intelligence assistant: a
+              person from the team will answer them directly.
+            </li>
+          ) : null}
           <li>We don&rsquo;t send you advertising.</li>
         </Lista>
       ),
@@ -729,7 +804,13 @@ export default async function PrivacidadPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Privacy notice" : "Aviso de privacidad"}
-      actualizado={isEnglish ? "September 28, 2026" : "28 de septiembre de 2026"}
+      actualizado={
+        ASISTENTE.activo
+          ? ASISTENTE.vigenteDesde[isEnglish ? "en" : "es"]
+          : isEnglish
+            ? "September 29, 2026"
+            : "29 de septiembre de 2026"
+      }
       intro={
         isEnglish ? (
           <p>
