@@ -38,6 +38,11 @@ export type Asistente =
        */
       pareja: boolean;
       /**
+       * El asistente del EQUIPO (0045, «el master»): la planner consulta con él
+       * sus bodas, también las de antes del aviso (sin montos de ésas).
+       */
+      equipo: boolean;
+      /**
        * El mismo día, para la máquina (YYYY-MM-DD, hora de la Ciudad de
        * México). Antes de ese día el aviso ya lo cuenta, con un anuncio arriba,
        * y el despertador del servidor no hace rondas (RONDAS_DESDE).
@@ -60,6 +65,7 @@ export const ASISTENTE: Asistente = {
   vigenteDesde: { es: "6 de octubre de 2026", en: "October 6, 2026" },
   desde: "2026-10-06",
   pareja: true,
+  equipo: true,
 };
 
 /** ¿Ya rige? Medianoche de la Ciudad de México (UTC−6, sin horario de verano desde 2022). */

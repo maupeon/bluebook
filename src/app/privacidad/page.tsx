@@ -33,6 +33,8 @@ import { ASISTENTE, asistenteVigente } from "@/lib/asistente";
 
 // El asistente de la pareja (0044): lo que cambia cuando la pareja liga su WhatsApp.
 const PAREJA = ASISTENTE.activo && ASISTENTE.pareja;
+// El asistente del equipo (0045): la planner consulta sus bodas con él.
+const EQUIPO = ASISTENTE.activo && ASISTENTE.equipo;
 
 export const metadata: Metadata = {
   title: "Aviso de privacidad",
@@ -151,6 +153,13 @@ function seccionesEs(): SeccionLegal[] {
                 cambia nada.
               </li>
             ) : null}
+            {EQUIPO ? (
+              <li>
+                Que tu planner consulte cómo va tu boda con un asistente de inteligencia artificial, por WhatsApp o en su
+                computadora: invitados y confirmaciones, pases, mesas, pendientes y proveedores (y el dinero, si nos diste
+                tu consentimiento para él). Sólo lo usa el equipo: no le escribe a nadie ni cambia nada.
+              </li>
+            ) : null}
             <li>Alojar tu álbum digital y las fotos de tus invitados.</li>
             <li>Que una planner del equipo acompañe tu boda (plan mensual) y que el equipo te dé soporte.</li>
             <li>Cobrarte, darte comprobantes y avisarte de tu prueba, tus cobros y los cambios del servicio.</li>
@@ -235,7 +244,7 @@ function seccionesEs(): SeccionLegal[] {
                     [
                       ASISTENTE.proveedor,
                       PAREJA
-                        ? "Redactar propuestas de respuesta a los mensajes de WhatsApp de los invitados y contestarle a la pareja que ligó su WhatsApp. Para un invitado recibe esa conversación; del invitado, lo que dice la sección «Si eres invitado»; de la boda, los nombres de la pareja, la fecha, el lugar y lo que dejaron escrito para los invitados, sin datos de dinero. Para la pareja recibe su conversación con el asistente y lo que pregunte de su boda: sus invitados con confirmaciones, pases y mesas, sus pendientes, proveedores, presupuesto y pagos. Nunca teléfonos, notas ni restricciones para el menú. Está configurado para no guardarlos ni usarlos para entrenar modelos"
+                        ? "Redactar propuestas de respuesta a los mensajes de WhatsApp de los invitados y contestarle a la pareja que ligó su WhatsApp. Para un invitado recibe esa conversación; del invitado, lo que dice la sección «Si eres invitado»; de la boda, los nombres de la pareja, la fecha, el lugar y lo que dejaron escrito para los invitados, sin datos de dinero. Para la pareja recibe su conversación con el asistente y lo que pregunte de su boda: sus invitados con confirmaciones, pases y mesas, sus pendientes, proveedores, presupuesto y pagos." + (EQUIPO ? " Para el equipo de Blue Book, lo que la planner pregunte de las bodas que organiza: lo mismo, sin mensajes de invitados y sin dinero si no hubo consentimiento para él." : "") + " Nunca teléfonos, notas ni restricciones para el menú. Está configurado para no guardarlos ni usarlos para entrenar modelos"
                         : "Redactar propuestas de respuesta a los mensajes de WhatsApp de los invitados. Recibe esa conversación; del invitado, lo que dice la sección «Si eres invitado»; de la boda, los nombres de la pareja, la fecha, el lugar y lo que dejaron escrito para los invitados. Nunca teléfonos, notas, restricciones para el menú ni datos de dinero. Está configurado para no guardarlos ni usarlos para entrenar modelos",
                       ASISTENTE.donde.es,
                     ],
@@ -291,6 +300,12 @@ function seccionesEs(): SeccionLegal[] {
             <li>
               Si la pareja ligó su WhatsApp a su asistente, le puede preguntar si ya confirmaste, cuántos pases tienes y
               en qué mesa estás. Nunca le da tu teléfono ni tus mensajes.
+            </li>
+          ) : null}
+          {EQUIPO ? (
+            <li>
+              La planner de la boda también puede consultar con el asistente si confirmaste, tus pases y tu mesa, para
+              organizarla. Nunca tu teléfono ni tus mensajes.
             </li>
           ) : null}
           <li>
@@ -570,6 +585,13 @@ function seccionesEn(): SeccionLegal[] {
                 doesn&rsquo;t change anything.
               </li>
             ) : null}
+            {EQUIPO ? (
+              <li>
+                For your planner to check how your wedding is going with an artificial intelligence assistant, over
+                WhatsApp or on their computer: guests and RSVPs, seats, tables, to-dos and vendors (and money, if you gave
+                us your consent for it). Only the team uses it: it doesn&rsquo;t write to anyone or change anything.
+              </li>
+            ) : null}
             <li>Host your digital album and your guests&rsquo; photos.</li>
             <li>Have a planner from the team look after your wedding (monthly plan) and give you support.</li>
             <li>Charge you, give you receipts and let you know about your trial, your charges and changes to the service.</li>
@@ -653,7 +675,7 @@ function seccionesEn(): SeccionLegal[] {
                     [
                       ASISTENTE.proveedor,
                       PAREJA
-                        ? "Drafting proposed replies to guests' WhatsApp messages and answering the couple who linked their WhatsApp. For a guest it receives that conversation; about the guest, what the \"If you're a guest\" section says; about the wedding, the couple's names, the date, the place and what they wrote down for guests, with no financial data. For the couple it receives their conversation with the assistant and whatever they ask about their wedding: their guests with RSVPs, seats and tables, their to-dos, vendors, budget and payments. Never phone numbers, notes or menu restrictions. It's set up not to keep them or use them to train models"
+                        ? "Drafting proposed replies to guests' WhatsApp messages and answering the couple who linked their WhatsApp. For a guest it receives that conversation; about the guest, what the \"If you're a guest\" section says; about the wedding, the couple's names, the date, the place and what they wrote down for guests, with no financial data. For the couple it receives their conversation with the assistant and whatever they ask about their wedding: their guests with RSVPs, seats and tables, their to-dos, vendors, budget and payments." + (EQUIPO ? " For the Blue Book team, whatever the planner asks about the weddings they organize: the same, without guests' messages and without money unless there was consent for it." : "") + " Never phone numbers, notes or menu restrictions. It's set up not to keep them or use them to train models"
                         : "Drafting proposed replies to guests' WhatsApp messages. It receives that conversation; about the guest, what the \"If you're a guest\" section says; about the wedding, the couple's names, the date, the place and what they wrote down for guests. Never phone numbers, notes, menu restrictions or financial data. It's set up not to keep them or use them to train models",
                       ASISTENTE.donde.en,
                     ],
@@ -709,6 +731,12 @@ function seccionesEn(): SeccionLegal[] {
             <li>
               If the couple linked their WhatsApp to their assistant, they can ask it whether you confirmed, how many
               seats you have and which table you&rsquo;re at. It never gives them your phone number or your messages.
+            </li>
+          ) : null}
+          {EQUIPO ? (
+            <li>
+              The wedding&rsquo;s planner can also check with the assistant whether you confirmed, your seats and your
+              table, to organize it. Never your phone number or your messages.
             </li>
           ) : null}
           <li>
@@ -899,9 +927,13 @@ export default async function PrivacidadPage() {
               {PAREJA
                 ? " And if a couple links their WhatsApp, their assistant answers them directly about their wedding."
                 : ""}{" "}
+              {EQUIPO
+                ? " And the Blue Book team can check how each wedding is going with it, including those already with us."
+                : ""}{" "}
               It is explained in &ldquo;What we use it for&rdquo;, &ldquo;Who
-              we share your data with&rdquo; and &ldquo;If you&rsquo;re a guest&rdquo;. Weddings that were already with us
-              before this change do not go through the assistant.
+              we share your data with&rdquo; and &ldquo;If you&rsquo;re a guest&rdquo;. In weddings that were already with us
+              before this change, guests and couples still don&rsquo;t go through the assistant, and the team sees no amounts
+              of money.
             </p>
           ) : (
             <p>
@@ -909,9 +941,13 @@ export default async function PrivacidadPage() {
               inteligencia artificial puede redactar propuestas de respuesta a los mensajes de WhatsApp de los
               invitados; una persona del equipo revisa cada una antes de mandarla.
               {PAREJA ? " Y si una pareja liga su WhatsApp, su asistente le contesta directamente lo de su boda." : ""}{" "}
+              {EQUIPO
+                ? " Y el equipo de Blue Book puede consultar con él cómo va cada boda, también las que ya estaban con nosotros."
+                : ""}{" "}
               Lo explicamos en «Para qué los
-              usamos», «Con quién compartimos tus datos» y «Si eres invitado». Las bodas que ya estaban con nosotros
-              antes de este cambio no pasan por el asistente.
+              usamos», «Con quién compartimos tus datos» y «Si eres invitado». En las bodas que ya estaban con nosotros
+              antes de este cambio, los invitados y la pareja siguen sin pasar por el asistente, y el equipo no ve montos
+              de dinero.
             </p>
           )
         ) : undefined
