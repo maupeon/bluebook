@@ -947,7 +947,7 @@ export default async function PrivacidadPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Privacy notice" : "Aviso de privacidad"}
-      actualizado={isEnglish ? "September 29, 2026" : "29 de septiembre de 2026"}
+      actualizado={isEnglish ? "September 30, 2026" : "30 de septiembre de 2026"}
       vigente={ASISTENTE.activo ? ASISTENTE.vigenteDesde[isEnglish ? "en" : "es"] : undefined}
       anuncio={
         ASISTENTE.activo && !asistenteVigente() ? (

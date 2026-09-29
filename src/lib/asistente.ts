@@ -67,8 +67,8 @@ export const ASISTENTE: Asistente = {
   activo: true,
   proveedor: "OpenRouter",
   donde: {
-    es: "Estados Unidos (el modelo corre en Azure, DigitalOcean o DeepInfra, también en Estados Unidos)",
-    en: "United States (the model runs on Azure, DigitalOcean or DeepInfra, also in the United States)",
+    es: "Estados Unidos (el modelo corre en DigitalOcean o DeepInfra, también en Estados Unidos)",
+    en: "United States (the model runs on DigitalOcean or DeepInfra, also in the United States)",
   },
   servidor: { nombre: "Hetzner", donde: { es: "Alemania (Unión Europea)", en: "Germany (European Union)" } },
   vigenteDesde: { es: "6 de octubre de 2026", en: "October 6, 2026" },
