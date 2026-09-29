@@ -215,6 +215,11 @@ function seccionesEs(): SeccionLegal[] {
                       "Redactar propuestas de respuesta a los mensajes de WhatsApp de los invitados. Recibe esa conversación; del invitado, lo que dice la sección «Si eres invitado»; de la boda, los nombres de la pareja, la fecha, el lugar y lo que dejaron escrito para los invitados. Nunca teléfonos, notas, restricciones para el menú ni datos de dinero. Está configurado para no guardarlos ni usarlos para entrenar modelos",
                       ASISTENTE.donde.es,
                     ],
+                    [
+                      ASISTENTE.servidor.nombre,
+                      "El servidor donde corre el asistente: recibe lo mismo que el proveedor de arriba mientras redacta. No guarda memoria de los invitados y borra el historial de lo que leyó a los 7 días",
+                      ASISTENTE.servidor.donde.es,
+                    ],
                   ]
                 : []),
             ]}
@@ -592,6 +597,11 @@ function seccionesEn(): SeccionLegal[] {
                       ASISTENTE.proveedor,
                       "Drafting proposed replies to guests' WhatsApp messages. It receives that conversation; about the guest, what the \"If you're a guest\" section says; about the wedding, the couple's names, the date, the place and what they wrote down for guests. Never phone numbers, notes, menu restrictions or financial data. It's set up not to keep them or use them to train models",
                       ASISTENTE.donde.en,
+                    ],
+                    [
+                      ASISTENTE.servidor.nombre,
+                      "The server where the assistant runs: it receives the same as the provider above while drafting. It keeps no memory of guests and deletes the history of what it read after 7 days",
+                      ASISTENTE.servidor.donde.en,
                     ],
                   ]
                 : []),

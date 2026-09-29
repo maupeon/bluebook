@@ -27,6 +27,8 @@ export type Asistente =
       /** Como se llama en la tabla de proveedores del aviso (p. ej. "OpenRouter"). */
       proveedor: string;
       donde: { es: string; en: string };
+      /** Dónde corre el asistente: también trata los datos mientras redacta (p. ej. "Hetzner"). */
+      servidor: { nombre: string; donde: { es: string; en: string } };
       vigenteDesde: { es: string; en: string };
     };
 
