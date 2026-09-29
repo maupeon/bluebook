@@ -38,6 +38,15 @@ export type Asistente =
        */
       pareja: boolean;
       /**
+       * Fase 2 del asistente de la pareja (0046): además de contestar, hace
+       * los cambios que la pareja le pide (invitados, mesas, pendientes, sus
+       * pagos y proveedores), cada uno sólo después de su «sí» al resumen
+       * exacto, con bitácora y «deshacer» en 24 horas. Cambia las finalidades,
+       * las decisiones automatizadas, lo que recibe el proveedor, la sección
+       * de invitados y cuánto se guarda.
+       */
+      parejaCambia: boolean;
+      /**
        * El asistente del EQUIPO (0045, «el master»): la planner consulta con él
        * sus bodas, también las de antes del aviso (sin montos de ésas).
        */
@@ -65,6 +74,7 @@ export const ASISTENTE: Asistente = {
   vigenteDesde: { es: "6 de octubre de 2026", en: "October 6, 2026" },
   desde: "2026-10-06",
   pareja: true,
+  parejaCambia: true,
   equipo: true,
 };
 

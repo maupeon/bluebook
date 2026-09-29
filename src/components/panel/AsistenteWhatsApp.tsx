@@ -5,6 +5,10 @@ import Link from "next/link";
 import { Check, MessageCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { parseJsonSafe } from "@/lib/http";
+import { ASISTENTE } from "@/lib/asistente";
+
+// Fase 2 (0046): también hace los cambios que le piden, con su «sí».
+const CAMBIA = ASISTENTE.activo && ASISTENTE.pareja && ASISTENTE.parejaCambia;
 
 /**
  * «Su asistente por WhatsApp» (0044): la pareja liga su teléfono con un
@@ -123,8 +127,12 @@ export function AsistenteWhatsApp() {
         <h2 className="text-xl font-medium text-noche">{en ? "Your WhatsApp assistant" : "Su asistente por WhatsApp"}</h2>
         <p className="mt-2 text-sm leading-relaxed text-tinta">
           {en
-            ? "Ask it on WhatsApp about your wedding: who has RSVPed, who's missing, your tables, your vendors and your payments. It answers with the details in your panel and doesn't change anything. Each of you links your own phone."
-            : "Pregúntenle por WhatsApp lo de su boda: quién ha confirmado, quién falta, sus mesas, sus proveedores y sus pagos. Contesta con los datos de su panel y no cambia nada. Cada quien liga su propio teléfono."}
+            ? CAMBIA
+              ? "Ask it on WhatsApp about your wedding: who has RSVPed, who's missing, your tables, your vendors and your payments. You can also ask it for changes (confirm someone, change seats or tables, add a to-do or a payment): it first tells you exactly what will change, and only does it if you reply \u201cs\u00ed\u201d. If something went wrong, write \u201cdeshacer\u201d. Each of you links your own phone."
+              : "Ask it on WhatsApp about your wedding: who has RSVPed, who's missing, your tables, your vendors and your payments. It answers with the details in your panel and doesn't change anything. Each of you links your own phone."
+            : CAMBIA
+              ? "Pregúntenle por WhatsApp lo de su boda: quién ha confirmado, quién falta, sus mesas, sus proveedores y sus pagos. También le pueden pedir cambios (confirmar a alguien, cambiar pases o mesas, apuntar un pendiente o un pago): antes les dice exactamente qué va a cambiar, y sólo lo hace si contestan «sí». Si algo salió mal, escriban «deshacer». Cada quien liga su propio teléfono."
+              : "Pregúntenle por WhatsApp lo de su boda: quién ha confirmado, quién falta, sus mesas, sus proveedores y sus pagos. Contesta con los datos de su panel y no cambia nada. Cada quien liga su propio teléfono."}
         </p>
         <p className="mt-2 text-xs leading-relaxed text-tinta">
           {en ? "It uses artificial intelligence to answer. " : "Para contestar usa inteligencia artificial. "}
