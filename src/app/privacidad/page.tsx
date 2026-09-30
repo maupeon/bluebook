@@ -89,7 +89,7 @@ function seccionesEs(): SeccionLegal[] {
             <li>Documentos: los contratos de tus proveedores que subes en PDF.</li>
             <li>
               Los mensajes que nos escribes desde tu panel o por correo
-              {PAREJA ? " y, si ligas tu WhatsApp a tu asistente, lo que le escribes por ahí" : ""}.
+              {PAREJA ? " y, si ligas tu WhatsApp a tu asistente, lo que le escribes o le dices en notas de voz por ahí" : ""}.
             </li>
             <li>Técnicos: los necesarios para mantener tu sesión y tu idioma (ver Cookies).</li>
           </Lista>
@@ -170,8 +170,8 @@ function seccionesEs(): SeccionLegal[] {
             ) : null}
             {PAREJA ? (
               <li>
-                Si ligas tu WhatsApp a tu asistente, que te conteste por ahí lo de tu boda: tus invitados, mesas,
-                pendientes, proveedores, presupuesto y pagos. Te contesta directamente, con los datos de tu panel
+                Si ligas tu WhatsApp a tu asistente, que te conteste por ahí lo de tu boda (también a tus notas de voz):
+                tus invitados, mesas (y, si se lo pides, te manda tu acomodo de mesas en PDF), pendientes, proveedores, presupuesto y pagos. Te contesta directamente, con los datos de tu panel
                 {CAMBIA
                   ? ". Si se lo pides, también cambia cosas de tu boda, las mismas que puedes cambiar en tu panel (la respuesta, los pases o la mesa de un invitado, agregarlo o quitarlo, tus pendientes, y los pagos y proveedores que tú capturas): antes de cada cambio te escribe exactamente qué va a hacer, y sólo lo hace si le contestas «sí». Cada cambio queda registrado, con lo que había antes y lo que quedó, y lo puedes deshacer escribiendo «deshacer» en las 24 horas siguientes."
                   : ", y no cambia nada."}
@@ -267,7 +267,7 @@ function seccionesEs(): SeccionLegal[] {
                 "Generar la imagen de tu invitación con IA, cuando lo pides (recibe tus nombres, fecha, lugar y los detalles que escribas)",
                 "Estados Unidos",
               ],
-              ["Meta (WhatsApp), a través de Kapso", "Enviar invitaciones y recibir las respuestas", "Estados Unidos y otros países"],
+              ["Meta (WhatsApp), a través de Kapso", "Enviar invitaciones y recibir las respuestas; Kapso pasa a texto las notas de voz que llegan al WhatsApp de Blue Book", "Estados Unidos y otros países"],
               ["Cloudinary", "Fotos del álbum digital", "Estados Unidos"],
               ...(ASISTENTE.activo
                 ? [
@@ -556,7 +556,7 @@ function seccionesEn(): SeccionLegal[] {
             <li>Documents: the vendor contracts you upload as PDF.</li>
             <li>
               The messages you send us from your panel or by email
-              {PAREJA ? " and, if you link your WhatsApp to your assistant, what you write to it there" : ""}.
+              {PAREJA ? " and, if you link your WhatsApp to your assistant, what you write or say to it there in voice notes" : ""}.
             </li>
             <li>Technical: what&rsquo;s needed to keep your session and your language (see Cookies).</li>
           </Lista>
@@ -637,8 +637,8 @@ function seccionesEn(): SeccionLegal[] {
             ) : null}
             {PAREJA ? (
               <li>
-                If you link your WhatsApp to your assistant, to answer you there about your wedding: your guests, tables,
-                to-dos, vendors, budget and payments. It answers you directly, with the details in your panel
+                If you link your WhatsApp to your assistant, to answer you there about your wedding (voice notes too): your
+                guests, tables (and, if you ask, it sends you your seating plan as a PDF), to-dos, vendors, budget and payments. It answers you directly, with the details in your panel
                 {CAMBIA
                   ? ". If you ask, it also changes things in your wedding, the same ones you can change in your panel (a guest's RSVP, seats or table, adding or removing a guest, your to-dos, and the payments and vendors you enter yourself): before each change it tells you exactly what it will do, and it only does it if you reply \u201cyes\u201d (\u201csí\u201d). Every change is logged, with what was there before and what it became, and you can undo it by writing \u201cdeshacer\u201d within the next 24 hours."
                   : ", and doesn\u2019t change anything."}
@@ -733,7 +733,7 @@ function seccionesEn(): SeccionLegal[] {
                 "Generating your invitation image with AI, when you ask (it receives your names, date, place and the details you type)",
                 "United States",
               ],
-              ["Meta (WhatsApp), through Kapso", "Sending invitations and receiving replies", "United States and other countries"],
+              ["Meta (WhatsApp), through Kapso", "Sending invitations and receiving replies; Kapso turns the voice notes sent to Blue Book\u2019s WhatsApp into text", "United States and other countries"],
               ["Cloudinary", "Digital album photos", "United States"],
               ...(ASISTENTE.activo
                 ? [
