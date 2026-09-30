@@ -267,7 +267,7 @@ function seccionesEs(): SeccionLegal[] {
                 "Generar la imagen de tu invitación con IA, cuando lo pides (recibe tus nombres, fecha, lugar y los detalles que escribas)",
                 "Estados Unidos",
               ],
-              ["Meta (WhatsApp), a través de Kapso", "Enviar invitaciones y recibir las respuestas; Kapso pasa a texto las notas de voz que llegan al WhatsApp de Blue Book", "Estados Unidos y otros países"],
+              ["Meta (WhatsApp), a través de Kapso", "Enviar invitaciones y recibir las respuestas; Kapso también puede pasar a texto las notas de voz que llegan al WhatsApp de Blue Book", "Estados Unidos y otros países"],
               ["Cloudinary", "Fotos del álbum digital", "Estados Unidos"],
               ...(ASISTENTE.activo
                 ? [
@@ -281,7 +281,7 @@ function seccionesEs(): SeccionLegal[] {
                     [
                       ASISTENTE.servidor.nombre,
                       PAREJA
-                        ? "El servidor donde corre el asistente: recibe lo mismo que el proveedor de arriba mientras trabaja. No guarda memoria de los invitados ni de la pareja y borra el historial de lo que leyó a los 7 días"
+                        ? "El servidor donde corre el asistente: recibe lo mismo que el proveedor de arriba mientras trabaja y pasa a texto las notas de voz que le mandas a tu asistente (el audio no se guarda). No guarda memoria de los invitados ni de la pareja y borra el historial de lo que leyó a los 7 días"
                         : "El servidor donde corre el asistente: recibe lo mismo que el proveedor de arriba mientras redacta. No guarda memoria de los invitados y borra el historial de lo que leyó a los 7 días",
                       ASISTENTE.servidor.donde.es,
                     ],
@@ -733,7 +733,7 @@ function seccionesEn(): SeccionLegal[] {
                 "Generating your invitation image with AI, when you ask (it receives your names, date, place and the details you type)",
                 "United States",
               ],
-              ["Meta (WhatsApp), through Kapso", "Sending invitations and receiving replies; Kapso turns the voice notes sent to Blue Book\u2019s WhatsApp into text", "United States and other countries"],
+              ["Meta (WhatsApp), through Kapso", "Sending invitations and receiving replies; Kapso may also turn the voice notes sent to Blue Book\u2019s WhatsApp into text", "United States and other countries"],
               ["Cloudinary", "Digital album photos", "United States"],
               ...(ASISTENTE.activo
                 ? [
@@ -747,7 +747,7 @@ function seccionesEn(): SeccionLegal[] {
                     [
                       ASISTENTE.servidor.nombre,
                       PAREJA
-                        ? "The server where the assistant runs: it receives the same as the provider above while it works. It keeps no memory of guests or the couple and deletes the history of what it read after 7 days"
+                        ? "The server where the assistant runs: it receives the same as the provider above while it works and turns the voice notes you send your assistant into text (the audio isn\u2019t kept). It keeps no memory of guests or the couple and deletes the history of what it read after 7 days"
                         : "The server where the assistant runs: it receives the same as the provider above while drafting. It keeps no memory of guests and deletes the history of what it read after 7 days",
                       ASISTENTE.servidor.donde.en,
                     ],
