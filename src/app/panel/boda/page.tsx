@@ -6,6 +6,7 @@ import { PRIORIDADES, type ClavePrioridad } from "@/components/onboarding/respue
 import { nombreDeLaBoda, partirNombres, type PerfilDeLaBoda } from "@/lib/perfilDeLaBoda";
 import { PantallaSuBoda } from "./PantallaSuBoda";
 import { AsistenteWhatsApp } from "@/components/panel/AsistenteWhatsApp";
+import { AccesoDeLaPareja } from "@/components/panel/AccesoDeLaPareja";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,7 @@ export default async function Pagina() {
       invitacionesEnviadas={enviadas ?? 0}
       tienePlanner={wedding.tienePlanner}
       soloLectura={!acceso.puedeEditar}
+      acceso={<AccesoDeLaPareja />}
       asistente={<AsistenteWhatsApp />}
     />
   );

@@ -76,6 +76,7 @@ export function PantallaSuBoda({
   invitacionesEnviadas,
   tienePlanner,
   soloLectura,
+  acceso,
   asistente,
 }: {
   perfil: PerfilDeLaBoda;
@@ -88,6 +89,8 @@ export function PantallaSuBoda({
   invitacionesEnviadas: number;
   tienePlanner: boolean;
   soloLectura: boolean;
+  /** «Quién entra a su panel»: el correo de la otra mitad de la pareja. */
+  acceso?: React.ReactNode;
   /** «Su asistente por WhatsApp» (0044), aparte del formulario. */
   asistente?: React.ReactNode;
 }) {
@@ -455,6 +458,12 @@ export function PantallaSuBoda({
           )}
         </form>
       </Reveal>
+
+      {acceso ? (
+        <Reveal app className="mt-8">
+          {acceso}
+        </Reveal>
+      ) : null}
 
       {asistente ? (
         <Reveal app className="mt-8">
