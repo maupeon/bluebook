@@ -19,9 +19,12 @@ export const dynamic = "force-dynamic";
 //   POST              un código nuevo para ligar un WhatsApp (30 min, un uso)
 //   DELETE ?id=…      quitar un número
 //
-// Una boda «fuera del asistente» (0043) no lo tiene. Antes del 6-oct-2026 sólo
-// las bodas de prueba (ASISTENTE_PAREJA_PRUEBA). En esta fase el asistente sólo
-// lee, así que una prueba vencida (solo lectura) también lo puede usar.
+// Una boda «fuera del asistente» (0043) no lo tiene. Antes de
+// ASISTENTE_PAREJA_DESDE, sólo las bodas de prueba (ASISTENTE_PAREJA_PRUEBA).
+// Una prueba vencida (solo lectura) también lo puede usar para preguntar.
+//
+// Si un admin APAGÓ a Hermes (admin lib/agente/interruptor.ts, clave 'hermes'
+// de app_settings) no se dan códigos: el panel dice que está apagado.
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MINUTOS = 30;
@@ -39,9 +42,14 @@ async function contexto(req: NextRequest) {
   const wedding = await getCoupleWeddingByEmail(email);
   if (!wedding) return { error: NextResponse.json({ error: t("No encontramos tu boda.", "We couldn't find your wedding.") }, { status: 404 }) } as const;
   const admin = createAdminClient();
-  const { data: w } = await admin.from("weddings").select("sin_asistente_desde").eq("id", wedding.id).maybeSingle();
+  const [{ data: w }, { data: hermes }] = await Promise.all([
+    admin.from("weddings").select("sin_asistente_desde").eq("id", wedding.id).maybeSingle(),
+    admin.from("app_settings").select("value").eq("key", "hermes").maybeSingle(),
+  ]);
   const fuera = Boolean(w?.sin_asistente_desde);
-  return { en, t, email, weddingId: wedding.id, admin, fuera, abierto: asistenteDeLaParejaAbierto(wedding.id) } as const;
+  // Sin fila está encendido, igual que en el admin.
+  const apagado = (hermes?.value as { encendido?: unknown } | null)?.encendido === false;
+  return { en, t, email, weddingId: wedding.id, admin, fuera, apagado, abierto: asistenteDeLaParejaAbierto(wedding.id) } as const;
 }
 
 async function numeros(admin: ReturnType<typeof createAdminClient>, weddingId: string) {
@@ -62,7 +70,8 @@ export async function GET(req: NextRequest) {
   if ("error" in c) return c.error;
   return NextResponse.json({
     fuera: c.fuera,
-    disponible: !c.fuera && c.abierto,
+    apagado: c.apagado,
+    disponible: !c.fuera && c.abierto && !c.apagado,
     desde: ASISTENTE_PAREJA_DESDE,
     whatsapp: WHATSAPP_DEL_ASISTENTE_VISIBLE,
     numeros: c.fuera ? [] : await numeros(c.admin, c.weddingId),
@@ -74,6 +83,9 @@ export async function POST(req: NextRequest) {
   if ("error" in c) return c.error;
   if (c.fuera || !c.abierto) {
     return NextResponse.json({ error: c.t("Tu asistente todavía no está disponible.", "Your assistant isn't available yet.") }, { status: 409 });
+  }
+  if (c.apagado) {
+    return NextResponse.json({ error: c.t("Su asistente está apagado por ahora.", "Your assistant is switched off for now.") }, { status: 409 });
   }
   const haceUnaHora = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { count } = await c.admin

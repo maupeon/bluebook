@@ -26,6 +26,8 @@ interface Numero {
 }
 interface Estado {
   fuera: boolean;
+  /** Un admin apagó a Hermes para todas las bodas: no se dan códigos. */
+  apagado?: boolean;
   disponible: boolean;
   desde: string;
   whatsapp: string;
@@ -143,7 +145,13 @@ export function AsistenteWhatsApp() {
       </div>
 
       <div className="min-w-0 space-y-4">
-        {!estado.disponible ? (
+        {estado.apagado ? (
+          <p className="text-sm text-noche">
+            {en
+              ? "Your assistant is switched off for now. Whatever you write on WhatsApp reaches our team."
+              : "Su asistente está apagado por ahora. Lo que escriban por WhatsApp le llega a nuestro equipo."}
+          </p>
+        ) : !estado.disponible ? (
           <p className="text-sm text-noche">
             {en
               ? `Available from ${new Date(`${estado.desde}T12:00:00`).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })}.`

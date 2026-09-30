@@ -16,8 +16,11 @@ import { createHash, randomInt } from "crypto";
 export const WHATSAPP_DEL_ASISTENTE = "34631526455";
 export const WHATSAPP_DEL_ASISTENTE_VISIBLE = "+34 631 52 64 55";
 
-/** Desde cuándo contesta: el día que rige el aviso de privacidad. Igual en el admin. */
-export const ASISTENTE_PAREJA_DESDE = "2026-10-06";
+/**
+ * Desde cuándo contesta: el día que rige el aviso de privacidad. Igual en el
+ * admin. Iba a ser el 6-oct; el 30-sep se adelantó a ese mismo día.
+ */
+export const ASISTENTE_PAREJA_DESDE = "2026-09-30";
 
 /** ¿Ya contesta en esta boda? Antes de la fecha, sólo las de ASISTENTE_PAREJA_PRUEBA. */
 export function asistenteDeLaParejaAbierto(weddingId: string, ahora: Date = new Date()): boolean {

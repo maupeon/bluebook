@@ -59,7 +59,8 @@ export type Asistente =
       desde: string;
     };
 
-// Encendido el 29-sep-2026, vigente desde el 6-oct (avisado con 7 días). Las
+// Encendido el 29-sep-2026. Iba a regir desde el 6-oct; el 30-sep se adelantó
+// a ese mismo día (no había parejas reales que avisar). Las
 // nueve bodas que ya existían quedaron fuera del asistente
 // (weddings.sin_asistente_desde): sólo recibieron invitaciones y
 // confirmaciones, y sus parejas no aceptaron este cambio.
@@ -71,8 +72,8 @@ export const ASISTENTE: Asistente = {
     en: "United States (the model runs on DigitalOcean or DeepInfra, also in the United States)",
   },
   servidor: { nombre: "Hetzner", donde: { es: "Alemania (Unión Europea)", en: "Germany (European Union)" } },
-  vigenteDesde: { es: "6 de octubre de 2026", en: "October 6, 2026" },
-  desde: "2026-10-06",
+  vigenteDesde: { es: "30 de septiembre de 2026", en: "September 30, 2026" },
+  desde: "2026-09-30",
   pareja: true,
   parejaCambia: true,
   equipo: true,
