@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { LoginForm } from "@/components/panel/LoginForm";
 import { AvisoSimplificado } from "@/components/legal/AvisoSimplificado";
 import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
+import { rutaInterna } from "@/lib/rutaInterna";
 
 export const metadata: Metadata = {
   title: "Acceso",
@@ -20,7 +21,7 @@ export default async function AccesoPage({
 }) {
   const params = await searchParams;
   const isEnglish = parseLanguage((await cookies()).get(LANGUAGE_COOKIE)?.value) === "en";
-  const next = typeof params.next === "string" ? params.next : "/panel";
+  const next = rutaInterna(params.next);
 
   // Si ya hay sesión Y la boda coincide, entrar directo al panel.
   const supabase = await createClient();

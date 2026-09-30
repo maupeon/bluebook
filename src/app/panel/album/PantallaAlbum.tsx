@@ -22,6 +22,7 @@ import {
 } from "@/lib/albumPlans";
 import { AGENT_PLAN } from "@/lib/weddingPlans";
 import { estaEnPrueba, type AccesoDeLaBoda } from "@/lib/accesoDeLaBoda";
+import { urlPublicaDeLaApp } from "@/lib/urlDeLaApp";
 
 /*
  * LA SECCIÓN ÁLBUM DEL PANEL. Dos caras:
@@ -262,8 +263,7 @@ function ConAlbum({
   // El visor vive en este mismo sitio. Para enseñarlo se usa la URL pública
   // configurada (si la hay) sin el protocolo; al copiar, el origen real del
   // navegador, que siempre es el correcto.
-  const base = (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "");
-  const rutaVisible = base ? `${base.replace(/^https?:\/\//, "")}${ruta}` : ruta;
+  const rutaVisible = `${urlPublicaDeLaApp().replace(/^https?:\/\//, "")}${ruta}`;
 
   async function copiar() {
     try {

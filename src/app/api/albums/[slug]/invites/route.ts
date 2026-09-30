@@ -36,7 +36,7 @@ export async function GET(
   }
 
   // Agregar URLs de compartir a cada invitación
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const baseUrl = new URL(request.url).origin
   const invitesWithUrls = invites.map(invite => ({
     ...invite,
     share_url: `${baseUrl}/album/${slug}/upload?token=${invite.invite_token}`
@@ -83,7 +83,7 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const baseUrl = new URL(request.url).origin
   const shareUrl = `${baseUrl}/album/${slug}/upload?token=${inviteToken}`
 
   // Enviar email de invitación si se proporcionó un email

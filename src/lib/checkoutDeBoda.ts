@@ -1,6 +1,7 @@
 import "server-only";
 import type Stripe from "stripe";
 import { AGENT_PLAN, formatMXN, getInvitationTier } from "@/lib/weddingPlans";
+import { urlPublicaDeLaApp } from "@/lib/urlDeLaApp";
 
 /**
  * La sesión de Stripe de una boda, en un solo sitio. La usan el checkout del
@@ -16,10 +17,16 @@ export type ResultadoDeCheckout =
   | { tipo: "sesion"; url: string; id: string }
   | { tipo: "cotizacion" };
 
+/**
+ * A dónde vuelve la persona después de Stripe: a la MISMA dirección desde la
+ * que salió (el origen de su petición), porque ahí vive la cookie de su
+ * sesión. Antes mandaba NEXT_PUBLIC_APP_URL por delante; con esa variable en
+ * otro dominio (bluebook-2fkn.vercel.app, 30-sep-2026) se volvía del pago a un
+ * sitio sin sesión y tocaba entrar otra vez. La variable sólo queda de
+ * respaldo si no hay origen.
+ */
 export function urlBaseDeLaApp(origenDeLaPeticion: string): string {
-  let base = process.env.NEXT_PUBLIC_APP_URL || "";
-  if (base && !/^https?:\/\//.test(base)) base = `https://${base}`;
-  return (base || origenDeLaPeticion).replace(/\/$/, "");
+  return (origenDeLaPeticion || urlPublicaDeLaApp()).replace(/\/$/, "");
 }
 
 export async function crearCheckoutDeBoda(

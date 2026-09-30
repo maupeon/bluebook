@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { rutaInterna } from "@/lib/rutaInterna";
 
 // Callback de Supabase. Atiende las tres vueltas posibles:
 //  - PKCE:  ?code=...           (exchangeCodeForSession) — Google y magic link
@@ -11,8 +12,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const nextParam = searchParams.get("next");
-  const next = nextParam && nextParam.startsWith("/") ? nextParam : "/panel";
+  const next = rutaInterna(searchParams.get("next"));
 
   // Google no manda `code` si la persona le dio a "Cancelar" en su pantalla de
   // cuentas. Eso no es un fallo: es alguien que se arrepintió. Mandarlo a

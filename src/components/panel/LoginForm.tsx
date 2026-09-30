@@ -7,6 +7,7 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { Titular } from "@/components/marca/Titular";
 import { createClient, createOtpRequestClient } from "@/lib/supabase/client";
 import { GOOGLE_ACTIVO } from "@/lib/entrarConGoogle";
+import { rutaInterna } from "@/lib/rutaInterna";
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
@@ -300,7 +301,7 @@ export function LoginForm({
   hadError?: boolean;
 }) {
   const { isEnglish } = useLanguage();
-  const destino = next && next.startsWith("/") ? next : "/panel";
+  const destino = rutaInterna(next);
   const acceso = useCodigoPorCorreo({
     destino,
     voz: "ustedes",

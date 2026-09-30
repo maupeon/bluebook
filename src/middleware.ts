@@ -54,9 +54,12 @@ export async function middleware(request: NextRequest) {
 
   // Rutas privadas de la pareja: exigen sesión.
   if (pathname.startsWith("/panel") && !user) {
+    // `next` lleva la ruta CON su consulta: al volver de un pago trae
+    // ?session_id=…, y antes se quedaba suelto en /acceso y se perdía al entrar.
     const url = request.nextUrl.clone();
     url.pathname = "/acceso";
-    url.searchParams.set("next", pathname);
+    url.search = "";
+    url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(url);
   }
 

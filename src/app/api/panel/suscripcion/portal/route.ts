@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
 import { clienteDeStripeDeLaBoda, stripeServidor } from "@/lib/suscripcion";
-import { urlDelPanel } from "@/lib/avisos";
+import { urlBaseDeLaApp } from "@/lib/checkoutDeBoda";
 
 // POST /api/panel/suscripcion/portal — abre el portal de Stripe de la pareja.
 //
@@ -13,7 +13,7 @@ import { urlDelPanel } from "@/lib/avisos";
 //
 // La sesión del portal dura poco, por eso se pide en el momento del clic y no
 // se pinta en la página.
-export async function POST() {
+export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,7 +40,8 @@ export async function POST() {
   try {
     const sesion = await stripe.billingPortal.sessions.create({
       customer,
-      return_url: urlDelPanel(),
+      // A la misma dirección desde la que salió: ahí tiene su sesión.
+      return_url: `${urlBaseDeLaApp(req.nextUrl.origin)}/panel`,
       locale: "es-419",
     });
     return NextResponse.json({ url: sesion.url });

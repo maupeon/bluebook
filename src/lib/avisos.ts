@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CONTACT_INFO } from "@/lib/language";
 import { sendAvisoEmail } from "@/lib/email";
+import { urlPublicaDeLaApp } from "@/lib/urlDeLaApp";
 
 /**
  * A QUIÉN SE LE AVISA.
@@ -44,9 +45,7 @@ export async function correosDeLaPareja(weddingId: string): Promise<string[]> {
 }
 
 export function urlDelPanel(): string {
-  let base = process.env.NEXT_PUBLIC_APP_URL || "https://bluebook.mx";
-  if (!/^https?:\/\//.test(base)) base = `https://${base}`;
-  return `${base.replace(/\/$/, "")}/panel`;
+  return `${urlPublicaDeLaApp()}/panel`;
 }
 
 /** Abre esa boda en el admin: /abrir/{id} la pone como activa y lleva al planner. */
