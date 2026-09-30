@@ -4,9 +4,10 @@ import ExcelJS from "exceljs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { correoDelPanel } from "@/lib/panelSesion";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
-import { exigirEdicion, leerAcceso } from "@/lib/acceso";
+import { exigirEdicion } from "@/lib/acceso";
+import { topeDelPlan } from "@/lib/topeDelPlan";
+import { avisarALaHoja } from "@/lib/hojaDespues";
 import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
-import { getInvitationTier } from "@/lib/weddingPlans";
 import {
   CAMPOS,
   leerLista,
@@ -30,6 +31,8 @@ import {
 // haga. El archivo no se guarda en ningún lado: se lee en memoria.
 
 export const runtime = "nodejs";
+// La hoja de Google ligada se pone al día después de contestar (avisarALaHoja).
+export const maxDuration = 60;
 
 const TEXTO_MAX = 1_000_000;
 const ARCHIVO_MAX = 5 * 1024 * 1024;
@@ -289,28 +292,6 @@ async function leerEntrada(req: NextRequest, en: boolean): Promise<Entrada> {
   };
 }
 
-/**
- * El tope del paquete de invitaciones que PAGARON, o null. La prueba y el plan
- * mensual no tienen tope. El tamaño comprado solo vive en la solicitud pagada
- * (couple_leads.guest_count, lo escribe /api/panel/plan al elegir el tramo).
- */
-async function topeDelPlan(weddingId: string, tier: "invitations" | "full"): Promise<number | null> {
-  if (tier !== "invitations") return null;
-  const acceso = await leerAcceso(weddingId);
-  if (acceso.acceso !== "pagada") return null;
-  const { data } = await createAdminClient()
-    .from("couple_leads")
-    .select("guest_count, paid_at, service")
-    .eq("wedding_id", weddingId)
-    .eq("service", "invitations")
-    .not("paid_at", "is", null)
-    .order("paid_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (!data?.guest_count) return null;
-  return getInvitationTier(data.guest_count).maxGuests ?? data.guest_count;
-}
-
 interface FilaDeLaBase {
   i: number;
   accion: "nuevo" | "actualiza" | "igual" | "omitida";
@@ -408,6 +389,7 @@ export async function POST(req: NextRequest) {
   }
 
   const r = data as { filas: FilaDeLaBase[]; resumen: Resumen };
+  if (entrada.aplicar) avisarALaHoja(wedding.id);
   // La base numera las filas que recibió (1..n); la pareja reconoce las de su
   // hoja. Se traduce aquí.
   const filas = r.filas.map((f) => {

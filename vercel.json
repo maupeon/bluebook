@@ -1,5 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/fin-de-prueba", "schedule": "0 15 * * *" }
+    { "path": "/api/cron/fin-de-prueba", "schedule": "0 15 * * *" },
+    { "path": "/api/cron/hojas", "schedule": "0 11 * * *" }
   ]
 }

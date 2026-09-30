@@ -3,6 +3,7 @@ import { bodaDeLaSesion } from "@/lib/invitaciones";
 import { leerAcceso } from "@/lib/acceso";
 import { MENSAJE_ENVIO_EN_PRUEBA, puedeEnviarInvitaciones } from "@/lib/accesoDeLaBoda";
 import { fechaDeInvitacion } from "@/lib/invitacionTexto";
+import { avisarALaHoja } from "@/lib/hojaDespues";
 
 // Un lote del admin tarda poco, pero esta ruta espera a que termine.
 export const maxDuration = 300;
@@ -92,5 +93,7 @@ export async function POST(req: NextRequest) {
     console.error("Envío de invitaciones: INTERNAL_API_SECRET no coincide con el del admin");
     return NextResponse.json({ error: "El envío desde el panel todavía no está disponible." }, { status: 503 });
   }
+  // Lo que salió cambia la columna «Invitación» de su hoja de Google, si la tienen ligada.
+  if (accion !== "revisar" && res.ok) avisarALaHoja(wedding.id);
   return NextResponse.json(datos ?? { error: "Respuesta inválida del envío." }, { status: datos ? res.status : 502 });
 }

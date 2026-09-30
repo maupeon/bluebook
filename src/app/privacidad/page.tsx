@@ -105,6 +105,14 @@ function seccionesEs(): SeccionLegal[] {
               : ""}
           </p>
           <p>
+            Si ligas una hoja de Google Sheets a tu lista de invitados, eres tú quien la comparte con la cuenta de Blue
+            Book. Mientras esté ligada leemos esa hoja y escribimos en ella: los datos de tu lista (nombre, teléfono,
+            pases y notas) y, en columnas aparte, si ya salió la invitación, la respuesta, cuántas personas van y la
+            mesa. De esa hoja solo guardamos los datos de tus invitados que se describen arriba; lo demás que tenga no
+            se guarda. Puedes dejar de sincronizarla desde tu panel y quitarle el acceso a Blue Book en la propia hoja
+            cuando quieras.
+          </p>
+          <p>
             <strong>Si eres invitado a una boda en Blue Book:</strong> los datos que la pareja capturó de ti (los del
             párrafo anterior), tus respuestas por WhatsApp (el texto o el botón que eliges y el nombre de tu perfil de
             WhatsApp) y, si subes fotos al álbum, las fotos, el nombre con el que te invitó quien administra el álbum y,
@@ -241,7 +249,7 @@ function seccionesEs(): SeccionLegal[] {
               ["Resend", "Envío de correos", "Estados Unidos"],
               [
                 "Google",
-                `${GOOGLE_ACTIVO ? "Inicio de sesión con Google, el" : "El"} correo del equipo (Gmail), hojas de cálculo que el equipo usa en algunas bodas${GOOGLE_SHEETS_ACTIVO ? " y la hoja de Google Sheets que eliges para traer tu lista" : ""}`,
+                `${GOOGLE_ACTIVO ? "Inicio de sesión con Google, el" : "El"} correo del equipo (Gmail), hojas de cálculo que el equipo usa en algunas bodas${GOOGLE_SHEETS_ACTIVO ? ", la hoja de Google Sheets que eliges para traer tu lista" : ""} y la hoja de Google Sheets que ligas a tu lista de invitados`,
                 "Estados Unidos",
               ],
               [
@@ -555,6 +563,14 @@ function seccionesEn(): SeccionLegal[] {
               : ""}
           </p>
           <p>
+            If you link a Google Sheets file to your guest list, you are the one who shares it with Blue Book&rsquo;s
+            account. While it is linked we read that sheet and write to it: your list&rsquo;s data (name, phone, seats
+            and notes) and, in separate columns, whether the invitation went out, the reply, how many people are coming
+            and the table. From that sheet we only keep the guest data described above; anything else in it isn&rsquo;t
+            kept. You can stop syncing it from your panel and remove Blue Book&rsquo;s access in the sheet itself
+            whenever you want.
+          </p>
+          <p>
             <strong>If you&rsquo;re a guest at a wedding in Blue Book:</strong> the data the couple added about you (the
             previous paragraph), your WhatsApp replies (the text or button you choose and your WhatsApp profile name)
             and, if you upload photos to the album, the photos, the name the album&rsquo;s manager invited you with and,
@@ -690,7 +706,7 @@ function seccionesEn(): SeccionLegal[] {
               ["Resend", "Sending email", "United States"],
               [
                 "Google",
-                `${GOOGLE_ACTIVO ? "Google sign-in, the" : "The"} team's email (Gmail), spreadsheets the team uses for some weddings${GOOGLE_SHEETS_ACTIVO ? " and the Google sheet you choose to bring your list" : ""}`,
+                `${GOOGLE_ACTIVO ? "Google sign-in, the" : "The"} team's email (Gmail), spreadsheets the team uses for some weddings${GOOGLE_SHEETS_ACTIVO ? ", the Google sheet you choose to bring your list" : ""} and the Google sheet you link to your guest list`,
                 "United States",
               ],
               [

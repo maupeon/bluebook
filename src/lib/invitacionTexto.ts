@@ -67,3 +67,42 @@ export function mensajeDeInvitacion({
     "Nos encantaría que nos acompañaras en este día tan especial. 🤍",
   ].join("\n");
 }
+
+/** «sábado 17 de octubre de 2026 en Hacienda San Gabriel»: el {{event_details}} de pedir la confirmación. */
+export function detallesDelEvento(fecha: string | null, lugar: string | null): string {
+  return `${fechaDeInvitacion(fecha) ?? "la fecha por confirmar"} en ${lugar || "el lugar por confirmar"}`;
+}
+
+/**
+ * El cuerpo de una plantilla con sus {{variables}} llenas, para la vista
+ * previa de los mensajes que la pareja escoge (el texto viene de Meta, vía el
+ * admin: mensajesDeLaPareja.ts). Una variable que no se conozca se deja tal
+ * cual: mejor que se note a que se pierda.
+ */
+export function llenarMensaje(cuerpo: string, valores: Record<string, string>): string {
+  return cuerpo.replace(/\{\{\s*([a-z0-9_]+)\s*\}\}/gi, (todo, nombre: string) => valores[nombre] ?? todo);
+}
+
+/** Los valores de ejemplo con los que se llena la vista previa. */
+export function valoresDeEjemplo({
+  invitado,
+  pareja,
+  fecha,
+  lugar,
+  pases,
+}: {
+  invitado: string;
+  pareja: string;
+  fecha: string | null;
+  lugar: string | null;
+  pases: number;
+}): Record<string, string> {
+  return {
+    guest_name: invitado,
+    couple_names: pareja,
+    event_date: fechaDeInvitacion(fecha) ?? "Fecha por confirmar",
+    event_place: lugar || "Lugar por confirmar",
+    passes: textoDePases(pases),
+    event_details: detallesDelEvento(fecha, lugar),
+  };
+}

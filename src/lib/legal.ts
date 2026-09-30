@@ -51,7 +51,8 @@ export const VERSION_TERMINOS = "2026-09-28";
 // vuelta de Google); esa agregó traer la lista y el presupuesto en «Su boda».
 // «.3»: el reparto del presupuesto por categoría, y que se borra con él.
 // 2026-09-28: comprar el álbum pide tu nombre y crea tu cuenta si no tienes.
-export const VERSION_AVISO = "2026-09-28";
+// 2026-09-30: la hoja de Google Sheets ligada a la lista de invitados.
+export const VERSION_AVISO = "2026-09-30";
 
 /** Días naturales de anticipación con que se avisa un cambio a los Términos. */
 export const DIAS_AVISO_CAMBIO_TERMINOS = 15;

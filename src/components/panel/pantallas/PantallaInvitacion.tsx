@@ -8,13 +8,15 @@ import { Reveal } from "@/components/Reveal";
 import { Eyebrow } from "@/components/panel/sections";
 import { Titular } from "@/components/marca/Titular";
 import { EnvioDeInvitaciones } from "@/components/panel/EnvioDeInvitaciones";
+import { EnvioDeConfirmaciones } from "@/components/panel/EnvioDeConfirmaciones";
+import { MensajeDeLaPareja } from "@/components/panel/MensajeDeLaPareja";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { createClient } from "@/lib/supabase/client";
 import { parseJsonSafe } from "@/lib/http";
 import { LIMITE_IA_PAGADA, MENSAJE_SOLO_LECTURA } from "@/lib/accesoDeLaBoda";
 import { formatLongDate } from "@/components/panel/dates";
 import { ESTILOS_DE_INVITACION, estiloPorId } from "@/lib/invitacionEstilos";
-import { fechaDeInvitacion, mensajeDeInvitacion } from "@/lib/invitacionTexto";
+import { fechaDeInvitacion } from "@/lib/invitacionTexto";
 import type { InvitacionDeLaBoda } from "@/lib/invitaciones";
 
 const BUCKET = "invitaciones";
@@ -240,8 +242,8 @@ export function PantallaInvitacion({
               <p className="mt-2 text-xl font-medium text-noche">
                 {isEnglish ? "This is how it arrives" : "Así les llega"}
               </p>
-              <div className="mt-4 max-w-md whitespace-pre-line rounded-2xl rounded-tl-sm bg-papel px-4 py-3 text-sm leading-relaxed text-noche">
-                {mensajeDeInvitacion({ invitado: "María", pareja, fecha: fechaDeLaBoda, lugar, pases: 2 })}
+              <div className="mt-4">
+                <MensajeDeLaPareja momento="invitacion" pareja={pareja} fecha={fechaDeLaBoda} lugar={lugar} soloLectura={soloLectura} />
               </div>
               <p className="mt-3 max-w-md text-xs leading-relaxed text-tinta">
                 {isEnglish
@@ -280,6 +282,28 @@ export function PantallaInvitacion({
               fecha={fechaDeLaBoda}
               lugar={lugar}
             />
+          </section>
+        </Reveal>
+      ) : null}
+
+      {/* Después de la invitación: preguntarles si van. */}
+      {elegida ? (
+        <Reveal app className="mt-8">
+          <section className="grid gap-6 panel-card p-6 md:grid-cols-[minmax(0,18rem)_1fr]">
+            <div>
+              <h2 className="text-xl font-medium text-noche">
+                {isEnglish ? "Ask them if they're coming" : "Pregúntenles si van"}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-tinta">
+                {isEnglish
+                  ? "A few days after the invitation, ask for their reply. It arrives with two buttons; what they answer, and how many are coming, shows up in Guests."
+                  : "Unos días después de la invitación, pídanles su respuesta. Les llega con dos botones; lo que contesten, y cuántos van, aparece en Invitados."}
+              </p>
+              <div className="mt-4">
+                <MensajeDeLaPareja momento="confirmacion" pareja={pareja} fecha={fechaDeLaBoda} lugar={lugar} soloLectura={soloLectura} />
+              </div>
+            </div>
+            <EnvioDeConfirmaciones puedeEnviar={puedeEnviar} fecha={fechaDeLaBoda} lugar={lugar} />
           </section>
         </Reveal>
       ) : null}

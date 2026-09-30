@@ -6,6 +6,7 @@ import { Reveal } from "@/components/Reveal";
 import { Eyebrow, SeatingSection } from "@/components/panel/sections";
 import { GuestListSection } from "@/components/panel/PanelDashboard";
 import { TraerLista } from "@/components/panel/TraerLista";
+import { HojaDeGoogle } from "@/components/panel/HojaDeGoogle";
 import { Titular } from "@/components/marca/Titular";
 
 export function PantallaInvitados({ bundle, soloLectura = false }: { bundle: PanelBundle; soloLectura?: boolean }) {
@@ -104,6 +105,12 @@ export function PantallaInvitados({ bundle, soloLectura = false }: { bundle: Pan
       <Reveal app className="mt-10">
         <TraerLista listaVacia={listaVacia} soloLectura={soloLectura} />
       </Reveal>
+
+      {/* Sin Reveal propio: mientras no se sabe si hay hoja ligada no pinta
+          nada, y no debe dejar un hueco animándose. */}
+      <div className="mt-3">
+        <HojaDeGoogle listaVacia={listaVacia} soloLectura={soloLectura} />
+      </div>
 
       <Reveal app className={soloLectura ? "mt-10" : listaVacia ? "mt-8" : "mt-3"}>
         <GuestListSection

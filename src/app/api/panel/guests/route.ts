@@ -8,6 +8,12 @@ import {
 } from "@/lib/couplePanel";
 import { exigirEdicion } from "@/lib/acceso";
 import { normalizePhone } from "@/lib/phone";
+import { cambiarTelefonoDeInvitado } from "@/lib/telefonoDeInvitado";
+import { avisarALaHoja } from "@/lib/hojaDespues";
+
+// La hoja de Google ligada se pone al día después de contestar (avisarALaHoja),
+// y puede esperar su turno hasta 20 segundos.
+export const maxDuration = 60;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -284,6 +290,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  avisarALaHoja(wedding.id);
   return NextResponse.json(
     { guest: toPanelGuest(inserted as MembershipRow) },
     { status: 201 }
@@ -424,12 +431,8 @@ export async function PUT(req: NextRequest) {
     }
   }
 
-  // 6. Si cambió el teléfono: NUNCA mutamos en sitio la fila global `people`
-  //    cuando es compartida por otras bodas (es deduplicada por phone_last10),
-  //    porque eso reescribiría el contacto/destino de invitación de otra pareja.
-  //    En su lugar: buscar-o-crear la persona del nuevo teléfono y repuntar
-  //    ESTA membership hacia ella. Solo actualizamos en sitio cuando esta
-  //    membership es la única referencia a la persona.
+  // 6. Si cambió el teléfono: las reglas viven en cambiarTelefonoDeInvitado
+  //    (nunca se muta en sitio una persona que comparten otras bodas).
   if ("phone" in body) {
     const phone = parsePhone(body.phone);
     if (!phone.ok) {
@@ -442,105 +445,25 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const currentPhone = (personOf(membership)?.phone ?? "").trim();
-    const newLast10 = phone.last10;
-    const currentLast10 = normalizePhone(currentPhone).slice(-10);
-
-    // No-op real: mismo contacto (mismo phone_last10). No tocamos nada.
-    if (newLast10 !== currentLast10) {
-      // ¿La persona actual es compartida por otra boda?
-      const { data: otherRefs, error: refsError } = await admin
-        .from("memberships")
-        .select("id")
-        .eq("person_id", membership.person_id)
-        .neq("wedding_id", wedding.id)
-        .limit(1);
-      if (refsError) {
-        return NextResponse.json(
-          { error: "No pudimos actualizar el teléfono." },
-          { status: 500 }
-        );
-      }
-      const personIsShared = (otherRefs ?? []).length > 0;
-
-      // ¿Existe ya una persona con el nuevo phone_last10? (dedup global)
-      //
-      // Sólo tiene sentido buscar si HAY teléfono nuevo. Al borrarlo,
-      // newLast10 es null y `.eq("phone_last10", null)` no casa con las filas
-      // nulas en PostgREST —eso se pide con `is.null`—, así que la consulta
-      // devolvería vacío por el motivo equivocado. Sin llave no hay dedup:
-      // se cae a las ramas de abajo, que crean o actualizan una persona sin
-      // teléfono, que es justo lo que se quiere.
-      let targetPersonId: string | undefined;
-
-      if (newLast10) {
-        const { data: existingPerson, error: existingError } = await admin
-          .from("people")
-          .select("id")
-          .eq("phone_last10", newLast10)
-          .maybeSingle();
-        if (existingError) {
-          return NextResponse.json(
-            { error: "No pudimos actualizar el teléfono." },
-            { status: 500 }
-          );
-        }
-        targetPersonId = existingPerson?.id as string | undefined;
-      }
-
-      if (targetPersonId) {
-        // (b) Reusar la persona existente del nuevo teléfono y repuntar.
-        if (targetPersonId !== membership.person_id) {
-          const { error: repointError } = await admin
-            .from("memberships")
-            .update({ person_id: targetPersonId, updated_by: "couple" })
-            .eq("id", id);
-          if (repointError) {
-            return NextResponse.json(
-              { error: "No pudimos actualizar el teléfono." },
-              { status: 500 }
-            );
-          }
-        }
-      } else if (personIsShared) {
-        // (a) Persona compartida y el nuevo teléfono no existe: crear una
-        //     persona NUEVA y repuntar esta membership, dejando intacta la global.
-        const { data: newPerson, error: createError } = await admin
-          .from("people")
-          .insert({ phone: phone.phone })
-          .select("id")
-          .single();
-        if (createError || !newPerson) {
-          return NextResponse.json(
-            { error: "No pudimos actualizar el teléfono." },
-            { status: 500 }
-          );
-        }
-        targetPersonId = newPerson.id;
-        const { error: repointError } = await admin
-          .from("memberships")
-          .update({ person_id: targetPersonId, updated_by: "couple" })
-          .eq("id", id);
-        if (repointError) {
-          return NextResponse.json(
-            { error: "No pudimos actualizar el teléfono." },
-            { status: 500 }
-          );
-        }
-      } else {
-        // (c) Esta membership es la única referencia y el nuevo teléfono no
-        //     existe: actualizar en sitio es seguro (no afecta a otras bodas).
-        const { error: personError } = await admin
-          .from("people")
-          .update({ phone: phone.phone })
-          .eq("id", membership.person_id);
-        if (personError) {
-          return NextResponse.json(
-            { error: "No pudimos actualizar el teléfono." },
-            { status: 500 }
-          );
-        }
-      }
+    const resultado = await cambiarTelefonoDeInvitado(admin, {
+      weddingId: wedding.id,
+      membershipId: id,
+      personId: membership.person_id as string,
+      actual: (personOf(membership)?.phone ?? "").trim(),
+      nuevo: phone.phone,
+      autor: "couple",
+    });
+    if (resultado === "repetido") {
+      return NextResponse.json(
+        { error: "Ese teléfono ya está en su lista de invitados." },
+        { status: 409 }
+      );
+    }
+    if (resultado === "fallo") {
+      return NextResponse.json(
+        { error: "No pudimos actualizar el teléfono." },
+        { status: 500 }
+      );
     }
   }
 
@@ -575,6 +498,7 @@ export async function PUT(req: NextRequest) {
     );
   }
 
+  avisarALaHoja(wedding.id);
   return NextResponse.json({ guest: toPanelGuest(fresh as MembershipRow) });
 }
 
@@ -650,5 +574,6 @@ export async function DELETE(req: NextRequest) {
     );
   }
 
+  avisarALaHoja(wedding.id);
   return NextResponse.json({ success: true });
 }

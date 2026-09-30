@@ -494,7 +494,7 @@ function rangoDeTelefono(h: string): number {
  * El rango de un encabezado para un campo: 0 = el más preferido, Infinity = no
  * casa.
  */
-function rango(campo: Campo, encabezado: string): number {
+export function rango(campo: Campo, encabezado: string): number {
   const h = normalizarEncabezado(encabezado);
   if (!h) return Infinity;
   if (campo === "pases") {
