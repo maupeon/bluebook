@@ -47,6 +47,13 @@ export type Asistente =
        */
       parejaCambia: boolean;
       /**
+       * La pantalla «Hermes» del admin (30-sep-2026): los admins de Blue Book
+       * leen la conversación de cada pareja con su asistente, le pueden
+       * contestar ahí y regresar un cambio (0047). El aviso lo dice en «Para
+       * qué los usamos».
+       */
+      equipoLeeLaConversacion: boolean;
+      /**
        * El asistente del EQUIPO (0045, «el master»): la planner consulta con él
        * sus bodas, también las de antes del aviso (sin montos de ésas).
        */
@@ -76,6 +83,7 @@ export const ASISTENTE: Asistente = {
   desde: "2026-09-30",
   pareja: true,
   parejaCambia: true,
+  equipoLeeLaConversacion: true,
   equipo: true,
 };
 

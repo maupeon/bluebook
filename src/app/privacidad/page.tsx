@@ -35,6 +35,8 @@ import { ASISTENTE, asistenteVigente } from "@/lib/asistente";
 const PAREJA = ASISTENTE.activo && ASISTENTE.pareja;
 // Fase 2 (0046): el asistente de la pareja también cambia lo que ella le pide, con su «sí».
 const CAMBIA = ASISTENTE.activo && ASISTENTE.pareja && ASISTENTE.parejaCambia;
+// La pantalla «Hermes» del admin: el equipo lee esa conversación y puede intervenir.
+const EQUIPO_LEE = ASISTENTE.activo && ASISTENTE.pareja && ASISTENTE.equipoLeeLaConversacion;
 // El asistente del equipo (0045): la planner consulta sus bodas con él.
 const EQUIPO = ASISTENTE.activo && ASISTENTE.equipo;
 
@@ -155,6 +157,9 @@ function seccionesEs(): SeccionLegal[] {
                 {CAMBIA
                   ? ". Si se lo pides, también cambia cosas de tu boda, las mismas que puedes cambiar en tu panel (la respuesta, los pases o la mesa de un invitado, agregarlo o quitarlo, tus pendientes, y los pagos y proveedores que tú capturas): antes de cada cambio te escribe exactamente qué va a hacer, y sólo lo hace si le contestas «sí». Cada cambio queda registrado, con lo que había antes y lo que quedó, y lo puedes deshacer escribiendo «deshacer» en las 24 horas siguientes."
                   : ", y no cambia nada."}
+                {EQUIPO_LEE
+                  ? " El equipo de Blue Book puede leer esa conversación para darte soporte y cuidar que tu asistente conteste bien; también puede contestarte ahí mismo, pausar al asistente o regresar un cambio si hubo un error."
+                  : ""}
               </li>
             ) : null}
             {EQUIPO ? (
@@ -602,6 +607,9 @@ function seccionesEn(): SeccionLegal[] {
                 {CAMBIA
                   ? ". If you ask, it also changes things in your wedding, the same ones you can change in your panel (a guest's RSVP, seats or table, adding or removing a guest, your to-dos, and the payments and vendors you enter yourself): before each change it tells you exactly what it will do, and it only does it if you reply \u201cyes\u201d (\u201csí\u201d). Every change is logged, with what was there before and what it became, and you can undo it by writing \u201cdeshacer\u201d within the next 24 hours."
                   : ", and doesn\u2019t change anything."}
+                {EQUIPO_LEE
+                  ? " The Blue Book team can read that conversation to support you and make sure your assistant answers well; they can also reply to you there, pause the assistant or undo a change if something went wrong."
+                  : ""}
               </li>
             ) : null}
             {EQUIPO ? (
