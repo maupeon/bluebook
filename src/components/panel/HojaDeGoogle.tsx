@@ -7,23 +7,37 @@ import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { Eyebrow } from "@/components/panel/sections";
 import { parseJsonSafe } from "@/lib/http";
 import { MENSAJE_SOLO_LECTURA } from "@/lib/accesoDeLaBoda";
+import { elegirHoja, prepararSelector } from "@/lib/selectorDeGoogle";
 import type { AvisoDeVuelta, Conexion, EstadoDeLaHoja, MotivoDeError } from "@/lib/hojaDeGoogle";
 
 /**
  * «Su hoja de Google»: la lista de invitados ligada a una hoja de Google
  * Sheets, igual en los dos lados (0048).
  *
- * La pareja comparte su hoja con el correo de Blue Book y pega el enlace. Antes
- * de ligarla se le enseña qué va a pasar; después, cada vez que abre sus
- * invitados se da una vuelta (si la última fue hace más de dos minutos), y
+ * Dos formas de ligarla. «Conectar con Google» (cuando están las llaves,
+ * conectarConGoogle.ts): la pareja va a Google, acepta, y de vuelta elige su
+ * hoja en el selector de Google o deja que Blue Book le cree una. Y la de
+ * respaldo: compartir la hoja con el correo de Blue Book y pegar el enlace.
+ *
+ * Antes de ligarla se le enseña qué va a pasar; después, cada vez que abre
+ * sus invitados se da una vuelta (si la última fue hace más de dos minutos), y
  * puede pedir otra con el botón.
  *
  * Todo lo decide el servidor (/api/panel/hoja → hojaDeGoogle.ts); aquí sólo se
  * enseña lo que contesta. Sin modal, como el resto del panel.
  */
 
+interface DeGoogle {
+  /** Están las llaves: se puede ofrecer «Conectar con Google». */
+  disponible: boolean;
+  /** La pareja ya dio su permiso. */
+  conectada: boolean;
+  correo: string | null;
+}
+
 interface Respuesta {
   disponible?: boolean;
+  google?: DeGoogle;
   correo?: string | null;
   hoja?: EstadoDeLaHoja | null;
   conexion?: Conexion;
@@ -129,6 +143,10 @@ function textoDeAviso(a: AvisoDeVuelta, en: boolean): string {
 
 function textoDeError(motivo: MotivoDeError, correo: string | null, en: boolean, detalle: string | null = null): string {
   switch (motivo) {
+    case "sin_permiso":
+      return en
+        ? "Google no longer lets us into your sheet: the permission was removed or expired. Connect with Google again and it picks up where it left off."
+        : "Google ya no nos deja entrar a su hoja: el permiso se retiró o venció. Conéctense otra vez con Google y se retoma donde se quedó.";
     case "sin_columna":
       return en
         ? `We can't find the «${detalle ?? ""}» column in your sheet anymore. If you renamed it, put the old title back; or stop syncing and link the sheet again.`
@@ -188,6 +206,10 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
   const [error, setError] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const [soltando, setSoltando] = useState(false);
+  const [google, setGoogle] = useState<DeGoogle>({ disponible: false, conectada: false, correo: null });
+  // La hoja que eligieron en el selector de Google (se liga con SU permiso).
+  const [elegida, setElegida] = useState<{ id: string; nombre: string } | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const yaSeRefresco = useRef(false);
 
   const pedir = useCallback(
@@ -234,9 +256,43 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
         setDisponible(Boolean(data.disponible));
         setCorreo(data.correo ?? null);
         setHoja(data.hoja ?? null);
-        // Al abrir sus invitados la hoja se pone al día sola, sin estorbar.
+        if (data.google) setGoogle(data.google);
+        // De vuelta de Google (/api/panel/google/volver): se dice cómo salió y
+        // se limpia la dirección, para que recargar no lo repita.
+        const vuelta = new URLSearchParams(window.location.search).get("google");
+        if (vuelta) {
+          window.history.replaceState(null, "", window.location.pathname);
+          if (!data.hoja) setAbierto(true);
+          if (vuelta === "conectado") {
+            setAviso(
+              data.hoja
+                ? en
+                  ? "You're connected with Google again."
+                  : "Ya están conectados otra vez con Google."
+                : en
+                  ? "You're connected with Google. Now choose your sheet, or create a new one."
+                  : "Ya están conectados con Google. Ahora elijan su hoja, o creen una nueva."
+            );
+          } else if (vuelta === "cancelado") {
+            setError(en ? "It wasn't connected: the Google screen was closed before accepting." : "No se conectó: cerraron la pantalla de Google antes de aceptar.");
+          } else if (vuelta === "sin_permiso") {
+            setError(
+              en
+                ? "Google didn't give us permission over your sheets. When connecting, leave checked the box that lets Blue Book see and edit the files you use with it."
+                : "Google no nos dio permiso sobre sus hojas. Al conectar, dejen marcada la casilla que deja a Blue Book ver y editar los archivos que usen con él."
+            );
+          } else if (vuelta === "solo_lectura") {
+            setError(en ? MENSAJE_SOLO_LECTURA.en : MENSAJE_SOLO_LECTURA.es);
+          } else {
+            setError(en ? "We couldn't connect with Google. Try again." : "No pudimos conectar con Google. Inténtenlo otra vez.");
+          }
+        }
+        // Al abrir sus invitados la hoja se pone al día sola, sin estorbar. Y
+        // de inmediato si la última vuelta falló o acaban de volver a conectar
+        // con Google: que el error no se quede ahí cuando ya se arregló.
         const ultima = data.hoja?.sincronizadaEn ? new Date(data.hoja.sincronizadaEn).getTime() : 0;
-        if (data.hoja && !soloLectura && !yaSeRefresco.current && Date.now() - ultima > REFRESCAR_DESPUES_DE_MS) {
+        const urge = Boolean(data.hoja?.error) || vuelta === "conectado";
+        if (data.hoja && !soloLectura && !yaSeRefresco.current && (urge || Date.now() - ultima > REFRESCAR_DESPUES_DE_MS)) {
           yaSeRefresco.current = true;
           void sincronizar(true);
         }
@@ -265,22 +321,123 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
     }
   }
 
-  async function revisar(gid: number | null, ligar: boolean) {
+  /** `deGoogle`: la hoja recién elegida en el selector (el estado todavía no la trae). */
+  async function revisar(gid: number | null, ligar: boolean, deGoogle: { id: string; nombre: string } | null = elegida) {
     setTrabajando(true);
     setError(null);
+    setAviso(null);
     try {
-      const r = await pedir({ accion: ligar ? "conectar" : "ver", enlace, gid });
+      const r = await pedir(
+        deGoogle
+          ? { accion: ligar ? "conectar" : "ver", enlace: deGoogle.id, gid, via: "google" }
+          : { accion: ligar ? "conectar" : "ver", enlace, gid }
+      );
       const c = r?.conexion ?? null;
       if (c?.estado === "conectada") {
         setHoja(r?.hoja ?? null);
         setConexion(null);
         setAbierto(false);
         setEnlace("");
+        setElegida(null);
         refrescar();
       } else {
         setConexion(c);
         if (c?.estado === "sin_acceso" && c.correo) setCorreo(c.correo);
+        // El permiso de Google ya no sirve: se vuelve a ofrecer «Conectar con Google».
+        if (c?.estado === "error" && c.motivo === "sin_permiso") setGoogle((g) => ({ ...g, conectada: false, correo: null }));
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : null);
+    } finally {
+      setTrabajando(false);
+    }
+  }
+
+  /** «Elegir mi hoja»: el selector de Google, con el acceso de la propia pareja. */
+  async function elegirConGoogle() {
+    setTrabajando(true);
+    setError(null);
+    setAviso(null);
+    setConexion(null);
+    try {
+      const res = await fetch("/api/panel/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion: "acceso" }),
+      });
+      const { data } = await parseJsonSafe<{ token?: string; motivo?: string }>(res);
+      if (!res.ok || !data?.token) {
+        // El permiso ya no sirve: se vuelve a ofrecer «Conectar con Google».
+        if (data?.motivo === "sin_permiso" || data?.motivo === "sin_cuenta") setGoogle((g) => ({ ...g, conectada: false, correo: null }));
+        throw new Error(
+          data?.motivo === "sin_permiso" || data?.motivo === "sin_cuenta"
+            ? en
+              ? "Google no longer lets us in. Connect with Google again."
+              : "Google ya no nos deja entrar. Conéctense otra vez con Google."
+            : en
+              ? "We couldn't reach Google. Try again in a moment."
+              : "No pudimos conectar con Google. Inténtenlo otra vez en un momento."
+        );
+      }
+      await prepararSelector();
+      setTrabajando(false);
+      const doc = await elegirHoja(data.token, en);
+      if (!doc) return;
+      setElegida(doc);
+      setEnlace("");
+      await revisar(null, false, doc);
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message && !["script", "tiempo", "picker"].includes(err.message)
+          ? err.message
+          : en
+            ? "We couldn't open Google's file picker. Try again."
+            : "No pudimos abrir el selector de Google. Inténtenlo otra vez."
+      );
+    } finally {
+      setTrabajando(false);
+    }
+  }
+
+  /** «Crear una hoja nueva»: Blue Book la crea en el Drive de la pareja, con su lista. */
+  async function crearConGoogle() {
+    setTrabajando(true);
+    setError(null);
+    setAviso(null);
+    try {
+      const r = await pedir({ accion: "crear" });
+      const c = r?.conexion ?? null;
+      if (c?.estado === "conectada") {
+        setHoja(r?.hoja ?? null);
+        setConexion(null);
+        setAbierto(false);
+        setElegida(null);
+        refrescar();
+      } else {
+        if (c?.estado === "error" && c.motivo === "sin_permiso") setGoogle((g) => ({ ...g, conectada: false, correo: null }));
+        setConexion(c);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : null);
+    } finally {
+      setTrabajando(false);
+    }
+  }
+
+  async function desconectarDeGoogle() {
+    setTrabajando(true);
+    setError(null);
+    setAviso(null);
+    try {
+      const res = await fetch("/api/panel/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion: "desconectar" }),
+      });
+      if (!res.ok) throw new Error(en ? "We couldn't disconnect. Try again." : "No pudimos desconectar. Inténtenlo otra vez.");
+      setGoogle((g) => ({ ...g, conectada: false, correo: null }));
+      setElegida(null);
+      setConexion(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : null);
     } finally {
@@ -373,8 +530,21 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
         {hoja.error ? (
           <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl border border-error/40 bg-error-fondo px-4 py-3">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-error" strokeWidth={1.5} />
-            <p className="text-sm text-error">{textoDeError(hoja.error, correo, en, hoja.errorDetalle)}</p>
+            <div>
+              <p className="text-sm text-error">{textoDeError(hoja.error, correo, en, hoja.errorDetalle)}</p>
+              {hoja.error === "sin_permiso" && google.disponible && !soloLectura ? (
+                // Navegación completa a Google y de vuelta: no es una ventana aparte.
+                <a href="/api/panel/google/conectar" className={`${botonSecundario} mt-3`}>
+                  {en ? "Connect with Google again" : "Volver a conectar con Google"}
+                </a>
+              ) : null}
+            </div>
           </div>
+        ) : null}
+        {aviso ? (
+          <p role="status" className="mt-5 rounded-xl bg-papel px-4 py-3 text-sm text-noche">
+            {aviso}
+          </p>
         ) : null}
         {alerta}
 
@@ -482,9 +652,13 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
         ? "That doesn't look like a Google Sheets link. Copy it from your browser's address bar with the sheet open."
         : "Eso no parece un enlace de Google Sheets. Cópienlo de la barra de su navegador con la hoja abierta."
       : c?.estado === "no_existe"
-        ? en
-          ? "We couldn't find that sheet. Check the link."
-          : "No encontramos esa hoja. Revisen el enlace."
+        ? elegida
+          ? en
+            ? "We couldn't open that sheet with your Google account. Choose it again."
+            : "No pudimos abrir esa hoja con su cuenta de Google. Elíjanla otra vez."
+          : en
+            ? "We couldn't find that sheet. Check the link."
+            : "No encontramos esa hoja. Revisen el enlace."
         : c?.estado === "de_otra_boda"
           ? en
             ? "That sheet is already linked to another wedding. Each wedding needs its own sheet."
@@ -509,10 +683,113 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
       </h3>
       <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-tinta">
         {en
-          ? "Keep working in Google Sheets: what you change there shows up here, and the replies from your guests show up there. If you don't have a sheet yet, create a blank one and we fill it in with your list."
-          : "Sigan trabajando en Google Sheets: lo que cambien allá aparece aquí, y las respuestas de sus invitados aparecen allá. Si todavía no tienen hoja, creen una en blanco y la llenamos con su lista."}
+          ? "Keep working in Google Sheets: what you change there shows up here, and the replies from your guests show up there."
+          : "Sigan trabajando en Google Sheets: lo que cambien allá aparece aquí, y las respuestas de sus invitados aparecen allá."}{" "}
+        {google.disponible
+          ? en
+            ? "If you don't have a sheet yet, Blue Book creates one for you with your list."
+            : "Si todavía no tienen hoja, Blue Book les crea una con su lista."
+          : en
+            ? "If you don't have a sheet yet, create a blank one and we fill it in with your list."
+            : "Si todavía no tienen hoja, creen una en blanco y la llenamos con su lista."}
       </p>
 
+      {google.disponible ? (
+        <div className="mt-6">
+          {google.conectada ? (
+            <>
+              <p className="text-sm text-noche">
+                {en
+                  ? `Connected with Google${google.correo ? ` as ${google.correo}` : ""}.`
+                  : `Conectados con Google${google.correo ? ` como ${google.correo}` : ""}.`}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <button type="button" onClick={() => void elegirConGoogle()} disabled={trabajando} className={botonPrimario}>
+                  <Sheet className="h-4 w-4" strokeWidth={1.6} />
+                  {en ? "Choose my sheet" : "Elegir mi hoja"}
+                </button>
+                <button type="button" onClick={() => void crearConGoogle()} disabled={trabajando} className={botonSecundario}>
+                  {trabajando && !c && !elegida ? (en ? "Working…" : "Un momento…") : en ? "Create a new sheet" : "Crear una hoja nueva"}
+                </button>
+              </div>
+              <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-tinta">
+                {en
+                  ? "Choose the sheet where you keep your list, or let Blue Book create one in your Drive with the guests you already have here."
+                  : "Elijan la hoja donde llevan su lista, o dejen que Blue Book les cree una en su Drive con los invitados que ya tienen aquí."}{" "}
+                <button type="button" onClick={() => void desconectarDeGoogle()} disabled={trabajando} className={claseEnlace}>
+                  {en ? "Disconnect from Google" : "Desconectar de Google"}
+                </button>
+              </p>
+            </>
+          ) : (
+            <>
+              {/* Un enlace y no un botón: es una navegación completa a Google y de
+                  vuelta, sin ventanas emergentes que el navegador pueda bloquear. */}
+              <a href="/api/panel/google/conectar" className={botonPrimario}>
+                {en ? "Connect with Google" : "Conectar con Google"}
+              </a>
+              <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-tinta">
+                {en
+                  ? "Google asks whether Blue Book may see and edit the sheets you choose or create with Blue Book. It can't see anything else in your Drive."
+                  : "Google les pregunta si Blue Book puede ver y editar las hojas que ustedes elijan o creen con Blue Book. No puede ver nada más de su Drive."}
+              </p>
+            </>
+          )}
+        </div>
+      ) : null}
+
+      {google.disponible ? (
+        <details className="mt-5">
+          <summary className={`inline-flex min-h-[2.75rem] cursor-pointer items-center text-sm ${claseEnlace}`}>
+            {en ? "Rather not connect your Google account? Share the sheet with Blue Book" : "¿Prefieren no conectar su cuenta de Google? Compartan la hoja con Blue Book"}
+          </summary>
+      <ol className="mt-3 space-y-5">
+        <li>
+          <p className="text-sm font-medium text-noche">
+            {en ? "1. Share your sheet with Blue Book, as Editor" : "1. Compartan su hoja con Blue Book, como Editor"}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-tinta">
+            {en ? "In your sheet: Share → paste this email → Editor → Send." : "En su hoja: Compartir → peguen este correo → Editor → Enviar."}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <code className="max-w-full break-all rounded-xl bg-papel px-3 py-2 text-sm text-noche">{correo}</code>
+            <button type="button" onClick={() => void copiar()} className={botonSecundario}>
+              {copiado ? <Check className="h-4 w-4" strokeWidth={1.8} /> : <Copy className="h-4 w-4" strokeWidth={1.6} />}
+              {copiado ? (en ? "Copied" : "Copiado") : en ? "Copy" : "Copiar"}
+            </button>
+          </div>
+        </li>
+        <li>
+          <label htmlFor="enlace-de-hoja" className="text-sm font-medium text-noche">
+            {en ? "2. Paste the link to your sheet" : "2. Peguen el enlace de su hoja"}
+          </label>
+          <p className="mt-1 text-sm leading-relaxed text-tinta">
+            {en ? "Copy it from your browser's address bar, on the tab with your list." : "Cópienlo de la barra de su navegador, en la pestaña donde está su lista."}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-3">
+            <input
+              id="enlace-de-hoja"
+              type="url"
+              inputMode="url"
+              autoComplete="off"
+              value={enlace}
+              onChange={(e) => {
+                setEnlace(e.target.value);
+                setConexion(null);
+                setElegida(null);
+              }}
+              placeholder="https://docs.google.com/spreadsheets/d/…"
+              className={`${campoClass} min-w-0 flex-1 basis-72`}
+            />
+            <button type="button" onClick={() => void revisar(null, false, null)} disabled={trabajando || !enlace.trim()} className={botonPrimario}>
+              {trabajando && !c ? (en ? "Checking…" : "Revisando…") : en ? "Check" : "Revisar"}
+            </button>
+          </div>
+        </li>
+      </ol>
+
+        </details>
+      ) : (
       <ol className="mt-6 space-y-5">
         <li>
           <p className="text-sm font-medium text-noche">
@@ -546,16 +823,25 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
               onChange={(e) => {
                 setEnlace(e.target.value);
                 setConexion(null);
+                setElegida(null);
               }}
               placeholder="https://docs.google.com/spreadsheets/d/…"
               className={`${campoClass} min-w-0 flex-1 basis-72`}
             />
-            <button type="button" onClick={() => void revisar(null, false)} disabled={trabajando || !enlace.trim()} className={botonPrimario}>
+            <button type="button" onClick={() => void revisar(null, false, null)} disabled={trabajando || !enlace.trim()} className={botonPrimario}>
               {trabajando && !c ? (en ? "Checking…" : "Revisando…") : en ? "Check" : "Revisar"}
             </button>
           </div>
         </li>
       </ol>
+
+      )}
+
+      {aviso ? (
+        <p role="status" className="mt-5 rounded-xl bg-papel px-4 py-3 text-sm text-noche">
+          {aviso}
+        </p>
+      ) : null}
 
       {mensaje ? (
         <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl border border-error/40 bg-error-fondo px-4 py-3">
@@ -665,7 +951,9 @@ export function HojaDeGoogle({ listaVacia, soloLectura }: { listaVacia: boolean;
         onClick={() => {
           setAbierto(false);
           setConexion(null);
+          setElegida(null);
           setError(null);
+          setAviso(null);
         }}
         className={`mt-4 inline-flex min-h-[2.75rem] items-center text-sm ${claseEnlace}`}
       >

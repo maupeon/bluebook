@@ -5,6 +5,7 @@ import { DocumentoLegal, Enlace, Lista, Tabla, type SeccionLegal } from "@/compo
 import { RESPONSABLE, datoLegal, fraseDeDomicilio } from "@/lib/legal";
 import { GOOGLE_ACTIVO } from "@/lib/entrarConGoogle";
 import { GOOGLE_SHEETS_ACTIVO } from "@/lib/googleSheets";
+import { CONECTAR_CON_GOOGLE_ACTIVO } from "@/lib/conectarConGoogle";
 import { ASISTENTE, asistenteVigente } from "@/lib/asistente";
 
 // El Aviso de privacidad INTEGRAL. Ley Federal de Protección de Datos
@@ -112,6 +113,15 @@ function seccionesEs(): SeccionLegal[] {
             se guarda. Puedes dejar de sincronizarla desde tu panel y quitarle el acceso a Blue Book en la propia hoja
             cuando quieras.
           </p>
+          {CONECTAR_CON_GOOGLE_ACTIVO ? (
+            <p>
+              En vez de compartirla, puedes conectar tu cuenta de Google: Google te pregunta si Blue Book puede ver y
+              editar solo los archivos que elijas o crees con Blue Book, y no vemos nada más de tu Drive. Guardamos,
+              cifrado, el permiso que nos das y el correo de esa cuenta, para mantener tu hoja al día aunque no estés
+              en tu panel. Puedes retirarlo cuando quieras: en tu panel («Desconectar de Google») o en
+              myaccount.google.com/permissions.
+            </p>
+          ) : null}
           <p>
             <strong>Si eres invitado a una boda en Blue Book:</strong> los datos que la pareja capturó de ti (los del
             párrafo anterior), tus respuestas por WhatsApp (el texto o el botón que eliges y el nombre de tu perfil de
@@ -570,6 +580,15 @@ function seccionesEn(): SeccionLegal[] {
             kept. You can stop syncing it from your panel and remove Blue Book&rsquo;s access in the sheet itself
             whenever you want.
           </p>
+          {CONECTAR_CON_GOOGLE_ACTIVO ? (
+            <p>
+              Instead of sharing it, you can connect your Google account: Google asks whether Blue Book may see and
+              edit only the files you choose or create with Blue Book, and we see nothing else in your Drive. We keep,
+              encrypted, the permission you give us and that account&rsquo;s email, to keep your sheet up to date even
+              when you are not in your panel. You can withdraw it whenever you want: in your panel
+              (&laquo;Disconnect from Google&raquo;) or at myaccount.google.com/permissions.
+            </p>
+          ) : null}
           <p>
             <strong>If you&rsquo;re a guest at a wedding in Blue Book:</strong> the data the couple added about you (the
             previous paragraph), your WhatsApp replies (the text or button you choose and your WhatsApp profile name)

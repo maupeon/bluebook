@@ -4,6 +4,7 @@ import { leerAcceso } from "@/lib/acceso";
 import { topeDelPlan } from "@/lib/topeDelPlan";
 import { cambiarTelefonoDeInvitado } from "@/lib/telefonoDeInvitado";
 import { leerLista } from "@/lib/listaDeInvitados";
+import { accesoDeGoogle } from "@/lib/googleDeLaBoda";
 import {
   escribir,
   hojaNueva,
@@ -40,6 +41,13 @@ import {
  * Qué columna es qué se decide UNA vez, al ligar, y se guarda
  * (hojas_de_invitados.columnas): después cada columna se busca por su título.
  *
+ * Hay dos formas de entrar a la hoja (hojas_de_invitados.via): «compartida»,
+ * con la cuenta de servicio de Blue Book (la pareja la comparte con ese
+ * correo y pega el enlace), y «google», con el permiso de la propia pareja
+ * («Conectar con Google», googleDeLaBoda.ts): elige la hoja en el selector de
+ * Google o Blue Book le crea una. En las dos, quien lee y escribe es el admin;
+ * con «google» se le manda en cada llamada un acceso de corta vida.
+ *
  * Una hoja queda atada a la boda que la ligó (hojas_usadas), aunque deje de
  * sincronizarse: la hoja sigue compartida con la cuenta de Blue Book, y sin
  * eso cualquiera que tuviera su enlace podría ligarla a OTRA boda y leerla.
@@ -55,9 +63,14 @@ const AVISOS_MAX = 60;
 
 type Tier = "invitations" | "full";
 
+/** Cómo entra Blue Book a la hoja. */
+export type Via = "compartida" | "google";
+
 export type MotivoDeError =
   /** La hoja no está compartida con la cuenta de Blue Book (o se dejó de compartir). */
   | "sin_acceso"
+  /** Ligada con «Conectar con Google» y la pareja retiró el permiso (o venció). */
+  | "sin_permiso"
   /** La hoja o la pestaña ya no existen. */
   | "no_existe"
   | "sin_pestana"
@@ -97,6 +110,7 @@ export interface ResultadoDeVuelta {
 }
 
 export interface EstadoDeLaHoja {
+  via: Via;
   titulo: string;
   pestana: string;
   url: string;
@@ -126,7 +140,8 @@ export function hojaDisponible(): boolean {
   return Boolean(process.env.INTERNAL_API_SECRET);
 }
 
-async function alAdmin<T>(cuerpo: Record<string, unknown>): Promise<DelAdmin<T>> {
+/** `acceso`: el permiso de corta vida de la pareja, cuando la hoja se ligó con «Conectar con Google». */
+async function alAdmin<T>(cuerpo: Record<string, unknown>, acceso?: string): Promise<DelAdmin<T>> {
   const secreto = process.env.INTERNAL_API_SECRET;
   if (!secreto) return { ok: false, motivo: "no_configurado" };
   const base = (process.env.ADMIN_API_URL || "https://admin.bluebook.mx").replace(/\/$/, "");
@@ -135,7 +150,7 @@ async function alAdmin<T>(cuerpo: Record<string, unknown>): Promise<DelAdmin<T>>
     res = await fetch(`${base}/api/interno/hoja`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${secreto}` },
-      body: JSON.stringify(cuerpo),
+      body: JSON.stringify(acceso ? { ...cuerpo, acceso } : cuerpo),
       signal: AbortSignal.timeout(55_000),
       cache: "no-store",
     });
@@ -327,8 +342,9 @@ interface Liga {
   recuerdo: Base;
   /** Los títulos de las columnas de la lista, como quedaron al ligarla. */
   columnas: Titulos | null;
+  via: Via;
 }
-const COLUMNAS_DE_LIGA = "spreadsheet_id, pestana_gid, pestana, titulo, recuerdo, columnas";
+const COLUMNAS_DE_LIGA = "spreadsheet_id, pestana_gid, pestana, titulo, recuerdo, columnas, via";
 
 /** De cien en cien: una lista larga de ids no cabe en la URL de una consulta. */
 function enTrozos<T>(lista: T[], n = 100): T[][] {
@@ -393,6 +409,17 @@ export async function sincronizar(weddingId: string, tier: Tier): Promise<FinDeV
       await conError(weddingId, "solo_lectura");
       return "solo_lectura";
     }
+    // Ligada con «Conectar con Google»: se entra con el permiso de la pareja.
+    let acceso: string | undefined;
+    if (liga.via === "google") {
+      const a = await accesoDeGoogle(weddingId);
+      if (!a.ok) {
+        const motivo = a.motivo === "google" ? "google" : "sin_permiso";
+        await conError(weddingId, motivo);
+        return motivo;
+      }
+      acceso = a.token;
+    }
     const maximo = await topeDelPlan(weddingId, tier);
     // Lo que entra a Blue Book se cuenta entre intentos: si la hoja cambió a
     // media vuelta, el segundo intento ya no encuentra nada que hacer y sin
@@ -401,11 +428,10 @@ export async function sincronizar(weddingId: string, tier: Tier): Promise<FinDeV
 
     for (let intento = 0; intento < 2; intento++) {
       const empezo = new Date().toISOString();
-      const leida = await alAdmin<{ titulo: string; pestanas: PestanaLeida[] }>({
-        accion: "leer",
-        spreadsheetId: liga.spreadsheet_id,
-        gid: liga.pestana_gid,
-      });
+      const leida = await alAdmin<{ titulo: string; pestanas: PestanaLeida[] }>(
+        { accion: "leer", spreadsheetId: liga.spreadsheet_id, gid: liga.pestana_gid },
+        acceso
+      );
       if (!leida.ok) {
         await conError(weddingId, leida.motivo);
         return leida.motivo;
@@ -419,7 +445,7 @@ export async function sincronizar(weddingId: string, tier: Tier): Promise<FinDeV
       // quita de Blue Book por una hoja en blanco.
       if (!h.ok && h.problema === "vacia") {
         const nueva = hojaNueva(app);
-        const w = await mandar(liga, pestana.firma, nueva.bloques, []);
+        const w = await mandar(liga, pestana.firma, nueva.bloques, [], acceso);
         if (!w.ok && w.motivo === "cambio") continue;
         if (!w.ok) {
           await conError(weddingId, w.motivo);
@@ -523,7 +549,7 @@ export async function sincronizar(weddingId: string, tier: Tier): Promise<FinDeV
         filasDeMas: plan.filasDeMas,
       });
       if (e.bloques.length > 0 || e.borrar.length > 0) {
-        const w = await mandar(liga, pestana.firma, e.bloques, e.borrar);
+        const w = await mandar(liga, pestana.firma, e.bloques, e.borrar, acceso);
         // La hoja cambió mientras tanto: otra vuelta. Lo que ya entró a Blue
         // Book se va a encontrar igual.
         if (!w.ok && w.motivo === "cambio") continue;
@@ -558,15 +584,17 @@ export async function sincronizar(weddingId: string, tier: Tier): Promise<FinDeV
   }
 }
 
-function mandar(liga: Pick<Liga, "spreadsheet_id" | "pestana_gid">, firma: string, bloques: Bloque[], borrar: number[]) {
-  return alAdmin<{ ok: true }>({
-    accion: "escribir",
-    spreadsheetId: liga.spreadsheet_id,
-    gid: liga.pestana_gid,
-    firma,
-    bloques,
-    borrar,
-  });
+function mandar(
+  liga: Pick<Liga, "spreadsheet_id" | "pestana_gid">,
+  firma: string,
+  bloques: Bloque[],
+  borrar: number[],
+  acceso?: string
+) {
+  return alAdmin<{ ok: true }>(
+    { accion: "escribir", spreadsheetId: liga.spreadsheet_id, gid: liga.pestana_gid, firma, bloques, borrar },
+    acceso
+  );
 }
 
 const ENTRE_VUELTAS_MS = 20_000;
@@ -678,11 +706,22 @@ export async function conectar(
   correo: string,
   enlace: string,
   gidElegido: number | null,
-  aplicar: boolean
+  aplicar: boolean,
+  via: Via = "compartida"
 ): Promise<Conexion> {
   const admin = createAdminClient();
   const dato = leerEnlace(enlace);
   if (!dato) return { estado: "enlace_invalido" };
+
+  // Con «Conectar con Google» la hoja se abre con el permiso de la pareja:
+  // sólo puede ser una que ella eligió en el selector o que Blue Book le creó.
+  let acceso: string | undefined;
+  if (via === "google") {
+    const a = await accesoDeGoogle(boda.id);
+    if (!a.ok) return { estado: "error", motivo: a.motivo === "google" ? "google" : "sin_permiso" };
+    acceso = a.token;
+  }
+  const pedir = <T>(cuerpo: Record<string, unknown>) => alAdmin<T>(cuerpo, acceso);
 
   const { data: propia } = await admin.from(TABLA).select("wedding_id").eq("wedding_id", boda.id).maybeSingle();
   if (propia) return { estado: "ya_conectada" };
@@ -700,8 +739,11 @@ export async function conectar(
     return { estado: "de_otra_boda" };
   }
 
-  const leida = await alAdmin<{ titulo: string; pestanas: PestanaLeida[] }>({ accion: "leer", spreadsheetId: dato.id });
+  const leida = await pedir<{ titulo: string; pestanas: PestanaLeida[] }>({ accion: "leer", spreadsheetId: dato.id });
   if (!leida.ok) {
+    // Con el permiso de la pareja no hay a quién compartirle nada: una hoja
+    // que no se puede abrir es una que no eligió con Blue Book.
+    if (leida.motivo === "sin_acceso" && via === "google") return { estado: "no_existe" };
     if (leida.motivo === "sin_acceso") return { estado: "sin_acceso", correo: await correoParaCompartir() };
     if (leida.motivo === "no_existe") return { estado: "no_existe" };
     return { estado: "error", motivo: leida.motivo };
@@ -792,6 +834,7 @@ export async function conectar(
     pestana: pestana.titulo,
     titulo,
     conectada_por: correo,
+    via,
     // Qué columna es qué queda decidido aquí, con lo que la pareja acaba de ver.
     columnas: h.ok ? h.hoja.titulos : TITULOS_DE_BLUEBOOK,
     ocupada_desde: new Date().toISOString(),
@@ -806,7 +849,7 @@ export async function conectar(
   // Los títulos se fijan arriba: «Ordenar hoja» de Google ya no los mueve con
   // los datos. Es un favor, no una condición: si no se puede, se sigue.
   const fijarTitulos = (gid: number, filas: number) =>
-    alAdmin<{ ok: true }>({ accion: "fijar_titulos", spreadsheetId: dato.id, gid, filas }).catch(() => null);
+    pedir<{ ok: true }>({ accion: "fijar_titulos", spreadsheetId: dato.id, gid, filas }).catch(() => null);
 
   if (modo === "aqui") {
     if (h.ok && h.hoja.encabezados < 10) await fijarTitulos(pestana.gid, h.hoja.encabezados + 1);
@@ -819,14 +862,16 @@ export async function conectar(
   // se crea aparte: la suya se queda como estaba.
   const deshacer = async (motivo: MotivoDeError): Promise<Conexion> => {
     await admin.from(TABLA).delete().eq("wedding_id", boda.id);
-    return motivo === "sin_acceso" ? { estado: "sin_acceso", correo: await correoParaCompartir() } : { estado: "error", motivo };
+    return motivo === "sin_acceso" && via !== "google"
+      ? { estado: "sin_acceso", correo: await correoParaCompartir() }
+      : { estado: "error", motivo };
   };
   let destino = { gid: pestana.gid, titulo: pestana.titulo, firma: pestana.firma };
   let entraron = 0;
   if (modo === "pestana") {
-    const creada = await alAdmin<{ gid: number; titulo: string }>({ accion: "crear_pestana", spreadsheetId: dato.id, titulo: PESTANA_NUEVA });
+    const creada = await pedir<{ gid: number; titulo: string }>({ accion: "crear_pestana", spreadsheetId: dato.id, titulo: PESTANA_NUEVA });
     if (!creada.ok) return deshacer(creada.motivo);
-    const enBlanco = await alAdmin<{ pestanas: PestanaLeida[] }>({ accion: "leer", spreadsheetId: dato.id, gid: creada.datos.gid });
+    const enBlanco = await pedir<{ pestanas: PestanaLeida[] }>({ accion: "leer", spreadsheetId: dato.id, gid: creada.datos.gid });
     if (!enBlanco.ok) return deshacer(enBlanco.motivo);
     destino = { gid: creada.datos.gid, titulo: creada.datos.titulo, firma: enBlanco.datos.pestanas[0].firma };
     if (filas.length > 0) {
@@ -837,7 +882,7 @@ export async function conectar(
   }
   const todos = await invitadosDeLaBoda(boda.id);
   const nueva = hojaNueva(todos);
-  const w = await mandar({ spreadsheet_id: dato.id, pestana_gid: destino.gid }, destino.firma, nueva.bloques, []);
+  const w = await mandar({ spreadsheet_id: dato.id, pestana_gid: destino.gid }, destino.firma, nueva.bloques, [], acceso);
   if (!w.ok) {
     // La liga se queda (la lista ya pudo haber entrado): la siguiente vuelta
     // encuentra la pestaña en blanco y la escribe.
@@ -857,13 +902,37 @@ export async function conectar(
   return { estado: "conectada", fin: "lista" };
 }
 
+/**
+ * «Crear una hoja nueva»: Blue Book crea la hoja en el Drive de la pareja (con
+ * su permiso), le escribe su lista y la deja ligada. Para quien todavía no
+ * lleva su lista en ninguna hoja, o prefiere empezar limpia.
+ */
+export async function crearHojaNueva(
+  boda: { id: string; tier: Tier },
+  correo: string,
+  nombreDeLaPareja: string
+): Promise<Conexion> {
+  const { data: propia } = await createAdminClient().from(TABLA).select("wedding_id").eq("wedding_id", boda.id).maybeSingle();
+  if (propia) return { estado: "ya_conectada" };
+  if (!(await leerAcceso(boda.id)).puedeEditar) return { estado: "solo_lectura" };
+
+  const a = await accesoDeGoogle(boda.id);
+  if (!a.ok) return { estado: "error", motivo: a.motivo === "google" ? "google" : "sin_permiso" };
+  const titulo = `Invitados de ${nombreDeLaPareja.trim() || "nuestra boda"}`.slice(0, 120);
+  const creada = await alAdmin<{ spreadsheetId: string; gid: number }>({ accion: "crear_hoja", titulo }, a.token);
+  if (!creada.ok) return { estado: "error", motivo: creada.motivo };
+  // La hoja nace en blanco: ligarla es el mismo camino que una vacía que la
+  // pareja hubiera elegido (se escribe la lista, se fijan los títulos).
+  return conectar(boda, correo, creada.datos.spreadsheetId, creada.datos.gid, true, "google");
+}
+
 /* ============ El panel ============ */
 
 export async function estadoDeLaHoja(weddingId: string): Promise<EstadoDeLaHoja | null> {
   const admin = createAdminClient();
   const { data } = await admin
     .from(TABLA)
-    .select("spreadsheet_id, pestana_gid, pestana, titulo, recuerdo, sincronizada_en, error, resultado")
+    .select("spreadsheet_id, pestana_gid, pestana, titulo, recuerdo, sincronizada_en, error, resultado, via")
     .eq("wedding_id", weddingId)
     .maybeSingle();
   if (!data) return null;
@@ -886,6 +955,7 @@ export async function estadoDeLaHoja(weddingId: string): Promise<EstadoDeLaHoja 
   // El error se guarda como «motivo» o «motivo:detalle» (la columna que falta).
   const [motivo, ...resto] = ((data.error as string | null) ?? "").split(":");
   return {
+    via: data.via === "google" ? "google" : "compartida",
     titulo: data.titulo as string,
     pestana: data.pestana as string,
     url: urlDeHoja(data.spreadsheet_id as string, data.pestana_gid as number),

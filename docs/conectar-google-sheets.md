@@ -9,8 +9,12 @@ hoja que la pareja elige. Nace apagado: sin estos pasos el selector truena con
 > ya no hace falta nada de esto: en Invitados está «Su hoja de Google», donde la
 > pareja comparte su hoja con la cuenta de servicio de Blue Book (la del admin)
 > y pega el enlace. No usa el selector ni pide permisos de Google a la pareja.
-> Ver `src/lib/hojaDeGoogle.ts` y `src/lib/hojaSincronizada.ts`. Esta guía sigue
-> valiendo sólo para el botón de traerla UNA vez con el selector.
+> Ver `src/lib/hojaDeGoogle.ts` y `src/lib/hojaSincronizada.ts`. Y para que la
+> liguen con su propia cuenta, sin compartir con ningún correo, está
+> `docs/conectar-con-google.md` («Conectar con Google»). Esta guía sigue
+> valiendo sólo para el botón de traerla UNA vez con el selector, que **no debe
+> encenderse junto con «Conectar con Google»**: al terminar retira todos los
+> permisos de la app y desconectaría la hoja ligada.
 
 Fuentes verificadas el 27-sep-2026. Las etiquetas de la consola van en inglés,
 como en `docs/login-con-google.md`.
