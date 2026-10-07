@@ -86,7 +86,9 @@ function seccionesEs(): SeccionLegal[] {
               los captura y guarda Stripe: Blue Book no los ve.
             </li>
             <li>Imágenes: la invitación que subes o que generamos para ti.</li>
-            <li>Documentos: los contratos de tus proveedores que subes en PDF.</li>
+            <li>
+              Documentos: los contratos y cotizaciones de tus proveedores que subes en PDF{PAREJA ? " o le mandas a tu asistente por WhatsApp (un PDF que no guardas en ningún proveedor se borra a los 7 días)" : ""}.
+            </li>
             <li>
               Los mensajes que nos escribes desde tu panel o por correo
               {PAREJA ? " y, si ligas tu WhatsApp a tu asistente, lo que le escribes o le dices en notas de voz por ahí" : ""}.
@@ -553,7 +555,9 @@ function seccionesEn(): SeccionLegal[] {
               collected and kept by Stripe: Blue Book never sees them.
             </li>
             <li>Images: the invitation you upload or we generate for you.</li>
-            <li>Documents: the vendor contracts you upload as PDF.</li>
+            <li>
+              Documents: the vendor contracts and quotes you upload as PDF{PAREJA ? " or send to your assistant over WhatsApp (a PDF you don\u2019t save to any vendor is deleted after 7 days)" : ""}.
+            </li>
             <li>
               The messages you send us from your panel or by email
               {PAREJA ? " and, if you link your WhatsApp to your assistant, what you write or say to it there in voice notes" : ""}.
