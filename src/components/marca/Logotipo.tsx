@@ -3,7 +3,7 @@ import Image from "next/image";
 /*
  * EL LOGOTIPO: «blue book» en DynaPuff, minúsculas, en azul, con la
  * estrellita de la guía arriba a la derecha. Junto a él, la carita de Blu
- * (public/blu/blu-avatar.webp) en un círculo crema: es lo que la gente
+ * (public/blu/azul/blu-avatar.webp) en un círculo crema: es lo que la gente
  * recuerda del sitio.
  *
  * El texto visible se queda en minúsculas; quien lo nombra (aria-label del
@@ -52,7 +52,7 @@ export function Logotipo({
           style={{ width: t.cara, height: t.cara }}
         >
           <Image
-            src="/blu/blu-avatar.webp"
+            src="/blu/azul/blu-avatar.webp"
             alt=""
             width={t.cara * 2}
             height={t.cara * 2}
@@ -67,7 +67,7 @@ export function Logotipo({
         }`}
       >
         blue book
-        <Estrellita className={`absolute text-noche ${t.estrella}`} />
+        <Estrellita className={`absolute text-vino ${t.estrella}`} />
       </span>
     </span>
   );

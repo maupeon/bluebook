@@ -20,8 +20,9 @@ export const contentType = "image/png";
 // satori no lee variables CSS: son los valores de globals.css. Si cambian
 // allá, cambian aquí.
 const PAPEL = "#f8f1e8";
-const TINTA = "#6b4f4f";
-const NOCHE = "#690010";
+const TINTA = "#5b6175";
+const NOCHE = "#46516f";
+const VINO = "#69000f";
 const AZUL = "#2f5487";
 const CIELO_CLARO = "#e4e9f3";
 const MANTEQUILLA = "#f2d65a";
@@ -89,7 +90,7 @@ export default async function OpengraphImage() {
           >
             <div>Planea tu boda</div>
             <div style={{ display: "flex", flexDirection: "column", alignSelf: "flex-start" }}>
-              <div style={{ fontFamily: "Playpen Sans" }}>con Blu</div>
+              <div style={{ fontFamily: "Playpen Sans", color: VINO }}>con Blu</div>
               <div style={{ height: 12, marginTop: -8, borderRadius: 8, background: MANTEQUILLA }} />
             </div>
           </div>
@@ -111,7 +112,7 @@ export default async function OpengraphImage() {
             }}
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={blu} width={418} height={430} alt="" style={{ position: "relative" }} />
+          <img src={blu} width={396} height={430} alt="" style={{ position: "relative" }} />
         </div>
       </div>
     ),

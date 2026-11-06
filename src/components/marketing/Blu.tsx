@@ -4,11 +4,15 @@ import { DIMENSIONES_DE_BLU, type PoseDeBlu } from "@/components/marketing/bluPo
 /*
  * BLU, la wedding planner ilustrada de Blue Book.
  *
- * Las poses viven en public/blu/ (WebP con fondo transparente, recortadas al
+ * Las poses viven en public/blu/azul/ (WebP con fondo transparente, recortadas al
  * dibujo). Se generaron con la herramienta de imágenes de Codex a partir de la
  * hoja de personaje de la marca, así que todas comparten cara, peinado,
- * saco rosa y trazo. Para agregar una pose: generarla igual, exportarla con el
+ * saco azul y trazo. Para agregar una pose: generarla igual, exportarla con el
  * mismo recorte y sumar sus medidas en bluPoses.ts.
+ *
+ * La carpeta lleva el nombre de la versión («azul», el saco desde el 6-nov):
+ * el optimizador de imágenes guarda por ruta, así que un cambio de dibujo va
+ * en una carpeta nueva y no encima del archivo viejo.
  */
 
 export function Blu({
@@ -33,7 +37,7 @@ export function Blu({
   const medida = encaje === "alto" ? "h-full w-auto max-w-none" : "h-auto w-full";
   return (
     <Image
-      src={`/blu/blu-${pose}.webp`}
+      src={`/blu/azul/blu-${pose}.webp`}
       alt={alt}
       width={w}
       height={h}
@@ -63,7 +67,8 @@ export function Burbuja({ className = "", tono = "cielo-claro" }: { className?: 
 
 /*
  * LOS GARABATOS de la guía alrededor de Blu: rayitas de «¡idea!», una
- * estrellita y dos corazones, en vino y rosa. Decoración pura: aria-hidden.
+ * estrellita y dos corazones: el vino de los detalles y la pizarra de la
+ * guía. Decoración pura: aria-hidden.
  * Cada trazo es un hijo directo para que la entrada los escalone con
  * --i (ver .entrada-garabato en globals.css).
  */
@@ -72,11 +77,11 @@ export function Garabatos({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 400 400" className={className} aria-hidden="true" focusable="false">
       {/* corazón grande, abajo a la derecha */}
-      <g className="text-noche" style={{ "--i": 0 } as React.CSSProperties}>
+      <g className="text-vino" style={{ "--i": 0 } as React.CSSProperties}>
         <path {...trazo} d="M356 300c-16-11-23-21-20-31 3-9 13-10 19-2 6-9 17-8 19 1 3 10-4 20-18 32Z" />
       </g>
       {/* estrellita, arriba a la derecha */}
-      <g className="text-rosa" style={{ "--i": 1 } as React.CSSProperties}>
+      <g className="text-pizarra" style={{ "--i": 1 } as React.CSSProperties}>
         <path
           {...trazo}
           strokeWidth={2.6}
@@ -84,7 +89,7 @@ export function Garabatos({ className = "" }: { className?: string }) {
         />
       </g>
       {/* corazón chico, a la izquierda */}
-      <g className="text-rosa" style={{ "--i": 2 } as React.CSSProperties}>
+      <g className="text-vino" style={{ "--i": 2 } as React.CSSProperties}>
         <path {...trazo} strokeWidth={2.6} d="M40 150c-10-7-14-13-12-19 2-6 8-6 12-1 4-6 11-5 12 1 2 6-2 12-12 19Z" />
       </g>
     </svg>

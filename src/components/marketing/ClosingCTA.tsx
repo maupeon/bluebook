@@ -35,7 +35,7 @@ export function ClosingCTA({ title, body }: { title?: ReactNode; body?: string }
         <Reveal>
           <div className="relative overflow-hidden rounded-[2rem] bg-mantequilla px-6 pt-10 text-center ring-1 ring-linea sm:px-12 lg:grid lg:grid-cols-[1fr_auto] lg:items-end lg:gap-6 lg:pt-0 lg:text-left">
             <Sparkle className="absolute left-[7%] top-[9%] h-6 w-6 text-noche" />
-            <Star className="absolute bottom-[12%] left-[46%] hidden h-5 w-5 text-rosa lg:block" />
+            <Star className="absolute bottom-[12%] left-[46%] hidden h-5 w-5 text-vino lg:block" />
 
             <div className="relative mx-auto w-full max-w-[11rem] sm:max-w-[13rem] lg:order-2 lg:mt-12 lg:max-w-[19rem]">
               <Blu

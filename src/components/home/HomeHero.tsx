@@ -93,7 +93,7 @@ export function HomeHero() {
               </p>
 
               <p className="mt-6 inline-flex items-start gap-2.5 border-t border-linea pt-5 text-left text-sm text-noche">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-rosa-texto" strokeWidth={1.75} aria-hidden="true" />
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-vino" strokeWidth={1.75} aria-hidden="true" />
                 {/* Solo el plan mensual trae planner: en la prueba y en «solo
                     invitaciones» la boda no tiene una asignada. */}
                 {en

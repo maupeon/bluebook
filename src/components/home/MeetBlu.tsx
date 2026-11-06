@@ -88,8 +88,8 @@ export function MeetBlu() {
               className="relative"
               alt={
                 en
-                  ? "Blu standing with a coffee: pink blazer, wide jeans and round glasses"
-                  : "Blu de pie con un café: saco rosa, jeans anchos y lentes redondos"
+                  ? "Blu standing with a coffee: blue blazer, wide jeans and round glasses"
+                  : "Blu de pie con un café: saco azul, jeans anchos y lentes redondos"
               }
             />
           </Reveal>
@@ -123,7 +123,7 @@ export function MeetBlu() {
               {rasgos.map(({ Icon, titulo, texto }, i) => (
                 <Reveal as="li" key={titulo} delay={220 + i * 70}>
                   <div className="flex items-start gap-3.5 rounded-2xl bg-papel px-4 py-3.5 ring-1 ring-linea">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-niebla text-rosa-texto ring-1 ring-linea">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-niebla text-vino ring-1 ring-linea">
                       <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
                     </span>
                     <p className="text-sm leading-snug text-tinta">

@@ -4,10 +4,15 @@
    LA MARCA (Blu, 6-nov-2026)
    =================================
    La marca gira alrededor de Blu, la wedding planner ilustrada de Blue Book
-   (public/blu/). Cuatro colores de la guía y tres letras:
+   (public/blu/azul/). Cinco colores de la guía y tres letras:
 
-     crema #F1E6D9 · vino #690010 · cielo #9EAECC · mantequilla #F7EEC7
+     crema #F1E7DB · cielo #9EAFCD · vino #69000F · mantequilla #F8EFC6 · pizarra #68738F
      DynaPuff (titulares) · Playpen Sans (frases y subtítulos) · Poppins (todo lo demás)
+
+   LO PRINCIPAL ES AZUL, EL VINO ES DETALLE (pedido del usuario, 6-nov):
+   titulares, botones, texto y bandas en azules; el vino sólo en lo chico:
+   la palabra en Playpen de un titular, los rótulos, estrellitas, corazones,
+   iconos de acento. Si algo grande sale en vino, está mal.
 
    Los nombres de los tokens (papel, niebla, tinta, noche, línea) vienen de la
    marca anterior y se quedan a propósito: toda la app los usa, y así el panel
@@ -16,39 +21,40 @@
    - papel: la página, una crema más clara que la de la guía para que la
      crema de la guía (papel-medio) se lea como banda y como hover.
    - niebla: lo que se levanta del papel (tarjetas, hojas, campos, la barra).
-   - tinta: el texto. Café vino, no gris: sobre crema el gris se ve sucio.
-   - noche: el vino de la guía. Titulares, el botón principal, lo que pesa.
+   - tinta: el texto. Gris pizarra, de la familia del azul.
+   - noche: la pizarra de la guía, un paso más honda para que aguante texto
+     chico y el botón. Titulares, el botón principal, lo que pesa.
+   - vino: los detalles (ver arriba). Nunca fondos grandes ni párrafos.
    - línea: reglas y divisiones. Nunca texto.
-   - cielo y mantequilla: bandas y fondos de tarjetas ilustradas, nunca texto.
-   - azul: el logotipo «blue book» y nada más.
-   - rosa: el saco de Blu. Corazones y detalles chicos; nunca texto largo.
-   - --color-white es niebla y --color-black es vino, así que un bg-white o
+   - cielo, cielo-claro y mantequilla: bandas y fondos, nunca texto.
+   - azul: el logotipo «blue book» (el cobalto del saco de Blu).
+   - --color-white es niebla y --color-black es noche, así que un bg-white o
      una sombra negra que quede cae en la marca.
 
    Contraste medido (WCAG 2.x):
-     tinta sobre papel 6.5:1 · sobre niebla 7.1:1 · sobre crema 6.0:1
-     vino sobre papel 11.5:1 · niebla sobre vino 12.6:1
-     tinta sobre cielo-claro 6.0:1 · sobre mantequilla 6.3:1 */
+     tinta sobre papel 5.4:1 · sobre niebla 5.9:1 · sobre cielo-claro 5.0:1
+     noche sobre papel 7.0:1 · niebla sobre noche 7.6:1
+     vino sobre papel 11.5:1 · sobre cielo-claro 10.8:1 */
 :root {
   --papel: #f8f1e8;        /* Crema clara: la página */
   --niebla: #fffaf4;       /* Superficies que se levantan */
-  --tinta: #6b4f4f;        /* Texto */
-  --noche: #690010;        /* Vino: titulares y botón principal */
-  --linea: #ead9c8;        /* Reglas y divisiones */
+  --tinta: #5b6175;        /* Texto: gris pizarra */
+  --noche: #46516f;        /* Pizarra honda: titulares y botón principal */
+  --vino: #69000f;         /* Los detalles */
+  --linea: #e6dcd0;        /* Reglas y divisiones */
 
   /* Los de la guía que no son de texto. */
-  --crema: #f1e6d9;
-  --cielo: #9eaecc;
+  --crema: #f1e7db;
+  --cielo: #9eafcd;
   --cielo-claro: #e4e9f3;
-  --mantequilla: #f7eec7;
+  --pizarra: #68738f;      /* La de la guía, tal cual: adornos y bordes */
+  --mantequilla: #f8efc6;
   --azul: #2f5487;         /* El logotipo: 6.7:1 sobre papel */
-  --rosa: #e9497a;         /* El saco de Blu */
-  --rosa-texto: #c2335f;   /* Rosa que sí llega a 4.6:1 sobre papel, para un acento corto */
 
   /* Derivados. Todos salen de los de arriba, salvo error y aviso. */
-  --papel-medio: #f1e6d9;  /* La crema de la guía: hover de superficies y bandas */
-  --noche-suave: #82152a;  /* Hover del botón vino */
-  --linea-control: #9c7d6e; /* Borde de campos: 3:1 sobre papel y niebla (WCAG 1.4.11) */
+  --papel-medio: #f1e7db;  /* La crema de la guía: hover de superficies y bandas */
+  --noche-suave: #56627f;  /* Hover del botón */
+  --linea-control: #7d869f; /* Borde de campos: 3.2:1 sobre papel (WCAG 1.4.11) */
   /* Error y aviso se distinguen del vino por su fondo y su icono, no sólo por
      el tono: en el panel siempre van en su píldora. */
   --error: #9a3b23;
@@ -61,8 +67,8 @@
    fuerza de borde de campo. */
 @media (prefers-contrast: more) {
   :root {
-    --tinta: #4f3536;
-    --linea: #9c7d6e;
+    --tinta: #3f4559;
+    --linea: #7d869f;
   }
 }
 
@@ -106,19 +112,19 @@
   --color-cielo-claro: var(--cielo-claro);
   --color-mantequilla: var(--mantequilla);
   --color-azul: var(--azul);
-  --color-rosa: var(--rosa);
-  --color-rosa-texto: var(--rosa-texto);
+  --color-vino: var(--vino);
+  --color-pizarra: var(--pizarra);
   --color-white: var(--niebla);
   --color-black: var(--noche);
 
-  /* Sombras teñidas de café vino: la de Tailwind es negra. */
-  --shadow-2xs: 0 1px rgb(84 38 38 / 0.05);
-  --shadow-xs: 0 1px 2px 0 rgb(84 38 38 / 0.06);
-  --shadow-sm: 0 1px 3px 0 rgb(84 38 38 / 0.1), 0 1px 2px -1px rgb(84 38 38 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(84 38 38 / 0.1), 0 2px 4px -2px rgb(84 38 38 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(84 38 38 / 0.1), 0 4px 6px -4px rgb(84 38 38 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(84 38 38 / 0.1), 0 8px 10px -6px rgb(84 38 38 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(84 38 38 / 0.25);
+  /* Sombras teñidas de pizarra: la de Tailwind es negra. */
+  --shadow-2xs: 0 1px rgb(52 60 86 / 0.05);
+  --shadow-xs: 0 1px 2px 0 rgb(52 60 86 / 0.06);
+  --shadow-sm: 0 1px 3px 0 rgb(52 60 86 / 0.1), 0 1px 2px -1px rgb(52 60 86 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(52 60 86 / 0.1), 0 2px 4px -2px rgb(52 60 86 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(52 60 86 / 0.1), 0 4px 6px -4px rgb(52 60 86 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(52 60 86 / 0.1), 0 8px 10px -6px rgb(52 60 86 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(52 60 86 / 0.25);
 
   /* ---- Letra ----
      - marcador (DynaPuff): titulares. Redonda, gordita, en vino; sin
@@ -200,7 +206,7 @@
     color: var(--noche);
   }
 
-  /* Vino: 11.5:1 sobre papel, 12.6:1 sobre niebla. */
+  /* Pizarra honda: 7.0:1 sobre papel, 7.6:1 sobre niebla. */
   :focus-visible {
     outline: 2px solid var(--noche);
     outline-offset: 2px;
@@ -208,11 +214,12 @@
 }
 
 @layer components {
-  /* EL TITULAR. DynaPuff 600 en vino, con su propio interletrado e
+  /* EL TITULAR. DynaPuff 600 en pizarra, con su propio interletrado e
      interlineado vía --tw-tracking y --tw-leading (lo que leen las utilidades
      text-*): las letras infladas piden cerrarse un poco y respirar entre
      líneas. Un <em> dentro del titular no se inclina: cambia a Playpen Sans,
-     la «letra de Blu», con un subrayado de mantequilla dibujado debajo. */
+     la «letra de Blu», en vino (el detalle del titular) y con un subrayado
+     de mantequilla dibujado debajo. */
   .titular {
     font-family: var(--font-dynapuff), ui-rounded, system-ui, sans-serif;
     font-weight: 600;
@@ -232,7 +239,7 @@
     font-style: normal;
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: var(--noche);
+    color: var(--vino);
     /* El trazo de marcador amarillo de la guía, debajo de la palabra. Un
        fondo, no un borde: sigue a la palabra si se parte en dos líneas. */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M3 13C40 7 90 5 197 9' fill='none' stroke='%23f2d65a' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -254,7 +261,7 @@
     width: 0.6em;
     height: 0.6em;
     vertical-align: 0.15em;
-    color: var(--rosa-texto);
+    color: var(--vino);
     position: relative;
   }
   /* El WORD JOINER de AdornosDelTitular mantiene cada SVG unido a su palabra,
@@ -291,7 +298,8 @@
   }
 
   /* EL RÓTULO: los «EXPRESSIONS · POSES & MOMENTS» de la guía. Poppins
-     Semibold en versales separadas, en vino. Encabeza secciones; nunca va solo. */
+     Semibold en versales separadas, en vino: es detalle, no titular.
+     Encabeza secciones; nunca va solo. */
   .rotulo {
     font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
     font-size: 0.75rem;
@@ -301,7 +309,7 @@
     letter-spacing: 0.16em;
     --tw-tracking: 0.16em;
     line-height: 1.4;
-    color: var(--noche);
+    color: var(--vino);
   }
 }
 
@@ -596,7 +604,7 @@
     border-radius: 999px;
     background: var(--noche);
     border: 3px solid var(--niebla);
-    box-shadow: 0 1px 3px rgb(84 38 38 / 0.35);
+    box-shadow: 0 1px 3px rgb(52 60 86 / 0.35);
     transition: box-shadow 150ms var(--ease-out, ease-out), scale 150ms var(--ease-out, ease-out);
   }
   .range-blue::-moz-range-thumb {
@@ -605,12 +613,12 @@
     border-radius: 999px;
     background: var(--noche);
     border: 3px solid var(--niebla);
-    box-shadow: 0 1px 3px rgb(84 38 38 / 0.35);
+    box-shadow: 0 1px 3px rgb(52 60 86 / 0.35);
   }
   /* Respuesta al presionar, no al soltar: el pulgar crece un poco y gana halo. */
   .range-blue:active::-webkit-slider-thumb {
     scale: 1.12;
-    box-shadow: 0 0 0 7px rgb(85 104 140 / 0.18), 0 1px 3px rgb(84 38 38 / 0.35);
+    box-shadow: 0 0 0 7px rgb(85 104 140 / 0.18), 0 1px 3px rgb(52 60 86 / 0.35);
   }
   .range-blue:focus-visible {
     outline: none;
@@ -663,7 +671,7 @@
     border-radius: 1rem;
     border: 1px solid var(--linea);
     background: var(--niebla);
-    box-shadow: 0 1px 2px rgb(84 38 38 / 0.05), 0 12px 32px -16px rgb(84 38 38 / 0.24);
+    box-shadow: 0 1px 2px rgb(52 60 86 / 0.05), 0 12px 32px -16px rgb(52 60 86 / 0.24);
   }
 }
 
