@@ -104,7 +104,7 @@ export function MuestraDelAlbum({
         {/* La portada, en papel azul: lo dibujado va sobre papel. */}
         <div className="relative flex items-center justify-center border-b border-linea bg-papel px-6 py-10 md:border-b-0 md:border-r sm:px-10">
           <Watercolor tone="linea" opacity={0.45} seed={11} className="absolute inset-4 h-[calc(100%-2rem)] w-[calc(100%-2rem)]" />
-          <div className="relative flex aspect-[4/5] w-full max-w-[16rem] flex-col items-center justify-center rounded-2xl border border-linea bg-niebla px-6 py-8 text-center shadow-[0_1px_2px_rgb(46_58_85/0.05),0_16px_36px_-18px_rgb(46_58_85/0.3)]">
+          <div className="relative flex aspect-[4/5] w-full max-w-[16rem] flex-col items-center justify-center rounded-2xl border border-linea bg-niebla px-6 py-8 text-center shadow-[0_1px_2px_rgb(84_38_38/0.05),0_16px_36px_-18px_rgb(84_38_38/0.3)]">
             <Sparkle className="absolute left-4 top-4 h-5 w-5 text-tinta" />
             <Heart className="absolute bottom-4 right-4 h-5 w-5 text-tinta" />
             {/* Nota a mano junto a la portada: la frase sólo adorna, el

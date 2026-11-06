@@ -5,7 +5,7 @@ import { Check, LayoutDashboard } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { ClosingCTA } from "@/components/marketing/ClosingCTA";
-import { Cake, PlannerBook, Sparkle, Star } from "@/components/marketing/Ink";
+import { Cake, Sparkle, Star } from "@/components/marketing/Ink";
 import {
   BarMock,
   BudgetMock,
@@ -19,6 +19,7 @@ import {
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { Titular } from "@/components/marca/Titular";
 import { ButtonLink, Container, Display, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
+import { BluDeEncabezado } from "@/components/marketing/Blu";
 
 interface Service {
   id: string;
@@ -190,12 +191,13 @@ export function ServiciosContent() {
       <section className="relative overflow-hidden pb-16 pt-28 sm:pt-32 md:pb-20 lg:pt-36">
         <Container>
           <div className="mx-auto max-w-4xl text-center">
-            <Reveal className="relative mx-auto hidden h-40 w-56 items-center justify-center sm:flex">
-              <Watercolor className="absolute inset-0 h-full w-full" tone="linea" opacity={0.55} seed={7} />
-              <PlannerBook className="relative w-[82%] text-tinta" />
-            </Reveal>
+            <BluDeEncabezado
+              pose="checklist"
+              tono="mantequilla"
+              alt={en ? "Blu holding up a checklist with three items ticked" : "Blu mostrando un checklist con tres pendientes tachados"}
+            />
             <Reveal delay={40}>
-              <Eyebrow className="sm:mt-8">{en ? "Services" : "Servicios"}</Eyebrow>
+              <Eyebrow className="mt-6">{en ? "Services" : "Servicios"}</Eyebrow>
             </Reveal>
             <Reveal delay={80}>
               <Display className="mt-5">

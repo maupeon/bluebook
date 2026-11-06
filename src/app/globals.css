@@ -1,61 +1,68 @@
 @import "tailwindcss";
 
 /* =================================
-   LA MARCA (guía del 28-sep-2026)
+   LA MARCA (Blu, 6-nov-2026)
    =================================
-   Seis colores y tres letras, iguales en bluebook.mx y en admin.bluebook.mx
-   (wedding-whatsapp/app/globals.css repite estos valores: si cambia uno, cambian
-   los dos).
+   La marca gira alrededor de Blu, la wedding planner ilustrada de Blue Book
+   (public/blu/). Cuatro colores de la guía y tres letras:
 
-   «Solo dos fondos en toda la cuenta: papel azul y papel niebla. Papel azul
-   para lo dibujado y lo informativo (precios, pasos); papel niebla para foto y
-   frases. Todo lo demás es tinta azul sobre ese papel. Nunca negro, nunca
-   degradados de color.»
+     crema #F1E6D9 · vino #690010 · cielo #9EAECC · mantequilla #F7EEC7
+     DynaPuff (titulares) · Playpen Sans (frases y subtítulos) · Poppins (todo lo demás)
 
-   En la interfaz eso se traduce así:
-   - La página es papel azul. Las superficies que se levantan de ella
-     (tarjetas, hojas, campos, la barra) son papel niebla, igual que las
-     secciones de foto y de frases del sitio.
-   - El texto es tinta; los títulos y lo que más pesa, azul noche. No hay un
-     tercer gris: la jerarquía la hacen el tamaño y el peso, no el color.
-   - Azul línea para reglas, divisiones y viñetas. Nunca para texto.
-   - Crema papel (#EFE8DC) es de los sobres y la caja de recuerdos: sale sólo
-     en foto. No es un token a propósito, para que nadie lo use de fondo.
-   - Blanco y negro no existen: --color-white es papel niebla y --color-black
-     es azul noche, así que cualquier bg-white o sombra negra que quede cae en
-     la marca.
+   Los nombres de los tokens (papel, niebla, tinta, noche, línea) vienen de la
+   marca anterior y se quedan a propósito: toda la app los usa, y así el panel
+   y el onboarding cambian de piel sin tocar cada pantalla.
+
+   - papel: la página, una crema más clara que la de la guía para que la
+     crema de la guía (papel-medio) se lea como banda y como hover.
+   - niebla: lo que se levanta del papel (tarjetas, hojas, campos, la barra).
+   - tinta: el texto. Café vino, no gris: sobre crema el gris se ve sucio.
+   - noche: el vino de la guía. Titulares, el botón principal, lo que pesa.
+   - línea: reglas y divisiones. Nunca texto.
+   - cielo y mantequilla: bandas y fondos de tarjetas ilustradas, nunca texto.
+   - azul: el logotipo «blue book» y nada más.
+   - rosa: el saco de Blu. Corazones y detalles chicos; nunca texto largo.
+   - --color-white es niebla y --color-black es vino, así que un bg-white o
+     una sombra negra que quede cae en la marca.
 
    Contraste medido (WCAG 2.x):
-     tinta sobre papel azul 4.8:1 · sobre niebla 5.1:1  → texto normal AA
-     azul noche sobre papel azul 9.7:1 · niebla sobre azul noche 10.4:1
-   Por eso la tinta no se aclara con opacidad para texto: a /70 ya no llega. */
+     tinta sobre papel 6.5:1 · sobre niebla 7.1:1 · sobre crema 6.0:1
+     vino sobre papel 11.5:1 · niebla sobre vino 12.6:1
+     tinta sobre cielo-claro 6.0:1 · sobre mantequilla 6.3:1 */
 :root {
-  --papel: #e8edf8;        /* Papel azul: fondo principal, ilustración y precios */
-  --niebla: #f4f5f6;       /* Papel niebla: superficies, foto y frases */
-  --tinta: #55688c;        /* Tinta: lettering, trazo, texto */
-  --noche: #2e3a55;        /* Azul noche: titulares, sombreado del dibujo, botón principal */
-  --linea: #c6d0e4;        /* Azul línea: reglas, viñetas, detalles */
+  --papel: #f8f1e8;        /* Crema clara: la página */
+  --niebla: #fffaf4;       /* Superficies que se levantan */
+  --tinta: #6b4f4f;        /* Texto */
+  --noche: #690010;        /* Vino: titulares y botón principal */
+  --linea: #ead9c8;        /* Reglas y divisiones */
 
-  /* Estados que la guía no cubre porque una pieza de Instagram no los tiene.
-     Todos salen de los cinco de arriba, salvo error y aviso. */
-  --papel-medio: #eef1f7;  /* entre papel azul y niebla: hover de superficies */
-  --noche-suave: #364360;  /* hover del botón azul noche (80% noche, 20% tinta) */
-  --linea-control: #7788a8; /* borde de campos: 3:1 sobre papel y niebla (WCAG 1.4.11) */
-  /* Error y aviso tienen que distinguirse de la tinta en un vistazo: es lo
-     único que no es azul. Ladrillo apagado y ocre, los dos a 5:1 o más sobre
-     papel azul y sobre su propio fondo. */
-  --error: #9a4b37;
-  --error-fondo: #f5e4df;
+  /* Los de la guía que no son de texto. */
+  --crema: #f1e6d9;
+  --cielo: #9eaecc;
+  --cielo-claro: #e4e9f3;
+  --mantequilla: #f7eec7;
+  --azul: #2f5487;         /* El logotipo: 6.7:1 sobre papel */
+  --rosa: #e9497a;         /* El saco de Blu */
+  --rosa-texto: #c2335f;   /* Rosa que sí llega a 4.6:1 sobre papel, para un acento corto */
+
+  /* Derivados. Todos salen de los de arriba, salvo error y aviso. */
+  --papel-medio: #f1e6d9;  /* La crema de la guía: hover de superficies y bandas */
+  --noche-suave: #82152a;  /* Hover del botón vino */
+  --linea-control: #9c7d6e; /* Borde de campos: 3:1 sobre papel y niebla (WCAG 1.4.11) */
+  /* Error y aviso se distinguen del vino por su fondo y su icono, no sólo por
+     el tono: en el panel siempre van en su píldora. */
+  --error: #9a3b23;
+  --error-fondo: #f8e1d8;
   --aviso: #7f5500;
-  --aviso-fondo: #fbf3db;
+  --aviso-fondo: #fbf1d2;
 }
 
 /* Quien pidió más contraste recibe la tinta más oscura y las líneas con
    fuerza de borde de campo. */
 @media (prefers-contrast: more) {
   :root {
-    --tinta: #3f4f6e;
-    --linea: #7788a8;
+    --tinta: #4f3536;
+    --linea: #9c7d6e;
   }
 }
 
@@ -94,58 +101,53 @@
   --color-error-fondo: var(--error-fondo);
   --color-aviso: var(--aviso);
   --color-aviso-fondo: var(--aviso-fondo);
+  --color-crema: var(--crema);
+  --color-cielo: var(--cielo);
+  --color-cielo-claro: var(--cielo-claro);
+  --color-mantequilla: var(--mantequilla);
+  --color-azul: var(--azul);
+  --color-rosa: var(--rosa);
+  --color-rosa-texto: var(--rosa-texto);
   --color-white: var(--niebla);
   --color-black: var(--noche);
 
-  /* Sombras teñidas de azul noche: la de Tailwind es negra. */
-  --shadow-2xs: 0 1px rgb(46 58 85 / 0.05);
-  --shadow-xs: 0 1px 2px 0 rgb(46 58 85 / 0.06);
-  --shadow-sm: 0 1px 3px 0 rgb(46 58 85 / 0.1), 0 1px 2px -1px rgb(46 58 85 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(46 58 85 / 0.1), 0 2px 4px -2px rgb(46 58 85 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(46 58 85 / 0.1), 0 4px 6px -4px rgb(46 58 85 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(46 58 85 / 0.1), 0 8px 10px -6px rgb(46 58 85 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(46 58 85 / 0.25);
+  /* Sombras teñidas de café vino: la de Tailwind es negra. */
+  --shadow-2xs: 0 1px rgb(84 38 38 / 0.05);
+  --shadow-xs: 0 1px 2px 0 rgb(84 38 38 / 0.06);
+  --shadow-sm: 0 1px 3px 0 rgb(84 38 38 / 0.1), 0 1px 2px -1px rgb(84 38 38 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(84 38 38 / 0.1), 0 2px 4px -2px rgb(84 38 38 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(84 38 38 / 0.1), 0 4px 6px -4px rgb(84 38 38 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(84 38 38 / 0.1), 0 8px 10px -6px rgb(84 38 38 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(84 38 38 / 0.25);
 
   /* ---- Letra ----
-     «Dos letras hechas a mano, una de apoyo.»
-     - marcador (BELLABOO, la misma de las piezas; Caveat Brush de respaldo
-       para & ¿ ¡): titulares. Siempre en mayúsculas, dos líneas
-       como máximo, centrado, con estrellitas y corazones a los lados: la clase
-       .titular y el componente <Titular>.
-     - script (Lazy Dog, con los acentos del español agregados): cierres
-       emocionales, la firma bluebook.mx y los pies
-       de pieza. Nunca para listas ni precios.
-     - sans (Work Sans): todo lo demás. Light 300; Medium 500 sólo para
-       énfasis. Nunca bold: semibold, bold y más pesados se quedan en 500.
-     font-heading, font-body y font-serif eran Cormorant y Montserrat; ahora
-     son Work Sans para que nada caiga en una letra que ya no existe. Un
-     título se vuelve marcador a propósito, con .titular. */
-  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-  /* Tampoco hay monoespaciada: <code>, <pre> y font-mono caen en Work Sans
-     (las cifras alineadas las da tabular-nums). */
-  --font-mono: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-marcador: var(--font-bellaboo), var(--font-caveat-brush), "Marker Felt", cursive;
-  --font-script: var(--font-lazy-dog), "Marker Felt", cursive;
-  /* El logotipo BLUE BOOK: marcador, como los titulares. */
-  --font-round: var(--font-bellaboo), var(--font-caveat-brush), "Marker Felt", cursive;
+     - marcador (DynaPuff): titulares. Redonda, gordita, en vino; sin
+       mayúsculas forzadas. La clase .titular y el componente <Titular>.
+     - script (Playpen Sans): frases, subtítulos cálidos y la palabra que
+       cambia dentro de un titular («con Blu»). Nunca listas ni precios.
+     - sans (Poppins): todo lo demás. 400 para leer, 500 para la interfaz,
+       600 para énfasis y botones. Nada más grueso: bold y más pesados se
+       quedan en 600.
+     font-heading, font-body y font-serif caen en Poppins para que nada
+     herede una letra que ya no existe. */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-marcador: var(--font-dynapuff), ui-rounded, system-ui, sans-serif;
+  --font-script: var(--font-playpen), "Comic Sans MS", cursive;
+  /* El logotipo «blue book»: DynaPuff, en minúsculas y en azul. */
+  --font-round: var(--font-dynapuff), ui-rounded, system-ui, sans-serif;
 
-  --font-weight-semibold: 500;
-  --font-weight-bold: 500;
-  --font-weight-extrabold: 500;
-  --font-weight-black: 500;
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
 
-  /* Peso e interletrado ópticos, por tamaño (como hace Apple con SF).
-     Work Sans Light a 12–14px sobre papel azul se adelgaza de más: los chicos
-     suben a 400 y 350 (Work Sans es variable) y ganan un poco de aire; los
-     grandes se cierran. Un font-medium o un tracking-* explícito siguen
-     mandando: Tailwind los lee de --tw-font-weight y --tw-tracking. */
-  --text-xs--font-weight: 400;
-  --text-xs--letter-spacing: 0.02em;
-  --text-sm--font-weight: 350;
-  --text-sm--letter-spacing: 0.01em;
+  /* Interletrado por tamaño (como hace Apple con SF): Poppins es ancha, los
+     chicos ganan un pelo de aire y los grandes se cierran. Un tracking-*
+     explícito sigue mandando. */
+  --text-xs--letter-spacing: 0.01em;
   --text-2xl--letter-spacing: -0.01em;
   --text-3xl--letter-spacing: -0.015em;
   --text-4xl--letter-spacing: -0.02em;
@@ -166,8 +168,8 @@
   body {
     background-color: var(--papel);
     color: var(--tinta);
-    font-family: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-    font-weight: 300;
+    font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 400;
     line-height: 1.6;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
@@ -183,10 +185,9 @@
     text-wrap: pretty;
   }
 
-  /* Nunca bold. Los th también: el navegador los pone en negrita y el
-     preflight no los toca. */
+  /* Lo más grueso es 600 (Poppins Semibold). */
   b, strong, th {
-    font-weight: 500;
+    font-weight: 600;
   }
 
   ::placeholder {
@@ -199,7 +200,7 @@
     color: var(--noche);
   }
 
-  /* Azul noche: 9.7:1 sobre papel azul, 10:1 sobre niebla. */
+  /* Vino: 11.5:1 sobre papel, 12.6:1 sobre niebla. */
   :focus-visible {
     outline: 2px solid var(--noche);
     outline-offset: 2px;
@@ -207,30 +208,40 @@
 }
 
 @layer components {
-  /* EL TITULAR. Marcador, mayúsculas, azul noche, dos líneas como máximo.
-     Fija su propio interletrado e interlineado a través de --tw-tracking y
-     --tw-leading, que es lo que leen las utilidades text-*: así un text-5xl
-     no le impone el -0.02em que le toca a Work Sans a ese tamaño. Las
-     mayúsculas de pincel necesitan un pelo de aire, no menos.
-     Un <em> dentro del titular no se inclina (el marcador no tiene
-     cursiva): cambia a tinta. */
+  /* EL TITULAR. DynaPuff 600 en vino, con su propio interletrado e
+     interlineado vía --tw-tracking y --tw-leading (lo que leen las utilidades
+     text-*): las letras infladas piden cerrarse un poco y respirar entre
+     líneas. Un <em> dentro del titular no se inclina: cambia a Playpen Sans,
+     la «letra de Blu», con un subrayado de mantequilla dibujado debajo. */
   .titular {
-    font-family: var(--font-bellaboo), var(--font-caveat-brush), "Marker Felt", cursive;
-    font-weight: 400;
-    --tw-font-weight: 400;
-    text-transform: uppercase;
+    font-family: var(--font-dynapuff), ui-rounded, system-ui, sans-serif;
+    font-weight: 600;
+    --tw-font-weight: 600;
+    font-stretch: 100%;
     color: var(--noche);
-    --tw-tracking: 0.015em;
-    letter-spacing: 0.015em;
-    --tw-leading: 1.1;
-    line-height: 1.1;
+    --tw-tracking: -0.015em;
+    letter-spacing: -0.015em;
+    --tw-leading: 1.08;
+    line-height: 1.08;
     text-wrap: balance;
     text-align: center;
     font-synthesis: none;
   }
   .titular em {
+    font-family: var(--font-playpen), "Comic Sans MS", cursive;
     font-style: normal;
-    color: var(--tinta);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--noche);
+    /* El trazo de marcador amarillo de la guía, debajo de la palabra. Un
+       fondo, no un borde: sigue a la palabra si se parte en dos líneas. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M3 13C40 7 90 5 197 9' fill='none' stroke='%23f2d65a' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 100% 0.32em;
+    background-position: 0 92%;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding-inline: 0.04em;
   }
 
   /* «Acompañado de estrellitas y corazones dibujados a los lados.»
@@ -243,7 +254,7 @@
     width: 0.6em;
     height: 0.6em;
     vertical-align: 0.15em;
-    color: var(--tinta);
+    color: var(--rosa-texto);
     position: relative;
   }
   /* El WORD JOINER de AdornosDelTitular mantiene cada SVG unido a su palabra,
@@ -264,34 +275,33 @@
     display: none;
   }
 
-  /* LA FRASE. Lazy Dog: cierres emocionales, la firma y los pies. Nunca
-     listas ni precios. Sus ascendentes y descendentes piden más interlineado
-     que el marcador. */
+  /* LA FRASE. Playpen Sans: lo que diría Blu en voz alta. Cierres, notas al
+     margen, la firma. Nunca listas ni precios. */
   .frase {
-    font-family: var(--font-lazy-dog), "Marker Felt", cursive;
-    font-weight: 400;
-    --tw-font-weight: 400;
+    font-family: var(--font-playpen), "Comic Sans MS", cursive;
+    font-weight: 500;
+    --tw-font-weight: 500;
     text-transform: none;
     color: var(--noche);
-    --tw-tracking: 0;
-    letter-spacing: 0;
-    --tw-leading: 1.15;
-    line-height: 1.15;
+    --tw-tracking: -0.01em;
+    letter-spacing: -0.01em;
+    --tw-leading: 1.2;
+    line-height: 1.2;
     font-synthesis: none;
   }
 
-  /* EL RÓTULO: los «02 — COLOR» de la guía. Work Sans Medium, versales
-     separadas, tinta. Encabeza secciones; nunca va solo. */
+  /* EL RÓTULO: los «EXPRESSIONS · POSES & MOMENTS» de la guía. Poppins
+     Semibold en versales separadas, en vino. Encabeza secciones; nunca va solo. */
   .rotulo {
-    font-family: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
     font-size: 0.75rem;
-    font-weight: 500;
-    --tw-font-weight: 500;
+    font-weight: 600;
+    --tw-font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.18em;
-    --tw-tracking: 0.18em;
+    letter-spacing: 0.16em;
+    --tw-tracking: 0.16em;
     line-height: 1.4;
-    color: var(--tinta);
+    color: var(--noche);
   }
 }
 
@@ -586,7 +596,7 @@
     border-radius: 999px;
     background: var(--noche);
     border: 3px solid var(--niebla);
-    box-shadow: 0 1px 3px rgb(46 58 85 / 0.35);
+    box-shadow: 0 1px 3px rgb(84 38 38 / 0.35);
     transition: box-shadow 150ms var(--ease-out, ease-out), scale 150ms var(--ease-out, ease-out);
   }
   .range-blue::-moz-range-thumb {
@@ -595,12 +605,12 @@
     border-radius: 999px;
     background: var(--noche);
     border: 3px solid var(--niebla);
-    box-shadow: 0 1px 3px rgb(46 58 85 / 0.35);
+    box-shadow: 0 1px 3px rgb(84 38 38 / 0.35);
   }
   /* Respuesta al presionar, no al soltar: el pulgar crece un poco y gana halo. */
   .range-blue:active::-webkit-slider-thumb {
     scale: 1.12;
-    box-shadow: 0 0 0 7px rgb(85 104 140 / 0.18), 0 1px 3px rgb(46 58 85 / 0.35);
+    box-shadow: 0 0 0 7px rgb(85 104 140 / 0.18), 0 1px 3px rgb(84 38 38 / 0.35);
   }
   .range-blue:focus-visible {
     outline: none;
@@ -625,7 +635,7 @@
    contenido pasando por debajo. Quien pidió reducir transparencias la recibe
    sólida; quien pidió más contraste, sólida y con borde marcado. */
 .nav-material {
-  background-color: rgb(232 237 248 / 0.72);
+  background-color: rgb(248 241 232 / 0.78);
   -webkit-backdrop-filter: blur(20px) saturate(170%);
   backdrop-filter: blur(20px) saturate(170%);
 }
@@ -653,7 +663,7 @@
     border-radius: 1rem;
     border: 1px solid var(--linea);
     background: var(--niebla);
-    box-shadow: 0 1px 2px rgb(46 58 85 / 0.05), 0 12px 32px -16px rgb(46 58 85 / 0.24);
+    box-shadow: 0 1px 2px rgb(84 38 38 / 0.05), 0 12px 32px -16px rgb(84 38 38 / 0.24);
   }
 }
 
@@ -709,4 +719,114 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+}
+
+/* =================================
+   LA ENTRADA DE BLU (portada)
+   =================================
+   La única escena del sitio. Es CSS puro y no IntersectionObserver: la
+   portada ya está a la vista al cargar, así que la animación arranca con el
+   primer cuadro pintado, sin esperar a que React hidrate.
+
+   Orden: la mancha se infla (es el «suelo»), Blu sube desde ella, el texto
+   entra en paralelo, y al final los garabatos y el aviso de confirmación
+   llegan cada uno desde su lado: hacia donde apunta el dibujo.
+   Todo con ease-out-expo (desacelera como algo que se asienta) y sólo
+   transform/opacity. Nada se repite: después de un segundo la página queda
+   quieta. Con «Reducir movimiento», un fundido de 200ms y nada se mueve. */
+@keyframes entrada-mancha {
+  from { opacity: 0; transform: scale(0.82); }
+}
+@keyframes entrada-blu {
+  from { opacity: 0; transform: translateY(28px) scale(0.96); }
+}
+@keyframes entrada-pop {
+  from { opacity: 0; transform: scale(0.3) rotate(-12deg); }
+}
+@keyframes entrada-aviso {
+  from { opacity: 0; transform: translate(-18px, 10px); }
+}
+@keyframes entrada-texto {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes entrada-fundido {
+  from { opacity: 0; }
+}
+
+.entrada-mancha {
+  transform-origin: 50% 70%;
+  animation: entrada-mancha 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.entrada-blu {
+  transform-origin: 50% 100%;
+  animation: entrada-blu 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+.entrada-garabato > g {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: entrada-pop 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(620ms + var(--i, 0) * 110ms);
+}
+.entrada-aviso > * {
+  animation: entrada-aviso 620ms cubic-bezier(0.16, 1, 0.3, 1) 820ms both;
+}
+.entrada-texto {
+  animation: entrada-texto 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--entrada, 0ms) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada-mancha,
+  .entrada-blu,
+  .entrada-garabato > g,
+  .entrada-aviso > *,
+  .entrada-texto {
+    animation: entrada-fundido 200ms ease-out both;
+  }
+}
+
+/* =================================
+   TARJETAS DE BLU (momentos)
+   =================================
+   Responden al presionar, no al soltar (100ms, 3% de encogimiento). En
+   pantallas con cursor, al pasar Blu se asoma un poco: sube 6px y gira 1.5°
+   hacia arriba, como si levantara la cabeza. Sólo con hover real, para que en
+   el teléfono un toque no deje la tarjeta «levantada». */
+.momento {
+  transition: scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.momento:active {
+  scale: 0.97;
+}
+.momento .momento-blu {
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .momento:hover .momento-blu {
+    transform: translateY(-6px) rotate(-1.5deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .momento,
+  .momento .momento-blu {
+    transition: none;
+  }
+  .momento:active {
+    scale: 1;
+  }
+}
+
+/* Carrusel del teléfono: el desplazamiento nativo con imán (es el mismo
+   impulso y rebote del sistema, que ningún resorte en JS iguala) y sin barra. */
+.carrusel {
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1rem;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.carrusel::-webkit-scrollbar {
+  display: none;
+}
+.carrusel > * {
+  scroll-snap-align: start;
 }

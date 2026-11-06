@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HomeHero } from "@/components/home/HomeHero";
+import { MeetBlu } from "@/components/home/MeetBlu";
 import { ChaosToOrder } from "@/components/home/ChaosToOrder";
 import { AllInOne } from "@/components/home/AllInOne";
 import { Steps } from "@/components/home/Steps";
@@ -15,7 +16,8 @@ export const metadata: Metadata = {
     "Proveedores, pagos, pendientes, invitaciones y confirmaciones en una plataforma que compartes con tu pareja. Pruébalo 7 días gratis, sin tarjeta; después, $1,000 MXN al mes con una wedding planner real, o invitaciones con confirmaciones desde $990 MXN en un solo pago.",
 };
 
-// El orden sigue lo que ella necesita oír: qué es (hero), qué le quita de
+// El orden sigue lo que ella necesita oír: qué es (hero), quién la acompaña
+// (Blu y sus momentos), qué le quita de
 // encima (el caos), cómo se ve (todo en un lugar), por qué no una planner
 // presencial (lado a lado), qué tan fácil es empezar, quién está detrás,
 // cuánto cuesta, sus dudas y la decisión.
@@ -29,6 +31,7 @@ export default function Home() {
   return (
     <div className="bg-papel">
       <HomeHero />
+      <MeetBlu />
       <ChaosToOrder />
       <AllInOne />
       <Versus id="diferencia" />

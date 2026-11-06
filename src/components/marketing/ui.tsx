@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { Titular } from "@/components/marca/Titular";
 
@@ -101,9 +101,17 @@ export function Eyebrow({ children, className = "" }: { children: ReactNode; cla
  * estrellitas y corazones). Display es la portada de cada página; Heading,
  * cada sección. Ver components/marca/Titular.tsx.
  */
-export function Display({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function Display({
+  children,
+  className = "",
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+}) {
   return (
-    <Titular as="h1" tamano="portada" className={className}>
+    <Titular as="h1" tamano="portada" className={className} style={style}>
       {children}
     </Titular>
   );

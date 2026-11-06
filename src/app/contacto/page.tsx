@@ -11,6 +11,7 @@ import { Arrow, Container, Display, Em, Eyebrow, Lead } from "@/components/marke
 import { AdornosDelTitular } from "@/components/marca/Titular";
 import { CONTACT_INFO } from "@/lib/language";
 import { parseJsonSafe } from "@/lib/http";
+import { BluDeEncabezado } from "@/components/marketing/Blu";
 
 type Interest = "planner" | "invitations" | "album" | "questions";
 type Field = "name" | "email" | "interest" | "message";
@@ -206,8 +207,13 @@ export default function ContactoPage() {
           {/* El encabezado, centrado y a lo ancho; debajo, los canales y el
               formulario lado a lado. */}
           <div className="mx-auto max-w-4xl text-center">
+            <BluDeEncabezado
+              pose="invitados"
+              tono="mantequilla"
+              alt={en ? "Blu with her phone in one hand and an envelope in the other" : "Blu con su celular en una mano y un sobre en la otra"}
+            />
             <Reveal>
-              <Eyebrow>{en ? "Contact" : "Contacto"}</Eyebrow>
+              <Eyebrow className="mt-6">{en ? "Contact" : "Contacto"}</Eyebrow>
             </Reveal>
             <Reveal delay={80}>
               <Display className="mt-5">
@@ -274,7 +280,7 @@ export default function ContactoPage() {
 
             {/* Formulario */}
             <Reveal delay={160}>
-              <div className="relative overflow-hidden rounded-3xl border border-linea bg-niebla p-6 shadow-[0_24px_60px_-40px_rgb(46_58_85/0.35)] sm:p-10">
+              <div className="relative overflow-hidden rounded-3xl border border-linea bg-niebla p-6 shadow-[0_24px_60px_-40px_rgb(84_38_38/0.35)] sm:p-10">
                 <Watercolor className="absolute -right-16 -top-16 h-56 w-72" seed={10} opacity={0.8} />
                 <Envelopes className="absolute right-4 top-4 hidden h-24 w-28 text-tinta sm:block" />
 

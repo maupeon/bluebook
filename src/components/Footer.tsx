@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Instagram, Mail, MessageCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { CONTACT_INFO } from "@/lib/language";
 import { Sparkle, Star } from "@/components/marketing/Ink";
+import { Logotipo } from "@/components/marca/Logotipo";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -56,8 +56,7 @@ export function Footer() {
         <div className="grid gap-14 lg:grid-cols-[1.3fr_2fr]">
           <div>
             <Link href="/" className="inline-flex items-center gap-2.5">
-              <Image src="/icon.png" alt="" width={36} height={36} />
-              <span className="font-round text-[23px] uppercase leading-none text-noche">Blue Book</span>
+              <Logotipo />
             </Link>
             <p className="frase mt-6 text-[40px] leading-[1.05]" aria-hidden="true">
               Something blue.

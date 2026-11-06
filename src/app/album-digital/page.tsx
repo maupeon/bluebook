@@ -24,6 +24,7 @@ import { parseJsonSafe, summarizeHttpError } from "@/lib/http";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Titular } from "@/components/marca/Titular";
 import { Arrow, ButtonLink, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
+import { BluDeEncabezado } from "@/components/marketing/Blu";
 
 type Template = {
   id: string;
@@ -206,7 +207,11 @@ export default function AlbumDigitalPage() {
               dos líneas desde 768px; a tamaño de portada serían tres a
               1024px. */}
           <div className="mx-auto max-w-4xl text-center">
-            <Eyebrow>{isEnglish ? "Blue Book digital album" : "Álbum digital bluebook"}</Eyebrow>
+            <BluDeEncabezado
+              pose="album"
+              alt={isEnglish ? "Blu taking a photo with a vintage camera" : "Blu tomando una foto con una cámara antigua"}
+            />
+            <Eyebrow className="mt-6">{isEnglish ? "Blue Book digital album" : "Álbum digital bluebook"}</Eyebrow>
 
             <Titular as="h1" tamano="seccion" className="mt-4">
               {isEnglish ? "Your wedding in a mobile album," : "Tu boda en un álbum móvil,"}{" "}

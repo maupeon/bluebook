@@ -59,7 +59,7 @@ export function SaveTheDate({
         className="absolute -left-10 -top-8 h-[calc(100%+4rem)] w-[calc(100%+5rem)]"
       />
       {/* Sombra teñida de azul noche, doble: el contacto y la altura. */}
-      <div className="relative overflow-hidden rounded-[1.25rem] border border-linea bg-niebla px-6 pb-9 pt-7 text-center shadow-[0_1px_2px_rgb(46_58_85/0.05),0_18px_40px_-24px_rgb(46_58_85/0.3)]">
+      <div className="relative overflow-hidden rounded-[1.25rem] border border-linea bg-niebla px-6 pb-9 pt-7 text-center shadow-[0_1px_2px_rgb(84_38_38/0.05),0_18px_40px_-24px_rgb(84_38_38/0.3)]">
         <Star className="absolute left-5 top-5 h-4 w-4 text-tinta/50" />
         <Star className="absolute bottom-6 right-6 h-3 w-3 text-tinta/40" />
 

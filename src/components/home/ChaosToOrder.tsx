@@ -4,6 +4,7 @@ import { ArrowDown, ArrowRight, Check, FileSpreadsheet, FileText, MessageCircle,
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { MockCard } from "@/components/marketing/Mockups";
+import { Blu, Burbuja } from "@/components/marketing/Blu";
 import { Container, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
 
 /*
@@ -60,9 +61,9 @@ function ScrapCard({ scrap, en }: { scrap: Scrap; en: boolean }) {
   // Sans en la columna ordenada.
   if (scrap.kind === "note") {
     return (
-      <div className="w-[190px] bg-linea px-4 pb-4 pt-3 shadow-[0_10px_20px_-14px_rgb(46_58_85/0.5)]">
+      <div className="w-[190px] bg-mantequilla px-4 pb-4 pt-3 shadow-[0_10px_20px_-14px_rgb(84_38_38/0.5)]">
         <StickyNote className="h-3.5 w-3.5 text-noche" strokeWidth={1.75} aria-hidden="true" />
-        <p className="mt-1 font-script text-[25px] leading-[1.05] text-noche">{text}</p>
+        <p className="mt-1 font-script text-[19px] font-medium leading-[1.15] text-noche">{text}</p>
       </div>
     );
   }
@@ -100,6 +101,21 @@ export function ChaosToOrder() {
             columna, donde no cabía en dos líneas. */}
         <div className="mx-auto max-w-3xl text-center">
           <div>
+            {/* Blu con demasiadas pestañas abiertas: el dolor, dicho con
+                humor antes de decirlo con palabras. */}
+            <Reveal className="relative mx-auto mb-6 w-full max-w-[14rem] sm:max-w-[17rem]">
+              <Burbuja tono="cielo-claro" className="absolute inset-x-[-6%] bottom-0 top-[22%] h-[78%] w-[112%]" />
+              <Blu
+                pose="pestanas"
+                sizes="(min-width: 640px) 17rem, 14rem"
+                className="relative"
+                alt={
+                  en
+                    ? "Blu overwhelmed at her laptop, next to a tower of papers and sticky notes"
+                    : "Blu agobiada frente a su laptop, junto a una torre de papeles y notas"
+                }
+              />
+            </Reveal>
             <Reveal>
               <Eyebrow>{en ? "What nobody tells you" : "Lo que nadie te cuenta"}</Eyebrow>
             </Reveal>

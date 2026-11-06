@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Caveat_Brush, Work_Sans } from "next/font/google";
-import localFont from "next/font/local";
+import { DynaPuff, Playpen_Sans, Poppins } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
@@ -44,39 +43,26 @@ const websiteSchema = {
     "Wedding planner en línea: toda tu boda en una plataforma, con una wedding planner real revisando cada detalle.",
 };
 
-// La marca (guía del 28-sep-2026): dos letras hechas a mano y una de apoyo.
-// Las de mano son las mismas de las piezas: BELLABOO para los titulares y Lazy
-// Dog para las frases y la firma (ver fuentes/LICENCIAS.md). Work Sans, todo
-// lo demás; va variable (sin lista de pesos) porque globals.css usa pesos
-// ópticos intermedios: 350 para el texto chico.
-const bellaboo = localFont({
-  src: "./fuentes/bellaboo.woff2",
-  variable: "--font-bellaboo",
-  weight: "400",
+// La marca de Blu (6-nov-2026): DynaPuff para los titulares y el logotipo,
+// Playpen Sans para las frases (la «letra de Blu») y Poppins para todo lo
+// demás. DynaPuff y Playpen van variables; Poppins es estática, así que se
+// piden sólo los pesos que usa globals.css.
+const dynapuff = DynaPuff({
+  variable: "--font-dynapuff",
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
-const lazyDog = localFont({
-  src: "./fuentes/lazy-dog-bb.woff2",
-  variable: "--font-lazy-dog",
-  weight: "400",
+const playpen = Playpen_Sans({
+  variable: "--font-playpen",
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
-// Caveat Brush, el «equivalente digital» del marcador, queda sólo de respaldo
-// para lo que BELLABOO no trae (& ¿ ¡ « » “ ” – —). Sin precarga: el navegador
-// la baja únicamente si en la página aparece uno de esos caracteres.
-const caveatBrush = Caveat_Brush({
-  variable: "--font-caveat-brush",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-  preload: false,
-});
-
-const workSans = Work_Sans({
-  variable: "--font-work-sans",
-  subsets: ["latin"],
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
@@ -130,10 +116,10 @@ export const metadata: Metadata = {
   },
 };
 
-// La barra de Safari y la de Chrome en Android toman el papel azul de la
-// página: la ventana se lee como una sola hoja.
+// La barra de Safari y la de Chrome en Android toman la crema de la página:
+// la ventana se lee como una sola hoja.
 export const viewport: Viewport = {
-  themeColor: "#e8edf8",
+  themeColor: "#f8f1e8",
 };
 
 export default async function RootLayout({
@@ -165,7 +151,7 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${bellaboo.variable} ${lazyDog.variable} ${caveatBrush.variable} ${workSans.variable}`}
+        className={`${dynapuff.variable} ${playpen.variable} ${poppins.variable}`}
       >
         <LanguageProvider initialLanguage={language}>
           <LimpiarLaVuelta />

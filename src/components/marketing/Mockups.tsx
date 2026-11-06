@@ -28,7 +28,7 @@ import { Rings } from "@/components/marketing/Ink";
  */
 
 const SURFACE =
-  "rounded-2xl border border-linea bg-niebla shadow-[0_1px_2px_rgb(46_58_85/0.04),0_12px_32px_-16px_rgb(46_58_85/0.22)]";
+  "rounded-2xl border border-linea bg-niebla shadow-[0_1px_2px_rgb(84_38_38/0.04),0_12px_32px_-16px_rgb(84_38_38/0.22)]";
 
 export function MockCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`${SURFACE} ${className}`}>{children}</div>;
@@ -94,7 +94,7 @@ export function PhoneHoy({ en }: { en: boolean }) {
           ? "The Blue Book dashboard on a phone: 172 days to go, 86 of 120 guests confirmed, the flower deposit due Friday and this week's tasks."
           : "El panel de Blue Book en un celular: faltan 172 días, 86 de 120 invitados confirmados, el anticipo de flores vence el viernes y los pendientes de la semana."
       }
-      className="relative w-[272px] shrink-0 rounded-[2.9rem] bg-noche p-[9px] shadow-[0_40px_80px_-30px_rgb(46_58_85/0.55),0_0_0_1px_rgb(46_58_85/0.06)] sm:w-[292px]"
+      className="relative w-[272px] shrink-0 rounded-[2.9rem] bg-noche p-[9px] shadow-[0_40px_80px_-30px_rgb(84_38_38/0.55),0_0_0_1px_rgb(84_38_38/0.06)] sm:w-[292px]"
     >
       <div className="relative overflow-hidden rounded-[2.35rem] bg-papel" aria-hidden="true">
         {/* barra de estado */}
@@ -355,7 +355,7 @@ export function InvitationMock({ en }: { en: boolean }) {
     <div className="relative">
       {/* La invitación es una pieza de la marca: su «Save the date» va en la
           frase (Lazy Dog) y los nombres en el marcador, como en el Instagram. */}
-      <div className="relative mx-auto w-full max-w-[230px] -rotate-2 rounded-xl border border-linea bg-niebla px-5 pb-5 pt-4 text-center shadow-[0_14px_30px_-18px_rgb(46_58_85/0.35)]">
+      <div className="relative mx-auto w-full max-w-[230px] -rotate-2 rounded-xl border border-linea bg-niebla px-5 pb-5 pt-4 text-center shadow-[0_14px_30px_-18px_rgb(84_38_38/0.35)]">
         <Rings className="mx-auto h-12 w-16 text-tinta" />
         <p className="font-script text-[24px] leading-none text-tinta">Save the date</p>
         <p className="titular mt-1.5 text-[26px]">Sofía &amp; Diego</p>
@@ -503,7 +503,7 @@ export function BarMock({ en }: { en: boolean }) {
 export function PlannerNote({ en, className = "" }: { en: boolean; className?: string }) {
   return (
     <div
-      className={`w-[250px] rounded-2xl rounded-bl-md border border-linea bg-niebla p-3.5 shadow-[0_18px_40px_-20px_rgb(46_58_85/0.45)] ${className}`}
+      className={`w-[250px] rounded-2xl rounded-bl-md border border-linea bg-niebla p-3.5 shadow-[0_18px_40px_-20px_rgb(84_38_38/0.45)] ${className}`}
     >
       <div className="flex items-center gap-2">
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-noche text-[12px] font-medium text-niebla">P</span>
@@ -523,7 +523,7 @@ export function PlannerNote({ en, className = "" }: { en: boolean; className?: s
 export function RsvpToast({ en, className = "" }: { en: boolean; className?: string }) {
   return (
     <div
-      className={`flex w-[256px] items-center gap-3 rounded-2xl border border-linea bg-niebla p-3 shadow-[0_18px_40px_-20px_rgb(46_58_85/0.45)] ${className}`}
+      className={`flex w-[256px] items-center gap-3 rounded-2xl border border-linea bg-niebla p-3 shadow-[0_18px_40px_-20px_rgb(84_38_38/0.45)] ${className}`}
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-papel text-noche">
         <Check className="h-4 w-4" strokeWidth={2.25} aria-hidden="true" />

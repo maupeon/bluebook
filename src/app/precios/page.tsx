@@ -14,6 +14,7 @@ import { Arrow, Container, Display, Em, Eyebrow, Lead } from "@/components/marke
 import { FAQ_PRUEBA_EN, FAQ_PRUEBA_ES } from "@/components/home/HomeFaq";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
+import { BluDeEncabezado } from "@/components/marketing/Blu";
 
 const price = formatMXN(AGENT_PLAN.priceMxMonthly);
 
@@ -77,8 +78,12 @@ export default function PreciosPage() {
       {/* Hero */}
       <section className="pb-4 pt-28 sm:pt-32 lg:pt-36">
         <Container className="text-center">
+          <BluDeEncabezado
+            pose="presupuesto"
+            alt={en ? "Blu doing the math with a pink calculator" : "Blu haciendo cuentas con una calculadora rosa"}
+          />
           <Reveal>
-            <Eyebrow>{en ? "Pricing" : "Precios"}</Eyebrow>
+            <Eyebrow className="mt-6">{en ? "Pricing" : "Precios"}</Eyebrow>
           </Reveal>
           <Reveal delay={80}>
             <Display className="mx-auto mt-5 max-w-3xl">

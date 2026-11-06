@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { MessageCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
-import { DiscoBall, Sparkle, Star } from "@/components/marketing/Ink";
-import { Watercolor } from "@/components/marketing/Watercolor";
+import { Sparkle, Star } from "@/components/marketing/Ink";
+import { Blu } from "@/components/marketing/Blu";
 import { Titular } from "@/components/marca/Titular";
 import { ButtonAnchor, ButtonLink, Container } from "@/components/marketing/ui";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
@@ -16,10 +16,10 @@ import { CONTACT_INFO } from "@/lib/language";
  * (escribirnos). Mismo bloque en inicio, servicios y precios para que el
  * último paso se vea igual en todas.
  *
- * Antes era una tarjeta azul noche. La marca no tiene secciones oscuras: es
- * la hoja de la frase de cierre, papel niebla sobre el papel azul de la
- * página, con el lavado de acuarela en papel azul y la bola disco en tinta.
- * El único azul noche que queda es el botón.
+ * Es la tarjeta mantequilla de las piezas de la marca («Something lovely is
+ * coming»), con Blu celebrando: arriba del texto en el teléfono, a la derecha
+ * y saliendo por la orilla de abajo en la compu. El único vino lleno es el
+ * botón.
  *
  * Un `title` propio puede partir el titular en dos líneas con un <br /> antes
  * del <em> (dentro del titular el <em> se pinta en tinta). Con <br /> y no con
@@ -33,18 +33,23 @@ export function ClosingCTA({ title, body }: { title?: ReactNode; body?: string }
     <section className="bg-papel px-4 pb-24 sm:px-6 md:pb-32">
       <Container className="!px-0">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[2rem] border border-linea bg-niebla px-6 py-16 text-center sm:px-12 md:py-24">
-            <Watercolor className="absolute -left-20 -top-16 h-80 w-[28rem]" seed={12} />
-            <Watercolor className="absolute -bottom-24 -right-16 h-80 w-[28rem]" seed={4} />
-            <DiscoBall className="absolute right-[6%] top-0 hidden h-40 w-32 text-tinta md:block" />
-            <Sparkle className="absolute left-[8%] top-[18%] h-6 w-6 text-tinta" />
-            <Star className="absolute bottom-[16%] left-[14%] hidden h-5 w-5 text-tinta sm:block" />
+          <div className="relative overflow-hidden rounded-[2rem] bg-mantequilla px-6 pt-10 text-center ring-1 ring-linea sm:px-12 lg:grid lg:grid-cols-[1fr_auto] lg:items-end lg:gap-6 lg:pt-0 lg:text-left">
+            <Sparkle className="absolute left-[7%] top-[9%] h-6 w-6 text-noche" />
+            <Star className="absolute bottom-[12%] left-[46%] hidden h-5 w-5 text-rosa lg:block" />
 
-            <div className="relative mx-auto max-w-2xl">
-              <p className="frase text-[34px] leading-none sm:text-[40px]" aria-hidden="true">
-                Save the date.
+            <div className="relative mx-auto w-full max-w-[11rem] sm:max-w-[13rem] lg:order-2 lg:mt-12 lg:max-w-[19rem]">
+              <Blu
+                pose="celebra"
+                sizes="(min-width: 1024px) 19rem, (min-width: 640px) 13rem, 11rem"
+                className="lg:translate-y-[3%]"
+              />
+            </div>
+
+            <div className="relative mx-auto max-w-2xl pb-14 pt-6 lg:mx-0 lg:py-20">
+              <p className="frase text-[30px] leading-none sm:text-[36px]" aria-hidden="true">
+                {en ? "We've got this!" : "¡Lo tenemos!"}
               </p>
-              <Titular className="mt-4">
+              <Titular className="mt-3 lg:text-left">
                 {title ??
                   (en ? (
                     <>
@@ -58,7 +63,7 @@ export function ClosingCTA({ title, body }: { title?: ReactNode; body?: string }
                     </>
                   ))}
               </Titular>
-              <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-tinta">
+              <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-tinta lg:mx-0">
                 {/* Antes prometía «tu planner te escribe en menos de 24 horas»: en
                     la prueba la boda no tiene planner, y lo que sí pasa al momento
                     es que el panel ya está armado. */}
@@ -67,7 +72,7 @@ export function ClosingCTA({ title, body }: { title?: ReactNode; body?: string }
                     ? `Tell us about your wedding in two minutes and your dashboard is ready right away. ${DIAS_DE_PRUEBA} days free, no card.`
                     : `Cuéntanos de tu boda en dos minutos y tu panel queda listo al momento. ${DIAS_DE_PRUEBA} días gratis, sin tarjeta.`)}
               </p>
-              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
                 <ButtonLink href="/comenzar" arrow>
                   {en ? "Start free" : "Empieza gratis"}
                 </ButtonLink>

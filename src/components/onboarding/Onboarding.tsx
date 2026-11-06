@@ -1,12 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
-import { Rings } from "@/components/marketing/Ink";
-import { Watercolor } from "@/components/marketing/Watercolor";
+import { Blu, BluDeEncabezado } from "@/components/marketing/Blu";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { SaveTheDate } from "./SaveTheDate";
 import { CasillaDeTerminos } from "@/components/legal/CasillaDeTerminos";
@@ -32,6 +30,7 @@ import {
   tomarLaVuelta,
 } from "./borrador";
 import { cuerpoDe, RESPUESTAS_VACIAS, type Respuestas } from "./respuestas";
+import { Logotipo } from "@/components/marca/Logotipo";
 
 const PASOS = [
   "bienvenida",
@@ -256,15 +255,12 @@ export function Onboarding({
   const enPregunta = indice > 0 && vuelta === null;
   const propsDePaso = { r, cambiar, avanzar, tituloRef, isEnglish };
 
-  // La acuarela detrás de los anillos: azul línea y tenue, porque la página es
-  // papel azul y una mancha papel sobre papel no se vería.
   let contenido: ReactNode;
   if (vuelta === "leyendo" || vuelta === "guardando") {
     contenido = (
       <div role="status" className="flex flex-1 flex-col items-center justify-center pb-16 text-center">
-        <div className="relative mx-auto h-36 w-52">
-          <Watercolor seed={4} tone="linea" opacity={0.5} className="absolute inset-0 h-full w-full" />
-          <Rings className="relative mx-auto h-32 w-auto text-tinta" />
+        <div className="relative mx-auto w-full max-w-[11rem]">
+          <Blu pose="checklist" sizes="11rem" />
         </div>
         <TituloDePantalla tituloRef={tituloRef} tamano="pantalla" className="mt-6">
           {isEnglish ? "Saving your wedding…" : "Guardando tu boda…"}
@@ -333,14 +329,15 @@ export function Onboarding({
   } else if (paso === "bienvenida") {
     contenido = (
       <div className="flex flex-1 flex-col items-center justify-center pb-10 text-center">
-        <div className="relative mx-auto h-40 w-60">
-          <Watercolor seed={4} tone="linea" opacity={0.5} className="absolute inset-0 h-full w-full" />
-          <Rings className="relative mx-auto h-36 w-auto text-tinta" />
-        </div>
-        {/* La nota manuscrita junto al dibujo, en tinta: decorativa, no dice
-            nada que no diga el titular. */}
-        <p aria-hidden="true" className="frase mt-4 text-[2rem] leading-none text-tinta">
-          Something blue
+        {/* Blu abre la conversación: el titular está en primera persona
+            («Cuéntame») y aquí se ve quién pregunta. */}
+        <BluDeEncabezado
+          pose="hero"
+          className="!max-w-[13rem] sm:!max-w-[15rem]"
+          alt={isEnglish ? "Blu at her laptop, ready to hear about your wedding" : "Blu en su laptop, lista para escuchar de tu boda"}
+        />
+        <p aria-hidden="true" className="frase mt-5 text-[1.75rem] leading-none">
+          {isEnglish ? "Hi, I'm Blu" : "Hola, soy Blu"}
         </p>
         <TituloDePantalla tituloRef={tituloRef} tamano="pantalla" className="mt-3">
           {isEnglish ? "Tell me about your wedding." : "Cuéntame de tu boda."}
@@ -419,13 +416,10 @@ export function Onboarding({
     >
       <header className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-h-[44px] items-center gap-2.5 justify-self-start">
-          <Image src="/icon.png" alt="" width={28} height={28} />
           {/* Debajo de 400px el nombre se partía en dos renglones junto a los
-              puntos del progreso. Ahí basta el ícono; el nombre se queda para
-              lectores de pantalla (es el nombre del enlace). */}
-          <span className="whitespace-nowrap font-round text-base uppercase leading-none tracking-[0.04em] text-noche max-[399px]:sr-only">
-            Blue Book
-          </span>
+              puntos del progreso. Ahí basta la carita de Blu; el nombre se
+              queda para lectores de pantalla (es el nombre del enlace). */}
+          <Logotipo tamano="sm" ocultarTextoEnAngosto />
         </Link>
         {enPregunta ? <Puntos actual={indice} total={PREGUNTAS} isEnglish={isEnglish} /> : <span />}
         <Link

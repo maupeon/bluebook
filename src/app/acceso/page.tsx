@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCoupleWeddingByEmail } from "@/lib/couplePanel";
@@ -8,6 +7,7 @@ import { LoginForm } from "@/components/panel/LoginForm";
 import { AvisoSimplificado } from "@/components/legal/AvisoSimplificado";
 import { LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
 import { rutaInterna } from "@/lib/rutaInterna";
+import { Logotipo } from "@/components/marca/Logotipo";
 
 export const metadata: Metadata = {
   title: "Acceso",
@@ -45,10 +45,7 @@ export default async function AccesoPage({
           {/* La misma marca que la barra del sitio y la del panel: el logotipo
               en marcador, sin el interletrado que necesitaba la letra anterior. */}
           <div className="mb-10 flex items-center justify-center gap-3">
-            <Image src="/icon.png" alt="" width={36} height={36} />
-            <span className="font-round text-[23px] uppercase leading-none text-noche">
-              Blue Book
-            </span>
+            <Logotipo />
           </div>
 
           <div className="panel-card p-6 sm:p-8 md:p-10">

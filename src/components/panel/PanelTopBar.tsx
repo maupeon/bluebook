@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { LogOut, Pencil } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { formatLongDate } from "@/components/panel/dates";
+import { Logotipo } from "@/components/marca/Logotipo";
 
 /**
  * La barra de arriba del panel, con el mismo material y la misma marca que la
@@ -25,10 +25,7 @@ export function PanelTopBar({
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-4">
           <span className="flex shrink-0 items-center gap-2.5">
-            <Image src="/icon.png" alt="" width={30} height={30} />
-            <span className="font-round text-[17px] uppercase leading-none tracking-[0.04em] text-noche">
-              Blue Book
-            </span>
+            <Logotipo tamano="sm" />
           </span>
           {/* El nombre lleva a «Su boda»: ahí se cambia todo lo que contaron. */}
           {coupleName ? (

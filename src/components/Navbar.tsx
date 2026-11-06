@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
@@ -9,6 +8,7 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { getLanguageName } from "@/lib/language";
 import { ButtonLink } from "@/components/marketing/ui";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
+import { Logotipo } from "@/components/marca/Logotipo";
 
 function LanguageSwitch({ className = "" }: { className?: string }) {
   const { language, setLanguage } = useLanguage();
@@ -83,7 +83,7 @@ export function Navbar() {
     <header className="fixed inset-x-0 top-0 z-50">
       <div
         className={`nav-material border-b transition-[border-color,box-shadow] duration-200 ${
-          scrolled || open ? "border-linea shadow-[0_1px_12px_-6px_rgb(46_58_85/0.12)]" : "border-transparent"
+          scrolled || open ? "border-linea shadow-[0_1px_12px_-6px_rgb(84_38_38/0.12)]" : "border-transparent"
         }`}
       >
         <nav
@@ -91,10 +91,7 @@ export function Navbar() {
           className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8"
         >
           <Link href="/" className="flex items-center gap-2.5" aria-label={en ? "Blue Book, home" : "Blue Book, inicio"}>
-            <Image src="/icon.png" alt="" width={34} height={34} priority />
-            {/* El logotipo en marcador, como los titulares. Sin el
-                interletrado abierto que pedía la letra redonda anterior. */}
-            <span className="font-round text-[23px] uppercase leading-none text-noche">Blue Book</span>
+            <Logotipo />
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
@@ -156,7 +153,7 @@ export function Navbar() {
       />
       <div
         id="mobile-menu"
-        className={`absolute inset-x-0 top-16 origin-top border-b border-linea bg-papel shadow-[0_24px_40px_-24px_rgb(46_58_85/0.35)] transition-[opacity,translate,visibility] lg:hidden motion-reduce:translate-y-0 ${
+        className={`absolute inset-x-0 top-16 origin-top border-b border-linea bg-papel shadow-[0_24px_40px_-24px_rgb(84_38_38/0.35)] transition-[opacity,translate,visibility] lg:hidden motion-reduce:translate-y-0 ${
           open ? "visible translate-y-0 opacity-100 duration-250" : "invisible -translate-y-3 opacity-0 duration-150"
         }`}
       >

@@ -541,7 +541,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
           noche, y un filo de niebla lo separa del fondo en pantalla completa
           (donde la portada de Nocturna es del mismo azul que el visor). */}
       <div className="relative">
-        <div className="relative rounded-2xl overflow-hidden shadow-[0_30px_80px_-20px_rgb(46_58_85/0.45),0_15px_30px_-15px_rgb(46_58_85/0.25)] ring-1 ring-niebla/10">
+        <div className="relative rounded-2xl overflow-hidden shadow-[0_30px_80px_-20px_rgb(84_38_38/0.45),0_15px_30px_-15px_rgb(84_38_38/0.25)] ring-1 ring-niebla/10">
           <HTMLFlipBook
             ref={bookRef}
             width={bookWidth}
@@ -610,7 +610,7 @@ export default function Flipbook({ photos, title, template = 'classic', weddingD
                 <div className="h-full w-full flex flex-col p-4">
                   <div className="flex-1 flex items-center justify-center py-2">
                     <div
-                      className="relative rounded-lg overflow-hidden bg-niebla cursor-zoom-in group shadow-[0_10px_40px_rgb(46_58_85/0.12),0_2px_10px_rgb(46_58_85/0.08)] transition-[scale] duration-300 hover:scale-[1.01] motion-reduce:hover:scale-100"
+                      className="relative rounded-lg overflow-hidden bg-niebla cursor-zoom-in group shadow-[0_10px_40px_rgb(84_38_38/0.12),0_2px_10px_rgb(84_38_38/0.08)] transition-[scale] duration-300 hover:scale-[1.01] motion-reduce:hover:scale-100"
                       style={{
                         maxWidth: '92%',
                         maxHeight: '92%',

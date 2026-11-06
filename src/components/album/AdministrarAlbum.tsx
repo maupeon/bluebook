@@ -733,7 +733,7 @@ export function AdministrarAlbum({ slug, token = null, enPanel = false }: Admini
                     onDragStart={() => handleDragStart(index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragEnd={handleDragEnd}
-                    className={`relative aspect-square group cursor-move rounded-xl overflow-hidden shadow-[0_4px_12px_-6px_rgb(46_58_85/0.3)] transition-[opacity,scale] duration-200 ${
+                    className={`relative aspect-square group cursor-move rounded-xl overflow-hidden shadow-[0_4px_12px_-6px_rgb(84_38_38/0.3)] transition-[opacity,scale] duration-200 ${
                       draggedIndex === index ? 'opacity-50 scale-95 motion-reduce:scale-100' : ''
                     }`}
                   >
@@ -762,13 +762,13 @@ export function AdministrarAlbum({ slug, token = null, enPanel = false }: Admini
                     </div>
 
                     {/* Number badge */}
-                    <span className="absolute bottom-2 left-2 bg-niebla text-noche text-xs font-medium px-2 py-1 rounded-full shadow-[0_1px_3px_rgb(46_58_85/0.2)] tabular-nums">
+                    <span className="absolute bottom-2 left-2 bg-niebla text-noche text-xs font-medium px-2 py-1 rounded-full shadow-[0_1px_3px_rgb(84_38_38/0.2)] tabular-nums">
                       {index + 1}
                     </span>
 
                     {/* Uploaded by badge */}
                     {photo.uploaded_by_name && (
-                      <span className="absolute top-2 left-2 max-w-[calc(100%-3rem)] truncate bg-noche text-niebla text-xs px-2 py-1 rounded-full shadow-[0_1px_3px_rgb(46_58_85/0.2)]">
+                      <span className="absolute top-2 left-2 max-w-[calc(100%-3rem)] truncate bg-noche text-niebla text-xs px-2 py-1 rounded-full shadow-[0_1px_3px_rgb(84_38_38/0.2)]">
                         {photo.uploaded_by_name}
                       </span>
                     )}

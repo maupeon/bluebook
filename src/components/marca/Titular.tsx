@@ -22,7 +22,7 @@ import type { HTMLAttributes, ReactNode, Ref } from "react";
 
 const TAMANOS = {
   /** La portada de una página del sitio. 34 → 60 → 72px. */
-  portada: "text-[2.125rem] sm:text-6xl lg:text-7xl",
+  portada: "text-[2.5rem] sm:text-6xl lg:text-[4.25rem]",
   /** Una sección del sitio. 30 → 48px. */
   seccion: "text-[1.875rem] sm:text-5xl",
   /** La pantalla de la app. 30 → 44px. */
