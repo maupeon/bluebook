@@ -10,7 +10,7 @@ import { Plans } from "@/components/marketing/Plans";
 import { Savings } from "@/components/marketing/Savings";
 import { Versus } from "@/components/marketing/Versus";
 import { Watercolor } from "@/components/marketing/Watercolor";
-import { Arrow, Container, Display, Em, Eyebrow, Lead } from "@/components/marketing/ui";
+import { Arrow, ButtonLink, Container, Display, Em, Eyebrow, Lead } from "@/components/marketing/ui";
 import { FAQ_PRUEBA_EN, FAQ_PRUEBA_ES } from "@/components/home/HomeFaq";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
@@ -76,8 +76,10 @@ export default function PreciosPage() {
   return (
     <div className="bg-papel">
       {/* Hero */}
-      <section className="pb-4 pt-28 sm:pt-32 lg:pt-36">
-        <Container className="text-center">
+      {/* En el teléfono el botón va justo debajo del titular (antes del
+          texto) para que se vea sin bajar; en la compu, después del texto. */}
+      <section className="pb-4 pt-[5.5rem] sm:pt-32 lg:pt-36">
+        <Container className="flex flex-col text-center">
           <BluDeEncabezado
             pose="presupuesto"
             alt={en ? "Blu doing the math with a pink calculator" : "Blu haciendo cuentas con una calculadora rosa"}
@@ -98,12 +100,19 @@ export default function PreciosPage() {
               )}
             </Display>
           </Reveal>
-          <Reveal delay={160}>
+          <Reveal delay={160} className="max-sm:order-2">
             <Lead className="mx-auto mt-6 max-w-2xl">
               {en
                 ? `${DIAS_DE_PRUEBA} days free, no card. Then ${price} a month for the platform and a real planner, or a single payment if you only want invitations. No lock-in, no surprises.`
                 : `${DIAS_DE_PRUEBA} días gratis, sin tarjeta. Después, ${price} al mes por la plataforma y una planner real, o un solo pago si solo quieres invitaciones. Sin plazos forzosos y sin sorpresas.`}
             </Lead>
+          </Reveal>
+          <Reveal delay={120} className="max-sm:order-1">
+            <div className="mt-8 flex justify-center max-sm:mt-6">
+              <ButtonLink href="/comenzar" arrow>
+                {en ? `Try it free for ${DIAS_DE_PRUEBA} days` : `Pruébalo ${DIAS_DE_PRUEBA} días gratis`}
+              </ButtonLink>
+            </div>
           </Reveal>
         </Container>
       </section>

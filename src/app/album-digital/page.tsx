@@ -200,13 +200,13 @@ export default function AlbumDigitalPage() {
     // foto), papel azul para lo informativo (precios, el pago). Sin las
     // manchas de color ni el crema de fondo.
     <div className="pt-16 overflow-hidden bg-niebla">
-      <section className="bg-niebla px-4 pt-12 pb-14 sm:px-6 sm:pt-16 sm:pb-20">
+      <section className="bg-niebla px-4 pt-8 pb-14 sm:px-6 sm:pt-16 sm:pb-20">
         <div className="mx-auto max-w-6xl">
           {/* El encabezado va centrado y arriba de las dos columnas. El
               titular es largo (53 caracteres): a tamaño de sección cabe en
               dos líneas desde 768px; a tamaño de portada serían tres a
               1024px. */}
-          <div className="mx-auto max-w-4xl text-center">
+          <div className="mx-auto flex max-w-4xl flex-col text-center">
             <BluDeEncabezado
               pose="album"
               alt={isEnglish ? "Blu taking a photo with a vintage camera" : "Blu tomando una foto con una cámara antigua"}
@@ -218,18 +218,19 @@ export default function AlbumDigitalPage() {
               <Em>{isEnglish ? "ready to share with QR" : "listo para compartir por QR"}</Em>
             </Titular>
 
-            <Lead className="mx-auto mt-6 max-w-2xl">
+            <Lead className="mx-auto mt-6 max-w-2xl max-sm:order-2">
               {isEnglish
                 ? "Designed for mobile with an editorial romantic aesthetic. Your guests scan, upload photos, and your memories are built in real time."
                 : "Diseñado para celular, inspirado en una estética editorial romántica. Tus invitados escanean, suben sus fotos y el recuerdo se arma en tiempo real."}
             </Lead>
 
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            {/* En el teléfono los botones van antes del texto, para que se vean sin bajar. */}
+            <div className="mt-8 flex flex-col justify-center gap-3 max-sm:order-1 max-sm:mt-6 sm:flex-row">
               <button
                 onClick={() => {
                   document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className={`${BOTON_PRINCIPAL} px-7 py-3.5`}
+                className={`${BOTON_PRINCIPAL} px-7 py-3.5 max-sm:min-h-14 max-sm:w-full max-sm:text-base`}
               >
                 {isEnglish ? "Choose plan" : "Elegir plan"}
                 <Arrow />

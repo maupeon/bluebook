@@ -29,9 +29,11 @@ const BASE =
   "transition-[background-color,border-color,color,scale] duration-150 active:scale-[0.97] active:duration-100 " +
   "motion-reduce:active:scale-100";
 
+// En el teléfono el botón grande ocupa todo el ancho y mide 56px de alto con
+// letra de 16px: es lo que se toca con el pulgar, no un chip.
 const SIZES = {
   md: "px-6 py-3",
-  lg: "px-7 py-3.5",
+  lg: "px-7 py-3.5 max-sm:min-h-14 max-sm:w-full max-sm:text-base",
 };
 
 interface ButtonLinkProps extends Omit<ComponentProps<typeof Link>, "className"> {

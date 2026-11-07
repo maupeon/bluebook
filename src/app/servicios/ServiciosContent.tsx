@@ -188,9 +188,11 @@ export function ServiciosContent() {
       {/* Hero: el dibujo arriba, como en las piezas del Instagram, y debajo el
           encabezado centrado a lo ancho. Antes el dibujo iba a la derecha y el
           titular se quedaba en una columna. */}
-      <section className="relative overflow-hidden pb-16 pt-28 sm:pt-32 md:pb-20 lg:pt-36">
+      <section className="relative overflow-hidden pb-16 pt-[5.5rem] sm:pt-32 md:pb-20 lg:pt-36">
         <Container>
-          <div className="mx-auto max-w-4xl text-center">
+          {/* En el teléfono el botón va justo debajo del titular, para que se
+              vea sin bajar; en la compu, después del texto. */}
+          <div className="mx-auto flex max-w-4xl flex-col text-center">
             <BluDeEncabezado
               pose="checklist"
               tono="mantequilla"
@@ -212,12 +214,19 @@ export function ServiciosContent() {
                 )}
               </Display>
             </Reveal>
-            <Reveal delay={160}>
+            <Reveal delay={160} className="max-sm:order-2">
               <Lead className="mx-auto mt-6 max-w-xl">
                 {en
                   ? "Eight things that usually live in twenty places, together in one dashboard you share with your partner."
                   : "Ocho cosas que normalmente viven en veinte lugares, juntas en un panel que compartes con tu pareja."}
               </Lead>
+            </Reveal>
+            <Reveal delay={120} className="max-sm:order-1">
+              <div className="mt-8 flex justify-center max-sm:mt-6">
+                <ButtonLink href="/comenzar" arrow>
+                  {en ? "Start planning" : "Empieza a planear"}
+                </ButtonLink>
+              </div>
             </Reveal>
           </div>
 

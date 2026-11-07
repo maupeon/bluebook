@@ -114,9 +114,9 @@ export function BluDeEncabezado({
   className?: string;
 }) {
   return (
-    <div className={`entrada-blu relative mx-auto w-full max-w-[10.5rem] sm:max-w-[12.5rem] ${className}`}>
+    <div className={`entrada-blu relative mx-auto w-full max-w-[9rem] sm:max-w-[12.5rem] ${className}`}>
       <Burbuja tono={tono} className="entrada-mancha absolute inset-x-[-14%] bottom-[2%] top-[24%] h-[74%] w-[128%]" />
-      <Blu pose={pose} alt={alt} priority sizes="(min-width: 640px) 12.5rem, 10.5rem" className="relative" />
+      <Blu pose={pose} alt={alt} priority sizes="(min-width: 640px) 12.5rem, 9rem" className="relative" />
     </div>
   );
 }
