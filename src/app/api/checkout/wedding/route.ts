@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { crearCheckoutDeBoda, urlBaseDeLaApp } from "@/lib/checkoutDeBoda";
+import { esPlanId } from "@/lib/weddingPlans";
 
 // El checkout del asistente viejo, que pagaba antes de tener panel. El
 // onboarding de la prueba (0030) ya no pasa por aquí: la pareja paga desde su
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     const { data: lead, error: leadError } = await supabase
       .from("couple_leads")
-      .select("service, guest_count, email")
+      .select("service, plan, guest_count, email, wedding_id")
       .eq("id", leadId)
       .maybeSingle();
 
@@ -50,10 +51,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Servicio no válido." }, { status: 400 });
     }
 
+    // Una solicitud que ya tiene boda elige o sube su plan desde el panel
+    // (/api/panel/plan), que sabe qué plan tienen y cobra la diferencia. Aquí
+    // sólo entran las solicitudes nuevas del asistente viejo.
+    if (lead.wedding_id) {
+      return NextResponse.json({ error: "Esta solicitud ya tiene su boda. Elige tu plan desde tu panel." }, { status: 409 });
+    }
+
     const base = urlBaseDeLaApp(request.nextUrl.origin);
     const resultado = await crearCheckoutDeBoda(stripe, {
       leadId,
-      plan: lead.service,
+      // El mensual ya no se vende: 'planner' paga el plan que eligieron o el recomendado.
+      plan: lead.service === "invitations" ? "invitations" : esPlanId(lead.plan) ? lead.plan : "asistente",
       invitados: lead.guest_count ?? null,
       email: lead.email || null,
       successUrl: `${base}/checkout/success-wedding?session_id={CHECKOUT_SESSION_ID}`,

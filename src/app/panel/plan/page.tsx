@@ -1,3 +1,4 @@
+import { leerEstadoDelPlan } from "@/lib/estadoDelPlan";
 import { redirect } from "next/navigation";
 import { datosDeLaPantalla } from "@/lib/panelSesion";
 import { tituloDelPanel } from "@/lib/panelTitulo";
@@ -84,9 +85,10 @@ export default async function Pagina({
     pagoEnCamino = resultado === "en_camino";
   }
 
-  const [acceso, suscripcion] = await Promise.all([
+  const [acceso, suscripcion, estado] = await Promise.all([
     leerAcceso(wedding.id),
     leerSuscripcion(wedding.id),
+    leerEstadoDelPlan(wedding.id),
   ]);
 
   // El tramo que se les propone: lo que dijeron en el onboarding y, si no lo
@@ -103,6 +105,7 @@ export default async function Pagina({
     <PantallaPlan
       acceso={acceso}
       suscripcion={suscripcion}
+      estado={estado}
       sugerencia={sugerencia}
       listo={listo === "1"}
       pagoEnCamino={pagoEnCamino}

@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     // pareja pagaba y no podía entrar a su panel. La página de gracias hace lo
     // mismo por su lado; registrarPagoDeBoda es idempotente y el que llegue
     // segundo encuentra la boda hecha.
-    if (productType === 'planner' || productType === 'invitations') {
+    if (productType === 'planner' || productType === 'invitations' || productType === 'plan') {
       try {
         const boda = await registrarPagoDeBoda(session)
         // "registrado", no "creada": en un reintento la boda ya existía.

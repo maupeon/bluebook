@@ -146,8 +146,8 @@ function FotosDeLaBoda({
         : "Su álbum está listo. Compartan el QR con sus invitados para juntar ahí las fotos que tomaron."
     : incluido
       ? isEnglish
-        ? "Your album comes with your Full planner: open it and share the QR with your guests."
-        : "Su álbum viene incluido en su Planner completo: ábranlo y compartan el QR con sus invitados."
+        ? "Your album comes with your plan: open it and share the QR with your guests."
+        : "Su álbum viene incluido en su plan: ábranlo y compartan el QR con sus invitados."
       : isEnglish
         ? "Gather the photos your guests took in one album: they upload from their phones with a QR, no account needed."
         : "Junten en un álbum las fotos que tomaron sus invitados: suben desde su celular con un QR, sin crear cuenta.";
@@ -560,12 +560,12 @@ export function PantallaHoy({
   const albumDetalle = !album
     ? albumIncluido
       ? isEnglish
-        ? "It comes with your Full planner. Open it whenever you like."
-        : "Viene incluido en su Planner completo. Ábranlo cuando quieran."
+        ? "It comes with your plan. Open it whenever you like."
+        : "Viene incluido en su plan. Ábranlo cuando quieran."
       : estaEnPrueba(acceso)
         ? isEnglish
-          ? "Your guests upload their photos with a QR. The Full planner includes it, or you can buy it on its own."
-          : "Sus invitados suben sus fotos con un QR. El Planner completo lo incluye, o pueden comprarlo solo."
+          ? "Your guests upload their photos with a QR. The With assistant and Guided plans include it, or you can buy it on its own."
+          : "Sus invitados suben sus fotos con un QR. Con asistente y Acompañamiento lo incluyen, o pueden comprarlo solo."
         : isEnglish
           ? "Your guests upload their photos with a QR, no account needed. Paid once."
           : "Sus invitados suben sus fotos con un QR, sin crear cuenta. Se paga una vez."

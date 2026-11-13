@@ -190,7 +190,7 @@ function seccionesEs(): SeccionLegal[] {
               </li>
             ) : null}
             <li>Alojar tu álbum digital y las fotos de tus invitados.</li>
-            <li>Que una planner del equipo acompañe tu boda (plan mensual) y que el equipo te dé soporte.</li>
+            <li>Que el equipo te dé las asesorías del plan Acompañamiento y te dé soporte.</li>
             <li>Cobrarte, darte comprobantes y avisarte de tu prueba, tus cobros y los cambios del servicio.</li>
             <li>Cumplir obligaciones legales y atender requerimientos de autoridad.</li>
           </Lista>
@@ -659,7 +659,7 @@ function seccionesEn(): SeccionLegal[] {
               </li>
             ) : null}
             <li>Host your digital album and your guests&rsquo; photos.</li>
-            <li>Have a planner from the team look after your wedding (monthly plan) and give you support.</li>
+            <li>Have the team give you the sessions in the Guided plan and give you support.</li>
             <li>Charge you, give you receipts and let you know about your trial, your charges and changes to the service.</li>
             <li>Comply with legal obligations and respond to requests from authorities.</li>
           </Lista>

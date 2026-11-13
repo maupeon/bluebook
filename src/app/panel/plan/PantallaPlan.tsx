@@ -19,12 +19,17 @@ import {
 } from "@/lib/accesoDeLaBoda";
 import type { SuscripcionDeLaBoda } from "@/lib/suscripcion";
 import {
-  AGENT_PLAN,
   INVITATION_TIERS,
+  MESES_DE_ASISTENTE_TRAS_LA_BODA,
+  PLANES,
+  PLAN_IDS,
   formatMXN,
   getInvitationTier,
+  precioDeCambio,
   type InvitationTier,
+  type PlanId,
 } from "@/lib/weddingPlans";
+import type { EstadoDelPlan } from "@/lib/estadoDelPlan";
 
 export interface SugerenciaDeInvitados {
   invitados: number;
@@ -89,17 +94,29 @@ function nombreDelTramo(tramo: InvitationTier, isEnglish: boolean): string {
   return isEnglish ? `Up to ${tramo.maxGuests}` : `Hasta ${tramo.maxGuests}`;
 }
 
-type Enviando = "planner" | "invitations" | null;
+type Enviando = PlanId | "invitations" | null;
+
+/**
+ * Qué se enseña:
+ *   - prueba:  los tres planes a precio completo, o sólo invitaciones.
+ *   - subir:   ya tienen plan: su plan (con el uso del asistente) y los
+ *              planes mayores por la diferencia; invitaciones si su plan no las trae.
+ *   - agregar: de sólo invitaciones (de antes): los tres planes a precio completo.
+ *   - el mensual de antes: su suscripción, como estaba.
+ */
+type Modo = "prueba" | "subir" | "agregar";
 
 export function PantallaPlan({
   acceso,
   suscripcion,
+  estado,
   sugerencia,
   listo,
   pagoEnCamino,
 }: {
   acceso: AccesoDeLaBoda;
   suscripcion: SuscripcionDeLaBoda | null;
+  estado: EstadoDelPlan;
   sugerencia: SugerenciaDeInvitados | null;
   /** Volvieron de Stripe y el pago quedó registrado (?listo=1). */
   listo: boolean;
@@ -108,17 +125,23 @@ export function PantallaPlan({
 }) {
   const { isEnglish } = useLanguage();
 
-  if (!estaEnPrueba(acceso)) {
-    return listo && acceso.acceso === "pagada" ? (
-      <Listo mensual={suscripcion != null} isEnglish={isEnglish} />
-    ) : (
-      <YaTienenPlan suscripcion={suscripcion} isEnglish={isEnglish} />
-    );
+  if (listo && acceso.acceso === "pagada") {
+    return <Listo plan={estado.plan} mensual={suscripcion != null} isEnglish={isEnglish} />;
   }
+  const modo: Modo | null = estaEnPrueba(acceso)
+    ? "prueba"
+    : estado.plan
+      ? "subir"
+      : estado.tier === "invitations" && !suscripcion
+        ? "agregar"
+        : null;
+  if (!modo) return <YaTienenPlan suscripcion={suscripcion} isEnglish={isEnglish} />;
 
   return (
     <ElegirPlan
+      modo={modo}
       acceso={acceso}
+      estado={estado}
       sugerencia={sugerencia}
       pagoEnCamino={pagoEnCamino}
       isEnglish={isEnglish}
@@ -126,15 +149,17 @@ export function PantallaPlan({
   );
 }
 
-// ----- En prueba: los dos caminos -----
-
 function ElegirPlan({
+  modo,
   acceso,
+  estado,
   sugerencia,
   pagoEnCamino,
   isEnglish,
 }: {
+  modo: Modo;
   acceso: AccesoDeLaBoda;
+  estado: EstadoDelPlan;
   sugerencia: SugerenciaDeInvitados | null;
   pagoEnCamino: boolean;
   isEnglish: boolean;
@@ -142,6 +167,12 @@ function ElegirPlan({
   const vencida = acceso.acceso === "prueba_vencida";
   const fin = diaDeFinDePrueba(acceso.pruebaTerminaEn, isEnglish);
   const dias = textoDeDias(acceso, isEnglish);
+  const actual = modo === "subir" ? estado.plan : null;
+
+  const planes = PLAN_IDS.filter((id) => !actual || PLANES[id].rango > PLANES[actual].rango);
+  const conInvitaciones =
+    modo === "prueba" ||
+    (modo === "subir" && actual != null && PLANES[actual].invitaciones === 0 && !estado.invitacionesCompradas);
 
   // Sin sugerencia no se preselecciona ningún tramo: que lo elijan ellos.
   const [tramoId, setTramoId] = useState<string | null>(
@@ -152,7 +183,7 @@ function ElegirPlan({
   const [error, setError] = useState<{ plan: Enviando; texto: string } | null>(null);
   const [cotizacionPedida, setCotizacionPedida] = useState(false);
 
-  async function elegir(plan: "planner" | "invitations") {
+  async function elegir(plan: PlanId | "invitations") {
     if (plan === "invitations" && !tramo) return;
     setEnviando(plan);
     setError(null);
@@ -161,9 +192,9 @@ function ElegirPlan({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          plan === "planner"
-            ? { plan }
-            : { plan, invitados: invitadosDelTramo(tramo as InvitationTier, sugerencia) }
+          plan === "invitations"
+            ? { plan, invitados: invitadosDelTramo(tramo as InvitationTier, sugerencia) }
+            : { plan }
         ),
       });
       const data = (await res.json().catch(() => null)) as
@@ -203,15 +234,24 @@ function ElegirPlan({
         : `Su prueba termina ${fin}.`
     : `${dias ?? (isEnglish ? "You're on your free trial" : "Están en su prueba gratis")}.`;
 
-  const intro = vencida
-    ? isEnglish
-      ? "Your trial ended. Everything you added is still here, read-only, and nothing gets deleted. Choose a path and keep editing right where you left off."
-      : "Su prueba terminó. Todo lo que capturaron sigue aquí, en solo lectura, y nada se borra. Elijan un camino y siguen editando justo donde se quedaron."
-    : `${cuandoTermina} ${
-        isEnglish
-          ? "If you haven't chosen by then, everything stays here, read-only. Nothing gets deleted."
-          : "Si para entonces no han elegido, todo se queda aquí en solo lectura. Nada se borra."
-      }`;
+  const intro =
+    modo === "subir"
+      ? isEnglish
+        ? "Moving up to a bigger plan costs only the difference, paid once. Everything you've added stays right where it is."
+        : "Subir a un plan mayor cuesta sólo la diferencia, en un solo pago. Todo lo que han capturado se queda donde está."
+      : modo === "agregar"
+        ? isEnglish
+          ? "Your invitations stay as they are. Add a plan to use the whole panel; it's paid once."
+          : "Sus invitaciones siguen como están. Agreguen un plan para usar todo el panel; se paga una sola vez."
+        : vencida
+          ? isEnglish
+            ? "Your trial ended. Everything you added is still here, read-only, and nothing gets deleted. Choose a plan and keep editing right where you left off. It's paid once: nothing renews."
+            : "Su prueba terminó. Todo lo que capturaron sigue aquí, en solo lectura, y nada se borra. Elijan un plan y siguen editando justo donde se quedaron. Se paga una sola vez: nada se renueva."
+          : `${cuandoTermina} ${
+              isEnglish
+                ? "Every plan is paid once, with nothing renewing. If you haven't chosen by then, everything stays here, read-only. Nothing gets deleted."
+                : "Cada plan se paga una sola vez y nada se renueva. Si para entonces no han elegido, todo se queda aquí en solo lectura. Nada se borra."
+            }`;
 
   const razonDelTramo =
     sugerencia && tramo && getInvitationTier(sugerencia.invitados).id === tramo.id
@@ -224,6 +264,8 @@ function ElegirPlan({
           : `Por los ${sugerencia.invitados} invitados de su lista.`
       : null;
 
+  const columnas = planes.length >= 3 ? "lg:grid-cols-3" : planes.length === 2 ? "md:grid-cols-2" : "";
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
       <Reveal app>
@@ -231,8 +273,17 @@ function ElegirPlan({
           <Eyebrow>{isEnglish ? "Your plan" : "Su plan"}</Eyebrow>
           {/* El <em> no se inclina: dentro del titular cambia a tinta. */}
           <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
-            {isEnglish ? "Choose how to " : "Elijan cómo "}
-            <em>{isEnglish ? "keep going" : "seguir"}</em>
+            {modo === "subir" ? (
+              <>
+                {isEnglish ? "Your plan: " : "Su plan: "}
+                <em>{isEnglish ? PLANES[actual as PlanId].en.name : PLANES[actual as PlanId].es.name}</em>
+              </>
+            ) : (
+              <>
+                {isEnglish ? "Choose how to " : "Elijan cómo "}
+                <em>{isEnglish ? "keep going" : "seguir"}</em>
+              </>
+            )}
           </Titular>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-tinta">{intro}</p>
           {pagoEnCamino ? (
@@ -245,79 +296,106 @@ function ElegirPlan({
         </header>
       </Reveal>
 
-      <div className="mt-10 grid items-stretch gap-6 md:grid-cols-2">
-        {/* ----- El plan mensual ----- */}
-        <Reveal app className="h-full">
-          <section
-            aria-labelledby="plan-mensual"
-            className="panel-card flex h-full flex-col p-6 sm:p-8"
-          >
-            <Eyebrow>{isEnglish ? "Month to month" : "Mes con mes"}</Eyebrow>
-            <h2 id="plan-mensual" className="mt-3 text-2xl font-medium text-noche">
-              {isEnglish ? AGENT_PLAN.en.name : AGENT_PLAN.es.name}
-            </h2>
-            <div className={franjaDePrecio}>
-              <p className="flex min-h-[3rem] items-baseline gap-2">
-                <span className={claseCifra}>{cifra(AGENT_PLAN.priceMxMonthly)}</span>
-                <span className="text-sm text-tinta">{isEnglish ? "MXN a month" : "MXN al mes"}</span>
-              </p>
-            </div>
-            <p className="mt-5 text-sm leading-relaxed text-tinta">
-              {isEnglish
-                ? "For when you'd rather not carry it alone: a real person looking after your wedding with you."
-                : "Para no cargarla solos: una persona de verdad cuidando su boda con ustedes."}
-            </p>
-            <Incluye
-              cosas={
-                isEnglish
-                  ? [
-                      "A real wedding planner, assigned to your wedding.",
-                      "The whole panel: guests, money, vendors and the plan for the day.",
-                      "Your invitations, sent and confirmed over WhatsApp.",
-                      "Cancel whenever you want, from right here.",
-                    ]
-                  : [
-                      "Una wedding planner real, asignada a su boda.",
-                      "Todo el panel: invitados, dinero, proveedores y el guion del día.",
-                      "Sus invitaciones, con envío y confirmaciones por WhatsApp.",
-                      "Se cancela cuando quieran, desde aquí mismo.",
-                    ]
-              }
-            />
-            <div className="mt-auto pt-8">
-              <button
-                type="button"
-                onClick={() => elegir("planner")}
-                disabled={enviando != null}
-                className={botonPrincipal}
-              >
-                {enviando === "planner"
-                  ? isEnglish
-                    ? "Opening…"
-                    : "Abriendo…"
-                  : isEnglish
-                    ? "Choose the monthly plan"
-                    : "Elegir el plan mensual"}
-                {enviando === "planner" ? null : <ArrowRight aria-hidden="true" className={flecha} strokeWidth={1.6} />}
-              </button>
-              {error?.plan === "planner" ? (
-                <p role="alert" className="mt-3 text-sm text-error">
-                  {error.texto}
-                </p>
-              ) : null}
-            </div>
-          </section>
+      {modo === "subir" && actual ? (
+        <Reveal app className="mt-8">
+          <SuPlanDePagoUnico plan={actual} estado={estado} isEnglish={isEnglish} />
         </Reveal>
+      ) : null}
 
-        {/* ----- Invitaciones, un solo pago ----- */}
-        <Reveal app className="h-full">
+      {planes.length ? (
+        <div className={`mt-10 grid items-stretch gap-6 ${columnas}`}>
+          {planes.map((id) => {
+            const p = PLANES[id];
+            const t = isEnglish ? p.en : p.es;
+            const precio = actual ? precioDeCambio(actual, id) : p.priceMx;
+            const destacado = !actual && p.recomendado;
+            return (
+              <Reveal app className="h-full" key={id}>
+                <section
+                  aria-labelledby={`plan-${id}`}
+                  className={`panel-card flex h-full flex-col p-6 sm:p-8 ${destacado ? "ring-1 ring-noche" : ""}`}
+                >
+                  <Eyebrow>
+                    {destacado
+                      ? isEnglish
+                        ? "Recommended"
+                        : "Recomendado"
+                      : isEnglish
+                        ? "One payment"
+                        : "Un solo pago"}
+                  </Eyebrow>
+                  <h2 id={`plan-${id}`} className="mt-3 text-2xl font-medium text-noche">
+                    {t.name}
+                  </h2>
+                  <div className={franjaDePrecio}>
+                    <p className="flex min-h-[3rem] items-baseline gap-2">
+                      <span className={claseCifra}>{cifra(precio ?? p.priceMx)}</span>
+                      <span className="text-sm text-tinta">
+                        {actual
+                          ? isEnglish
+                            ? "MXN, the difference"
+                            : "MXN, la diferencia"
+                          : isEnglish
+                            ? "MXN, once"
+                            : "MXN, una vez"}
+                      </span>
+                    </p>
+                  </div>
+                  <p className="mt-5 text-sm leading-relaxed text-tinta">{t.tagline}</p>
+                  <Incluye
+                    cosas={[
+                      ...t.incluye,
+                      ...(p.asistente
+                        ? [
+                            isEnglish
+                              ? `Up to ${p.turnosAlMes} assistant replies a month, until ${MESES_DE_ASISTENTE_TRAS_LA_BODA} months after your wedding.`
+                              : `Hasta ${p.turnosAlMes} respuestas del asistente al mes, hasta ${MESES_DE_ASISTENTE_TRAS_LA_BODA} meses después de su boda.`,
+                          ]
+                        : []),
+                    ]}
+                  />
+                  <div className="mt-auto pt-8">
+                    <button
+                      type="button"
+                      onClick={() => elegir(id)}
+                      disabled={enviando != null}
+                      className={destacado || actual ? botonPrincipal : botonSecundario}
+                    >
+                      {enviando === id
+                        ? isEnglish
+                          ? "Opening…"
+                          : "Abriendo…"
+                        : actual
+                          ? isEnglish
+                            ? `Move up to ${t.name}`
+                            : `Subir a ${t.name}`
+                          : isEnglish
+                            ? `Choose ${t.name}`
+                            : `Elegir ${t.name}`}
+                      {enviando === id ? null : <ArrowRight aria-hidden="true" className={flecha} strokeWidth={1.6} />}
+                    </button>
+                    {error?.plan === id ? (
+                      <p role="alert" className="mt-3 text-sm text-error">
+                        {error.texto}
+                      </p>
+                    ) : null}
+                  </div>
+                </section>
+              </Reveal>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {conInvitaciones ? (
+        <Reveal app className="mt-6">
           <section
             aria-labelledby="plan-invitaciones"
-            className="panel-card flex h-full flex-col p-6 sm:p-8"
+            className="panel-card flex flex-col p-6 sm:p-8 lg:max-w-[calc((100%-3rem)/3*2+1.5rem)]"
           >
-            <Eyebrow>{isEnglish ? "One payment" : "Un solo pago"}</Eyebrow>
+            <Eyebrow>{modo === "subir" ? (isEnglish ? "Add-on" : "Para agregar") : isEnglish ? "Invitations only" : "Sólo invitaciones"}</Eyebrow>
             <h2 id="plan-invitaciones" className="mt-3 text-2xl font-medium text-noche">
-              {isEnglish ? "Invitations" : "Invitaciones"}
+              {isEnglish ? "Invitations over WhatsApp" : "Invitaciones por WhatsApp"}
             </h2>
             <div className={franjaDePrecio}>
               <p className="flex min-h-[3rem] items-baseline gap-2" aria-live="polite">
@@ -340,7 +418,7 @@ function ElegirPlan({
 
             <fieldset className="mt-5">
               <legend className="text-[11px] font-medium uppercase tracking-[0.1em] text-tinta">
-                {isEnglish ? "How many guests" : "Cuántos invitados"}
+                {isEnglish ? "How many invitations" : "Cuántas invitaciones"}
               </legend>
               <div className="mt-3 flex flex-wrap gap-2">
                 {INVITATION_TIERS.map((t) => {
@@ -373,35 +451,42 @@ function ElegirPlan({
                   );
                 })}
               </div>
-              {razonDelTramo ? (
-                <p className="mt-3 text-xs text-tinta">{razonDelTramo}</p>
-              ) : null}
+              {razonDelTramo ? <p className="mt-3 text-xs text-tinta">{razonDelTramo}</p> : null}
             </fieldset>
 
             <Incluye
               cosas={
-                isEnglish
-                  ? [
-                      "Your invitation, ready to send.",
-                      "Sent over WhatsApp, with RSVPs landing on your list by themselves.",
-                      "Your panel stays open for editing, without an assigned planner.",
-                      "Paid once. Nothing renews.",
-                    ]
-                  : [
-                      "Su invitación, lista para mandar.",
-                      "Envío por WhatsApp y confirmaciones que llegan solas a su lista.",
-                      "Su panel sigue abierto para editar, sin planner asignada.",
-                      "Se paga una vez. Nada se renueva.",
-                    ]
+                modo === "subir"
+                  ? isEnglish
+                    ? [
+                        "Your invitation, sent over WhatsApp from your panel.",
+                        "RSVPs land on your list by themselves.",
+                        "Paid once. Nothing renews.",
+                      ]
+                    : [
+                        "Su invitación, enviada por WhatsApp desde su panel.",
+                        "Las confirmaciones llegan solas a su lista.",
+                        "Se paga una vez. Nada se renueva.",
+                      ]
+                  : isEnglish
+                    ? [
+                        "Your invitation, ready to send.",
+                        "Sent over WhatsApp, with RSVPs landing on your list by themselves.",
+                        "Your guest list stays open for editing; the rest of the panel is part of the plans.",
+                        "Paid once. Nothing renews.",
+                      ]
+                    : [
+                        "Su invitación, lista para mandar.",
+                        "Envío por WhatsApp y confirmaciones que llegan solas a su lista.",
+                        "Su lista sigue abierta para editar; el resto del panel va con los planes.",
+                        "Se paga una vez. Nada se renueva.",
+                      ]
               }
             />
 
             <div className="mt-auto pt-8">
               {cotizacionPedida ? (
-                <p
-                  role="status"
-                  className="rounded-2xl bg-papel px-5 py-4 text-sm leading-relaxed text-noche"
-                >
+                <p role="status" className="rounded-2xl bg-papel px-5 py-4 text-sm leading-relaxed text-noche">
                   {isEnglish
                     ? "Done. Our team will write to your email with the quote."
                     : "Listo. El equipo les escribe a su correo con la cotización."}
@@ -411,7 +496,7 @@ function ElegirPlan({
                   type="button"
                   onClick={() => elegir("invitations")}
                   disabled={enviando != null || !tramo}
-                  className={botonPrincipal}
+                  className={botonSecundario}
                 >
                   {enviando === "invitations"
                     ? isEnglish
@@ -419,8 +504,8 @@ function ElegirPlan({
                       : "Abriendo…"
                     : !tramo
                       ? isEnglish
-                        ? "Choose how many guests"
-                        : "Elijan cuántos invitados"
+                        ? "Choose how many"
+                        : "Elijan cuántas"
                       : tramo.priceMx == null
                         ? isEnglish
                           ? "Ask for a quote"
@@ -428,9 +513,6 @@ function ElegirPlan({
                         : isEnglish
                           ? `Pay ${formatMXN(tramo.priceMx)}`
                           : `Pagar ${formatMXN(tramo.priceMx)}`}
-                  {enviando === "invitations" || !tramo ? null : (
-                    <ArrowRight aria-hidden="true" className={flecha} strokeWidth={1.6} />
-                  )}
                 </button>
               )}
               {error?.plan === "invitations" ? (
@@ -441,11 +523,11 @@ function ElegirPlan({
             </div>
           </section>
         </Reveal>
-      </div>
+      ) : null}
 
       <Reveal app className="mt-8 mb-4">
         <p className="max-w-2xl text-xs leading-relaxed text-tinta">
-          {!vencida ? `${isEnglish ? MENSAJE_ENVIO_EN_PRUEBA.en : MENSAJE_ENVIO_EN_PRUEBA.es} ` : null}
+          {modo === "prueba" && !vencida ? `${isEnglish ? MENSAJE_ENVIO_EN_PRUEBA.en : MENSAJE_ENVIO_EN_PRUEBA.es} ` : null}
           {isEnglish
             ? "Payments go through Stripe. Questions before choosing? Write to us from the chat in "
             : "Los pagos se hacen en Stripe. ¿Dudas antes de elegir? Escríbannos desde el chat de "}
@@ -459,9 +541,83 @@ function ElegirPlan({
   );
 }
 
+/** Su plan pagado: el uso del asistente este mes y las asesorías que quedan. */
+function SuPlanDePagoUnico({
+  plan,
+  estado,
+  isEnglish,
+}: {
+  plan: PlanId;
+  estado: EstadoDelPlan;
+  isEnglish: boolean;
+}) {
+  const p = PLANES[plan];
+  const a = estado.asistente;
+  const fecha = (iso: string) =>
+    new Intl.DateTimeFormat(isEnglish ? "en-US" : "es-MX", {
+      day: "numeric",
+      month: "long",
+      timeZone: "America/Mexico_City",
+    }).format(new Date(iso));
+  const filas: Array<[string, string]> = [];
+  if (p.asistente && a) {
+    if (a.motivo === "boda_pasada") {
+      filas.push([
+        isEnglish ? "Assistant" : "Asistente",
+        isEnglish ? "Finished: it answers until 3 months after the wedding." : "Terminó: contesta hasta 3 meses después de la boda.",
+      ]);
+    } else {
+      filas.push([
+        isEnglish ? "Assistant this month" : "Asistente este mes",
+        `${a.usados} ${isEnglish ? "of" : "de"} ${a.tope}${
+          a.reiniciaEn ? (isEnglish ? ` · resets ${fecha(a.reiniciaEn)}` : ` · se renueva el ${fecha(a.reiniciaEn)}`) : ""
+        }`,
+      ]);
+    }
+  }
+  if (p.asesorias > 0) {
+    const quedan = Math.max(0, p.asesorias - estado.asesoriasHechas);
+    filas.push([
+      isEnglish ? "Sessions with the team" : "Asesorías con el equipo",
+      isEnglish ? `${quedan} of ${p.asesorias} left` : `Les quedan ${quedan} de ${p.asesorias}`,
+    ]);
+  }
+  if (p.invitaciones > 0) {
+    filas.push([isEnglish ? "WhatsApp invitations" : "Invitaciones por WhatsApp", isEnglish ? `Up to ${p.invitaciones}` : `Hasta ${p.invitaciones}`]);
+  } else if (estado.invitacionesCompradas) {
+    filas.push([isEnglish ? "WhatsApp invitations" : "Invitaciones por WhatsApp", isEnglish ? "Package added" : "Paquete agregado"]);
+  }
+  return (
+    <section aria-label={isEnglish ? "Your plan" : "Su plan"} className="panel-card p-6 sm:p-8">
+      <p className="text-sm leading-relaxed text-tinta">{isEnglish ? p.en.tagline : p.es.tagline}</p>
+      {filas.length ? (
+        <dl className="mt-5 grid gap-4 border-t border-linea pt-5 sm:grid-cols-3">
+          {filas.map(([k, v]) => (
+            <div key={k}>
+              <dt className="text-[11px] font-medium uppercase tracking-[0.1em] text-tinta">{k}</dt>
+              <dd className="mt-1 text-sm font-medium text-noche tabular-nums">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {p.asesorias > 0 && estado.asesoriasHechas < p.asesorias ? (
+        <p className="mt-5 text-sm leading-relaxed text-tinta">
+          {isEnglish ? "To book a session, write to us from the chat in " : "Para agendar una asesoría, escríbannos desde el chat de "}
+          <Link href="/panel" className={`font-medium ${claseEnlace}`}>
+            {isEnglish ? "Today" : "Hoy"}
+          </Link>
+          .
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 // ----- Acaban de pagar -----
 
-function Listo({ mensual, isEnglish }: { mensual: boolean; isEnglish: boolean }) {
+function Listo({ plan, mensual: mensualViejo, isEnglish }: { plan: PlanId | null; mensual: boolean; isEnglish: boolean }) {
+  // Con plan (de pago único) se enseña el dibujo de anillos, como el mensual de antes.
+  const mensual = mensualViejo || plan != null;
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 md:py-20 lg:px-8">
       <Reveal app>
@@ -486,7 +642,15 @@ function Listo({ mensual, isEnglish }: { mensual: boolean; isEnglish: boolean })
             {isEnglish ? "Your plan is active" : "Su plan ya está activo"}
           </Titular>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-tinta">
-            {mensual
+            {plan
+              ? isEnglish
+                ? `Your ${PLANES[plan].en.name} plan is active and your whole panel stays open. ${
+                    PLANES[plan].asistente ? "To talk to your assistant on WhatsApp, link your number from Your wedding. " : ""
+                  }Everything you'd already added is right where you left it.`
+                : `Su plan ${PLANES[plan].es.name} ya está activo y su panel sigue abierto por completo. ${
+                    PLANES[plan].asistente ? "Para hablar con su asistente por WhatsApp, liguen su número desde Su boda. " : ""
+                  }Todo lo que ya habían capturado está donde lo dejaron.`
+              : mensual
               ? isEnglish
                 ? "Your whole panel stays open, and we'll assign your planner so she can write to you very soon. Everything you'd already added is right where you left it."
                 : "Su panel sigue abierto por completo y les asignamos a su planner para que les escriba muy pronto. Todo lo que ya habían capturado está donde lo dejaron."

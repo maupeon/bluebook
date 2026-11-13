@@ -9,11 +9,13 @@ import { HomeFaq } from "@/components/home/HomeFaq";
 import { Versus } from "@/components/marketing/Versus";
 import { Plans } from "@/components/marketing/Plans";
 import { ClosingCTA } from "@/components/marketing/ClosingCTA";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
+import { INVITATION_TIERS, PLANES, formatMXN } from "@/lib/weddingPlans";
 
 export const metadata: Metadata = {
   title: { absolute: "Blue Book | Toda tu boda en un solo lugar" },
-  description:
-    "Proveedores, pagos, pendientes, invitaciones y confirmaciones en una plataforma que compartes con tu pareja. Pruébalo 7 días gratis, sin tarjeta; después, $1,000 MXN al mes con una wedding planner real, o invitaciones con confirmaciones desde $990 MXN en un solo pago.",
+  // Desde el 13-nov-2026: pago único por boda (PLANES), sin mensualidad.
+  description: `Proveedores, pagos, pendientes, invitaciones y confirmaciones en una plataforma que compartes con tu pareja. Pruébalo ${DIAS_DE_PRUEBA} días gratis, sin tarjeta; después, un solo pago por tu boda desde ${formatMXN(PLANES.esencial.priceMx)}, o invitaciones con confirmaciones desde ${formatMXN(INVITATION_TIERS[0].priceMx ?? 0)} en un solo pago.`,
 };
 
 // El orden sigue lo que ella necesita oír: qué es (hero), quién la acompaña

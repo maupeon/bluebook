@@ -1,4 +1,5 @@
 import "server-only";
+import { esPlanId, type PlanId } from "@/lib/weddingPlans";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { daysUntil } from "@/components/panel/dates";
@@ -23,6 +24,8 @@ export interface CoupleWedding {
   status: string;
   /** "full" = con planner; "invitations" = solo invitaciones (weddings.tier). */
   tier: "invitations" | "full";
+  /** El plan de pago único (0053); null = de antes o en prueba. */
+  plan: PlanId | null;
   /** La invitación elegida (weddings.invitacion_id, 0025). null = aún no hay. */
   invitacionId: string | null;
   /**
@@ -1045,7 +1048,7 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
       supabase
         .from("weddings")
         .select(
-          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, tier, invitacion_id, contact_email, created_at, owner_id, invitados_estimados"
+          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, tier, invitacion_id, contact_email, created_at, owner_id, invitados_estimados, plan"
         )
         .eq(columna, normalized)
     )
@@ -1106,6 +1109,7 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
       row.planner_fee_total != null ? toNum(row.planner_fee_total) : null,
     status: row.status ?? "active",
     tier: row.tier === "full" ? "full" : "invitations",
+    plan: esPlanId(row.plan) ? row.plan : null,
     invitacionId: row.invitacion_id ?? null,
     invitadosEstimados:
       row.invitados_estimados != null ? Number(row.invitados_estimados) : null,

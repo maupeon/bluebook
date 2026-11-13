@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { LimpiarLaVuelta } from "@/components/onboarding/LimpiarLaVuelta";
 import { CONTACT_INFO, LANGUAGE_COOKIE, parseLanguage } from "@/lib/language";
+import { PLANES, formatMXN } from "@/lib/weddingPlans";
 
 // Structured Data - Organization Schema
 const organizationSchema = {
@@ -16,7 +17,7 @@ const organizationSchema = {
   url: "https://bluebook.mx",
   logo: "https://bluebook.mx/icon.png",
   description:
-    "Toda tu boda en un solo lugar: proveedores, pagos, tareas, invitaciones y confirmaciones, con una wedding planner real.",
+    "Toda tu boda en un solo lugar: proveedores, pagos, tareas, invitaciones y confirmaciones, en una plataforma que compartes con tu pareja.",
   contactPoint: {
     "@type": "ContactPoint",
     telephone: CONTACT_INFO.whatsappNumber,
@@ -40,7 +41,7 @@ const websiteSchema = {
   name: "Blue Book",
   url: "https://bluebook.mx",
   description:
-    "Wedding planner en línea: toda tu boda en una plataforma, con una wedding planner real revisando cada detalle.",
+    "Wedding planner en línea: toda tu boda en una plataforma que compartes con tu pareja.",
 };
 
 // La marca de Blu (6-nov-2026): DynaPuff para los titulares y el logotipo,
@@ -67,8 +68,9 @@ const poppins = Poppins({
 });
 
 const DEFAULT_TITLE = "Blue Book | Toda tu boda en un solo lugar";
-const DEFAULT_DESCRIPTION =
-  "Proveedores, pagos, tareas, invitaciones y confirmaciones en una plataforma que compartes con tu pareja, con una wedding planner real revisando cada detalle. Desde $1,000 MXN al mes.";
+// Desde el 13-nov-2026: pago único por boda (PLANES). Ya no hay mensualidad
+// ni «una wedding planner real» en ningún plan.
+const DEFAULT_DESCRIPTION = `Proveedores, pagos, tareas, invitaciones y confirmaciones en una plataforma que compartes con tu pareja. Un solo pago por tu boda, desde ${formatMXN(PLANES.esencial.priceMx)}.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bluebook.mx"),

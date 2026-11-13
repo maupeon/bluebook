@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 import { CONTACT_INFO } from '@/lib/language'
-import { formatMXN } from '@/lib/weddingPlans'
+import { PLANES, formatMXN, type PlanId } from '@/lib/weddingPlans'
 
 const SUPPORT_EMAIL = CONTACT_INFO.email
 
@@ -311,6 +311,8 @@ export async function sendInviteEmail({ to, albumTitle, guestName, inviteUrl, ma
 
 interface LeadNotificationLead {
   service: 'planner' | 'invitations'
+  /** El plan de pago único (13-nov-2026); si viene, manda sobre service. */
+  plan?: PlanId | null
   partner1Name: string
   partner1Phone: string
   partner2Name: string | null
@@ -415,6 +417,8 @@ export async function sendLeadNotificationEmail({ lead }: { lead: LeadNotificati
 
 interface PaymentNotificationParams {
   service: 'planner' | 'invitations'
+  /** El plan de pago único (13-nov-2026); si viene, manda sobre service. */
+  plan?: PlanId | null
   partner1Name: string
   partner2Name: string | null
   email: string | null
@@ -425,6 +429,7 @@ interface PaymentNotificationParams {
 
 export async function sendPaymentNotificationEmail({
   service,
+  plan = null,
   partner1Name,
   partner2Name,
   email,
@@ -438,8 +443,9 @@ export async function sendPaymentNotificationEmail({
 
   try {
     const coupleLabel = partner2Name ? `${partner1Name} y ${partner2Name}` : partner1Name
-    const productLabel =
-      service === 'planner'
+    const productLabel = plan
+      ? `${PLANES[plan].es.name} ${formatMXN(amountMx ?? PLANES[plan].priceMx)}`
+      : service === 'planner'
         ? `Planner ${formatMXN(amountMx ?? 0)}/mes`
         : amountMx !== null
           ? `Invitaciones ${formatMXN(amountMx)}`

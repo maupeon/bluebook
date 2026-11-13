@@ -7,7 +7,7 @@ import { leerAcceso } from "@/lib/acceso";
 import { estaEnPrueba } from "@/lib/accesoDeLaBoda";
 import { crearCheckoutDeBoda, urlBaseDeLaApp, type PlanDeBoda } from "@/lib/checkoutDeBoda";
 import { stripeServidor } from "@/lib/suscripcion";
-import { AGENT_PLAN, getInvitationTier } from "@/lib/weddingPlans";
+import { PLANES, esPlanId, getInvitationTier, precioDeCambio, type PlanId } from "@/lib/weddingPlans";
 import { LANGUAGE_COOKIE, parseLanguage, CONTACT_INFO } from "@/lib/language";
 import { sendAvisoEmail } from "@/lib/email";
 import { urlDeLaBodaEnElAdmin } from "@/lib/avisos";
@@ -15,11 +15,21 @@ import { urlDeLaBodaEnElAdmin } from "@/lib/avisos";
 /** El mismo rango que acepta weddings.invitados_estimados (0030). */
 const INVITADOS_MAX = 5000;
 
-// POST /api/panel/plan — una boda en prueba elige su plan y se va a pagar.
+// POST /api/panel/plan — la boda elige uno de los tres planes (pago único), sube
+// de plan pagando la diferencia, o agrega un paquete de invitaciones.
+//
+//   { plan: 'esencial' | 'asistente' | 'acompanamiento' }
+//   { plan: 'invitations', invitados }
+//
+// Quién puede qué:
+//   - En prueba (o prueba vencida): cualquier plan o invitaciones.
+//   - Con plan pagado: sólo subir (Esencial → Con asistente → Acompañamiento);
+//     invitaciones si su plan no las trae y no las han comprado.
+//   - Sólo invitaciones (de antes): cualquier plan.
+//   - El mensual de antes (sin plan, panel completo): «escríbannos».
 //
 // NO lleva exigirEdicion: quien más lo necesita es justo la pareja con la
-// prueba vencida, que está en solo lectura. Lo que sí se revisa es que la boda
-// esté en prueba: a una que ya pagó no se le abre otra suscripción encima.
+// prueba vencida, que está en solo lectura.
 //
 // El precio NUNCA viene del cliente. Del cliente solo llega el plan y, para
 // invitaciones, cuántos invitados; el tramo y su precio se calculan aquí (y
@@ -42,8 +52,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: en ? "Invalid request." : "Solicitud inválida." }, { status: 400 });
   }
 
-  const plan = body.plan;
-  if (plan !== "planner" && plan !== "invitations") {
+  // 'planner' es el nombre de antes: una pantalla vieja abierta paga el recomendado.
+  const plan: PlanId | "invitations" | null =
+    body.plan === "invitations" ? "invitations" : body.plan === "planner" ? "asistente" : esPlanId(body.plan) ? body.plan : null;
+  if (!plan) {
     return NextResponse.json({ error: en ? "Choose a plan." : "Elijan un plan." }, { status: 400 });
   }
 
@@ -68,15 +80,44 @@ export async function POST(req: NextRequest) {
   }
 
   const acceso = await leerAcceso(wedding.id);
-  if (!estaEnPrueba(acceso)) {
-    return NextResponse.json(
-      {
-        error: en
-          ? "You already have your plan. If you'd like to change it, write to us and we'll help."
-          : "Ya tienen su plan. Si quieren cambiarlo, escríbannos y lo vemos juntos.",
-      },
-      { status: 409 }
-    );
+  const enPrueba = estaEnPrueba(acceso);
+  const admin = createAdminClient();
+
+  // El plan que ya pagaron y si ya compraron invitaciones: de la base, nunca del cliente.
+  const { data: boda } = await admin.from("weddings").select("plan, tier").eq("id", wedding.id).maybeSingle();
+  const planActual: PlanId | null = esPlanId(boda?.plan) ? boda.plan : null;
+  const { count: invitacionesPagadas } = await admin
+    .from("couple_leads")
+    .select("id", { count: "exact", head: true })
+    .eq("wedding_id", wedding.id)
+    .eq("service", "invitations")
+    .not("paid_at", "is", null);
+
+  const ya = {
+    es: "Ya tienen su plan. Si quieren cambiarlo, escríbannos y lo vemos juntos.",
+    en: "You already have your plan. If you'd like to change it, write to us and we'll help.",
+  };
+  if (!enPrueba) {
+    if (plan === "invitations") {
+      const conInvitaciones = planActual ? PLANES[planActual].invitaciones > 0 : boda?.tier === "full";
+      if (!planActual || conInvitaciones || (invitacionesPagadas ?? 0) > 0) {
+        return NextResponse.json({ error: en ? ya.en : ya.es }, { status: 409 });
+      }
+    } else if (planActual) {
+      if (precioDeCambio(planActual, plan) == null) {
+        return NextResponse.json(
+          {
+            error: en
+              ? "Your plan already includes that. You can only move up to a bigger plan."
+              : "Su plan ya incluye eso. Sólo se puede subir a un plan mayor.",
+          },
+          { status: 409 }
+        );
+      }
+    } else if (boda?.tier === "full") {
+      // El mensual de antes (o una boda que armó la planner): lo vemos a mano.
+      return NextResponse.json({ error: en ? ya.en : ya.es }, { status: 409 });
+    }
   }
 
   const stripe = stripeServidor();
@@ -87,14 +128,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const admin = createAdminClient();
-
   // La solicitud que nació con la prueba (empezar_prueba la crea y
   // activar_solicitud le pone wedding_id). La más reciente: si el admin le
   // hubiera ligado otra, el pago va a la última, que es la que se ve en /clientes.
   const { data: lead, error: leadError } = await admin
     .from("couple_leads")
-    .select("id, service, guest_count, quoted_price_mx, details")
+    .select("id, service, guest_count, quoted_price_mx, details, paid_at, partner1_name, partner1_phone, partner2_name, email, language")
     .eq("wedding_id", wedding.id)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -144,7 +183,7 @@ export async function POST(req: NextRequest) {
   }
 
   const tramo = invitados != null ? getInvitationTier(invitados) : null;
-  const precio = plan === "planner" ? AGENT_PLAN.priceMxMonthly : tramo?.priceMx ?? null;
+  const precio = plan === "invitations" ? tramo?.priceMx ?? null : PLANES[plan].priceMx;
 
   // Para no mandarle al equipo la misma cotización cada vez que la pareja
   // vuelve a apretar el botón: solo avisa si antes no la había pedido ya.
@@ -158,16 +197,47 @@ export async function POST(req: NextRequest) {
   // /clientes y lo que registrarPagoDeBoda usa para el aviso de la planner.
   // guest_count solo se toca con invitaciones: el plan mensual no depende de
   // él y pisarlo borraría lo que dijeron en el onboarding.
+  // Si esa solicitud ya está pagada (sube de plan o agrega invitaciones), este
+  // pago lleva su propia solicitud: registrarPagoDeBoda marca UNA sesión por
+  // solicitud, y así cada pago queda en /clientes con lo que se cobró.
+  let solicitud = lead;
+  if (lead.paid_at) {
+    const { data: nueva, error: nuevaError } = await admin
+      .from("couple_leads")
+      .insert({
+        service: plan === "invitations" ? "invitations" : "planner",
+        status: "converted",
+        partner1_name: lead.partner1_name ?? "",
+        partner1_phone: lead.partner1_phone ?? "",
+        partner2_name: lead.partner2_name,
+        email: lead.email ?? user.email,
+        language: lead.language,
+        wedding_id: wedding.id,
+        notes: plan === "invitations" ? "Invitaciones agregadas desde el panel" : `Cambio de plan desde el panel (${planActual ?? "sin plan"} → ${plan})`,
+      })
+      .select("id, service, guest_count, quoted_price_mx, details, paid_at, partner1_name, partner1_phone, partner2_name, email, language")
+      .single();
+    if (nuevaError || !nueva) {
+      console.error(`[plan] no se pudo crear la solicitud del cambio de ${wedding.id}:`, nuevaError?.message);
+      return NextResponse.json(
+        { error: en ? "We couldn't start your payment. Try again in a moment." : "No pudimos preparar su pago. Inténtenlo de nuevo en un momento." },
+        { status: 500 }
+      );
+    }
+    solicitud = nueva;
+  }
+
   const { error: updateError } = await admin
     .from("couple_leads")
     .update({
-      service: plan,
+      service: plan === "invitations" ? "invitations" : "planner",
+      plan: plan === "invitations" ? null : plan,
       quoted_price_mx: precio,
       ...(invitados != null ? { guest_count: invitados } : {}),
     })
-    .eq("id", lead.id);
+    .eq("id", solicitud.id);
   if (updateError) {
-    console.error(`[plan] no se pudo actualizar la solicitud ${lead.id}:`, updateError.message);
+    console.error(`[plan] no se pudo actualizar la solicitud ${solicitud.id}:`, updateError.message);
     return NextResponse.json(
       {
         error: en
@@ -181,8 +251,10 @@ export async function POST(req: NextRequest) {
   const base = urlBaseDeLaApp(req.nextUrl.origin);
   try {
     const resultado = await crearCheckoutDeBoda(stripe, {
-      leadId: lead.id,
+      leadId: solicitud.id,
       plan: plan as PlanDeBoda,
+      // En prueba se cobra el plan completo; con plan pagado, la diferencia.
+      planActual: enPrueba ? null : planActual,
       invitados,
       email: user.email,
       successUrl: `${base}/panel/plan?session_id={CHECKOUT_SESSION_ID}`,
@@ -193,7 +265,7 @@ export async function POST(req: NextRequest) {
     // pagó, y luego eligió el mensual, la sesión vieja seguía viva en su
     // pestaña: podía pagar las dos, o pagar la vieja con la solicitud ya
     // diciendo otra cosa. Se expira la anterior al abrir la nueva.
-    const detalles = (lead.details ?? {}) as Record<string, unknown>;
+    const detalles = (solicitud.details ?? {}) as Record<string, unknown>;
     const anterior = typeof detalles.sesion_de_pago === "string" ? detalles.sesion_de_pago : null;
     if (anterior) {
       try {
@@ -206,9 +278,9 @@ export async function POST(req: NextRequest) {
       const { error: sesionError } = await admin
         .from("couple_leads")
         .update({ details: { ...detalles, sesion_de_pago: resultado.id } })
-        .eq("id", lead.id);
+        .eq("id", solicitud.id);
       if (sesionError) {
-        console.error(`[plan] no se pudo guardar la sesión de ${lead.id}:`, sesionError.message);
+        console.error(`[plan] no se pudo guardar la sesión de ${solicitud.id}:`, sesionError.message);
       }
     }
 

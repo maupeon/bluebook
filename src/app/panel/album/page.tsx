@@ -85,7 +85,7 @@ export default async function Pagina({
     leerEstadoDelAlbum(wedding.id),
   ]);
   let album = albumLeido;
-  const incluido = incluidoEnSuPlan(suscripcion);
+  const incluido = incluidoEnSuPlan(suscripcion, wedding.plan);
 
   // El Planner completo (el plan mensual) incluye el álbum Ilimitado. Nace al
   // pagar el plan (registrarPagoDeBoda) y suscripcion.ts lo reintenta en cada

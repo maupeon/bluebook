@@ -1,9 +1,25 @@
 import { Metadata } from "next";
+import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
+import {
+  INVITATION_TIERS,
+  MESES_DE_ASISTENTE_TRAS_LA_BODA,
+  PLANES,
+  PLAN_IDS,
+  formatMXN,
+} from "@/lib/weddingPlans";
+
+// Desde el 13-nov-2026: tres planes de pago único por boda (PLANES). Los
+// textos salen de lib/weddingPlans, igual que la página: si cambia un precio,
+// cambia aquí. Este layout es de servidor, así que no importa nada de los
+// componentes cliente (HomeFaq, la página): arma sus textos aquí, con el mismo
+// sentido que el FAQ de /precios.
+const { esencial, asistente, acompanamiento } = PLANES;
+const desde = formatMXN(esencial.priceMx);
+const invitacionesDesde = formatMXN(INVITATION_TIERS[0].priceMx ?? 0);
 
 export const metadata: Metadata = {
   title: "Precios",
-  description:
-    "Pruébalo 7 días gratis, sin tarjeta. Después, toda tu boda en una plataforma y una wedding planner real por $1,000 MXN al mes, sin porcentajes ni plazos forzosos, o invitaciones con confirmaciones desde $990 MXN en un solo pago.",
+  description: `Pruébalo ${DIAS_DE_PRUEBA} días gratis, sin tarjeta. Después, tres planes en un solo pago por tu boda, desde ${desde}, sin porcentajes ni mensualidades, o invitaciones con confirmaciones desde ${invitacionesDesde} en un solo pago.`,
   keywords: [
     "precio wedding planner",
     "cuánto cuesta una wedding planner",
@@ -12,29 +28,27 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Precios | Blue Book",
-    description:
-      "Una plataforma para toda tu boda más una wedding planner real por $1,000 MXN al mes: una fracción de lo que cobra una planner presencial.",
+    description: `Una plataforma para toda tu boda en un solo pago, desde ${desde}: una fracción de lo que cobra una planner presencial.`,
     url: "https://bluebook.mx/precios",
   },
 };
 
 const productSchemas = [
-  {
+  ...PLAN_IDS.map((id) => ({
     "@context": "https://schema.org",
     "@type": "Product",
-    name: "Planner completo - Blue Book",
-    description:
-      "Plataforma para organizar tu boda (proveedores, presupuesto y pagos, pendientes, invitaciones, confirmaciones y el guion del día) con una wedding planner real.",
+    name: `${PLANES[id].es.name} - Blue Book`,
+    description: `${PLANES[id].es.tagline} ${PLANES[id].es.incluye.join(". ")}. Pago único por boda.`,
     brand: { "@type": "Brand", name: "Blue Book" },
     offers: {
       "@type": "Offer",
-      price: "1000",
+      price: String(PLANES[id].priceMx),
       priceCurrency: "MXN",
       availability: "https://schema.org/InStock",
       url: "https://bluebook.mx/precios",
       priceValidUntil: "2027-12-31",
     },
-  },
+  })),
   {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -44,7 +58,7 @@ const productSchemas = [
     brand: { "@type": "Brand", name: "Blue Book" },
     offers: {
       "@type": "Offer",
-      price: "990",
+      price: String(INVITATION_TIERS[0].priceMx ?? 0),
       priceCurrency: "MXN",
       availability: "https://schema.org/InStock",
       url: "https://bluebook.mx/precios",
@@ -52,6 +66,12 @@ const productSchemas = [
     },
   },
 ];
+
+const resumenDePlanes = PLAN_IDS.map((id) => {
+  const plan = PLANES[id];
+  const incluye = plan.es.incluye.map((item) => item.charAt(0).toLowerCase() + item.slice(1)).join("; ");
+  return `${plan.es.name} (${formatMXN(plan.priceMx)}): ${incluye}.`;
+}).join(" ");
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -62,15 +82,15 @@ const faqSchema = {
       name: "¿Cómo funciona la prueba gratis?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Son 7 días con el panel completo y sin tarjeta. Al séptimo día eliges el plan mensual de $1,000 MXN o un solo pago por tus invitaciones. Si todavía no eliges, el panel se queda para consulta y nada se borra.",
+        text: `Son ${DIAS_DE_PRUEBA} días con el panel completo y sin tarjeta. Al séptimo día eliges: ${esencial.es.name}, ${asistente.es.name} o ${acompanamiento.es.name}, en un solo pago desde ${desde}, o solo tus invitaciones. Si todavía no eliges, el panel se queda para consulta y nada se borra.`,
       },
     },
     {
       "@type": "Question",
-      name: "¿Qué incluye el plan de $1,000 al mes?",
+      name: "¿Qué incluye cada plan?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Tu panel con proveedores, pagos, pendientes y el guion del día; invitaciones y confirmaciones; la calculadora de la barra; y una wedding planner real cuidando tu boda.",
+        text: `${resumenDePlanes} Todos son un pago único por tu boda.`,
       },
     },
     {
@@ -78,15 +98,31 @@ const faqSchema = {
       name: "¿Por qué cuesta tanto menos que una planner presencial?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "La plataforma hace el trabajo repetitivo y la planner dedica su tiempo a lo que necesita criterio. No estamos físicamente en tu boda ni negociamos contratos en persona.",
+        text: `La plataforma hace el trabajo repetitivo y tú decides. En ${acompanamiento.es.name}, nuestro equipo te acompaña en ${acompanamiento.asesorias} asesorías para lo que necesita criterio. No estamos físicamente en tu boda ni negociamos contratos en persona.`,
       },
     },
     {
       "@type": "Question",
-      name: "¿Hay plazos forzosos?",
+      name: "¿Hay mensualidades o cobros después?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. Es mes a mes y lo cancelas cuando quieras, con un mensaje.",
+        text: "No. Cada plan es un pago único por tu boda y no se vuelve a cobrar. Tu panel sigue abierto después de pagar.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Puedo cambiar de plan?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Sí, hacia arriba y cuando quieras: pagas solo la diferencia.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Hasta cuándo me contesta el asistente?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: `Hasta ${MESES_DE_ASISTENTE_TRAS_LA_BODA} meses después de la fecha de tu boda. Tiene un uso justo: hasta ${asistente.turnosAlMes} respuestas al mes en ${asistente.es.name} y ${acompanamiento.turnosAlMes} en ${acompanamiento.es.name}.`,
       },
     },
   ],

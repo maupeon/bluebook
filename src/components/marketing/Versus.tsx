@@ -7,7 +7,7 @@ import { Reveal } from "@/components/Reveal";
 import { Star } from "@/components/marketing/Ink";
 import { Container, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
-import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
+import { PLANES, formatMXN } from "@/lib/weddingPlans";
 
 type Tone = "win" | "meh" | "lose";
 type Cell = { es: string; en: string; tone: Tone };
@@ -21,11 +21,15 @@ interface Row {
   diy: Cell;
 }
 
-const price = formatMXN(AGENT_PLAN.priceMxMonthly);
+// Desde el 13-nov-2026: pago único por boda, desde el plan más chico.
+const desde = formatMXN(PLANES.esencial.priceMx);
+const asistente = PLANES.asistente;
+const acompanamiento = PLANES.acompanamiento;
 
 /*
  * La diferencia entre una planner presencial y Blue Book, dicha con honestidad:
- * hay un renglón que gana la presencial (el día de la boda está ahí) y se
+ * hay renglones que gana la presencial (el día de la boda está ahí; el
+ * criterio profesional sólo viene, en asesorías, con Acompañamiento) y se
  * dice. Una comparación donde uno gana todo no se cree.
  *
  * La columna de Blue Book ya no es azul noche: es una franja de papel azul
@@ -37,7 +41,7 @@ const ROWS: Row[] = [
   {
     es: "Cuánto cuesta",
     en: "What it costs",
-    bluebook: { es: `${price} al mes, tras ${DIAS_DE_PRUEBA} días gratis`, en: `${price} a month, after ${DIAS_DE_PRUEBA} free days`, tone: "win" },
+    bluebook: { es: `Un solo pago desde ${desde}, tras ${DIAS_DE_PRUEBA} días gratis`, en: `One payment from ${desde}, after ${DIAS_DE_PRUEBA} free days`, tone: "win" },
     planner: { es: "10–15% de tu presupuesto", en: "10–15% of your budget", tone: "lose" },
     diy: { es: "$0, y muchas horas tuyas", en: "$0, and many hours of yours", tone: "meh" },
   },
@@ -51,14 +55,22 @@ const ROWS: Row[] = [
   {
     es: "Saber cómo va todo",
     en: "Knowing where things stand",
-    bluebook: { es: "Lo ves cuando quieras, desde el celular", en: "Whenever you want, from your phone", tone: "win" },
+    bluebook: {
+      es: `Lo ves cuando quieras, desde el celular; con ${asistente.es.name}, también le preguntas por WhatsApp`,
+      en: `Whenever you want, from your phone; with ${asistente.en.name}, you can also ask on WhatsApp`,
+      tone: "win",
+    },
     planner: { es: "Le preguntas y esperas respuesta", en: "You ask and wait for an answer", tone: "meh" },
     diy: { es: "Lo reconstruyes tú cada vez", en: "You piece it together every time", tone: "lose" },
   },
   {
     es: "Invitaciones y confirmaciones",
     en: "Invitations and RSVPs",
-    bluebook: { es: "Incluidas, por WhatsApp", en: "Included, on WhatsApp", tone: "win" },
+    bluebook: {
+      es: `Por WhatsApp: incluidas en ${acompanamiento.es.name} o en un paquete aparte`,
+      en: `On WhatsApp: included in ${acompanamiento.en.name} or as a separate package`,
+      tone: "win",
+    },
     planner: { es: "Casi siempre con otro proveedor", en: "Usually through another vendor", tone: "meh" },
     diy: { es: "Una por una, a mano", en: "One by one, by hand", tone: "lose" },
   },
@@ -79,7 +91,11 @@ const ROWS: Row[] = [
   {
     es: "Criterio profesional",
     en: "Professional judgment",
-    bluebook: { es: "Una planner real cuida tu boda", en: "A real planner looks after your wedding", tone: "win" },
+    bluebook: {
+      es: `${acompanamiento.asesorias} asesorías con nuestro equipo, en ${acompanamiento.es.name}`,
+      en: `${acompanamiento.asesorias} sessions with our team, in ${acompanamiento.en.name}`,
+      tone: "meh",
+    },
     planner: { es: "Sí, en persona", en: "Yes, in person", tone: "win" },
     diy: { es: "El de internet", en: "Whatever the internet says", tone: "lose" },
   },
@@ -93,7 +109,7 @@ const ROWS: Row[] = [
   {
     es: "Compromiso",
     en: "Commitment",
-    bluebook: { es: "Mes a mes, cancelas cuando quieras", en: "Month to month, cancel anytime", tone: "win" },
+    bluebook: { es: "Un solo pago, sin cobros después", en: "One payment, nothing charged later", tone: "win" },
     planner: { es: "Contrato por toda la boda", en: "A contract for the whole wedding", tone: "meh" },
     diy: { es: "Ninguno", en: "None", tone: "meh" },
   },
@@ -167,8 +183,8 @@ export function Versus({ id }: { id?: string }) {
           <Reveal delay={160}>
             <Lead className="mx-auto mt-5 max-w-2xl">
               {en
-                ? "An in-person wedding planner is wonderful, and she charges like it. Blue Book gives you her order and her judgment for a fraction, with everything in sight on your dashboard. Here's the difference, no fine print."
-                : "Una wedding planner presencial es maravillosa, y cobra como tal. Blue Book te da su orden y su criterio por una fracción, con todo a la vista en tu panel. Esta es la diferencia, sin letras chiquitas."}
+                ? "An in-person wedding planner is wonderful, and she charges like it. Blue Book gives you her order for a fraction, in one payment, with everything in sight on your dashboard. Here's the difference, no fine print."
+                : "Una wedding planner presencial es maravillosa, y cobra como tal. Blue Book te da su orden por una fracción, en un solo pago, con todo a la vista en tu panel. Esta es la diferencia, sin letras chiquitas."}
             </Lead>
           </Reveal>
         </div>

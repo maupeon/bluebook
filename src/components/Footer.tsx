@@ -65,8 +65,8 @@ export function Footer() {
             </p>
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-tinta">
               {en
-                ? "Your whole wedding in one place, with a real wedding planner looking after every detail."
-                : "Toda tu boda en un solo lugar, con una wedding planner real cuidando cada detalle."}
+                ? "Your whole wedding in one place, shared with your partner."
+                : "Toda tu boda en un solo lugar, compartida con tu pareja."}
             </p>
             <ul className="mt-7 flex gap-2.5">
               {socials.map(({ href, label, Icon }) => (

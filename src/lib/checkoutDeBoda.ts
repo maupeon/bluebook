@@ -1,6 +1,6 @@
 import "server-only";
 import type Stripe from "stripe";
-import { AGENT_PLAN, formatMXN, getInvitationTier } from "@/lib/weddingPlans";
+import { PLANES, formatMXN, getInvitationTier, precioDeCambio, type PlanId } from "@/lib/weddingPlans";
 import { urlPublicaDeLaApp } from "@/lib/urlDeLaApp";
 
 /**
@@ -11,7 +11,12 @@ import { urlPublicaDeLaApp } from "@/lib/urlDeLaApp";
  * El precio se deriva aquí, en el servidor, del plan y de los invitados.
  * Nunca del cliente.
  */
-export type PlanDeBoda = "planner" | "invitations";
+/**
+ * Lo que se cobra: uno de los tres planes (pago único, desde el 13-nov-2026) o
+ * un paquete de invitaciones. El mensual («planner») ya no se vende: una
+ * solicitud vieja con service 'planner' paga el plan recomendado.
+ */
+export type PlanDeBoda = PlanId | "invitations";
 
 export type ResultadoDeCheckout =
   | { tipo: "sesion"; url: string; id: string }
@@ -34,6 +39,8 @@ export async function crearCheckoutDeBoda(
   opciones: {
     leadId: string;
     plan: PlanDeBoda;
+    /** El plan que ya pagaron (weddings.plan), para cobrar sólo la diferencia. */
+    planActual?: PlanId | null;
     /** Para el tramo de invitaciones. null = el tramo más chico. */
     invitados: number | null;
     email: string | null;
@@ -41,19 +48,26 @@ export async function crearCheckoutDeBoda(
     cancelUrl: string;
   }
 ): Promise<ResultadoDeCheckout> {
-  const { leadId, plan, invitados, email, successUrl, cancelUrl } = opciones;
+  const { leadId, plan, planActual, invitados, email, successUrl, cancelUrl } = opciones;
   const customerEmail = email || undefined;
 
-  if (plan === "planner") {
+  if (plan !== "invitations") {
+    // Subir de plan cobra la diferencia; el plan que ya tenían lo dice el
+    // servidor (weddings.plan), nunca el cliente.
+    const monto = precioDeCambio(planActual ?? null, plan);
+    if (monto == null || monto <= 0) throw new Error(`No se puede pasar de ${planActual} a ${plan}.`);
+    const p = PLANES[plan];
+    const nombre = planActual
+      ? `Blue Book — de ${PLANES[planActual].es.name} a ${p.es.name}`
+      : `Blue Book — Plan ${p.es.name}`;
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: "payment",
       line_items: [
         {
           price_data: {
             currency: "mxn",
-            product_data: { name: `Blue Book — ${AGENT_PLAN.es.name}` },
-            unit_amount: AGENT_PLAN.priceMxMonthly * 100,
-            recurring: { interval: "month" },
+            product_data: { name: nombre },
+            unit_amount: monto * 100,
           },
           quantity: 1,
         },
@@ -61,19 +75,16 @@ export async function crearCheckoutDeBoda(
       allow_promotion_codes: true,
       success_url: successUrl,
       cancel_url: cancelUrl,
-      metadata: { productType: "planner", leadId },
-      // Junto al botón de pagar: periodicidad, monto y cómo cancelar. La LFPC
-      // (art. 76 Bis fr. VIII, DOF 12-12-2025) pide informarlo de forma clara
-      // y destacada ANTES del consentimiento al cobro recurrente.
       custom_text: {
         submit: {
-          message: `Se cobrarán ${formatMXN(AGENT_PLAN.priceMxMonthly)} cada mes, el mismo día del mes en que te suscribes, hasta que canceles. Te avisamos por correo al menos 5 días antes de cada cobro y puedes cancelar cuando quieras desde tu panel, en Su plan › Administrar o cancelar.`,
+          message: planActual
+            ? `Pago único de ${formatMXN(monto)}: la diferencia entre ${PLANES[planActual].es.name} y ${p.es.name}. Sin cobros posteriores.`
+            : `Pago único de ${formatMXN(monto)} por el plan ${p.es.name} de tu boda. Sin cobros posteriores.`,
         },
       },
-      // También en la suscripción: sus eventos (renovación, cobro rechazado,
-      // cancelación) no traen la metadata de la sesión, y con esto el
-      // webhook encuentra la boda aunque lleguen antes que el primer pago.
-      subscription_data: { metadata: { productType: "planner", leadId } },
+      // El plan viaja con la sesión: registrarPagoDeBoda escribe lo que de
+      // verdad se pagó aunque la pareja haya elegido otra cosa en otra pestaña.
+      metadata: { productType: "plan", plan, desde: planActual ?? "", leadId },
       customer_email: customerEmail,
     });
     if (!session.url) throw new Error("Stripe no devolvió la URL de la sesión.");

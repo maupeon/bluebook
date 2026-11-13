@@ -1,4 +1,5 @@
 import "server-only";
+import { PLANES, type PlanId } from "@/lib/weddingPlans";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { leerAlbumDeLaBoda } from "@/lib/albumDeLaBoda";
@@ -13,7 +14,9 @@ import type { AlbumDelPanel } from "@/components/album/estadoDelAlbum";
  * cobro pendiente, pausada o sin haber pagado nunca, no se regala un álbum
  * Ilimitado. (Si el álbum ya existe da igual: se queda para siempre.)
  */
-export function incluidoEnSuPlan(suscripcion: SuscripcionDeLaBoda | null): boolean {
+export function incluidoEnSuPlan(suscripcion: SuscripcionDeLaBoda | null, plan: PlanId | null = null): boolean {
+  // Con asistente y Acompañamiento (pago único, 0053) lo traen para siempre.
+  if (plan && PLANES[plan].album) return true;
   return suscripcion?.situacion === "al_corriente" || suscripcion?.situacion === "termina";
 }
 

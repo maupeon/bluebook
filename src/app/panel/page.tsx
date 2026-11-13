@@ -37,8 +37,8 @@ export default async function Pagina({
       acceso={acceso}
       bienvenida={bienvenida}
       album={album}
-      // El Planner completo (el plan mensual) trae el álbum Ilimitado.
-      albumIncluido={incluidoEnSuPlan(suscripcion)}
+      // El mensual de antes, Con asistente y Acompañamiento traen el álbum Ilimitado.
+      albumIncluido={incluidoEnSuPlan(suscripcion, datos.bundle.wedding.plan)}
     />
   );
 }

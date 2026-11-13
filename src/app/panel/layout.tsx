@@ -89,7 +89,7 @@ export default async function PanelLayout({
             invitacionLista: wedding.invitacionId != null,
             album,
             // El Planner completo (el plan mensual) trae el álbum Ilimitado.
-            albumIncluido: incluidoEnSuPlan(suscripcion),
+            albumIncluido: incluidoEnSuPlan(suscripcion, wedding.plan),
           }}
           secciones={seccionesDelPanel(bundle)}
           acceso={acceso}

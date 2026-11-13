@@ -20,7 +20,7 @@ import {
   type AlbumPlan,
   type AlbumPlanId,
 } from "@/lib/albumPlans";
-import { AGENT_PLAN } from "@/lib/weddingPlans";
+import { PLANES } from "@/lib/weddingPlans";
 import { estaEnPrueba, type AccesoDeLaBoda } from "@/lib/accesoDeLaBoda";
 import { urlPublicaDeLaApp } from "@/lib/urlDeLaApp";
 
@@ -288,8 +288,8 @@ function ConAlbum({
   const origen =
     album.origen === "plan"
       ? isEnglish
-        ? "Included in your Full planner"
-        : "Incluido en su Planner completo"
+        ? "Included in your plan"
+        : "Incluido en su plan"
       : album.origen === "compra"
         ? isEnglish
           ? "Purchased"
@@ -422,7 +422,7 @@ function MasFotos({
       </div>
       {enPrueba ? (
         <p className="mt-3 text-xs leading-relaxed text-tinta">
-          {isEnglish ? "Or choose the Full planner, which includes it unlimited: " : "O elijan el Planner completo, que lo incluye ilimitado: "}
+          {isEnglish ? "Or choose the With assistant or Guided plan, which include it unlimited: " : "O elijan Con asistente o Acompañamiento, que lo incluyen ilimitado: "}
           <Link href="/panel/plan" className={`font-medium ${claseEnlace}`}>
             {isEnglish ? "choose a plan" : "elegir plan"}
           </Link>
@@ -472,8 +472,8 @@ function SinAlbum({
             className="max-w-2xl rounded-2xl border border-linea bg-niebla px-5 py-4 text-sm leading-relaxed text-noche"
           >
             {isEnglish
-              ? "Your album comes with your Full planner, and we're getting it ready. Reload in a moment; if it doesn't show up, write to us from the chat in "
-              : "Su álbum viene incluido en su Planner completo y lo estamos preparando. Recarguen en un momento; si no aparece, escríbannos desde el chat de "}
+              ? "Your album comes with your plan, and we're getting it ready. Reload in a moment; if it doesn't show up, write to us from the chat in "
+              : "Su álbum viene incluido en su plan y lo estamos preparando. Recarguen en un momento; si no aparece, escríbannos desde el chat de "}
             <Link href="/panel" className={`font-medium ${claseEnlace}`}>
               {isEnglish ? "Today" : "Hoy"}
             </Link>
@@ -502,7 +502,7 @@ function ConSuPlan({ isEnglish }: { isEnglish: boolean }) {
     <section aria-labelledby="album-con-su-plan" className="panel-card flex h-full flex-col p-6 sm:p-8">
       <Eyebrow>{isEnglish ? "Included" : "Incluido"}</Eyebrow>
       <h2 id="album-con-su-plan" className="mt-3 text-2xl font-medium text-noche">
-        {isEnglish ? AGENT_PLAN.en.name : AGENT_PLAN.es.name}
+        {isEnglish ? `${PLANES.asistente.en.name} · ${PLANES.acompanamiento.en.name}` : `${PLANES.asistente.es.name} · ${PLANES.acompanamiento.es.name}`}
       </h2>
       <div className={franjaDePrecio}>
         <p className="flex min-h-[3rem] flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -512,8 +512,8 @@ function ConSuPlan({ isEnglish }: { isEnglish: boolean }) {
       </div>
       <p className="mt-5 text-sm leading-relaxed text-tinta">
         {isEnglish
-          ? "The unlimited album comes with your plan, along with the whole panel and your wedding planner."
-          : "El álbum Ilimitado viene con su plan, junto con todo el panel y su wedding planner."}
+          ? "The unlimited album comes with the With assistant and Guided plans, along with the whole panel."
+          : "El álbum Ilimitado viene con Con asistente y Acompañamiento, junto con todo el panel."}
       </p>
       <Incluye
         cosas={
@@ -521,12 +521,12 @@ function ConSuPlan({ isEnglish }: { isEnglish: boolean }) {
             ? [
                 "Unlimited photos, from you and your guests.",
                 "The QR for your guests, no account needed.",
-                "If you ever cancel the plan, the album stays yours.",
+                "Paid once: the album stays yours for good.",
               ]
             : [
                 "Fotos ilimitadas, suyas y de sus invitados.",
                 "El QR para sus invitados, sin crear cuenta.",
-                "Si un día cancelan el plan, el álbum se queda con ustedes.",
+                "Se paga una vez: el álbum se queda con ustedes para siempre.",
               ]
         }
       />

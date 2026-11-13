@@ -4,6 +4,7 @@ import { leerAcceso } from "@/lib/acceso";
 import { MENSAJE_ENVIO_EN_PRUEBA, puedeEnviarInvitaciones } from "@/lib/accesoDeLaBoda";
 import { fechaDeInvitacion } from "@/lib/invitacionTexto";
 import { avisarALaHoja } from "@/lib/hojaDespues";
+import { invitacionesDelPlan } from "@/lib/topeDelPlan";
 
 // Un lote del admin tarda poco, pero esta ruta espera a que termine.
 export const maxDuration = 300;
@@ -32,6 +33,18 @@ export async function POST(req: NextRequest) {
     const mensaje = MENSAJE_ENVIO_EN_PRUEBA.es;
     return NextResponse.json(
       { error: mensaje, puede: false, rechazo: { motivo: "en_prueba", mensaje } },
+      { status: 402 }
+    );
+  }
+
+  // Con los tres planes, el envío depende del plan (y de si compraron un
+  // paquete). El tope viaja al admin, que es quien de verdad cuenta y manda.
+  const delPlan = await invitacionesDelPlan(wedding.id);
+  if (!delPlan.puede) {
+    const mensaje =
+      "Su plan no incluye mandar las invitaciones por WhatsApp. Agreguen un paquete de invitaciones desde Su plan.";
+    return NextResponse.json(
+      { error: mensaje, puede: false, rechazo: { motivo: "sin_paquete", mensaje } },
       { status: 402 }
     );
   }
@@ -74,6 +87,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         weddingId: wedding.id,
         accion,
+        tope: delPlan.tope,
         texto: { coupleNames: wedding.coupleName, eventDate, eventPlace: wedding.venue },
       }),
       signal: AbortSignal.timeout(290_000),

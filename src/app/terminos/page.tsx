@@ -12,7 +12,13 @@ import {
   identidadDelOperador,
   notaDeIVA,
 } from "@/lib/legal";
-import { AGENT_PLAN, INVITATION_TIERS, formatMXN } from "@/lib/weddingPlans";
+import {
+  INVITATION_TIERS,
+  MESES_DE_ASISTENTE_TRAS_LA_BODA,
+  PLANES,
+  PLAN_IDS,
+  formatMXN,
+} from "@/lib/weddingPlans";
 import { ALBUM_PLANS_LIST, isUnlimitedPhotosPlan } from "@/lib/albumPlans";
 import { DIAS_DE_PRUEBA, LIMITE_IA_EN_PRUEBA, LIMITE_IA_PAGADA } from "@/lib/accesoDeLaBoda";
 
@@ -22,9 +28,11 @@ import { DIAS_DE_PRUEBA, LIMITE_IA_EN_PRUEBA, LIMITE_IA_PAGADA } from "@/lib/acc
 // Lo que no puede decir (art. 90 LFPC): que cambiamos las reglas cuando
 // queramos y rigen de inmediato, que no respondemos de nada, que renuncias a
 // tus derechos o a PROFECO. Lo que tiene que decir (art. 76 Bis): quiénes
-// somos con domicilio, qué incluye cada plan y su precio total, y, desde
-// diciembre de 2025, la periodicidad del cobro recurrente, el aviso de 5 días
-// antes de cada cobro y cómo cancelar de inmediato.
+// somos con domicilio, qué incluye cada plan y su precio total. Desde el
+// 13-nov-2026 los planes son de pago único (PLANES): ya no hay cobro
+// recurrente que avisar con 5 días ni que cancelar. Las suscripciones
+// mensuales contratadas antes conservan sus condiciones hasta cancelarse
+// (al 13-nov no había ninguna).
 //
 // Los precios salen de las mismas constantes que el sitio y el checkout: si
 // cambia un precio, cambia aquí sin tocar este archivo.
@@ -32,10 +40,14 @@ import { DIAS_DE_PRUEBA, LIMITE_IA_EN_PRUEBA, LIMITE_IA_PAGADA } from "@/lib/acc
 export const metadata: Metadata = {
   title: "Términos y condiciones",
   description:
-    "Las reglas de Blue Book: la prueba gratis de 7 días, los planes y sus precios, cómo se cobra y se cancela el plan mensual, reembolsos y tus derechos como consumidor.",
+    "Las reglas de Blue Book: la prueba gratis de 7 días, los planes de pago único y sus precios, subir de plan, el asistente por WhatsApp, reembolsos y tus derechos como consumidor.",
 };
 
 const tramos = INVITATION_TIERS.filter((t) => t.maxGuests != null && t.priceMx != null);
+const { esencial, asistente, acompanamiento } = PLANES;
+/** La fecha desde la que se venden los planes de pago único. */
+const FECHA_PLANES_ES = "13 de noviembre de 2026";
+const FECHA_PLANES_EN = "November 13, 2026";
 
 function seccionesEs(): SeccionLegal[] {
   const nombre = datoLegal(RESPONSABLE.nombre, false);
@@ -81,11 +93,17 @@ function seccionesEs(): SeccionLegal[] {
             </li>
             <li>
               <strong>Álbum digital:</strong> un álbum interactivo donde tú y tus invitados suben las fotos de la boda, y
-              que administras desde tu panel. Viene incluido en el plan mensual y también se compra por separado.
+              que administras desde tu panel. Viene incluido en {asistente.es.name} y {acompanamiento.es.name}, y
+              también se compra por separado.
             </li>
             <li>
-              En el plan mensual, <strong>una wedding planner del equipo de Blue Book</strong> acompaña tu boda a
-              distancia.
+              En {asistente.es.name} y {acompanamiento.es.name}, <strong>un asistente por WhatsApp</strong>: un sistema
+              automatizado, no una persona, que contesta tus dudas sobre tu boda y cambia tu panel solo cuando se lo
+              confirmas (sección 6).
+            </li>
+            <li>
+              En {acompanamiento.es.name}, <strong>{acompanamiento.asesorias} asesorías de 45 minutos</strong> con el
+              equipo de Blue Book, a distancia.
             </li>
           </Lista>
           <p>
@@ -123,8 +141,9 @@ function seccionesEs(): SeccionLegal[] {
           </li>
           <li>
             Durante la prueba usas el panel completo, con tres límites: puedes crear hasta {LIMITE_IA_EN_PRUEBA}{" "}
-            invitaciones con IA, el envío de invitaciones por WhatsApp se activa al elegir un plan, y el álbum digital
-            no forma parte de la prueba (viene con el plan mensual o lo compras por separado).
+            invitaciones con IA, el envío de invitaciones por WhatsApp se activa con {acompanamiento.es.name} o con un
+            paquete de invitaciones, y el álbum digital no forma parte de la prueba (viene con {asistente.es.name} y{" "}
+            {acompanamiento.es.name}, o lo compras por separado).
           </li>
           <li>
             Si al terminar no eliges plan, tu panel queda en <strong>solo lectura</strong>: ves todo lo que capturaste,
@@ -148,11 +167,11 @@ function seccionesEs(): SeccionLegal[] {
           <Tabla
             encabezados={["Plan", "Qué incluye", "Precio"]}
             filas={[
-              [
-                <strong key="n">{AGENT_PLAN.es.name}</strong>,
-                `Tu panel completo, tus invitaciones (hasta ${LIMITE_IA_PAGADA} con IA) con envío por WhatsApp y confirmaciones, una wedding planner del equipo y tu álbum digital con fotos ilimitadas.`,
-                `${formatMXN(AGENT_PLAN.priceMxMonthly)} al mes`,
-              ],
+              ...PLAN_IDS.map((id) => [
+                <strong key="n">Plan {PLANES[id].es.name}</strong>,
+                `${PLANES[id].es.incluye.join(". ")}.`,
+                `${formatMXN(PLANES[id].priceMx)}, pago único`,
+              ]),
               ...tramos.map((t) => [
                 <strong key="n">Invitaciones, hasta {t.maxGuests}</strong>,
                 `Tus invitaciones (hasta ${LIMITE_IA_PAGADA} con IA) y su envío por WhatsApp a hasta ${t.maxGuests} invitaciones, con las confirmaciones en tu panel.`,
@@ -172,7 +191,9 @@ function seccionesEs(): SeccionLegal[] {
           />
           <p>
             El tramo de invitaciones se elige por el número de invitaciones que vas a enviar (una por invitado o por
-            grupo, con sus pases) y no puede ser menor que tu lista al momento de pagar.
+            grupo, con sus pases) y no puede ser menor que tu lista al momento de pagar. Los paquetes de invitaciones
+            se pueden sumar a {esencial.es.name} o a {asistente.es.name}; {acompanamiento.es.name} ya incluye hasta{" "}
+            {acompanamiento.invitaciones} invitaciones.
           </p>
           <p>
             El álbum digital es un pago único por álbum. Si lo compras sin tener cuenta, al pagar la creamos con tu
@@ -189,43 +210,45 @@ function seccionesEs(): SeccionLegal[] {
               </>
             ) : (
               "Por ahora no emitimos factura (CFDI)."
-            )}{" "}
-            Los cobros del plan mensual, con su comprobante, los consultas en tu panel, en Su plan › Administrar o cancelar.
+            )}
           </p>
         </>
       ),
     },
     {
-      id: "plan-mensual",
-      titulo: "El plan mensual",
+      id: "pago-unico",
+      titulo: "Pago único y cambio de plan",
       cuerpo: (
         <Lista>
           <li>
-            Es una suscripción que <strong>se renueva sola cada mes</strong>: se cobra{" "}
-            {formatMXN(AGENT_PLAN.priceMxMonthly)} el mismo día del mes en que te suscribiste, a la tarjeta que
-            registraste, hasta que la canceles.
+            Cada plan es un <strong>pago único por boda</strong>: se cobra una sola vez, al elegirlo, y no hay
+            mensualidades ni cobros posteriores.
           </li>
           <li>
-            <strong>Te avisamos por correo al menos 5 días naturales antes de cada cobro</strong>, con el monto y la
-            fecha.
+            <strong>Subir de plan:</strong> puedes pasar a un plan mayor cuando quieras y pagas solo la diferencia entre
+            los precios de la tabla de la sección 5. No se puede bajar de plan.
           </li>
           <li>
-            <strong>Cancelas cuando quieras desde tu panel</strong>, en Su plan › Administrar o cancelar, sin escribirle a nadie y
-            sin penalización. La cancelación es inmediata: no se te vuelve a cobrar, y conservas lo que ya pagaste hasta
-            el final del periodo. Al terminar, tu información no se borra.
+            <strong>El asistente por WhatsApp</strong> ({asistente.es.name} y {acompanamiento.es.name}) es un sistema
+            automatizado, no una persona. Contesta tus dudas sobre tu boda y solo cambia tu panel después de que le
+            respondes que sí. Sigue contestando hasta {MESES_DE_ASISTENTE_TRAS_LA_BODA} meses después de la fecha de tu
+            boda. Tiene un uso justo de hasta {asistente.turnosAlMes} respuestas al mes en {asistente.es.name} y{" "}
+            {acompanamiento.turnosAlMes} en {acompanamiento.es.name}. Revisa lo que te propone antes de confirmarlo.
           </li>
           <li>
-            Incluye tu álbum digital con fotos ilimitadas. Si cancelas el plan, tu álbum se queda: no baja de plan y
-            sigue abierto, también para que tus invitados suban fotos, mientras exista tu cuenta.
+            <strong>{acompanamiento.es.name}</strong> incluye además {acompanamiento.asesorias} asesorías de 45 minutos
+            con el equipo, pedir cotizaciones a proveedores por correo desde tu panel (los proveedores contestan por su
+            cuenta y sus precios son suyos) y el envío por WhatsApp de hasta {acompanamiento.invitaciones} invitaciones
+            con sus confirmaciones (sección 7).
           </li>
           <li>
-            Si un cobro es rechazado, te avisamos por correo con un enlace para pagar. Stripe lo reintenta durante unos
-            días.
+            <strong>Tu panel sigue disponible después de pagar</strong>, para consultar y editar, sin fecha de
+            vencimiento, mientras exista tu cuenta.
           </li>
+          <li>Si cambiamos los precios, el cambio no afecta lo que ya pagaste.</li>
           <li>
-            Si cambiamos el precio, te avisamos con al menos {DIAS_AVISO_CAMBIO_TERMINOS} días naturales de
-            anticipación y el nuevo precio aplica desde el siguiente periodo. Si no estás de acuerdo, puedes cancelar
-            antes, sin penalización.
+            Las suscripciones al plan mensual contratadas antes del {FECHA_PLANES_ES} conservan sus condiciones
+            anteriores hasta que se cancelen.
           </li>
         </Lista>
       ),
@@ -259,12 +282,13 @@ function seccionesEs(): SeccionLegal[] {
       cuerpo: (
         <Lista>
           <li>
-            Lo administras desde tu panel, con tu cuenta. Viene incluido, con fotos ilimitadas, en el plan mensual; con
-            el plan de invitaciones o por sí solo, lo compras por separado (sección 5).
+            Lo administras desde tu panel, con tu cuenta. Viene incluido, con fotos ilimitadas, en{" "}
+            {asistente.es.name} y {acompanamiento.es.name}; con {esencial.es.name}, con el plan de invitaciones o por sí
+            solo, lo compras por separado (sección 5).
           </li>
           <li>
-            <strong>Tu álbum no caduca ni baja de plan:</strong> si cancelas el plan mensual o termina tu prueba, se
-            queda con el plan que tenía y sigue abierto, también para que tus invitados suban fotos, mientras exista tu
+            <strong>Tu álbum no caduca ni baja de plan:</strong> si termina tu prueba, o se cancela una suscripción
+            mensual anterior, se queda con el plan que tenía y sigue abierto, también para que tus invitados suban fotos, mientras exista tu
             cuenta. El resto del panel sigue las reglas de tu plan o de tu prueba.
           </li>
           <li>
@@ -287,8 +311,8 @@ function seccionesEs(): SeccionLegal[] {
           <Lista>
             <li>La prueba es gratis: no hay nada que reembolsar.</li>
             <li>
-              Plan mensual: lo cancelas cuando quieras (sección 6). No hacemos reembolsos proporcionales del mes en
-              curso.
+              Plan mensual contratado antes del {FECHA_PLANES_ES}: lo cancelas cuando quieras. No hacemos reembolsos
+              proporcionales del mes en curso.
             </li>
             <li>
               Invitaciones: si todavía no has enviado ninguna invitación, puedes pedir el reembolso completo escribiendo
@@ -519,11 +543,17 @@ function seccionesEn(): SeccionLegal[] {
             </li>
             <li>
               <strong>Digital album:</strong> an interactive album where you and your guests upload the wedding photos,
-              managed from your panel. It&rsquo;s included in the monthly plan and can also be bought separately.
+              managed from your panel. It&rsquo;s included in {asistente.en.name} and {acompanamiento.en.name}, and can
+              also be bought separately.
             </li>
             <li>
-              With the monthly plan, <strong>a wedding planner from the Blue Book team</strong> looks after your wedding
-              remotely.
+              In {asistente.en.name} and {acompanamiento.en.name}, <strong>a WhatsApp assistant</strong>: an automated
+              system, not a person, that answers your questions about your wedding and changes your panel only when you
+              confirm it (section 6).
+            </li>
+            <li>
+              In {acompanamiento.en.name}, <strong>{acompanamiento.asesorias} 45-minute sessions</strong> with the Blue
+              Book team, remotely.
             </li>
           </Lista>
           <p>
@@ -562,8 +592,9 @@ function seccionesEn(): SeccionLegal[] {
           </li>
           <li>
             During the trial you use the full panel with three limits: you can create up to {LIMITE_IA_EN_PRUEBA}{" "}
-            invitations with AI, sending invitations over WhatsApp unlocks when you choose a plan, and the digital album
-            isn&rsquo;t part of the trial (it comes with the monthly plan or you buy it separately).
+            invitations with AI, sending invitations over WhatsApp unlocks with {acompanamiento.en.name} or an
+            invitations package, and the digital album isn&rsquo;t part of the trial (it comes with {asistente.en.name}{" "}
+            and {acompanamiento.en.name}, or you buy it separately).
           </li>
           <li>
             If you don&rsquo;t choose a plan when it ends, your panel becomes <strong>read-only</strong>: you see
@@ -587,11 +618,11 @@ function seccionesEn(): SeccionLegal[] {
           <Tabla
             encabezados={["Plan", "What it includes", "Price"]}
             filas={[
-              [
-                <strong key="n">{AGENT_PLAN.en.name}</strong>,
-                `Your full panel, your invitations (up to ${LIMITE_IA_PAGADA} with AI) sent over WhatsApp with RSVPs, a planner from the team and your digital album with unlimited photos.`,
-                `${formatMXN(AGENT_PLAN.priceMxMonthly)} per month`,
-              ],
+              ...PLAN_IDS.map((id) => [
+                <strong key="n">{PLANES[id].en.name} plan</strong>,
+                `${PLANES[id].en.incluye.join(". ")}.`,
+                `${formatMXN(PLANES[id].priceMx)}, one-time`,
+              ]),
               ...tramos.map((t) => [
                 <strong key="n">Invitations, up to {t.maxGuests}</strong>,
                 `Your invitations (up to ${LIMITE_IA_PAGADA} with AI) sent over WhatsApp to up to ${t.maxGuests} invitations, with RSVPs in your panel.`,
@@ -611,7 +642,9 @@ function seccionesEn(): SeccionLegal[] {
           />
           <p>
             The invitations tier is chosen by the number of invitations you&rsquo;ll send (one per guest or per group,
-            with its seats) and can&rsquo;t be lower than your list when you pay.
+            with its seats) and can&rsquo;t be lower than your list when you pay. Invitations packages can be added to{" "}
+            {esencial.en.name} or {asistente.en.name}; {acompanamiento.en.name} already includes up to{" "}
+            {acompanamiento.invitaciones} invitations.
           </p>
           <p>
             The digital album is a one-time payment per album. If you buy it without an account, we create one with
@@ -628,40 +661,45 @@ function seccionesEn(): SeccionLegal[] {
               </>
             ) : (
               "For now we don’t issue Mexican tax invoices (CFDI)."
-            )}{" "}
-            Monthly plan charges, with their receipts, are in your panel, under Your plan › Manage or cancel.
+            )}
           </p>
         </>
       ),
     },
     {
-      id: "plan-mensual",
-      titulo: "The monthly plan",
+      id: "pago-unico",
+      titulo: "One-time payment and changing plans",
       cuerpo: (
         <Lista>
           <li>
-            It&rsquo;s a subscription that <strong>renews automatically every month</strong>:{" "}
-            {formatMXN(AGENT_PLAN.priceMxMonthly)} is charged on the same day of the month you subscribed, to the card you
-            registered, until you cancel.
+            Each plan is a <strong>one-time payment per wedding</strong>: it&rsquo;s charged once, when you choose it,
+            with no monthly fees or later charges.
           </li>
           <li>
-            <strong>We email you at least 5 calendar days before every charge</strong>, with the amount and the date.
+            <strong>Moving up:</strong> you can switch to a bigger plan whenever you want and you only pay the difference
+            between the prices in the table in section 5. You can&rsquo;t move down a plan.
           </li>
           <li>
-            <strong>You cancel whenever you want from your panel</strong>, under Your plan › Manage or cancel, without writing to
-            anyone and with no penalty. Cancellation is immediate: you won&rsquo;t be charged again, and you keep what
-            you already paid until the end of the period. Your information isn&rsquo;t deleted when it ends.
+            <strong>The WhatsApp assistant</strong> ({asistente.en.name} and {acompanamiento.en.name}) is an automated
+            system, not a person. It answers your questions about your wedding and only changes your panel after you
+            reply yes. It keeps answering until {MESES_DE_ASISTENTE_TRAS_LA_BODA} months after your wedding date. It has a
+            fair-use limit of up to {asistente.turnosAlMes} replies a month in {asistente.en.name} and{" "}
+            {acompanamiento.turnosAlMes} in {acompanamiento.en.name}. Review what it proposes before you confirm it.
           </li>
           <li>
-            It includes your digital album with unlimited photos. If you cancel the plan, your album stays: it
-            doesn&rsquo;t drop to a smaller plan and stays open, including for your guests to upload photos, while your
+            <strong>{acompanamiento.en.name}</strong> also includes {acompanamiento.asesorias} 45-minute sessions with
+            the team, requesting vendor quotes by email from your panel (vendors answer on their own and their prices are
+            theirs) and sending up to {acompanamiento.invitaciones} invitations over WhatsApp with their RSVPs (section
+            7).
+          </li>
+          <li>
+            <strong>Your panel stays available after you pay</strong>, to read and edit, with no expiry date, while your
             account exists.
           </li>
-          <li>If a charge is declined, we email you a link to pay. Stripe retries it for a few days.</li>
+          <li>If we change prices, the change doesn&rsquo;t affect what you already paid.</li>
           <li>
-            If we change the price, we&rsquo;ll let you know at least {DIAS_AVISO_CAMBIO_TERMINOS} calendar days in
-            advance and the new price applies from the next period. If you don&rsquo;t agree, you can cancel before then
-            with no penalty.
+            Monthly plan subscriptions taken out before {FECHA_PLANES_EN} keep their previous terms until they&rsquo;re
+            cancelled.
           </li>
         </Lista>
       ),
@@ -695,12 +733,13 @@ function seccionesEn(): SeccionLegal[] {
       cuerpo: (
         <Lista>
           <li>
-            You manage it from your panel, with your account. It&rsquo;s included, with unlimited photos, in the monthly
-            plan; with the invitations plan or on its own, you buy it separately (section 5).
+            You manage it from your panel, with your account. It&rsquo;s included, with unlimited photos, in{" "}
+            {asistente.en.name} and {acompanamiento.en.name}; with {esencial.en.name}, with the invitations plan or on
+            its own, you buy it separately (section 5).
           </li>
           <li>
-            <strong>Your album doesn&rsquo;t expire or drop to a smaller plan:</strong> if you cancel the monthly plan or
-            your trial ends, it keeps the plan it had and stays open, including for your guests to upload photos, while
+            <strong>Your album doesn&rsquo;t expire or drop to a smaller plan:</strong> if your trial ends, or an earlier
+            monthly subscription is cancelled, it keeps the plan it had and stays open, including for your guests to upload photos, while
             your account exists. The rest of the panel follows the rules of your plan or your trial.
           </li>
           <li>
@@ -723,8 +762,8 @@ function seccionesEn(): SeccionLegal[] {
           <Lista>
             <li>The trial is free: there&rsquo;s nothing to refund.</li>
             <li>
-              Monthly plan: you cancel whenever you want (section 6). We don&rsquo;t give prorated refunds for the
-              current month.
+              Monthly plan taken out before {FECHA_PLANES_EN}: you cancel whenever you want. We don&rsquo;t give
+              prorated refunds for the current month.
             </li>
             <li>
               Invitations: if you haven&rsquo;t sent any invitation yet, you can ask for a full refund by writing to{" "}
@@ -908,7 +947,7 @@ export default async function TerminosPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Terms and conditions" : "Términos y condiciones"}
-      actualizado={isEnglish ? "September 28, 2026" : "28 de septiembre de 2026"}
+      actualizado={isEnglish ? FECHA_PLANES_EN : FECHA_PLANES_ES}
       intro={
         isEnglish ? (
           <p>

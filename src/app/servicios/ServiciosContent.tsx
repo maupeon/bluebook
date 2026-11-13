@@ -10,7 +10,6 @@ import {
   BarMock,
   BudgetMock,
   InvitationMock,
-  PlannerNote,
   RsvpMock,
   TasksMock,
   TimelineMock,
@@ -20,6 +19,11 @@ import { Watercolor } from "@/components/marketing/Watercolor";
 import { Titular } from "@/components/marca/Titular";
 import { ButtonLink, Container, Display, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
 import { BluDeEncabezado } from "@/components/marketing/Blu";
+import { PLANES } from "@/lib/weddingPlans";
+
+// Desde el 13-nov-2026 no hay plan mensual ni planner asignada: lo que hay de
+// personas son las asesorías del plan Acompañamiento (PLANES).
+const acompanamiento = PLANES.acompanamiento;
 
 interface Service {
   id: string;
@@ -158,23 +162,30 @@ const SERVICES: Service[] = [
   {
     id: "tu-planner",
     es: {
-      nav: "Tu planner",
-      eyebrow: "Tu planner",
-      title: <>Y una planner real, <Em>contigo.</Em></>,
-      body: "Con el plan mensual, detrás de la plataforma hay una wedding planner profesional: revisa tu presupuesto, te orienta con proveedores y tiempos, arma contigo el guion del día y revisa cada invitación antes de que salga.",
-      bullets: ["Revisa tu boda de verdad", "Te orienta cuando no sabes qué sigue", "Está a un mensaje de distancia"],
+      nav: "Asesorías",
+      eyebrow: `Plan ${acompanamiento.es.name}`,
+      title: <>Y nuestro equipo, <Em>contigo.</Em></>,
+      body: `Con ${acompanamiento.es.name}, tienes ${acompanamiento.asesorias} asesorías de 45 minutos con nuestro equipo para revisar tu presupuesto, tu cronograma y las propuestas de tus proveedores, y pides cotizaciones a proveedores por correo desde tu panel.`,
+      bullets: [
+        `${acompanamiento.asesorias} asesorías de 45 minutos`,
+        "Presupuesto, cronograma y propuestas",
+        "Cotizaciones a proveedores desde tu panel",
+      ],
     },
     en: {
-      nav: "Your planner",
-      eyebrow: "Your planner",
-      title: <>And a real planner, <Em>with you.</Em></>,
-      body: "With the monthly plan, there's a professional wedding planner behind the platform: she reviews your budget, guides you on vendors and timing, builds the run-of-show with you and checks every invitation before it goes out.",
-      bullets: ["Really reviews your wedding", "Guides you when you don't know what's next", "One message away"],
+      nav: "Sessions",
+      eyebrow: `${acompanamiento.en.name} plan`,
+      title: <>And our team, <Em>with you.</Em></>,
+      body: `With ${acompanamiento.en.name}, you get ${acompanamiento.asesorias} 45-minute sessions with our team to go over your budget, your timeline and your vendors' proposals, and you request vendor quotes by email from your dashboard.`,
+      bullets: [
+        `${acompanamiento.asesorias} 45-minute sessions`,
+        "Budget, timeline and proposals",
+        "Vendor quotes from your dashboard",
+      ],
     },
     visual: (en) => (
       <div className="relative flex flex-col items-center gap-4">
-        <Cake className="h-44 w-auto text-tinta" />
-        <PlannerNote en={en} />
+        <Cake className="h-44 w-auto text-tinta" title={en ? "A three-tier wedding cake" : "Un pastel de boda de tres pisos"} />
       </div>
     ),
   },
@@ -305,7 +316,7 @@ export function ServiciosContent() {
         })}
       </div>
 
-      {/* Un panel para los tres */}
+      {/* Un panel para los dos (antes «los tres»: con la planner del plan mensual) */}
       <section className="py-24 md:py-32">
         <Container>
           <Reveal>
@@ -324,18 +335,18 @@ export function ServiciosContent() {
               <Titular className="mt-6">
                 {en ? (
                   <>
-                    One dashboard, <Em>for the three of you.</Em>
+                    One dashboard, <Em>for the two of you.</Em>
                   </>
                 ) : (
                   <>
-                    Un solo panel, <Em>para los tres.</Em>
+                    Un solo panel, <Em>para los dos.</Em>
                   </>
                 )}
               </Titular>
               <p className="mx-auto mt-4 max-w-[56ch] text-[15px] leading-relaxed text-tinta">
                 {en
-                  ? "You and your partner see the same thing and, with the monthly plan, so does your planner. You sign in with your email and a code: no passwords to remember, from your phone or your laptop."
-                  : "Tú y tu pareja ven lo mismo y, con el plan mensual, también tu planner. Entras con tu correo y un código: sin contraseñas que recordar, desde el celular o la compu."}
+                  ? "You and your partner see the same thing. You sign in with your email and a code: no passwords to remember, from your phone or your laptop."
+                  : "Tú y tu pareja ven lo mismo. Entras con tu correo y un código: sin contraseñas que recordar, desde el celular o la compu."}
               </p>
               <ButtonLink href="/acceso" variant="secondary" size="md" arrow className="mt-8">
                 {en ? "Already a client? Sign in" : "¿Ya eres clienta? Entra"}

@@ -6,7 +6,7 @@ import { Blu, Burbuja, Garabatos } from "@/components/marketing/Blu";
 import { RsvpToast } from "@/components/marketing/Mockups";
 import { ButtonLink, Container, Display, Em, Lead } from "@/components/marketing/ui";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
-import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
+import { PLANES, formatMXN } from "@/lib/weddingPlans";
 
 /*
  * LA PORTADA. Blu primero.
@@ -96,19 +96,21 @@ export function HomeHero() {
               {/* Lo que pasa después de la prueba, dicho antes de que lo pregunte. */}
               <p className="mx-auto mt-3 max-w-[34rem] text-sm text-tinta sm:mt-4 lg:mx-0">
                 {en
-                  ? `${DIAS_DE_PRUEBA} days free, no card. Then ${formatMXN(AGENT_PLAN.priceMxMonthly)} a month, or a single payment for your invitations.`
-                  : `${DIAS_DE_PRUEBA} días gratis, sin tarjeta. Después, ${formatMXN(AGENT_PLAN.priceMxMonthly)} al mes o un solo pago por tus invitaciones.`}
+                  ? `${DIAS_DE_PRUEBA} days free, no card. Then one payment for your wedding, from ${formatMXN(PLANES.esencial.priceMx)}.`
+                  : `${DIAS_DE_PRUEBA} días gratis, sin tarjeta. Después, un solo pago por tu boda, desde ${formatMXN(PLANES.esencial.priceMx)}.`}
               </p>
             </div>
 
             <div className="entrada-texto max-sm:order-2" style={{ "--entrada": "240ms" } as React.CSSProperties}>
               <p className="mt-6 inline-flex items-start gap-2.5 border-t border-linea pt-5 text-left text-sm text-noche">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-vino" strokeWidth={1.75} aria-hidden="true" />
-                {/* Solo el plan mensual trae planner: en la prueba y en «solo
-                    invitaciones» la boda no tiene una asignada. */}
+                {/* Antes prometía «una wedding planner real» con el plan
+                    mensual. Desde el 13-nov-2026 los planes son de pago único
+                    y ninguno trae una planner asignada: lo que sí se promete
+                    es que no hay cobros después. */}
                 {en
-                  ? "With the monthly plan, a real wedding planner looks after your wedding."
-                  : "Con el plan mensual, una wedding planner real cuida tu boda."}
+                  ? "You pay once per wedding: no monthly fees and nothing charged later."
+                  : "Pagas una vez por tu boda: sin mensualidades ni cobros después."}
               </p>
             </div>
           </div>

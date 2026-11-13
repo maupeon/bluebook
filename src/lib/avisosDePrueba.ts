@@ -1,7 +1,7 @@
 import "server-only";
 import { CONTACT_INFO } from "@/lib/language";
 import { sendAvisoEmail } from "@/lib/email";
-import { formatMXN } from "@/lib/weddingPlans";
+import { PLANES, formatMXN, type PlanId } from "@/lib/weddingPlans";
 import { urlDelPanel, urlDeLaBodaEnElAdmin } from "@/lib/avisos";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
 
@@ -170,10 +170,15 @@ export async function avisarConversion(p: {
   weddingId: string;
   pareja: string;
   email: string | null;
-  plan: "planner" | "invitations";
+  plan: "planner" | "invitations" | PlanId;
   importeMx: number | null;
 }) {
-  const plan = p.plan === "planner" ? "Plan mensual" : "Invitaciones (pago único)";
+  const plan =
+    p.plan === "planner"
+      ? "Plan mensual"
+      : p.plan === "invitations"
+        ? "Invitaciones (pago único)"
+        : `${PLANES[p.plan].es.name} (pago único)`;
   return sendAvisoEmail({
     to: [CONTACT_INFO.email],
     subject: `Convirtió: ${p.pareja}`,
@@ -182,7 +187,11 @@ export async function avisarConversion(p: {
     parrafos: [
       p.plan === "planner"
         ? "Eligieron el plan mensual. Falta asignarles planner."
-        : "Eligieron invitaciones. Su panel sigue abierto sin planner.",
+        : p.plan === "invitations"
+          ? "Eligieron invitaciones. Su panel sigue abierto sin planner."
+          : p.plan === "acompanamiento"
+            ? "Eligieron Acompañamiento: agéndenles su primera asesoría."
+            : `Eligieron ${PLANES[p.plan].es.name}.`,
     ],
     filas: [
       ["Plan", plan],

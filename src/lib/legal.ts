@@ -46,7 +46,11 @@ export const EMITE_CFDI = false;
 /** Fechas de la versión vigente. Se guardan con cada consentimiento como prueba. */
 // 2026-09-28: el álbum digital entra al panel: incluido en el plan mensual,
 // se vende suelto creando la cuenta con la prueba, y no caduca ni baja de plan.
-export const VERSION_TERMINOS = "2026-09-28";
+// 2026-11-13: el mensual se reemplaza por tres planes de pago único por boda
+// (Esencial, Con asistente, Acompañamiento): subir paga la diferencia, uso
+// justo del asistente y hasta 3 meses tras la boda; las suscripciones previas
+// conservan sus condiciones hasta cancelarse.
+export const VERSION_TERMINOS = "2026-11-13";
 // «.2»: el mismo día se publicó otra versión (la copia de 30 minutos para la
 // vuelta de Google); esa agregó traer la lista y el presupuesto en «Su boda».
 // «.3»: el reparto del presupuesto por categoría, y que se borra con él.

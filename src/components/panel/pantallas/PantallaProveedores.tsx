@@ -1,5 +1,6 @@
 "use client";
 
+import { PedirCotizacion } from "@/components/panel/PedirCotizacion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, FileText, Plus, Scale } from "lucide-react";
@@ -92,6 +93,19 @@ export function PantallaProveedores({
           </header>
         </Reveal>
       )}
+
+      {wedding.plan === "acompanamiento" ? (
+        <Reveal app className="mt-10">
+          <PedirCotizacion
+            pareja={wedding.coupleName}
+            fecha={wedding.weddingDate}
+            lugar={wedding.venue}
+            personas={personas}
+            soloLectura={soloLectura}
+            isEnglish={isEnglish}
+          />
+        </Reveal>
+      ) : null}
 
       <Reveal app className="mt-12">
         <h2 className="text-xl font-medium text-noche">{isEnglish ? "Your money" : "Su dinero"}</h2>

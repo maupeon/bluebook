@@ -4,12 +4,11 @@ import { useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Container, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
-import { AGENT_PLAN } from "@/lib/weddingPlans";
+import { PLANES, PLAN_IDS, type PlanId } from "@/lib/weddingPlans";
 
 const pesos = (n: number) => `$${Math.round(n).toLocaleString("es-MX")}`;
 
 const BUDGET = { min: 80_000, max: 800_000, step: 10_000, initial: 180_000 };
-const MONTHS = { min: 2, max: 18, step: 1, initial: 10 };
 
 function Slider({
   id,
@@ -61,12 +60,13 @@ function Slider({
 
 /*
  * La cuenta que ella va a hacer de todos modos: cuánto le cobraría una planner
- * presencial (10–15% del presupuesto, el rango de referencia) contra lo que
- * cuesta Blue Book los meses que le faltan.
+ * presencial (10–15% del presupuesto, el rango de referencia) contra el pago
+ * único del plan que elija (Con asistente de entrada, el recomendado). Desde
+ * el 13-nov-2026 no hay mensualidad, así que ya no hay meses que multiplicar.
  *
  * Si con su boda la presencial sale igual o más barata, se lo dice. Una
  * calculadora que siempre da "ahorras" no se cree, y en bodas chicas con
- * mucho tiempo por delante es verdad que puede no convenir.
+ * Acompañamiento es verdad que puede no convenir.
  *
  * El encabezado va centrado arriba y la calculadora debajo, en una hoja de
  * papel azul (el papel de los precios) sobre la sección niebla. La cifra de
@@ -75,19 +75,20 @@ function Slider({
 export function Savings() {
   const { isEnglish: en } = useLanguage();
   const [budget, setBudget] = useState(BUDGET.initial);
-  const [months, setMonths] = useState(MONTHS.initial);
+  const [planId, setPlanId] = useState<PlanId>("asistente");
 
+  const plan = PLANES[planId];
   const low = budget * 0.1;
   const high = budget * 0.15;
-  const blueBook = AGENT_PLAN.priceMxMonthly * months;
+  const blueBook = plan.priceMx;
   const saveLow = low - blueBook;
   const saveHigh = high - blueBook;
 
   const verdict =
     saveHigh <= 0
       ? en
-        ? "With a wedding this size and this much time, an in-person planner could cost you the same or less. Tell us and we'll help you decide."
-        : "Con una boda de este tamaño y tanto tiempo por delante, una planner presencial podría salirte igual o más barata. Escríbenos y te ayudamos a decidir."
+        ? "With a wedding this size and this plan, an in-person planner could cost you the same or less. Tell us and we'll help you decide."
+        : "Con una boda de este tamaño y este plan, una planner presencial podría salirte igual o más barata. Escríbenos y te ayudamos a decidir."
       : saveLow <= 0
         ? en
           ? `You could save up to ${pesos(saveHigh)}, depending on the planner.`
@@ -108,11 +109,11 @@ export function Savings() {
               <Heading className="mt-4">
                 {en ? (
                   <>
-                    A flat monthly price, <Em>not a percentage.</Em>
+                    One payment, <Em>not a percentage.</Em>
                   </>
                 ) : (
                   <>
-                    Un precio fijo al mes, <Em>no un porcentaje.</Em>
+                    Un solo pago, <Em>no un porcentaje.</Em>
                   </>
                 )}
               </Heading>
@@ -140,17 +141,33 @@ export function Savings() {
                   onChange={setBudget}
                   valueText={`${pesos(budget)} MXN`}
                 />
-                <Slider
-                  id="ahorro-meses"
-                  label={en ? "Months until the wedding" : "Meses que faltan para la boda"}
-                  value={months}
-                  display={`${months} ${en ? (months === 1 ? "month" : "months") : months === 1 ? "mes" : "meses"}`}
-                  min={MONTHS.min}
-                  max={MONTHS.max}
-                  step={MONTHS.step}
-                  onChange={setMonths}
-                  valueText={`${months} ${en ? "months" : "meses"}`}
-                />
+                {/* El plan, en el mismo selector de píldoras que la
+                    comparación usa en el teléfono. */}
+                <div>
+                  <p id="ahorro-plan" className="text-sm text-tinta">
+                    {en ? "Blue Book plan" : "Plan de Blue Book"}
+                  </p>
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="ahorro-plan"
+                    className="mt-3 grid grid-cols-3 gap-1 rounded-full border border-linea bg-niebla p-1"
+                  >
+                    {PLAN_IDS.map((id) => (
+                      <button
+                        key={id}
+                        type="button"
+                        role="radio"
+                        aria-checked={planId === id}
+                        onClick={() => setPlanId(id)}
+                        className={`min-h-11 rounded-full px-2 py-2.5 text-[13px] font-medium transition-colors duration-150 ${
+                          planId === id ? "bg-noche text-niebla" : "text-tinta"
+                        }`}
+                      >
+                        {en ? PLANES[id].en.name : PLANES[id].es.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <dl className="mt-9 grid gap-3 sm:grid-cols-2">
@@ -164,7 +181,7 @@ export function Savings() {
                 </div>
                 <div className="rounded-2xl border-2 border-noche bg-niebla p-5">
                   <dt className="text-xs font-medium text-noche">
-                    {en ? `Blue Book · ${months} months` : `Blue Book · ${months} ${months === 1 ? "mes" : "meses"}`}
+                    {en ? `Blue Book · ${plan.en.name}, one-time` : `Blue Book · ${plan.es.name}, pago único`}
                   </dt>
                   <dd className="mt-2 text-[1.6rem] font-light leading-none text-noche tabular-nums sm:text-[1.45rem] lg:text-[1.6rem]">
                     {pesos(blueBook)}
@@ -177,8 +194,8 @@ export function Savings() {
               </p>
               <p className="mt-3 text-xs leading-relaxed text-tinta">
                 {en
-                  ? "Reference figures: what an in-person planner charges varies by city and service, and Blue Book is month to month, so it stops whenever you cancel."
-                  : "Cifras de referencia: lo que cobra una planner presencial varía por ciudad y servicio, y Blue Book es mes a mes, así que se detiene cuando lo cancelas."}
+                  ? `Reference figures: what an in-person planner charges varies by city and service, and she's with you on the day. Blue Book is a one-time payment per wedding, with nothing charged later; invitations go separately except in ${PLANES.acompanamiento.en.name}.`
+                  : `Cifras de referencia: lo que cobra una planner presencial varía por ciudad y servicio, y ella está contigo el día de la boda. Blue Book es un pago único por boda, sin cobros después; las invitaciones van aparte, salvo en ${PLANES.acompanamiento.es.name}.`}
               </p>
             </div>
           </Reveal>

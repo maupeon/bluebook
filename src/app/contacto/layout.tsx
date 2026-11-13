@@ -20,7 +20,7 @@ const localBusinessSchema = {
   "@type": "LocalBusiness",
   name: "Blue Book",
   description:
-    "Wedding planner en línea: toda tu boda en una plataforma, con una wedding planner real.",
+    "Wedding planner en línea: toda tu boda en una plataforma que compartes con tu pareja.",
   url: "https://bluebook.mx",
   logo: "https://bluebook.mx/icon.png",
   telephone: CONTACT_INFO.whatsappNumber,

@@ -5,45 +5,56 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { Reveal } from "@/components/Reveal";
 import { Cake, Sparkle } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
-import { PlannerNote } from "@/components/marketing/Mockups";
 import { Container, Em, Eyebrow, Heading, Lead } from "@/components/marketing/ui";
+import { PLANES } from "@/lib/weddingPlans";
+
+/*
+ * Antes: «Detrás de la plataforma, una planner de verdad» con el plan mensual.
+ * Desde el 13-nov-2026 no hay plan mensual ni planner asignada: lo que sí hay
+ * de personas es el plan Acompañamiento, con sus asesorías de 45 minutos con
+ * el equipo (presupuesto, cronograma y propuestas) y pedir cotizaciones a
+ * proveedores desde el panel. Esta sección cuenta sólo eso. Se quitó la nota
+ * de muestra «Tu planner: … ya le recordé a la florista», que prometía una
+ * planner hablando con proveedores.
+ */
+const acompanamiento = PLANES.acompanamiento;
 
 export function RealPlanner() {
   const { isEnglish: en } = useLanguage();
 
   const duties = en
     ? [
-        { Icon: Wallet, text: "Reviews your budget and your payments" },
-        { Icon: Store, text: "Guides you on vendors and timing" },
-        { Icon: CalendarHeart, text: "Builds the day's run-of-show with you" },
-        { Icon: MailCheck, text: "Checks every invitation before it goes out" },
+        { Icon: Wallet, text: "We go over your budget with you" },
+        { Icon: CalendarHeart, text: "We put your timeline together with you" },
+        { Icon: Store, text: "We review vendor proposals with you" },
+        { Icon: MailCheck, text: "You request vendor quotes by email from your dashboard" },
       ]
     : [
-        { Icon: Wallet, text: "Revisa tu presupuesto y tus pagos" },
-        { Icon: Store, text: "Te orienta con proveedores y tiempos" },
-        { Icon: CalendarHeart, text: "Arma contigo el guion del día" },
-        { Icon: MailCheck, text: "Revisa cada invitación antes de que salga" },
+        { Icon: Wallet, text: "Revisamos contigo tu presupuesto" },
+        { Icon: CalendarHeart, text: "Armamos contigo tu cronograma" },
+        { Icon: Store, text: "Revisamos contigo las propuestas de proveedores" },
+        { Icon: MailCheck, text: "Pides cotizaciones a proveedores por correo desde tu panel" },
       ];
 
   return (
     <section className="relative overflow-hidden bg-papel py-24 md:py-32">
       <Container>
         {/* El encabezado va arriba y centrado: en media columna el titular
-            («Detrás de la plataforma, una planner de verdad.») se iba a tres
-            líneas. Debajo, lo que hace la planner junto al dibujo. */}
+            se iba a tres líneas. Debajo, lo que hacemos en las asesorías junto
+            al dibujo. */}
         <div className="mx-auto max-w-3xl text-center">
           <Reveal>
-            <Eyebrow>{en ? "Your planner" : "Tu planner"}</Eyebrow>
+            <Eyebrow>{en ? `${acompanamiento.en.name} plan` : `Plan ${acompanamiento.es.name}`}</Eyebrow>
           </Reveal>
           <Reveal delay={80}>
             <Heading className="mt-4">
               {en ? (
                 <>
-                  Behind the platform, <Em>a real planner.</Em>
+                  When you want to talk it through, <Em>our team.</Em>
                 </>
               ) : (
                 <>
-                  Detrás de la plataforma, <Em>una planner de verdad.</Em>
+                  Cuando quieras platicarlo, <Em>nuestro equipo.</Em>
                 </>
               )}
             </Heading>
@@ -51,8 +62,8 @@ export function RealPlanner() {
           <Reveal delay={160}>
             <Lead className="mx-auto mt-5 max-w-2xl">
               {en
-                ? "Blue Book isn't an app that leaves you alone with a list. With the monthly plan, a professional wedding planner looks after your wedding, and she's one message away."
-                : "Blue Book no es una app que te deja sola con una lista. Con el plan mensual, una wedding planner profesional cuida tu boda, y está a un mensaje de distancia."}
+                ? `Blue Book isn't an app that leaves you alone with a list. With ${acompanamiento.en.name}, you get ${acompanamiento.asesorias} 45-minute sessions with our team, online, to go over your budget, your timeline and your vendors' proposals.`
+                : `Blue Book no es una app que te deja sola con una lista. Con ${acompanamiento.es.name}, tienes ${acompanamiento.asesorias} asesorías de 45 minutos con nuestro equipo, a distancia, para revisar tu presupuesto, tu cronograma y las propuestas de tus proveedores.`}
             </Lead>
           </Reveal>
         </div>
@@ -73,16 +84,15 @@ export function RealPlanner() {
             </ul>
 
             <Reveal delay={420}>
-              {/* Antes decía que nada le llegaba a los invitados sin revisión: la
-                  invitación de autoservicio (solo invitaciones) sale sin pasar
-                  por una planner, así que la frase ya no era cierta para todas.
-                  Va en script, como los cierres del Instagram: lo que dice ya
-                  lo dijo el párrafo de arriba. */}
+              {/* Antes: «Del otro lado de cada mensaje, una persona». Ya no es
+                  cierto: el asistente por WhatsApp es automático. Lo que sí es
+                  de personas son las asesorías. Va en script, como los cierres
+                  del Instagram: lo que dice ya lo dijo el párrafo de arriba. */}
               <blockquote className="mt-10 border-l-2 border-linea pl-5">
                 <p className="frase text-[2rem] sm:text-[2.4rem]">
                   {en
-                    ? "On the other side of every message, a person."
-                    : "Del otro lado de cada mensaje, una persona."}
+                    ? "In every session, a person from our team."
+                    : "En cada asesoría, una persona del equipo."}
                 </p>
               </blockquote>
             </Reveal>
@@ -97,7 +107,6 @@ export function RealPlanner() {
                 Save the moments. Not just the day.
               </p>
             </div>
-            <PlannerNote en={en} className="absolute left-0 top-[4%] sm:-left-8" />
           </Reveal>
         </div>
       </Container>

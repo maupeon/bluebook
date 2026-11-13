@@ -6,13 +6,13 @@ import { Envelopes, PlannerBook, Rings, Toast } from "@/components/marketing/Ink
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { Container, Em, Eyebrow, Heading } from "@/components/marketing/ui";
 import { DIAS_DE_PRUEBA } from "@/lib/accesoDeLaBoda";
-import { AGENT_PLAN, formatMXN } from "@/lib/weddingPlans";
+import { PLANES, formatMXN } from "@/lib/weddingPlans";
 // Misma bandera que el botón de LoginForm: mientras el proveedor de Google no
 // esté dado de alta en Supabase, el sitio no puede prometer que se entra con
 // Google.
 import { GOOGLE_ACTIVO as CON_GOOGLE } from "@/lib/entrarConGoogle";
 
-const price = formatMXN(AGENT_PLAN.priceMxMonthly);
+const desde = formatMXN(PLANES.esencial.priceMx);
 
 // El recorrido de la prueba, en el orden en que ella lo vive. Antes el segundo
 // paso prometía que «tu planner te escribe en menos de 24 horas»: durante la
@@ -66,11 +66,11 @@ const STEPS = [
     Art: Rings,
     es: {
       title: `A los ${DIAS_DE_PRUEBA} días, eliges`,
-      body: `El plan mensual de ${price} o un solo pago por tus invitaciones. Si todavía no eliges, tu panel se queda para consulta y nada se borra.`,
+      body: `${PLANES.esencial.es.name}, ${PLANES.asistente.es.name} o ${PLANES.acompanamiento.es.name}, en un solo pago desde ${desde}, o solo tus invitaciones. Si todavía no eliges, tu panel se queda para consulta y nada se borra.`,
     },
     en: {
       title: `On day ${DIAS_DE_PRUEBA}, you choose`,
-      body: `The ${price} monthly plan or a single payment for your invitations. If you don't choose yet, your dashboard stays open to read and nothing is deleted.`,
+      body: `${PLANES.esencial.en.name}, ${PLANES.asistente.en.name} or ${PLANES.acompanamiento.en.name}, in one payment from ${desde}, or just your invitations. If you don't choose yet, your dashboard stays open to read and nothing is deleted.`,
     },
   },
 ];

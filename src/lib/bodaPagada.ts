@@ -2,7 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPaymentNotificationEmail } from "@/lib/email";
-import { AGENT_PLAN, INVITATION_TIERS, getInvitationTier } from "@/lib/weddingPlans";
+import { AGENT_PLAN, INVITATION_TIERS, PLANES, esPlanId, getInvitationTier, type PlanId } from "@/lib/weddingPlans";
 import { sincronizarSuscripcion, stripeServidor } from "@/lib/suscripcion";
 import { avisarConversion } from "@/lib/avisosDePrueba";
 import { asegurarAlbumDeLaBoda, PLAN_DE_ALBUM_DEL_PLANNER } from "@/lib/albumDeLaBoda";
@@ -33,7 +33,16 @@ export async function registrarPagoDeBoda(
 ): Promise<BodaPagada | null> {
   const metadata = session.metadata || {};
   const productType = metadata.productType;
-  if (productType !== "planner" && productType !== "invitations") return null;
+  // "plan" = uno de los tres planes de pago único (13-nov-2026); "planner" es
+  // el mensual de antes, que sólo llega de sesiones viejas.
+  if (productType !== "planner" && productType !== "invitations" && productType !== "plan") return null;
+  const planPagado: PlanId | null =
+    productType === "plan" && esPlanId(metadata.plan) ? metadata.plan : null;
+  if (productType === "plan" && !planPagado) {
+    console.error("Pago de plan sin plan válido en metadata:", session.id);
+    return null;
+  }
+  const service: "planner" | "invitations" = productType === "invitations" ? "invitations" : "planner";
 
   // 'no_payment_required' es un cupón del 100%: también cuenta como pagada.
   if (session.status !== "complete" || session.payment_status === "unpaid") return null;
@@ -78,8 +87,11 @@ export async function registrarPagoDeBoda(
     productType === "invitations" && typeof metadata.tramo === "string"
       ? INVITATION_TIERS.find((t) => t.id === metadata.tramo) ?? null
       : null;
-  const precioDeLista =
-    productType === "planner" ? AGENT_PLAN.priceMxMonthly : tramoPagado?.priceMx ?? null;
+  const precioDeLista = planPagado
+    ? PLANES[planPagado].priceMx
+    : productType === "planner"
+      ? AGENT_PLAN.priceMxMonthly
+      : tramoPagado?.priceMx ?? null;
   let primeraVezDeEstaSesion = false;
   if (lead.stripe_session_id !== session.id) {
     const { data: marcadas, error: updateError } = await supabase
@@ -87,7 +99,8 @@ export async function registrarPagoDeBoda(
       .update({
         paid_at: new Date().toISOString(),
         stripe_session_id: session.id,
-        service: productType,
+        service,
+        ...(planPagado ? { plan: planPagado } : {}),
         ...(precioDeLista != null ? { quoted_price_mx: precioDeLista } : {}),
         ...(typeof session.customer === "string" ? { stripe_customer_id: session.customer } : {}),
         ...(typeof session.subscription === "string"
@@ -140,7 +153,22 @@ export async function registrarPagoDeBoda(
   // del álbum y /panel/plan diría que el pago sigue «en camino». Se anota y se
   // sigue; lo vuelven a intentar la página de gracias, el regreso a
   // /panel/plan y cada evento de la suscripción al corriente (suscripcion.ts).
-  if (productType === "planner") {
+  // El plan pagado queda en la boda. Nunca hacia abajo: si la página de
+  // gracias de una sesión vieja llega después de una subida, no la regresa.
+  // Todos los planes abren el panel completo (tier 'full').
+  if (planPagado) {
+    const { data: actual } = await supabase.from("weddings").select("plan").eq("id", weddingId).maybeSingle();
+    const antes = esPlanId(actual?.plan) ? actual.plan : null;
+    if (!antes || PLANES[planPagado].rango > PLANES[antes].rango) {
+      const { error: planError } = await supabase
+        .from("weddings")
+        .update({ plan: planPagado, tier: "full" })
+        .eq("id", weddingId);
+      if (planError) throw new Error(`No se pudo guardar el plan: ${planError.message}`);
+    }
+  }
+
+  if (productType === "planner" || (planPagado && PLANES[planPagado].album)) {
     try {
       await asegurarAlbumDeLaBoda({
         weddingId,
@@ -160,8 +188,13 @@ export async function registrarPagoDeBoda(
   // Nunca hacia abajo con una suscripción viva: si pagaron el mensual y luego
   // (otra pestaña, otra sesión) unas invitaciones, el mensual sigue cobrando y
   // su panel no puede quedar como de solo invitaciones.
-  if (yaExistia) {
+  if (yaExistia && !planPagado) {
     let tier: "full" | "invitations" = productType === "planner" ? "full" : "invitations";
+    // Unas invitaciones que se agregan a un plan no le bajan el panel.
+    if (tier === "invitations") {
+      const { data: conPlan } = await supabase.from("weddings").select("plan").eq("id", weddingId).maybeSingle();
+      if (conPlan?.plan) tier = "full";
+    }
     if (tier === "invitations") {
       const { data: sub } = await supabase
         .from("v_suscripciones")
@@ -186,13 +219,16 @@ export async function registrarPagoDeBoda(
       typeof session.amount_total === "number" ? session.amount_total / 100 : null;
     const amountMx =
       sessionAmountMx ??
-      (productType === "planner"
-        ? AGENT_PLAN.priceMxMonthly
-        : getInvitationTier(lead.guest_count ?? 0).priceMx);
+      (planPagado
+        ? PLANES[planPagado].priceMx
+        : productType === "planner"
+          ? AGENT_PLAN.priceMxMonthly
+          : getInvitationTier(lead.guest_count ?? 0).priceMx);
 
     // Best-effort; nunca lanza.
     await sendPaymentNotificationEmail({
-      service: productType,
+      service,
+      plan: planPagado,
       partner1Name: lead.partner1_name || "",
       partner2Name: lead.partner2_name || null,
       email,
@@ -211,14 +247,16 @@ export async function registrarPagoDeBoda(
 
   // Una prueba que convierte. Sin esto el equipo no se entera: el aviso de
   // arriba solo sale cuando el pago crea la boda, y aquí la boda ya existía.
-  if (yaExistia && primeraVezDeEstaSesion && boda?.prueba_termina_en) {
+  // También una boda que sube de plan o agrega invitaciones: cada pago tiene
+  // su propia solicitud (/api/panel/plan), así que es la primera vez de ésta.
+  if (yaExistia && primeraVezDeEstaSesion && (boda?.prueba_termina_en || planPagado || service === "invitations")) {
     const importe =
       typeof session.amount_total === "number" ? session.amount_total / 100 : null;
     await avisarConversion({
       weddingId,
-      pareja: boda.couple_name || lead.partner1_name || "Una pareja",
+      pareja: boda?.couple_name || lead.partner1_name || "Una pareja",
       email,
-      plan: productType,
+      plan: planPagado ?? service,
       importeMx: importe,
     });
   }

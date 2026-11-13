@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { AGENT_PLAN, getInvitationTier, type CoupleService } from "@/lib/weddingPlans";
+import { PLANES, getInvitationTier, type CoupleService } from "@/lib/weddingPlans";
 import { sendLeadNotificationEmail } from "@/lib/email";
 
 const PHONE_RE = /^\+\d{11,13}$/;
@@ -122,7 +122,9 @@ export async function POST(req: NextRequest) {
   // --- Quoted price (server-side, never trust the client) ---
   let quotedPriceMx: number | null = null;
   if (service === "planner") {
-    quotedPriceMx = AGENT_PLAN.priceMxMonthly;
+    // Desde el 13-nov-2026 ya no hay plan mensual: se cotiza el plan
+    // recomendado (Con asistente, pago único). La pareja elige el suyo después.
+    quotedPriceMx = PLANES.asistente.priceMx;
   } else if (guestCount !== null) {
     quotedPriceMx = getInvitationTier(guestCount).priceMx;
   }
