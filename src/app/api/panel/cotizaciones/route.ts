@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendAvisoEmail } from "@/lib/email";
+import { enviarCotizacion } from "@/lib/cotizacionesPorCorreo";
 import { bodaParaEscribir, leerCuerpo, proveedorDeLaBoda } from "@/lib/proveedoresServidor";
 import { leerCorreo, limpiarTexto } from "@/lib/proveedores";
 import { PLANES, esPlanId } from "@/lib/weddingPlans";
@@ -12,16 +12,12 @@ import { PLANES, esPlanId } from "@/lib/weddingPlans";
 //   GET                                   las que ya pidieron
 //   POST { categoria, proveedorCorreo, proveedorNombre?, mensaje, vendorId? }
 //
-// El correo sale de hola@bluebook.mx con «responder a» la pareja y la pareja
-// en copia: el proveedor le contesta DIRECTO a ella. Blue Book no lee ni
-// guarda las respuestas. Sólo se manda lo que la pareja escribió y revisó: no
-// hay modelo de lenguaje en medio.
+// El correo sale de hola@bluebook.mx con la pareja en copia (0054,
+// cotizacionesPorCorreo.ts): la respuesta del proveedor regresa a Blue Book
+// (si hay dominio de respuestas) y su asistente la puede leer; a la pareja le
+// llega también. Sólo se manda lo que la pareja escribió y revisó.
 //
-// Topes para que nadie lo use para mandar correo masivo: 10 al día y 60 en
-// total por boda.
-
-const POR_DIA = 10;
-const EN_TOTAL = 60;
+// Los topes contra el correo masivo los pone la base (0054).
 
 async function correoDeLaSesion(): Promise<string | null> {
   const supabase = await createClient();
@@ -41,7 +37,7 @@ export async function GET() {
   if ("respuesta" in r) return r.respuesta;
   const { data, error } = await createAdminClient()
     .from("cotizaciones_por_correo")
-    .select("id, categoria, proveedor_nombre, proveedor_correo, enviada_en, error, created_at, vendor_id")
+    .select("id, categoria, proveedor_nombre, proveedor_correo, enviada_en, error, created_at, vendor_id, estado, origen, respondida_en, seguimientos")
     .eq("wedding_id", r.wedding.id)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -86,19 +82,9 @@ export async function POST(req: NextRequest) {
   const pareja = await correoDeLaSesion();
   if (!pareja) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
+  // Los topes (10 en 24 h, 60 en total, no repetir en 3 días) los revisa la
+  // base al guardar (0054) y contesta con el mensaje para la pareja.
   const db = createAdminClient();
-  const hace24 = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  const [hoy, total] = await Promise.all([
-    db.from("cotizaciones_por_correo").select("id", { count: "exact", head: true }).eq("wedding_id", wedding.id).gte("created_at", hace24),
-    db.from("cotizaciones_por_correo").select("id", { count: "exact", head: true }).eq("wedding_id", wedding.id),
-  ]);
-  if ((hoy.count ?? 0) >= POR_DIA) {
-    return NextResponse.json({ error: `Ya mandaron ${POR_DIA} hoy. Mañana pueden mandar más.` }, { status: 429 });
-  }
-  if ((total.count ?? 0) >= EN_TOTAL) {
-    return NextResponse.json({ error: "Llegaron al máximo de cotizaciones por correo. Escríbannos y lo vemos." }, { status: 429 });
-  }
-
   const { data: fila, error: insertError } = await db
     .from("cotizaciones_por_correo")
     .insert({
@@ -109,38 +95,19 @@ export async function POST(req: NextRequest) {
       proveedor_correo: correo.valor,
       mensaje,
       pedida_por: pareja,
+      origen: "pareja",
+      estado: "por_enviar",
     })
     .select("id")
     .single();
   if (insertError || !fila) {
+    if (insertError?.code === "P0001") return NextResponse.json({ error: insertError.message }, { status: 429 });
     console.error("[cotizaciones] no se pudo guardar:", insertError?.message);
     return NextResponse.json({ error: "No pudimos mandarla. Inténtenlo de nuevo." }, { status: 500 });
   }
 
-  const quien = wedding.coupleName || "Una pareja";
-  const envio = await sendAvisoEmail({
-    to: [correo.valor, pareja],
-    subject: `Solicitud de cotización: ${categoria} — boda de ${quien}`,
-    eyebrow: "Solicitud de cotización",
-    titulo: nombre ? `Hola, ${nombre}` : "Hola",
-    parrafos: [`${quien} les escriben para pedirles una cotización de ${categoria.toLowerCase()} para su boda.`],
-    cita: mensaje,
-    filas: [
-      ["Boda", quien],
-      ...(wedding.weddingDate ? ([["Fecha", wedding.weddingDate]] as Array<[string, string]>) : []),
-      ...(wedding.venue ? ([["Lugar", wedding.venue]] as Array<[string, string]>) : []),
-      ["Responder a", pareja],
-    ],
-    pie: "Respondan a este correo y su respuesta le llega directo a la pareja. Lo enviaron desde su panel de Blue Book; Blue Book no recibe su respuesta.",
-    replyTo: pareja,
-  });
-
-  await db
-    .from("cotizaciones_por_correo")
-    .update(envio.success ? { enviada_en: new Date().toISOString(), envio_id: (envio.data as { id?: string } | null)?.id ?? null } : { error: String(envio.error).slice(0, 500) })
-    .eq("id", fila.id);
-
-  if (!envio.success) {
+  const envio = await enviarCotizacion(fila.id);
+  if (envio !== "enviada") {
     return NextResponse.json({ error: "Guardamos su solicitud, pero el correo no salió. Inténtenlo en un momento." }, { status: 502 });
   }
   return NextResponse.json({ ok: true, id: fila.id });

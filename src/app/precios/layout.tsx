@@ -98,7 +98,7 @@ const faqSchema = {
       name: "¿Por qué cuesta tanto menos que una planner presencial?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: `La plataforma hace el trabajo repetitivo y tú decides. En ${acompanamiento.es.name}, nuestro equipo te acompaña en ${acompanamiento.asesorias} asesorías para lo que necesita criterio. No estamos físicamente en tu boda ni negociamos contratos en persona.`,
+        text: `La plataforma hace el trabajo repetitivo y tú decides. En ${acompanamiento.es.name}, tu asistente también les escribe a tus proveedores por ti. No estamos físicamente en tu boda ni negociamos contratos en persona.`,
       },
     },
     {

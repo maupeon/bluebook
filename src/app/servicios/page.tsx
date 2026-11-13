@@ -4,7 +4,7 @@ import { ServiciosContent } from "./ServiciosContent";
 export const metadata: Metadata = {
   title: "Servicios",
   description:
-    "Proveedores, presupuesto y pagos, pendientes, invitaciones por WhatsApp, confirmaciones, el guion del día y la calculadora de la barra, en un solo panel que compartes con tu pareja. Con asistente por WhatsApp o con asesorías de nuestro equipo, según tu plan.",
+    "Proveedores, presupuesto y pagos, pendientes, invitaciones por WhatsApp, confirmaciones, el guion del día y la calculadora de la barra, en un solo panel que compartes con tu pareja. Con un asistente por WhatsApp que, según tu plan, también les escribe a tus proveedores.",
   keywords: [
     "wedding planner en línea",
     "organizar boda",

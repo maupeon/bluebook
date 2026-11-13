@@ -24,7 +24,19 @@ interface Enviada {
   enviada_en: string | null;
   error: string | null;
   created_at: string;
+  estado?: string;
+  origen?: "pareja" | "asistente";
 }
+
+const ESTADOS: Record<string, { es: string; en: string }> = {
+  por_enviar: { es: "Por salir", en: "Going out" },
+  en_revision: { es: "Por salir", en: "Going out" },
+  enviada: { es: "Esperando respuesta", en: "Waiting for a reply" },
+  respondida: { es: "Contestó", en: "Replied" },
+  sin_respuesta: { es: "No contestó", en: "No reply" },
+  rechazada: { es: "No salió", en: "Didn't go out" },
+  fallida: { es: "No salió", en: "Didn't go out" },
+};
 
 function borrador(p: { pareja: string; fecha: string | null; lugar: string | null; personas: number | null; isEnglish: boolean }) {
   const fecha = p.fecha
@@ -135,8 +147,8 @@ export function PedirCotizacion({
       </h2>
       <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-tinta">
         {isEnglish
-          ? "We email the vendor exactly what you write here, with you in copy. They reply straight to your email."
-          : "Le mandamos al proveedor exactamente lo que escriban aquí, con ustedes en copia. Les contesta directo a su correo."}
+          ? "We email the vendor exactly what you write here, with you in copy. Their reply reaches your email, and your assistant can read it too. You can also ask your assistant on WhatsApp to write to vendors for you."
+          : "Le mandamos al proveedor exactamente lo que escriban aquí, con ustedes en copia. Su respuesta les llega a su correo y también la lee su asistente. También le pueden pedir a su asistente por WhatsApp que les escriba a los proveedores por ustedes."}
       </p>
 
       {listo ? (
@@ -202,13 +214,18 @@ export function PedirCotizacion({
               <span className="text-noche">
                 {c.categoria}
                 <span className="text-tinta"> · {c.proveedor_nombre || c.proveedor_correo}</span>
+                {c.origen === "asistente" ? (
+                  <span className="text-tinta"> · {isEnglish ? "by your assistant" : "lo pidió su asistente"}</span>
+                ) : null}
               </span>
               <span className="text-xs text-tinta">
-                {c.enviada_en
-                  ? new Intl.DateTimeFormat(isEnglish ? "en-US" : "es-MX", { day: "numeric", month: "short" }).format(new Date(c.enviada_en))
-                  : isEnglish
-                    ? "Didn't go out"
-                    : "No salió"}
+                {c.estado && ESTADOS[c.estado]
+                  ? ESTADOS[c.estado][isEnglish ? "en" : "es"]
+                  : c.enviada_en
+                    ? new Intl.DateTimeFormat(isEnglish ? "en-US" : "es-MX", { day: "numeric", month: "short" }).format(new Date(c.enviada_en))
+                    : isEnglish
+                      ? "Didn't go out"
+                      : "No salió"}
               </span>
             </li>
           ))}

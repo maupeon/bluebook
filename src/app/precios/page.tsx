@@ -29,7 +29,7 @@ const FAQ_ES: FaqItem[] = [
   },
   {
     q: "¿Por qué cuesta tanto menos que una planner presencial?",
-    a: `Porque la plataforma hace el trabajo repetitivo (llevar la lista, las fechas, los pagos) y tú decides. En ${acompanamiento.es.name}, nuestro equipo te acompaña en ${acompanamiento.asesorias} asesorías para lo que necesita criterio. No estamos físicamente en tu boda ni negociamos contratos en persona: eso es lo que encarece a una planner presencial.`,
+    a: `Porque la plataforma hace el trabajo repetitivo (llevar la lista, las fechas, los pagos) y tú decides. En ${acompanamiento.es.name}, tu asistente también les escribe a tus proveedores por ti. No estamos físicamente en tu boda ni negociamos contratos en persona: eso es lo que encarece a una planner presencial.`,
   },
   {
     q: "¿Hay mensualidades o cobros después?",
@@ -61,7 +61,7 @@ const FAQ_EN: FaqItem[] = [
   },
   {
     q: "Why is it so much cheaper than an in-person planner?",
-    a: `Because the platform does the repetitive work (keeping the list, the dates, the payments) and you decide. With ${acompanamiento.en.name}, our team joins you in ${acompanamiento.asesorias} sessions for what needs judgment. We're not physically at your wedding and we don't negotiate contracts in person: that's what makes an in-person planner expensive.`,
+    a: `Because the platform does the repetitive work (keeping the list, the dates, the payments) and you decide. With ${acompanamiento.en.name}, your assistant also writes to your vendors for you. We're not physically at your wedding and we don't negotiate contracts in person: that's what makes an in-person planner expensive.`,
   },
   {
     q: "Are there monthly fees or later charges?",

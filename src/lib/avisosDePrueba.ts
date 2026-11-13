@@ -190,7 +190,7 @@ export async function avisarConversion(p: {
         : p.plan === "invitations"
           ? "Eligieron invitaciones. Su panel sigue abierto sin planner."
           : p.plan === "acompanamiento"
-            ? "Eligieron Acompañamiento: agéndenles su primera asesoría."
+            ? "Eligieron Acompañamiento: su asistente ya les puede escribir a proveedores."
             : `Eligieron ${PLANES[p.plan].es.name}.`,
     ],
     filas: [

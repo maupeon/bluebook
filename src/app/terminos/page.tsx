@@ -102,8 +102,8 @@ function seccionesEs(): SeccionLegal[] {
               confirmas (sección 6).
             </li>
             <li>
-              En {acompanamiento.es.name}, <strong>{acompanamiento.asesorias} asesorías de 45 minutos</strong> con el
-              equipo de Blue Book, a distancia.
+              En {acompanamiento.es.name}, <strong>tu asistente les escribe a proveedores</strong> a tu nombre para
+              pedirles cotización, sólo cuando le contestas «sí» al correo que te propone (sección 6).
             </li>
           </Lista>
           <p>
@@ -236,9 +236,11 @@ function seccionesEs(): SeccionLegal[] {
             {acompanamiento.turnosAlMes} en {acompanamiento.es.name}. Revisa lo que te propone antes de confirmarlo.
           </li>
           <li>
-            <strong>{acompanamiento.es.name}</strong> incluye además {acompanamiento.asesorias} asesorías de 45 minutos
-            con el equipo, pedir cotizaciones a proveedores por correo desde tu panel (los proveedores contestan por su
-            cuenta y sus precios son suyos) y el envío por WhatsApp de hasta {acompanamiento.invitaciones} invitaciones
+            <strong>{acompanamiento.es.name}</strong> incluye además pedir cotizaciones a proveedores por correo, desde
+            tu panel o con tu asistente: el asistente te enseña el correo completo, sale sólo con tu «sí», con tu correo
+            en copia, y si el proveedor no contesta le manda hasta 2 recordatorios. Solo pide información y precios:
+            no acepta, aparta, contrata ni paga nada por ti, y los proveedores contestan por su cuenta y sus precios son
+            suyos y el envío por WhatsApp de hasta {acompanamiento.invitaciones} invitaciones
             con sus confirmaciones (sección 7).
           </li>
           <li>
@@ -552,8 +554,8 @@ function seccionesEn(): SeccionLegal[] {
               confirm it (section 6).
             </li>
             <li>
-              In {acompanamiento.en.name}, <strong>{acompanamiento.asesorias} 45-minute sessions</strong> with the Blue
-              Book team, remotely.
+              In {acompanamiento.en.name}, <strong>your assistant writes to vendors</strong> on your behalf to ask for
+              quotes, only when you answer «yes» to the email it proposes (section 6).
             </li>
           </Lista>
           <p>
@@ -687,9 +689,11 @@ function seccionesEn(): SeccionLegal[] {
             {acompanamiento.turnosAlMes} in {acompanamiento.en.name}. Review what it proposes before you confirm it.
           </li>
           <li>
-            <strong>{acompanamiento.en.name}</strong> also includes {acompanamiento.asesorias} 45-minute sessions with
-            the team, requesting vendor quotes by email from your panel (vendors answer on their own and their prices are
-            theirs) and sending up to {acompanamiento.invitaciones} invitations over WhatsApp with their RSVPs (section
+            <strong>{acompanamiento.en.name}</strong> also includes requesting vendor quotes by email, from your panel or
+            through your assistant: the assistant shows you the full email, it goes out only on your «yes», with your
+            email in copy, and if the vendor doesn&rsquo;t reply it sends up to 2 reminders. It only asks for information
+            and prices: it doesn&rsquo;t accept, book, hire or pay anything for you, and vendors answer on their own and
+            their prices are theirs and sending up to {acompanamiento.invitaciones} invitations over WhatsApp with their RSVPs (section
             7).
           </li>
           <li>

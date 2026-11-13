@@ -21,8 +21,8 @@ import { ButtonLink, Container, Display, Em, Eyebrow, Heading, Lead } from "@/co
 import { BluDeEncabezado } from "@/components/marketing/Blu";
 import { PLANES } from "@/lib/weddingPlans";
 
-// Desde el 13-nov-2026 no hay plan mensual ni planner asignada: lo que hay de
-// personas son las asesorías del plan Acompañamiento (PLANES).
+// Desde el 13-nov-2026 no hay plan mensual ni planner asignada. Acompañamiento
+// ya no trae asesorías: su asistente les escribe a proveedores (0054).
 const acompanamiento = PLANES.acompanamiento;
 
 interface Service {
@@ -162,25 +162,25 @@ const SERVICES: Service[] = [
   {
     id: "tu-planner",
     es: {
-      nav: "Asesorías",
+      nav: "Proveedores",
       eyebrow: `Plan ${acompanamiento.es.name}`,
-      title: <>Y nuestro equipo, <Em>contigo.</Em></>,
-      body: `Con ${acompanamiento.es.name}, tienes ${acompanamiento.asesorias} asesorías de 45 minutos con nuestro equipo para revisar tu presupuesto, tu cronograma y las propuestas de tus proveedores, y pides cotizaciones a proveedores por correo desde tu panel.`,
+      title: <>Y tus proveedores, <Em>en orden.</Em></>,
+      body: `Con ${acompanamiento.es.name}, tu asistente les escribe a tus proveedores por ti: les pide cotización con lo que tú le dices, les da seguimiento si no contestan y te ayuda a comparar lo que mandan. Nada sale sin tu «sí».`,
       bullets: [
-        `${acompanamiento.asesorias} asesorías de 45 minutos`,
-        "Presupuesto, cronograma y propuestas",
-        "Cotizaciones a proveedores desde tu panel",
+        "Pide cotizaciones por ti",
+        "Seguimiento si no contestan",
+        "Respuestas y PDF en un solo lugar",
       ],
     },
     en: {
-      nav: "Sessions",
+      nav: "Vendors",
       eyebrow: `${acompanamiento.en.name} plan`,
-      title: <>And our team, <Em>with you.</Em></>,
-      body: `With ${acompanamiento.en.name}, you get ${acompanamiento.asesorias} 45-minute sessions with our team to go over your budget, your timeline and your vendors' proposals, and you request vendor quotes by email from your dashboard.`,
+      title: <>And your vendors, <Em>in order.</Em></>,
+      body: `With ${acompanamiento.en.name}, your assistant writes to your vendors for you: it asks for quotes with what you tell it, follows up if they don't reply and helps you compare what they send. Nothing goes out without your «yes».`,
       bullets: [
-        `${acompanamiento.asesorias} 45-minute sessions`,
-        "Budget, timeline and proposals",
-        "Vendor quotes from your dashboard",
+        "Asks for quotes for you",
+        "Follows up if they don't reply",
+        "Replies and PDFs in one place",
       ],
     },
     visual: (en) => (

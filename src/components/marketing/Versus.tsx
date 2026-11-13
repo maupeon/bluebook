@@ -28,8 +28,7 @@ const acompanamiento = PLANES.acompanamiento;
 
 /*
  * La diferencia entre una planner presencial y Blue Book, dicha con honestidad:
- * hay renglones que gana la presencial (el día de la boda está ahí; el
- * criterio profesional sólo viene, en asesorías, con Acompañamiento) y se
+ * hay renglones que gana la presencial (el día de la boda está ahí) y se
  * dice. Una comparación donde uno gana todo no se cree.
  *
  * La columna de Blue Book ya no es azul noche: es una franja de papel azul
@@ -89,15 +88,15 @@ const ROWS: Row[] = [
     diy: { es: "Se entera por ti", en: "Hears it from you", tone: "meh" },
   },
   {
-    es: "Criterio profesional",
-    en: "Professional judgment",
+    es: "Pedir cotizaciones",
+    en: "Asking for quotes",
     bluebook: {
-      es: `${acompanamiento.asesorias} asesorías con nuestro equipo, en ${acompanamiento.es.name}`,
-      en: `${acompanamiento.asesorias} sessions with our team, in ${acompanamiento.en.name}`,
-      tone: "meh",
+      es: `Tu asistente las pide y les da seguimiento, en ${acompanamiento.es.name}`,
+      en: `Your assistant asks and follows up, in ${acompanamiento.en.name}`,
+      tone: "win",
     },
-    planner: { es: "Sí, en persona", en: "Yes, in person", tone: "win" },
-    diy: { es: "El de internet", en: "Whatever the internet says", tone: "lose" },
+    planner: { es: "Las pide ella", en: "She asks for them", tone: "win" },
+    diy: { es: "Correo por correo", en: "Email by email", tone: "lose" },
   },
   {
     es: "El día de la boda",

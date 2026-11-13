@@ -13,7 +13,10 @@ import { PLANES } from "@/lib/weddingPlans";
  * Desde el 13-nov-2026 no hay plan mensual ni planner asignada: lo que sí hay
  * de personas es el plan Acompañamiento, con sus asesorías de 45 minutos con
  * el equipo (presupuesto, cronograma y propuestas) y pedir cotizaciones a
- * proveedores desde el panel. Esta sección cuenta sólo eso. Se quitó la nota
+ * proveedores desde el panel. Esta sección cuenta sólo eso.
+ * Desde el 13-nov (0054) Acompañamiento ya no trae asesorías: su asistente
+ * les escribe a los proveedores. La sección cuenta eso, sin prometer que
+ * negocia ni que contrata. Se quitó la nota
  * de muestra «Tu planner: … ya le recordé a la florista», que prometía una
  * planner hablando con proveedores.
  */
@@ -24,16 +27,16 @@ export function RealPlanner() {
 
   const duties = en
     ? [
-        { Icon: Wallet, text: "We go over your budget with you" },
-        { Icon: CalendarHeart, text: "We put your timeline together with you" },
-        { Icon: Store, text: "We review vendor proposals with you" },
-        { Icon: MailCheck, text: "You request vendor quotes by email from your dashboard" },
+        { Icon: MailCheck, text: "Asks your vendors for quotes" },
+        { Icon: CalendarHeart, text: "Follows up if they don't reply" },
+        { Icon: Store, text: "Keeps their replies and PDFs together" },
+        { Icon: Wallet, text: "Helps you compare prices" },
       ]
     : [
-        { Icon: Wallet, text: "Revisamos contigo tu presupuesto" },
-        { Icon: CalendarHeart, text: "Armamos contigo tu cronograma" },
-        { Icon: Store, text: "Revisamos contigo las propuestas de proveedores" },
-        { Icon: MailCheck, text: "Pides cotizaciones a proveedores por correo desde tu panel" },
+        { Icon: MailCheck, text: "Les pide cotización a tus proveedores" },
+        { Icon: CalendarHeart, text: "Les da seguimiento si no contestan" },
+        { Icon: Store, text: "Junta sus respuestas y sus PDF" },
+        { Icon: Wallet, text: "Te ayuda a comparar precios" },
       ];
 
   return (
@@ -50,11 +53,11 @@ export function RealPlanner() {
             <Heading className="mt-4">
               {en ? (
                 <>
-                  When you want to talk it through, <Em>our team.</Em>
+                  Your assistant writes <Em>to your vendors.</Em>
                 </>
               ) : (
                 <>
-                  Cuando quieras platicarlo, <Em>nuestro equipo.</Em>
+                  Tu asistente les escribe <Em>a tus proveedores.</Em>
                 </>
               )}
             </Heading>
@@ -62,8 +65,8 @@ export function RealPlanner() {
           <Reveal delay={160}>
             <Lead className="mx-auto mt-5 max-w-2xl">
               {en
-                ? `Blue Book isn't an app that leaves you alone with a list. With ${acompanamiento.en.name}, you get ${acompanamiento.asesorias} 45-minute sessions with our team, online, to go over your budget, your timeline and your vendors' proposals.`
-                : `Blue Book no es una app que te deja sola con una lista. Con ${acompanamiento.es.name}, tienes ${acompanamiento.asesorias} asesorías de 45 minutos con nuestro equipo, a distancia, para revisar tu presupuesto, tu cronograma y las propuestas de tus proveedores.`}
+                ? `Blue Book isn't an app that leaves you alone with a list. With ${acompanamiento.en.name}, tell your assistant on WhatsApp who you want a quote from: it writes the email, shows it to you, sends it on your «yes» and follows up until they reply.`
+                : `Blue Book no es una app que te deja sola con una lista. Con ${acompanamiento.es.name}, le dices a tu asistente por WhatsApp a quién quieres pedirle cotización: escribe el correo, te lo enseña, lo manda con tu «sí» y le da seguimiento hasta que contesten.`}
             </Lead>
           </Reveal>
         </div>
@@ -91,8 +94,8 @@ export function RealPlanner() {
               <blockquote className="mt-10 border-l-2 border-linea pl-5">
                 <p className="frase text-[2rem] sm:text-[2.4rem]">
                   {en
-                    ? "In every session, a person from our team."
-                    : "En cada asesoría, una persona del equipo."}
+                    ? "Nothing goes out without your «yes»."
+                    : "Nada sale sin tu «sí»."}
                 </p>
               </blockquote>
             </Reveal>

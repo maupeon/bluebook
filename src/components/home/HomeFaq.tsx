@@ -15,7 +15,7 @@ import {
 
 // Desde el 13-nov-2026 ya no hay plan mensual: tres planes de pago único por
 // boda (lib/weddingPlans, PLANES). Ninguno trae «una wedding planner real»;
-// Acompañamiento trae asesorías con el equipo.
+// Acompañamiento: su asistente les escribe a proveedores (0054).
 const desde = formatMXN(PLANES.esencial.priceMx);
 const invitacionesDesde = formatMXN(INVITATION_TIERS[0].priceMx ?? 0);
 const invitacionesHasta = INVITATION_TIERS[0].maxGuests;
@@ -52,7 +52,7 @@ export const HOME_FAQ_ES: FaqItem[] = [
   FAQ_PRUEBA_ES,
   {
     q: "¿En qué es distinta de una wedding planner presencial?",
-    a: `Una planner presencial suele cobrar entre 10 y 15% de tu presupuesto y está contigo el día de la boda. Blue Book es un solo pago desde ${desde} y tiene todo a la vista en tu panel; en ${acompanamiento.es.name}, además, tienes ${acompanamiento.asesorias} asesorías con nuestro equipo. No estamos físicamente en tu evento: te dejamos el guion listo para quien coordine ese día.`,
+    a: `Una planner presencial suele cobrar entre 10 y 15% de tu presupuesto y está contigo el día de la boda. Blue Book es un solo pago desde ${desde} y tiene todo a la vista en tu panel; en ${acompanamiento.es.name}, además, tu asistente pide cotizaciones a tus proveedores y les da seguimiento. No estamos físicamente en tu evento: te dejamos el guion listo para quien coordine ese día.`,
   },
   {
     q: "¿Mi pareja también puede entrar?",
@@ -84,7 +84,7 @@ export const HOME_FAQ_EN: FaqItem[] = [
   FAQ_PRUEBA_EN,
   {
     q: "How is it different from an in-person wedding planner?",
-    a: `An in-person planner usually charges 10–15% of your budget and is with you on the wedding day. Blue Book is one payment from ${desde} and keeps everything in sight on your dashboard; with ${acompanamiento.en.name}, you also get ${acompanamiento.asesorias} sessions with our team. We're not physically at your event: we leave the run-of-show ready for whoever coordinates that day.`,
+    a: `An in-person planner usually charges 10–15% of your budget and is with you on the wedding day. Blue Book is one payment from ${desde} and keeps everything in sight on your dashboard; with ${acompanamiento.en.name}, your assistant also asks your vendors for quotes and follows up. We're not physically at your event: we leave the run-of-show ready for whoever coordinates that day.`,
   },
   {
     q: "Can my partner sign in too?",

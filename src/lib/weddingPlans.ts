@@ -53,11 +53,13 @@ export interface PlanDeBoda {
   turnosAlMes: number;
   /** Invitaciones por WhatsApp incluidas (una por invitado o grupo). */
   invitaciones: number;
-  /** Asesorías de 45 minutos con el equipo. */
+  /** Asesorías de 45 minutos con el equipo. Desde el 13-nov ninguno las trae
+   *  (Acompañamiento cambió a «tu asistente les escribe a proveedores»); el
+   *  campo queda para las que ya se anotaron. */
   asesorias: number;
   /** Incluye el álbum digital Ilimitado (para siempre). */
   album: boolean;
-  /** Pedir cotizaciones a proveedores por correo desde el panel. */
+  /** Pedir cotizaciones a proveedores por correo: desde el panel y con el asistente (0054). */
   cotizaciones: boolean;
   recomendado?: boolean;
   es: { name: string; tagline: string; incluye: string[] };
@@ -138,26 +140,26 @@ export const PLANES: Record<PlanId, PlanDeBoda> = {
     asistente: true,
     turnosAlMes: 600,
     invitaciones: 200,
-    asesorias: 3,
+    asesorias: 0,
     album: true,
     cotizaciones: true,
     es: {
       name: "Acompañamiento",
-      tagline: "Tu asistente y nuestro equipo, contigo.",
+      tagline: "Tu asistente también habla con tus proveedores.",
       incluye: [
         "Todo lo de Con asistente",
-        "3 asesorías de 45 minutos: presupuesto, cronograma y propuestas",
-        "Pide cotizaciones a proveedores por correo desde tu panel",
+        "Tu asistente les escribe a proveedores por ti: pide cotizaciones y les da seguimiento, siempre con tu «sí»",
+        "Sus respuestas y sus PDF en un solo lugar, para comparar con tu asistente",
         "Invitaciones y confirmaciones por WhatsApp hasta 200 invitaciones",
       ],
     },
     en: {
       name: "Guided",
-      tagline: "Your assistant and our team, with you.",
+      tagline: "Your assistant talks to your vendors too.",
       incluye: [
         "Everything in With assistant",
-        "3 45-minute sessions: budget, timeline and proposals",
-        "Request vendor quotes by email from your dashboard",
+        "Your assistant writes to vendors for you: asks for quotes and follows up, always on your «yes»",
+        "Their replies and PDFs in one place, to compare with your assistant",
         "WhatsApp invitations and RSVPs for up to 200 invitations",
       ],
     },

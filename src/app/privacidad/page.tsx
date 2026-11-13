@@ -190,7 +190,7 @@ function seccionesEs(): SeccionLegal[] {
               </li>
             ) : null}
             <li>Alojar tu álbum digital y las fotos de tus invitados.</li>
-            <li>Que el equipo te dé las asesorías del plan Acompañamiento y te dé soporte.</li>
+            <li>Que, en Acompañamiento, tu asistente les escriba a los proveedores que tú le pidas y guarde lo que te contesten, y que el equipo te dé soporte.</li>
             <li>Cobrarte, darte comprobantes y avisarte de tu prueba, tus cobros y los cambios del servicio.</li>
             <li>Cumplir obligaciones legales y atender requerimientos de autoridad.</li>
           </Lista>
@@ -302,8 +302,10 @@ function seccionesEs(): SeccionLegal[] {
           </p>
           <p>
             <strong>Lo que ven otras personas porque tú lo decides:</strong> tus invitados reciben por WhatsApp tu
-            invitación, con sus nombres, fecha y lugar; tu pareja y tu planner ven tu panel; y quien tenga el enlace de
-            tu álbum ve sus fotos y el nombre de quien subió cada una.
+            invitación, con sus nombres, fecha y lugar; tu pareja y tu planner ven tu panel; los proveedores a los que
+            pides una cotización (desde tu panel o con tu asistente) reciben tu nombre, tu correo, la fecha y el lugar
+            de tu boda y lo que les pides; y quien tenga el enlace de tu álbum ve sus fotos y el nombre de quien subió
+            cada una.
           </p>
         </>
       ),
@@ -659,7 +661,7 @@ function seccionesEn(): SeccionLegal[] {
               </li>
             ) : null}
             <li>Host your digital album and your guests&rsquo; photos.</li>
-            <li>Have the team give you the sessions in the Guided plan and give you support.</li>
+            <li>In the Guided plan, have your assistant write to the vendors you ask it to and keep what they reply, and have the team give you support.</li>
             <li>Charge you, give you receipts and let you know about your trial, your charges and changes to the service.</li>
             <li>Comply with legal obligations and respond to requests from authorities.</li>
           </Lista>
@@ -770,8 +772,10 @@ function seccionesEn(): SeccionLegal[] {
           </p>
           <p>
             <strong>What other people see because you decide so:</strong> your guests receive your invitation over
-            WhatsApp, with your names, date and place; your partner and your planner see your panel; and anyone with
-            your album&rsquo;s link sees its photos and the name of whoever uploaded each one.
+            WhatsApp, with your names, date and place; your partner and your planner see your panel; the vendors you
+            ask for a quote (from your panel or through your assistant) receive your name, your email, your wedding&rsquo;s
+            date and place and what you ask them; and anyone with your album&rsquo;s link sees its photos and the name of
+            whoever uploaded each one.
           </p>
         </>
       ),
