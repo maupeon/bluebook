@@ -37,7 +37,7 @@ export async function GET() {
   if ("respuesta" in r) return r.respuesta;
   const { data, error } = await createAdminClient()
     .from("cotizaciones_por_correo")
-    .select("id, categoria, proveedor_nombre, proveedor_correo, enviada_en, error, created_at, vendor_id, estado, origen, respondida_en, seguimientos")
+    .select("id, categoria, proveedor_nombre, proveedor_correo, canal, enviada_en, error, created_at, vendor_id, estado, origen, respondida_en, seguimientos")
     .eq("wedding_id", r.wedding.id)
     .order("created_at", { ascending: false })
     .limit(100);

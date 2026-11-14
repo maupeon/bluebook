@@ -22,6 +22,12 @@ import { correosDeLaPareja, urlDelPanel } from "@/lib/avisos";
  * «sí»): a los 3 días sin respuesta, un recordatorio; a lo mucho 2. Después
  * queda «sin_respuesta».
  *
+ * Negociar (0055): lo que el asistente le contesta al proveedor
+ * (mensajes_a_proveedor, con el «sí» de la pareja y dentro de su máximo) sale
+ * aquí como respuesta en el mismo hilo (enviarMensaje). Las cotizaciones por
+ * WhatsApp las manda el admin (número de proveedores); aquí sólo se le avisa a
+ * la pareja por correo lo que contestó el proveedor (avisarRespuestaPorCorreo).
+ *
  * Llaves: RESEND_API_KEY manda. Leer lo recibido pide una llave con acceso
  * completo: RESEND_LECTURA_API_KEY (si no está, se intenta con la de mandar).
  * Fuera de producción, COTIZACIONES_SIMULAR=1 no manda nada y hace como si
@@ -43,7 +49,8 @@ interface Cotizacion {
   vendor_id: string | null;
   categoria: string;
   proveedor_nombre: string | null;
-  proveedor_correo: string;
+  proveedor_correo: string | null;
+  canal: "correo" | "whatsapp";
   mensaje: string;
   estado: string;
   origen: "pareja" | "asistente";
@@ -56,7 +63,7 @@ interface Cotizacion {
 }
 
 const COLUMNAS =
-  "id, wedding_id, vendor_id, categoria, proveedor_nombre, proveedor_correo, mensaje, estado, origen, clave, conversation_id, asunto, seguimientos, enviada_en, created_at";
+  "id, wedding_id, vendor_id, categoria, proveedor_nombre, proveedor_correo, canal, mensaje, estado, origen, clave, conversation_id, asunto, seguimientos, enviada_en, created_at";
 
 function simulando(): boolean {
   return process.env.NODE_ENV !== "production" && process.env.COTIZACIONES_SIMULAR === "1";
@@ -121,6 +128,9 @@ async function mandar(p: {
   cita: string;
   filas: Array<[string, string]>;
   pie: string;
+  eyebrow?: string;
+  /** In-Reply-To / References: para que el correo caiga en el mismo hilo. */
+  headers?: Record<string, string>;
 }): Promise<{ ok: true; id: string | null } | { ok: false; error: string }> {
   const texto = [p.titulo, "", ...p.parrafos.flatMap((x) => [x, ""]), p.cita, "", ...p.filas.map(([k, v]) => `${k}: ${v}`), "", p.pie].join("\n");
   if (simulando()) {
@@ -137,10 +147,11 @@ async function mandar(p: {
       replyTo: p.replyTo,
       subject: p.subject,
       text: texto,
+      ...(p.headers ? { headers: p.headers } : {}),
       html: htmlDelAviso({
         to: [p.to],
         subject: p.subject,
-        eyebrow: "Solicitud de cotización",
+        eyebrow: p.eyebrow ?? "Solicitud de cotización",
         titulo: p.titulo,
         parrafos: p.parrafos,
         cita: p.cita,
@@ -163,13 +174,24 @@ async function mandar(p: {
  */
 export async function enviarCotizacion(cotizacionId: string): Promise<ResultadoDelEnvio> {
   const db = createAdminClient();
-  const { data: tomada } = await db
+  const { data: tomada, error: errorAlTomar } = await db
     .from("cotizaciones_por_correo")
     .update({ estado: "enviada", enviada_en: new Date().toISOString(), error: null })
     .eq("id", cotizacionId)
+    .eq("canal", "correo")
     .in("estado", ["por_enviar", "en_revision", "fallida"])
     .select(COLUMNAS)
     .maybeSingle();
+  if (errorAlTomar) {
+    // La base no la dejó salir (0056: plan, montos, palabras de cierre). Se queda para el equipo.
+    await db
+      .from("cotizaciones_por_correo")
+      .update({ estado: "en_revision", error: errorAlTomar.message.slice(0, 500) })
+      .eq("id", cotizacionId)
+      .in("estado", ["por_enviar", "en_revision", "fallida"]);
+    console.error("[cotizaciones] la base no dejó salir la cotización", cotizacionId, errorAlTomar.message);
+    return "fallo";
+  }
   if (!tomada) return "ya_no_aplica";
   const c = tomada as Cotizacion;
 
@@ -177,7 +199,7 @@ export async function enviarCotizacion(cotizacionId: string): Promise<ResultadoD
   const respuestas = direccionDeRespuesta(c.clave);
   const asunto = `Solicitud de cotización: ${c.categoria} — boda de ${boda.quien}`.slice(0, 200);
   const envio = await mandar({
-    to: c.proveedor_correo,
+    to: c.proveedor_correo as string,
     cc: pareja,
     replyTo: respuestas ? [respuestas] : pareja,
     subject: asunto,
@@ -230,6 +252,7 @@ export async function seguirCotizaciones(limite = 40): Promise<{ recordadas: num
     .select(`${COLUMNAS}, ultimo_seguimiento_en`)
     .eq("estado", "enviada")
     .eq("origen", "asistente")
+    .eq("canal", "correo")
     .lt("enviada_en", corte)
     .or(`ultimo_seguimiento_en.is.null,ultimo_seguimiento_en.lt.${corte}`)
     .order("enviada_en", { ascending: true })
@@ -259,7 +282,7 @@ export async function seguirCotizaciones(limite = 40): Promise<{ recordadas: num
     const asunto = `Re: ${fila.asunto ?? `Solicitud de cotización: ${fila.categoria}`}`.slice(0, 200);
     const cuando = fechaLarga(fila.enviada_en);
     const envio = await mandar({
-      to: fila.proveedor_correo,
+      to: fila.proveedor_correo as string,
       cc: pareja,
       replyTo: respuestas ? [respuestas] : pareja,
       subject: asunto,
@@ -437,7 +460,7 @@ export async function recibirRespuesta(
     .from("cotizaciones_por_correo")
     .update({ estado: "respondida", respondida_en: new Date().toISOString() })
     .eq("id", c.id)
-    .in("estado", ["enviada", "sin_respuesta"]);
+    .in("estado", ["enviada", "sin_respuesta", "negociando"]);
 
   // La pareja va en copia del pedido, pero «responder» (no «a todos») sólo
   // llega aquí: se le reenvía lo que dijo el proveedor.
@@ -461,4 +484,139 @@ export async function recibirRespuesta(
     });
   }
   return { resultado: "guardada", cotizacionId: c.id, weddingId: c.wedding_id, avisarPorWhatsApp: Boolean(c.conversation_id) };
+}
+
+// ---------------------------------------------------------------------------
+// Negociar (0055)
+// ---------------------------------------------------------------------------
+
+/**
+ * Un mensaje del asistente a un proveedor, por correo, en el mismo hilo del
+ * pedido (In-Reply-To al último correo del proveedor), con la pareja en copia
+ * y «responder a» cot-<clave>@. Se toma antes de mandar (pasa a «enviado»); si
+ * no sale queda «fallido» con el error, y el equipo lo ve en /hermes.
+ */
+export async function enviarMensaje(mensajeId: string): Promise<ResultadoDelEnvio> {
+  const db = createAdminClient();
+  const { data: m, error: errorAlTomar } = await db
+    .from("mensajes_a_proveedor")
+    .update({ estado: "enviado", enviado_en: new Date().toISOString(), error: null })
+    .eq("id", mensajeId)
+    .eq("canal", "correo")
+    .in("estado", ["por_enviar", "en_revision", "fallido"])
+    .select("id, cotizacion_id, wedding_id, texto")
+    .maybeSingle();
+  if (errorAlTomar) {
+    await db
+      .from("mensajes_a_proveedor")
+      .update({ estado: "fallido", error: errorAlTomar.message.slice(0, 500) })
+      .eq("id", mensajeId)
+      .in("estado", ["por_enviar", "en_revision", "fallido"]);
+    console.error("[cotizaciones] la base no dejó salir el mensaje", mensajeId, errorAlTomar.message);
+    return "fallo";
+  }
+  if (!m) return "ya_no_aplica";
+  const fallo = async (error: string) => {
+    await db.from("mensajes_a_proveedor").update({ estado: "fallido", enviado_en: null, error: error.slice(0, 500) }).eq("id", m.id);
+    console.error("[cotizaciones] el mensaje no salió", m.id, error);
+    return "fallo" as const;
+  };
+  const { data: fila } = await db.from("cotizaciones_por_correo").select(COLUMNAS).eq("id", m.cotizacion_id).maybeSingle();
+  const c = fila as Cotizacion | null;
+  if (!c?.proveedor_correo) return fallo("La cotización no tiene correo.");
+
+  const [boda, pareja, { data: ultimo }] = await Promise.all([
+    laBoda(c.wedding_id),
+    correosDeLaPareja(c.wedding_id),
+    db
+      .from("correos_de_cotizacion")
+      .select("message_id")
+      .eq("cotizacion_id", c.id)
+      .eq("direccion", "recibido")
+      .not("message_id", "is", null)
+      .order("creado_en", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  const respuestas = direccionDeRespuesta(c.clave);
+  const base = c.asunto ?? `Solicitud de cotización: ${c.categoria} — boda de ${boda.quien}`;
+  const asunto = (/^re:/i.test(base) ? base : `Re: ${base}`).slice(0, 200);
+  const enHilo = (ultimo?.message_id as string | undefined)?.trim();
+  const hilo = enHilo ? enHilo.replace(/[\r\n]/g, "").trim() : "";
+  const idDelHilo = hilo ? (hilo.startsWith("<") ? hilo : `<${hilo}>`) : null;
+  const envio = await mandar({
+    to: c.proveedor_correo,
+    cc: pareja,
+    replyTo: respuestas ? [respuestas] : pareja,
+    subject: asunto,
+    eyebrow: "Mensaje de Blue Book",
+    titulo: c.proveedor_nombre ? `Hola, ${c.proveedor_nombre}` : "Hola",
+    parrafos: [`Les escribe el asistente de Blue Book de parte de ${boda.quien}, sobre la cotización de ${c.categoria.toLowerCase()}:`],
+    cita: m.texto as string,
+    filas: [["Boda", boda.quien], ...(boda.fecha ? ([["Fecha", boda.fecha]] as Array<[string, string]>) : [])],
+    pie: respuestas
+      ? "Para contestar, respondan a este correo: su respuesta le llega a la pareja, que va en copia."
+      : "Respondan a este correo y su respuesta le llega directo a la pareja.",
+    ...(idDelHilo ? { headers: { "In-Reply-To": idDelHilo, References: idDelHilo } } : {}),
+  });
+  if (!envio.ok) return fallo(envio.error);
+  await Promise.all([
+    db.from("mensajes_a_proveedor").update({ envio_id: envio.id }).eq("id", m.id),
+    db.from("correos_de_cotizacion").insert({
+      cotizacion_id: c.id,
+      wedding_id: c.wedding_id,
+      direccion: "enviado",
+      de: "hola@bluebook.mx",
+      asunto,
+      texto: m.texto,
+      resend_id: envio.id,
+    }),
+    db
+      .from("cotizaciones_por_correo")
+      .update({ estado: "negociando" })
+      .eq("id", c.id)
+      .in("estado", ["enviada", "respondida", "sin_respuesta", "negociando"]),
+  ]);
+  return "enviada";
+}
+
+/**
+ * Lo que el proveedor contestó por WhatsApp (lo guardó el admin), por correo a
+ * la pareja: por WhatsApp no va en copia como en un correo.
+ */
+export async function avisarRespuestaPorCorreo(cotizacionId: string): Promise<ResultadoDelEnvio> {
+  const db = createAdminClient();
+  const [{ data: fila }, { data: ultimo }] = await Promise.all([
+    db.from("cotizaciones_por_correo").select(COLUMNAS).eq("id", cotizacionId).maybeSingle(),
+    db
+      .from("correos_de_cotizacion")
+      .select("texto, adjuntos")
+      .eq("cotizacion_id", cotizacionId)
+      .eq("direccion", "recibido")
+      .eq("canal", "whatsapp")
+      .order("creado_en", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  const c = fila as Cotizacion | null;
+  if (!c || !ultimo) return "ya_no_aplica";
+  const pareja = await correosDeLaPareja(c.wedding_id);
+  if (!pareja.length) return "ya_no_aplica";
+  const quien = c.proveedor_nombre || "El proveedor";
+  const pdfs = Array.isArray(ultimo.adjuntos) ? ultimo.adjuntos.length : 0;
+  const r = await sendAvisoEmail({
+    to: pareja,
+    subject: `${quien} contestó por WhatsApp: cotización de ${c.categoria}`,
+    eyebrow: "Respuesta de un proveedor",
+    titulo: `${quien} les contestó`,
+    parrafos: [
+      `Esto respondió por WhatsApp a su pedido de cotización de ${c.categoria.toLowerCase()}.` +
+        (pdfs ? ` Mandó ${pdfs === 1 ? "un PDF" : `${pdfs} PDF`}: lo pueden ver con su asistente.` : ""),
+    ],
+    cita: ((ultimo.texto as string | null) ?? "").slice(0, 4000) || "(sin texto)",
+    filas: [["Proveedor", quien]],
+    boton: { texto: "Abrir mi panel", url: urlDelPanel() },
+    pie: "Su asistente les puede ayudar a contestarle o a comparar con otras cotizaciones.",
+  });
+  return r.success ? "enviada" : "fallo";
 }

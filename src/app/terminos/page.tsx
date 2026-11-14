@@ -48,6 +48,9 @@ const { esencial, asistente, acompanamiento } = PLANES;
 /** La fecha desde la que se venden los planes de pago único. */
 const FECHA_PLANES_ES = "13 de noviembre de 2026";
 const FECHA_PLANES_EN = "November 13, 2026";
+// La última versión del texto (14-nov: el asistente negocia y escribe por WhatsApp).
+const FECHA_VERSION_ES = "14 de noviembre de 2026";
+const FECHA_VERSION_EN = "November 14, 2026";
 
 function seccionesEs(): SeccionLegal[] {
   const nombre = datoLegal(RESPONSABLE.nombre, false);
@@ -102,13 +105,15 @@ function seccionesEs(): SeccionLegal[] {
               confirmas (sección 6).
             </li>
             <li>
-              En {acompanamiento.es.name}, <strong>tu asistente les escribe a proveedores</strong> a tu nombre para
-              pedirles cotización, sólo cuando le contestas «sí» al correo que te propone (sección 6).
+              En {acompanamiento.es.name}, <strong>tu asistente les escribe a proveedores</strong> a tu nombre, por
+              correo o por WhatsApp, para pedirles cotización y negociar dentro del monto máximo que tú le pongas, sólo
+              cuando le contestas «sí» al mensaje que te propone (sección 6).
             </li>
           </Lista>
           <p>
-            Blue Book no es proveedor de tu boda: no contratamos, pagamos ni negociamos con tus proveedores por ti, y no
-            estamos físicamente en tu evento. Las fechas y sugerencias del panel, como la receta de la barra, son una
+            Blue Book no es proveedor de tu boda: no contratamos ni pagamos a tus proveedores por ti, ni cerramos tratos a
+            tu nombre (en {acompanamiento.es.name} tu asistente pregunta y negocia, pero aceptar, apartar y pagar lo haces
+            tú), y no estamos físicamente en tu evento. Las fechas y sugerencias del panel, como la receta de la barra, son una
             guía; las decisiones y los contratos con tus proveedores son tuyos.
           </p>
         </>
@@ -236,12 +241,30 @@ function seccionesEs(): SeccionLegal[] {
             {acompanamiento.turnosAlMes} en {acompanamiento.es.name}. Revisa lo que te propone antes de confirmarlo.
           </li>
           <li>
-            <strong>{acompanamiento.es.name}</strong> incluye además pedir cotizaciones a proveedores por correo, desde
-            tu panel o con tu asistente: el asistente te enseña el correo completo, sale sólo con tu «sí», con tu correo
-            en copia, y si el proveedor no contesta le manda hasta 2 recordatorios. Solo pide información y precios:
-            no acepta, aparta, contrata ni paga nada por ti, y los proveedores contestan por su cuenta y sus precios son
-            suyos y el envío por WhatsApp de hasta {acompanamiento.invitaciones} invitaciones
-            con sus confirmaciones (sección 7).
+            <strong>{acompanamiento.es.name}</strong> incluye además el envío por WhatsApp de hasta{" "}
+            {acompanamiento.invitaciones} invitaciones con sus confirmaciones (sección 7), y que tu asistente les escriba
+            a proveedores por ti:
+            <Lista>
+              <li>
+                Les pide cotización por correo (desde tu panel o con tu asistente, con tu correo en copia) o por WhatsApp
+                (desde un número de Blue Book para proveedores, distinto del de invitaciones). Si el proveedor no contesta,
+                le manda hasta 2 recordatorios.
+              </li>
+              <li>
+                Puede contestarle y negociar (preguntar, aclarar, hacer una contraoferta) dentro de los límites que tú le
+                pongas: nunca menciona un monto arriba del máximo que le diste, y sin máximo no habla de montos.
+              </li>
+              <li>
+                Cada mensaje te lo enseña completo y sale solo con tu «sí». Al principio, además, alguien del equipo de
+                Blue Book lo revisa antes de que salga.
+              </li>
+              <li>
+                Los proveedores saben que les escribe el asistente de Blue Book de tu parte. No acepta, aparta, contrata,
+                firma ni paga nada por ti: cerrar el trato lo haces tú directo con el proveedor. Los proveedores contestan
+                por su cuenta, sus precios y condiciones son suyos, y Blue Book no garantiza que contesten ni que bajen
+                su precio.
+              </li>
+            </Lista>
           </li>
           <li>
             <strong>Tu panel sigue disponible después de pagar</strong>, para consultar y editar, sin fecha de
@@ -554,13 +577,15 @@ function seccionesEn(): SeccionLegal[] {
               confirm it (section 6).
             </li>
             <li>
-              In {acompanamiento.en.name}, <strong>your assistant writes to vendors</strong> on your behalf to ask for
-              quotes, only when you answer «yes» to the email it proposes (section 6).
+              In {acompanamiento.en.name}, <strong>your assistant writes to vendors</strong> on your behalf, by email or
+              WhatsApp, to ask for quotes and negotiate within the maximum amount you set, only when you answer «yes» to
+              the message it proposes (section 6).
             </li>
           </Lista>
           <p>
-            Blue Book is not a vendor of your wedding: we don&rsquo;t hire, pay or negotiate with your vendors for you,
-            and we&rsquo;re not physically at your event. The dates and suggestions in the panel, like the bar recipe,
+            Blue Book is not a vendor of your wedding: we don&rsquo;t hire or pay your vendors for you, or close deals in
+            your name (in {acompanamiento.en.name} your assistant asks and negotiates, but you accept, book and pay), and
+            we&rsquo;re not physically at your event. The dates and suggestions in the panel, like the bar recipe,
             are a guide; decisions and contracts with your vendors are yours.
           </p>
         </>
@@ -689,12 +714,29 @@ function seccionesEn(): SeccionLegal[] {
             {acompanamiento.turnosAlMes} in {acompanamiento.en.name}. Review what it proposes before you confirm it.
           </li>
           <li>
-            <strong>{acompanamiento.en.name}</strong> also includes requesting vendor quotes by email, from your panel or
-            through your assistant: the assistant shows you the full email, it goes out only on your «yes», with your
-            email in copy, and if the vendor doesn&rsquo;t reply it sends up to 2 reminders. It only asks for information
-            and prices: it doesn&rsquo;t accept, book, hire or pay anything for you, and vendors answer on their own and
-            their prices are theirs and sending up to {acompanamiento.invitaciones} invitations over WhatsApp with their RSVPs (section
-            7).
+            <strong>{acompanamiento.en.name}</strong> also includes sending up to {acompanamiento.invitaciones}{" "}
+            invitations over WhatsApp with their RSVPs (section 7), and your assistant writing to vendors for you:
+            <Lista>
+              <li>
+                It asks for quotes by email (from your panel or through your assistant, with your email in copy) or by
+                WhatsApp (from a Blue Book number for vendors, separate from the invitations one). If the vendor
+                doesn&rsquo;t reply, it sends up to 2 reminders.
+              </li>
+              <li>
+                It can reply and negotiate (ask, clarify, make a counteroffer) within the limits you set: it never
+                mentions an amount above the maximum you gave it, and without a maximum it doesn&rsquo;t talk amounts.
+              </li>
+              <li>
+                It shows you every message in full and it goes out only on your «yes». At first, someone on the Blue Book
+                team also reviews it before it goes out.
+              </li>
+              <li>
+                Vendors know Blue Book&rsquo;s assistant is writing on your behalf. It doesn&rsquo;t accept, book, hire,
+                sign or pay anything for you: you close the deal directly with the vendor. Vendors answer on their own,
+                their prices and terms are theirs, and Blue Book doesn&rsquo;t guarantee they&rsquo;ll reply or lower
+                their price.
+              </li>
+            </Lista>
           </li>
           <li>
             <strong>Your panel stays available after you pay</strong>, to read and edit, with no expiry date, while your
@@ -951,7 +993,7 @@ export default async function TerminosPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Terms and conditions" : "Términos y condiciones"}
-      actualizado={isEnglish ? FECHA_PLANES_EN : FECHA_PLANES_ES}
+      actualizado={isEnglish ? FECHA_VERSION_EN : FECHA_VERSION_ES}
       intro={
         isEnglish ? (
           <p>

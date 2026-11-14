@@ -50,13 +50,16 @@ export const EMITE_CFDI = false;
 // (Esencial, Con asistente, Acompañamiento): subir paga la diferencia, uso
 // justo del asistente y hasta 3 meses tras la boda; las suscripciones previas
 // conservan sus condiciones hasta cancelarse.
-export const VERSION_TERMINOS = "2026-11-13";
+// 2026-11-14: en Acompañamiento el asistente también negocia dentro del máximo
+// que pone la pareja y escribe por WhatsApp desde un número para proveedores.
+export const VERSION_TERMINOS = "2026-11-14";
 // «.2»: el mismo día se publicó otra versión (la copia de 30 minutos para la
 // vuelta de Google); esa agregó traer la lista y el presupuesto en «Su boda».
 // «.3»: el reparto del presupuesto por categoría, y que se borra con él.
 // 2026-09-28: comprar el álbum pide tu nombre y crea tu cuenta si no tienes.
 // 2026-09-30: la hoja de Google Sheets ligada a la lista de invitados.
-export const VERSION_AVISO = "2026-09-30";
+// 2026-11-14: proveedores por WhatsApp y negociación (lo que reciben, lo que se guarda, Kapso).
+export const VERSION_AVISO = "2026-11-14";
 
 /** Días naturales de anticipación con que se avisa un cambio a los Términos. */
 export const DIAS_AVISO_CAMBIO_TERMINOS = 15;

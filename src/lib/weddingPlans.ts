@@ -59,7 +59,7 @@ export interface PlanDeBoda {
   asesorias: number;
   /** Incluye el álbum digital Ilimitado (para siempre). */
   album: boolean;
-  /** Pedir cotizaciones a proveedores por correo: desde el panel y con el asistente (0054). */
+  /** Pedir cotizaciones a proveedores: desde el panel (correo) y con el asistente (correo o WhatsApp, y negociar: 0054, 0055). */
   cotizaciones: boolean;
   recomendado?: boolean;
   es: { name: string; tagline: string; incluye: string[] };
@@ -148,7 +148,7 @@ export const PLANES: Record<PlanId, PlanDeBoda> = {
       tagline: "Tu asistente también habla con tus proveedores.",
       incluye: [
         "Todo lo de Con asistente",
-        "Tu asistente les escribe a proveedores por ti: pide cotizaciones y les da seguimiento, siempre con tu «sí»",
+        "Tu asistente les escribe a proveedores por ti: pide cotizaciones, les da seguimiento y negocia hasta el monto que tú pongas, siempre con tu «sí»",
         "Sus respuestas y sus PDF en un solo lugar, para comparar con tu asistente",
         "Invitaciones y confirmaciones por WhatsApp hasta 200 invitaciones",
       ],
@@ -158,7 +158,7 @@ export const PLANES: Record<PlanId, PlanDeBoda> = {
       tagline: "Your assistant talks to your vendors too.",
       incluye: [
         "Everything in With assistant",
-        "Your assistant writes to vendors for you: asks for quotes and follows up, always on your «yes»",
+        "Your assistant writes to vendors for you: asks for quotes, follows up and negotiates up to the amount you set, always on your «yes»",
         "Their replies and PDFs in one place, to compare with your assistant",
         "WhatsApp invitations and RSVPs for up to 200 invitations",
       ],

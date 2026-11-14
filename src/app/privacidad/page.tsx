@@ -98,7 +98,9 @@ function seccionesEs(): SeccionLegal[] {
           <p>
             <strong>Datos de otras personas que tú capturas:</strong> de tus invitados, su nombre, teléfono, número de
             pases, notas, grupo, mesa, restricción para el menú y su respuesta de asistencia; de tus proveedores, su
-            nombre, persona de contacto, teléfono, correo, su página o Instagram, y lo que diga el contrato que subas.
+            nombre, persona de contacto, teléfono, correo, su página o Instagram, lo que diga el contrato que subas y, en
+            Acompañamiento, lo que le contestan a tu asistente por correo o por WhatsApp (con el número desde el que
+            escriben).
           </p>
           <p>
             Si traes tu lista de invitados pegándola o subiendo un archivo (.xlsx o .csv), leemos esas columnas y el
@@ -190,7 +192,7 @@ function seccionesEs(): SeccionLegal[] {
               </li>
             ) : null}
             <li>Alojar tu álbum digital y las fotos de tus invitados.</li>
-            <li>Que, en Acompañamiento, tu asistente les escriba a los proveedores que tú le pidas y guarde lo que te contesten, y que el equipo te dé soporte.</li>
+            <li>Que, en Acompañamiento, tu asistente les escriba a los proveedores que tú le pidas (por correo o por WhatsApp), negocie con ellos dentro de los límites que le pongas, guarde lo que te contesten, y que el equipo te dé soporte.</li>
             <li>Cobrarte, darte comprobantes y avisarte de tu prueba, tus cobros y los cambios del servicio.</li>
             <li>Cumplir obligaciones legales y atender requerimientos de autoridad.</li>
           </Lista>
@@ -269,7 +271,7 @@ function seccionesEs(): SeccionLegal[] {
                 "Generar la imagen de tu invitación con IA, cuando lo pides (recibe tus nombres, fecha, lugar y los detalles que escribas)",
                 "Estados Unidos",
               ],
-              ["Meta (WhatsApp), a través de Kapso", "Enviar invitaciones y recibir las respuestas; Kapso también puede pasar a texto las notas de voz que llegan al WhatsApp de Blue Book", "Estados Unidos y otros países"],
+              ["Meta (WhatsApp), a través de Kapso", "Enviar invitaciones y recibir las respuestas, y en Acompañamiento escribirles a tus proveedores desde el número de Blue Book para proveedores; Kapso también puede pasar a texto las notas de voz que llegan al WhatsApp de Blue Book", "Estados Unidos y otros países"],
               ["Cloudinary", "Fotos del álbum digital", "Estados Unidos"],
               ...(ASISTENTE.activo
                 ? [
@@ -303,8 +305,9 @@ function seccionesEs(): SeccionLegal[] {
           <p>
             <strong>Lo que ven otras personas porque tú lo decides:</strong> tus invitados reciben por WhatsApp tu
             invitación, con sus nombres, fecha y lugar; tu pareja y tu planner ven tu panel; los proveedores a los que
-            pides una cotización (desde tu panel o con tu asistente) reciben tu nombre, tu correo, la fecha y el lugar
-            de tu boda y lo que les pides; y quien tenga el enlace de tu álbum ve sus fotos y el nombre de quien subió
+            pides una cotización (desde tu panel o con tu asistente) reciben tu nombre, la fecha y el lugar de tu boda,
+            lo que les pides y, por correo, tu correo, que va en copia; si tu asistente negocia por ti, también los
+            montos que tú le autorizaste mencionar; y quien tenga el enlace de tu álbum ve sus fotos y el nombre de quien subió
             cada una.
           </p>
         </>
@@ -569,7 +572,8 @@ function seccionesEn(): SeccionLegal[] {
           <p>
             <strong>Other people&rsquo;s data you add:</strong> for your guests, their name, phone, number of seats,
             notes, group, table, menu restriction and RSVP; for your vendors, their name, contact person, phone,
-            email, website or Instagram, and whatever the contract you upload says.
+            email, website or Instagram, whatever the contract you upload says and, in the Guided plan, what they reply
+            to your assistant by email or WhatsApp (with the number they write from).
           </p>
           <p>
             If you bring your guest list by pasting it or uploading a file (.xlsx or .csv), we read those columns and the
@@ -661,7 +665,7 @@ function seccionesEn(): SeccionLegal[] {
               </li>
             ) : null}
             <li>Host your digital album and your guests&rsquo; photos.</li>
-            <li>In the Guided plan, have your assistant write to the vendors you ask it to and keep what they reply, and have the team give you support.</li>
+            <li>In the Guided plan, have your assistant write to the vendors you ask it to (by email or WhatsApp), negotiate with them within the limits you set, keep what they reply, and have the team give you support.</li>
             <li>Charge you, give you receipts and let you know about your trial, your charges and changes to the service.</li>
             <li>Comply with legal obligations and respond to requests from authorities.</li>
           </Lista>
@@ -739,7 +743,7 @@ function seccionesEn(): SeccionLegal[] {
                 "Generating your invitation image with AI, when you ask (it receives your names, date, place and the details you type)",
                 "United States",
               ],
-              ["Meta (WhatsApp), through Kapso", "Sending invitations and receiving replies; Kapso may also turn the voice notes sent to Blue Book\u2019s WhatsApp into text", "United States and other countries"],
+              ["Meta (WhatsApp), through Kapso", "Sending invitations and receiving replies, and in the Guided plan writing to your vendors from Blue Book\u2019s number for vendors; Kapso may also turn the voice notes sent to Blue Book\u2019s WhatsApp into text", "United States and other countries"],
               ["Cloudinary", "Digital album photos", "United States"],
               ...(ASISTENTE.activo
                 ? [
@@ -773,8 +777,9 @@ function seccionesEn(): SeccionLegal[] {
           <p>
             <strong>What other people see because you decide so:</strong> your guests receive your invitation over
             WhatsApp, with your names, date and place; your partner and your planner see your panel; the vendors you
-            ask for a quote (from your panel or through your assistant) receive your name, your email, your wedding&rsquo;s
-            date and place and what you ask them; and anyone with your album&rsquo;s link sees its photos and the name of
+            ask for a quote (from your panel or through your assistant) receive your name, your wedding&rsquo;s date and
+            place, what you ask them and, by email, your email address, which goes in copy; if your assistant negotiates
+            for you, also the amounts you allowed it to mention; and anyone with your album&rsquo;s link sees its photos and the name of
             whoever uploaded each one.
           </p>
         </>
@@ -998,7 +1003,7 @@ export default async function PrivacidadPage() {
       isEnglish={isEnglish}
       eyebrow={isEnglish ? "Legal" : "Legal"}
       titulo={isEnglish ? "Privacy notice" : "Aviso de privacidad"}
-      actualizado={isEnglish ? "September 30, 2026" : "30 de septiembre de 2026"}
+      actualizado={isEnglish ? "November 14, 2026" : "14 de noviembre de 2026"}
       vigente={ASISTENTE.activo ? ASISTENTE.vigenteDesde[isEnglish ? "en" : "es"] : undefined}
       anuncio={
         ASISTENTE.activo && !asistenteVigente() ? (

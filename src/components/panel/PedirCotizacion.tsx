@@ -20,7 +20,8 @@ interface Enviada {
   id: string;
   categoria: string;
   proveedor_nombre: string | null;
-  proveedor_correo: string;
+  proveedor_correo: string | null;
+  canal?: "correo" | "whatsapp";
   enviada_en: string | null;
   error: string | null;
   created_at: string;
@@ -33,6 +34,7 @@ const ESTADOS: Record<string, { es: string; en: string }> = {
   en_revision: { es: "Por salir", en: "Going out" },
   enviada: { es: "Esperando respuesta", en: "Waiting for a reply" },
   respondida: { es: "Contestó", en: "Replied" },
+  negociando: { es: "Negociando", en: "Negotiating" },
   sin_respuesta: { es: "No contestó", en: "No reply" },
   rechazada: { es: "No salió", en: "Didn't go out" },
   fallida: { es: "No salió", en: "Didn't go out" },
@@ -214,6 +216,7 @@ export function PedirCotizacion({
               <span className="text-noche">
                 {c.categoria}
                 <span className="text-tinta"> · {c.proveedor_nombre || c.proveedor_correo}</span>
+                {c.canal === "whatsapp" ? <span className="text-tinta"> · WhatsApp</span> : null}
                 {c.origen === "asistente" ? (
                   <span className="text-tinta"> · {isEnglish ? "by your assistant" : "lo pidió su asistente"}</span>
                 ) : null}
