@@ -8,8 +8,9 @@ import {
   type Acceso,
   type AccesoDeLaBoda,
 } from "@/lib/accesoDeLaBoda";
+import { esPlanId } from "@/lib/weddingPlans";
 
-const ACCESOS: readonly Acceso[] = ["pagada", "sin_prueba", "prueba", "prueba_vencida"];
+const ACCESOS: readonly Acceso[] = ["pagada", "sin_prueba", "prueba", "prueba_vencida", "cortesia"];
 
 /**
  * El acceso de una boda, leído de v_acceso_de_la_boda (0030). Cacheado por
@@ -25,7 +26,7 @@ export const leerAcceso = cache(async function leerAcceso(
 ): Promise<AccesoDeLaBoda> {
   const { data, error } = await createAdminClient()
     .from("v_acceso_de_la_boda")
-    .select("acceso, puede_editar, dias_de_prueba, prueba_termina_en")
+    .select("acceso, puede_editar, dias_de_prueba, prueba_termina_en, cortesia_plan, cortesia_hasta")
     .eq("wedding_id", weddingId)
     .maybeSingle();
 
@@ -40,6 +41,10 @@ export const leerAcceso = cache(async function leerAcceso(
     puedeEditar: data.puede_editar !== false,
     diasDePrueba: data.dias_de_prueba ?? null,
     pruebaTerminaEn: data.prueba_termina_en ?? null,
+    regalo:
+      esPlanId(data.cortesia_plan) && data.cortesia_hasta
+        ? { plan: data.cortesia_plan, hasta: data.cortesia_hasta }
+        : null,
   };
 });
 

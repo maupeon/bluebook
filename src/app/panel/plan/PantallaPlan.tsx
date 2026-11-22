@@ -125,6 +125,10 @@ export function PantallaPlan({
 }) {
   const { isEnglish } = useLanguage();
 
+  // Un plan que regaló el equipo (0057): mientras dura, eso es lo que tienen.
+  if (acceso.regalo && !listo) {
+    return <SuRegalo regalo={acceso.regalo} pagado={estado.plan} estado={estado} isEnglish={isEnglish} />;
+  }
   if (listo && acceso.acceso === "pagada") {
     return <Listo plan={estado.plan} mensual={suscripcion != null} isEnglish={isEnglish} />;
   }
@@ -561,7 +565,9 @@ function SuPlanDePagoUnico({
     }).format(new Date(iso));
   const filas: Array<[string, string]> = [];
   if (p.asistente && a) {
-    if (a.motivo === "boda_pasada") {
+    if (a.motivo === "apagado") {
+      filas.push([isEnglish ? "Assistant" : "Asistente", isEnglish ? "Paused by the team" : "En pausa por el equipo"]);
+    } else if (a.motivo === "boda_pasada") {
       filas.push([
         isEnglish ? "Assistant" : "Asistente",
         isEnglish ? "Finished: it answers until 3 months after the wedding." : "Terminó: contesta hasta 3 meses después de la boda.",
@@ -676,6 +682,55 @@ function Listo({ plan, mensual: mensualViejo, isEnglish }: { plan: PlanId | null
 }
 
 // ----- Ya pagada (o nunca tuvo prueba) -----
+
+/** Un plan regalado por el equipo (0057): cuál, hasta cuándo y su uso. */
+function SuRegalo({
+  regalo,
+  pagado,
+  estado,
+  isEnglish,
+}: {
+  regalo: { plan: PlanId; hasta: string };
+  pagado: PlanId | null;
+  estado: EstadoDelPlan;
+  isEnglish: boolean;
+}) {
+  const p = PLANES[regalo.plan];
+  const hasta = new Intl.DateTimeFormat(isEnglish ? "en-US" : "es-MX", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Mexico_City",
+  }).format(new Date(regalo.hasta));
+  const despues = pagado
+    ? isEnglish
+      ? `After that, you go back to your ${PLANES[pagado].en.name} plan.`
+      : `Después siguen con su plan ${PLANES[pagado].es.name}.`
+    : isEnglish
+      ? "Before it ends, you can choose a plan to keep everything open."
+      : "Antes de que termine pueden elegir un plan para seguir con todo abierto.";
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
+      <Reveal app>
+        <header>
+          <Eyebrow>{isEnglish ? "Your plan" : "Su plan"}</Eyebrow>
+          <Titular as="h1" tamano="pantalla" alinear="inicio" className="mt-3">
+            {isEnglish ? "A gift from " : "Un regalo de "}
+            <em>Blue Book</em>
+          </Titular>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-tinta">
+            {isEnglish
+              ? `You have the ${p.en.name} plan, at no cost, until ${hasta}. ${despues}`
+              : `Tienen el plan ${p.es.name}, sin costo, hasta el ${hasta}. ${despues}`}
+          </p>
+        </header>
+      </Reveal>
+      <Reveal app className="mt-10">
+        <SuPlanDePagoUnico plan={regalo.plan} estado={estado} isEnglish={isEnglish} />
+      </Reveal>
+    </div>
+  );
+}
 
 function YaTienenPlan({
   suscripcion,

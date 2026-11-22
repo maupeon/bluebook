@@ -1,3 +1,5 @@
+import { type PlanId } from "@/lib/weddingPlans";
+
 // Qué puede hacer una boda según su prueba o su pago. Módulo PURO: lo importan
 // componentes cliente y rutas de servidor. La lectura de la base vive en
 // @/lib/acceso (server-only).
@@ -10,8 +12,9 @@
  * - sin_prueba      nació antes de la 0030 o la creó el admin: abierta como siempre.
  * - prueba          dentro de sus siete días.
  * - prueba_vencida  pasaron los siete días sin pagar: solo lectura.
+ * - cortesia        no ha pagado y el equipo le regaló un plan que sigue vigente (0057).
  */
-export type Acceso = "pagada" | "sin_prueba" | "prueba" | "prueba_vencida";
+export type Acceso = "pagada" | "sin_prueba" | "prueba" | "prueba_vencida" | "cortesia";
 
 export interface AccesoDeLaBoda {
   acceso: Acceso;
@@ -20,6 +23,8 @@ export interface AccesoDeLaBoda {
   diasDePrueba: number | null;
   /** ISO. null si la boda no nació de una prueba. */
   pruebaTerminaEn: string | null;
+  /** El plan que regaló el equipo, mientras dura (0057). También en una boda que ya pagó. */
+  regalo: { plan: PlanId; hasta: string } | null;
 }
 
 /** Lo que se asume si la vista no contesta: abierta, como antes de la 0030. */
@@ -28,6 +33,7 @@ export const ACCESO_ABIERTO: AccesoDeLaBoda = {
   puedeEditar: true,
   diasDePrueba: null,
   pruebaTerminaEn: null,
+  regalo: null,
 };
 
 /** Duración de la prueba. La fija empezar_prueba (0030); aquí solo para los textos. */

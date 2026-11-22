@@ -1,4 +1,5 @@
 import "server-only";
+import { tierVigente, type FilaConRegalo } from "@/lib/planVigente";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { leerAcceso } from "@/lib/acceso";
 import { topeDelPlan } from "@/lib/topeDelPlan";
@@ -617,14 +618,14 @@ export async function sincronizarPronto(weddingId: string): Promise<FinDeVuelta 
   const leer = async () => {
     const { data } = await createAdminClient()
       .from(TABLA)
-      .select("sincronizada_en, resultado, weddings(tier)")
+      .select("sincronizada_en, resultado, weddings(tier, cortesia_plan, cortesia_hasta)")
       .eq("wedding_id", weddingId)
       .maybeSingle();
     if (!data) return null;
-    const boda = (Array.isArray(data.weddings) ? data.weddings[0] : data.weddings) as { tier?: string } | null;
+    const boda = (Array.isArray(data.weddings) ? data.weddings[0] : data.weddings) as FilaConRegalo | null;
     const empezo = (data.resultado as ResultadoDeVuelta | null)?.empezo;
     return {
-      tier: (boda?.tier === "full" ? "full" : "invitations") as Tier,
+      tier: tierVigente(boda ?? {}) as Tier,
       ultima: data.sincronizada_en ? new Date(data.sincronizada_en as string).getTime() : 0,
       yaLoLleva: Boolean(empezo && new Date(empezo).getTime() > pedido),
     };
@@ -656,14 +657,14 @@ export async function sincronizarPronto(weddingId: string): Promise<FinDeVuelta 
 export async function sincronizarSiToca(weddingId: string, segundos: number): Promise<FinDeVuelta | "reciente"> {
   const { data } = await createAdminClient()
     .from(TABLA)
-    .select("sincronizada_en, weddings(tier)")
+    .select("sincronizada_en, weddings(tier, cortesia_plan, cortesia_hasta)")
     .eq("wedding_id", weddingId)
     .maybeSingle();
   if (!data) return "sin_hoja";
   const ultima = data.sincronizada_en ? new Date(data.sincronizada_en as string).getTime() : 0;
   if (Date.now() - ultima < segundos * 1000) return "reciente";
-  const boda = (Array.isArray(data.weddings) ? data.weddings[0] : data.weddings) as { tier?: string } | null;
-  return sincronizar(weddingId, boda?.tier === "full" ? "full" : "invitations");
+  const boda = (Array.isArray(data.weddings) ? data.weddings[0] : data.weddings) as FilaConRegalo | null;
+  return sincronizar(weddingId, tierVigente(boda ?? {}));
 }
 
 /* ============ Ligar ============ */

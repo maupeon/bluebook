@@ -1,4 +1,5 @@
 import "server-only";
+import { planVigente, tierVigente } from "@/lib/planVigente";
 import { esPlanId, type PlanId } from "@/lib/weddingPlans";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -1048,7 +1049,7 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
       supabase
         .from("weddings")
         .select(
-          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, tier, invitacion_id, contact_email, created_at, owner_id, invitados_estimados, plan"
+          "id, couple_name, display_name, wedding_date, venue, budget_total, planner_fee_total, status, tier, invitacion_id, contact_email, created_at, owner_id, invitados_estimados, plan, cortesia_plan, cortesia_hasta"
         )
         .eq(columna, normalized)
     )
@@ -1108,8 +1109,10 @@ export const getCoupleWeddingByEmail = cache(async function getCoupleWeddingByEm
     plannerFeeTotal:
       row.planner_fee_total != null ? toNum(row.planner_fee_total) : null,
     status: row.status ?? "active",
-    tier: row.tier === "full" ? "full" : "invitations",
-    plan: esPlanId(row.plan) ? row.plan : null,
+    // El que rige (0057): lo pagado o el regalo del equipo. Lo pagado solo se
+    // lee en /api/panel/plan (subir pagando la diferencia).
+    tier: tierVigente(row),
+    plan: planVigente(row),
     invitacionId: row.invitacion_id ?? null,
     invitadosEstimados:
       row.invitados_estimados != null ? Number(row.invitados_estimados) : null,

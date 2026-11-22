@@ -1,7 +1,8 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { leerAcceso } from "@/lib/acceso";
-import { PLANES, esPlanId, getInvitationTier } from "@/lib/weddingPlans";
+import { PLANES, getInvitationTier } from "@/lib/weddingPlans";
+import { COLUMNAS_DEL_REGALO, planVigente } from "@/lib/planVigente";
 
 /**
  * El tope del paquete de invitaciones que PAGARON, o null. La prueba y el plan
@@ -42,8 +43,9 @@ export type InvitacionesDelPlan =
  */
 export async function invitacionesDelPlan(weddingId: string): Promise<InvitacionesDelPlan> {
   const supabase = createAdminClient();
-  const { data: boda } = await supabase.from("weddings").select("plan").eq("id", weddingId).maybeSingle();
-  if (!esPlanId(boda?.plan)) return { puede: true, tope: null };
+  const { data: boda } = await supabase.from("weddings").select(`plan, ${COLUMNAS_DEL_REGALO}`).eq("id", weddingId).maybeSingle();
+  const plan = boda ? planVigente(boda) : null;
+  if (!plan) return { puede: true, tope: null };
 
   const { data: pagos } = await supabase
     .from("couple_leads")
@@ -56,6 +58,6 @@ export async function invitacionesDelPlan(weddingId: string): Promise<Invitacion
     if (!p.guest_count) continue;
     compradas = Math.max(compradas, getInvitationTier(p.guest_count).maxGuests ?? p.guest_count);
   }
-  const tope = Math.max(PLANES[boda.plan].invitaciones, compradas);
+  const tope = Math.max(PLANES[plan].invitaciones, compradas);
   return tope > 0 ? { puede: true, tope } : { puede: false, tope: 0 };
 }

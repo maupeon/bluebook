@@ -1,3 +1,4 @@
+import { COLUMNAS_DEL_REGALO, planVigente } from "@/lib/planVigente";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,8 +29,8 @@ async function correoDeLaSesion(): Promise<string | null> {
 }
 
 async function planDe(weddingId: string) {
-  const { data } = await createAdminClient().from("weddings").select("plan").eq("id", weddingId).maybeSingle();
-  return esPlanId(data?.plan) ? data.plan : null;
+  const { data } = await createAdminClient().from("weddings").select(`plan, ${COLUMNAS_DEL_REGALO}`).eq("id", weddingId).maybeSingle();
+  return data ? planVigente(data) : null;
 }
 
 export async function GET() {
