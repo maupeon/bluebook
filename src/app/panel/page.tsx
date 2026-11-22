@@ -4,6 +4,8 @@ import { PantallaHoy } from "@/components/panel/pantallas/PantallaHoy";
 import { leerSuscripcion } from "@/lib/suscripcion";
 import { leerAcceso } from "@/lib/acceso";
 import { incluidoEnSuPlan, leerEstadoDelAlbum } from "@/app/panel/album/leerEstadoDelAlbum";
+import { leerCitas } from "@/lib/agendaServidor";
+import { hoyEnMexico } from "@/lib/agenda";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +23,12 @@ export default async function Pagina({
   if (!datos) return null;
   const weddingId = datos.bundle.wedding.id;
   // Cacheadas por petición: lo que el layout ya pidió no cuesta otro viaje.
-  const [suscripcion, acceso, album, params] = await Promise.all([
+  const [suscripcion, acceso, album, params, citas] = await Promise.all([
     leerSuscripcion(weddingId),
     leerAcceso(weddingId),
     leerEstadoDelAlbum(weddingId),
     searchParams,
+    leerCitas(weddingId),
   ]);
   // El onboarding aterriza aquí con ?bienvenida=1 la primera vez.
   const bienvenida = params.bienvenida === "1";
@@ -39,6 +42,8 @@ export default async function Pagina({
       album={album}
       // El mensual de antes, Con asistente y Acompañamiento traen el álbum Ilimitado.
       albumIncluido={incluidoEnSuPlan(suscripcion, datos.bundle.wedding.plan)}
+      citas={citas}
+      hoy={hoyEnMexico()}
     />
   );
 }

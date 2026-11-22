@@ -18,6 +18,7 @@ export const dynamic = "force-dynamic";
 //   GET               si está disponible y qué números están ligados
 //   POST              un código nuevo para ligar un WhatsApp (30 min, un uso)
 //   DELETE ?id=…      quitar un número
+//   PATCH {id,avisos} prender o apagar los recordatorios de ese número (0059)
 //
 // Una boda «fuera del asistente» (0043) no lo tiene. Antes de
 // ASISTENTE_PAREJA_DESDE, sólo las bodas de prueba (ASISTENTE_PAREJA_PRUEBA).
@@ -53,28 +54,61 @@ async function contexto(req: NextRequest) {
 }
 
 async function numeros(admin: ReturnType<typeof createAdminClient>, weddingId: string) {
-  const { data } = await admin
-    .from("asistente_parejas")
-    .select("id, ligado_en, people(phone)")
-    .eq("wedding_id", weddingId)
-    .is("desligado_en", null)
-    .order("ligado_en", { ascending: true });
-  return (data ?? []).map((f) => {
-    const p = (Array.isArray(f.people) ? f.people[0] : f.people) as { phone?: string | null } | null;
-    return { id: f.id as string, terminacion: (p?.phone ?? "").replace(/\D/g, "").slice(-4), ligadoEn: f.ligado_en as string };
+  const leer = (columnas: string) =>
+    admin
+      .from("asistente_parejas")
+      .select(columnas)
+      .eq("wedding_id", weddingId)
+      .is("desligado_en", null)
+      .order("ligado_en", { ascending: true });
+  let { data, error } = await leer("id, ligado_en, avisos_pausados_en, people(phone)");
+  // Sin la 0059 todavía no existe la columna: los números, sin recordatorios.
+  if (error?.code === "42703") ({ data, error } = await leer("id, ligado_en, people(phone)"));
+  const filas = (data ?? []) as unknown as {
+    id: string;
+    ligado_en: string;
+    avisos_pausados_en?: string | null;
+    people: { phone?: string | null } | { phone?: string | null }[] | null;
+  }[];
+  return filas.map((f) => {
+    const p = Array.isArray(f.people) ? f.people[0] : f.people;
+    return {
+      id: f.id,
+      terminacion: (p?.phone ?? "").replace(/\D/g, "").slice(-4),
+      ligadoEn: f.ligado_en,
+      avisos: !f.avisos_pausados_en,
+    };
   });
+}
+
+/** Qué recordatorios le tocan a la boda (0059): 'completo', 'resumen' o null. */
+async function recordatorios(admin: ReturnType<typeof createAdminClient>, weddingId: string) {
+  const { data, error } = await admin.rpc("avisos_por_whatsapp", { p_wedding_id: weddingId });
+  if (error) return null;
+  return data === "completo" || data === "resumen" ? (data as "completo" | "resumen") : null;
 }
 
 export async function GET(req: NextRequest) {
   const c = await contexto(req);
   if ("error" in c) return c.error;
+  // ¿Su plan lo incluye? La regla es UNA (cuota_del_asistente, 0053/0057): la
+  // prueba sí, Esencial no, una prueba vencida no. La tarjeta de Hoy sólo
+  // invita a ligar a quien de verdad le va a contestar.
+  const [{ data: cuota }, avisos] = await Promise.all([
+    c.admin.rpc("cuota_del_asistente", { p_wedding_id: c.weddingId }),
+    recordatorios(c.admin, c.weddingId),
+  ]);
+  const fila = (Array.isArray(cuota) ? cuota[0] : cuota) as { incluido?: boolean; motivo?: string } | null;
   return NextResponse.json({
     fuera: c.fuera,
     apagado: c.apagado,
+    // Sin respuesta de la función se asume incluido: es la tarjeta de siempre.
+    incluido: fila ? fila.incluido !== false : true,
     disponible: !c.fuera && c.abierto && !c.apagado,
     desde: ASISTENTE_PAREJA_DESDE,
     whatsapp: WHATSAPP_DEL_ASISTENTE_VISIBLE,
     numeros: c.fuera ? [] : await numeros(c.admin, c.weddingId),
+    recordatorios: avisos,
   });
 }
 
@@ -124,6 +158,26 @@ export async function DELETE(req: NextRequest) {
     .is("desligado_en", null)
     .select("id");
   if (error) return NextResponse.json({ error: c.t("No se pudo quitar.", "We couldn't remove it.") }, { status: 500 });
+  if (!data?.length) return NextResponse.json({ error: c.t("Ese número ya no está ligado.", "That number is no longer linked.") }, { status: 404 });
+  return NextResponse.json({ numeros: await numeros(c.admin, c.weddingId) });
+}
+
+export async function PATCH(req: NextRequest) {
+  const c = await contexto(req);
+  if ("error" in c) return c.error;
+  const body = (await req.json().catch(() => null)) as { id?: unknown; avisos?: unknown } | null;
+  const id = typeof body?.id === "string" ? body.id : "";
+  if (!UUID_RE.test(id) || typeof body?.avisos !== "boolean") {
+    return NextResponse.json({ error: c.t("Solicitud inválida.", "Invalid request.") }, { status: 400 });
+  }
+  const { data, error } = await c.admin
+    .from("asistente_parejas")
+    .update({ avisos_pausados_en: body.avisos ? null : new Date().toISOString() })
+    .eq("id", id)
+    .eq("wedding_id", c.weddingId)
+    .is("desligado_en", null)
+    .select("id");
+  if (error) return NextResponse.json({ error: c.t("No se pudo guardar.", "We couldn't save it.") }, { status: 500 });
   if (!data?.length) return NextResponse.json({ error: c.t("Ese número ya no está ligado.", "That number is no longer linked.") }, { status: 404 });
   return NextResponse.json({ numeros: await numeros(c.admin, c.weddingId) });
 }

@@ -13,6 +13,7 @@ import { leerAcceso } from "@/lib/acceso";
 import { FranjaDePrueba } from "@/components/panel/FranjaDePrueba";
 import { LimpiarLaVuelta } from "@/components/onboarding/LimpiarLaVuelta";
 import { incluidoEnSuPlan, leerEstadoDelAlbum } from "@/app/panel/album/leerEstadoDelAlbum";
+import { diasEntre, hoyEnMexico } from "@/lib/agenda";
 
 /** El id del div que scrollea. Lo comparten el layout y ResetScroll. */
 const ID_SCROLLER = "panel-scroll";
@@ -61,6 +62,18 @@ export default async function PanelLayout({
     leerEstadoDelAlbum(wedding.id),
   ]);
 
+  // La agenda en el menú: lo vencido y lo de los próximos siete días, con la
+  // misma fecha de hoy (CDMX) que usa la pantalla.
+  const hoy = hoyEnMexico();
+  const pendientes = bundle.tasks.filter((t) => !t.doneAt);
+  const diasA = (t: { dueDate: string | null }) =>
+    t.dueDate ? diasEntre(hoy, t.dueDate.slice(0, 10)) : null;
+  const tareasAtrasadas = pendientes.filter((t) => (diasA(t) ?? 0) < 0).length;
+  const tareasDeLaSemana = pendientes.filter((t) => {
+    const d = diasA(t);
+    return d != null && d >= 0 && d <= 7;
+  }).length;
+
   return (
     // La página es papel azul; la letra y los colores ya son los de la marca en
     // toda la app (globals.css), así que el panel no redefine nada.
@@ -90,6 +103,10 @@ export default async function PanelLayout({
             album,
             // El Planner completo (el plan mensual) trae el álbum Ilimitado.
             albumIncluido: incluidoEnSuPlan(suscripcion, wedding.plan),
+            tareasAtrasadas,
+            tareasDeLaSemana,
+            tareasHechas: bundle.tasks.length - pendientes.length,
+            tareasTotales: bundle.tasks.length,
           }}
           secciones={seccionesDelPanel(bundle)}
           acceso={acceso}

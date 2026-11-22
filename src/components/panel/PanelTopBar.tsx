@@ -5,6 +5,7 @@ import { LogOut, Pencil } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { formatLongDate } from "@/components/panel/dates";
 import { Logotipo } from "@/components/marca/Logotipo";
+import { CampanaDeAvisos } from "@/components/panel/CampanaDeAvisos";
 
 /**
  * La barra de arriba del panel, con el mismo material y la misma marca que la
@@ -48,6 +49,8 @@ export function PanelTopBar({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {/* La campana, sólo con boda: sin boda no hay nada que avisar. */}
+          {coupleName ? <CampanaDeAvisos isEnglish={isEnglish} /> : null}
           {/* En teléfono, solo el lápiz: con texto, a 360 px se enciman la
               marca y el enlace (y en inglés, en cualquier teléfono). */}
           {coupleName ? (

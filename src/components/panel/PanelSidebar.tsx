@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, Home, Images, Mail, Store, Users, Wine } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  CalendarCheck,
+  CalendarClock,
+  Ellipsis,
+  Home,
+  Images,
+  Mail,
+  Store,
+  Users,
+  Wine,
+} from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { countdownPhrase } from "@/components/panel/dates";
 import type { SeccionesDelPanel } from "@/lib/seccionesDelPanel";
@@ -36,6 +47,11 @@ export interface EstadoDelMenu {
   album: AlbumDelPanel | null;
   /** Tienen el Planner completo, que incluye el álbum aunque aún no exista. */
   albumIncluido: boolean;
+  /** La agenda: pendientes vencidos, los de los próximos 7 días, y el avance. */
+  tareasAtrasadas: number;
+  tareasDeLaSemana: number;
+  tareasHechas: number;
+  tareasTotales: number;
 }
 
 const pesos = (n: number) =>
@@ -62,6 +78,28 @@ function destinos(e: EstadoDelMenu, isEnglish: boolean): Destino[] {
       pista: pistaHoy,
       Icono: Home,
       llama: false,
+    },
+    {
+      href: "/panel/agenda",
+      nombre: isEnglish ? "Agenda" : "Agenda",
+      pista:
+        e.tareasAtrasadas > 0
+          ? isEnglish
+            ? `${e.tareasAtrasadas} past due`
+            : `${e.tareasAtrasadas} ${e.tareasAtrasadas === 1 ? "atrasado" : "atrasados"}`
+          : e.tareasDeLaSemana > 0
+            ? isEnglish
+              ? `${e.tareasDeLaSemana} this week`
+              : `${e.tareasDeLaSemana} esta semana`
+            : e.tareasTotales > 0
+              ? isEnglish
+                ? `${e.tareasHechas} of ${e.tareasTotales} done`
+                : `Llevan ${e.tareasHechas} de ${e.tareasTotales}`
+              : isEnglish
+                ? "Dates and appointments"
+                : "Fechas y citas",
+      Icono: CalendarCheck,
+      llama: paso && (e.tareasAtrasadas > 0 || e.tareasDeLaSemana > 0),
     },
     {
       href: "/panel/invitados",
@@ -221,12 +259,17 @@ export function PanelSidebar({
       (href !== "/panel/dia" || secciones.dia) &&
       (href !== "/panel/album" || secciones.album)
   );
-  // Con los siete destinos (boda con planner), la barra del teléfono se
-  // aprieta: menos hueco entre botones, la letra medio punto más chica, y cada
-  // botón tan ancho como su nombre (nunca menos de 44px, lo que pide un dedo)
-  // en vez de siete partes iguales: «Proveedores» mide 60px y la séptima parte
-  // de 360px, 47. Así cabe entero desde 360px. Con seis o menos, como era.
-  const apretada = items.length > 6;
+  // En el teléfono caben siete destinos, apretados, desde 360px. Con la
+  // Agenda una boda con planner tiene ocho: los últimos (La barra y Álbum, lo
+  // que menos urge) se van a «Más», que abre una hoja con ellos. Con siete o
+  // menos, todos a la vista como antes.
+  const enBarra = items.length > 7 ? items.slice(0, 6) : items;
+  const enMas = items.length > 7 ? items.slice(6) : [];
+  // Con siete botones la barra se aprieta: menos hueco entre botones, la letra
+  // medio punto más chica, y cada botón tan ancho como su nombre (nunca menos
+  // de 44px, lo que pide un dedo) en vez de siete partes iguales:
+  // «Proveedores» mide 60px y la séptima parte de 360px, 47.
+  const apretada = enBarra.length + (enMas.length ? 1 : 0) > 6;
 
   return (
     <>
@@ -301,7 +344,7 @@ export function PanelSidebar({
           apretada ? "gap-0.5 px-1" : "gap-1 px-2"
         }`}
       >
-        {items.map(({ href, nombre, pista, Icono, llama }) => {
+        {enBarra.map(({ href, nombre, pista, Icono, llama }) => {
           const activo = esActivo(pathname, href);
           return (
             <Link
@@ -344,7 +387,111 @@ export function PanelSidebar({
             </Link>
           );
         })}
+        {enMas.length > 0 ? (
+          <BotonMas
+            items={enMas}
+            pathname={pathname}
+            apretada={apretada}
+            isEnglish={isEnglish}
+          />
+        ) : null}
       </nav>
     </>
+  );
+}
+
+/**
+ * «Más» en la barra del teléfono: lo que no cabe, en una hoja que sube desde
+ * abajo. Se cierra al elegir, al tocar fuera o con Escape.
+ */
+function BotonMas({
+  items,
+  pathname,
+  apretada,
+  isEnglish,
+}: {
+  items: Destino[];
+  pathname: string;
+  apretada: boolean;
+  isEnglish: boolean;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const raiz = useRef<HTMLDivElement | null>(null);
+  const activo = items.some(({ href }) => esActivo(pathname, href));
+  const llama = items.some(({ llama }) => llama);
+
+  // Navegar cierra la hoja.
+  useEffect(() => setAbierto(false), [pathname]);
+
+  useEffect(() => {
+    if (!abierto) return;
+    const fuera = (e: PointerEvent) => {
+      if (raiz.current && !raiz.current.contains(e.target as Node)) setAbierto(false);
+    };
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAbierto(false);
+    };
+    document.addEventListener("pointerdown", fuera);
+    document.addEventListener("keydown", tecla);
+    return () => {
+      document.removeEventListener("pointerdown", fuera);
+      document.removeEventListener("keydown", tecla);
+    };
+  }, [abierto]);
+
+  return (
+    <div ref={raiz} className={`relative ${apretada ? "min-w-[2.75rem] flex-auto" : "min-w-0 flex-1"}`}>
+      <button
+        type="button"
+        onClick={() => setAbierto((v) => !v)}
+        aria-expanded={abierto}
+        aria-haspopup="menu"
+        className={`relative flex min-h-[3.25rem] w-full flex-col items-center justify-center gap-1 rounded-xl border transition-[background-color,border-color,scale] duration-150 active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 ${
+          activo || abierto ? "border-linea bg-papel" : "border-transparent"
+        }`}
+      >
+        <Ellipsis
+          className={`h-[18px] w-[18px] ${activo ? "text-noche" : "text-tinta"}`}
+          strokeWidth={activo ? 2 : 1.6}
+        />
+        <span
+          className={`max-w-full truncate leading-[1.25] ${apretada ? "text-[10px]" : "text-[10.5px]"} ${
+            activo ? "font-medium text-noche" : "font-normal text-tinta"
+          }`}
+        >
+          {isEnglish ? "More" : "Más"}
+        </span>
+        {llama ? (
+          <span aria-hidden="true" className="absolute right-3 top-2 h-[6px] w-[6px] rounded-full bg-tinta" />
+        ) : null}
+      </button>
+      {abierto ? (
+        <div
+          role="menu"
+          className="animate-step-in absolute bottom-[calc(100%+0.75rem)] right-0 w-56 rounded-2xl border border-linea bg-niebla p-2 shadow-lg"
+        >
+          {items.map(({ href, nombre, pista, Icono }) => {
+            const esEste = esActivo(pathname, href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                role="menuitem"
+                aria-current={esEste ? "page" : undefined}
+                className={`flex min-h-[3rem] items-center gap-3 rounded-xl px-3 py-2 ${
+                  esEste ? "bg-papel" : "hover:bg-papel-medio"
+                }`}
+              >
+                <Icono className={`h-[18px] w-[18px] ${esEste ? "text-noche" : "text-tinta"}`} strokeWidth={1.6} />
+                <span className="flex min-w-0 flex-col">
+                  <span className={`text-sm ${esEste ? "font-medium text-noche" : "text-noche"}`}>{nombre}</span>
+                  <span className="truncate text-xs text-tinta">{pista}</span>
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }

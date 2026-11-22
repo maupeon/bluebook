@@ -20,6 +20,7 @@ import type {
 import { normalizePhone } from "@/lib/phone";
 import { parseJsonSafe } from "@/lib/http";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
+import { porEtapa } from "@/lib/agenda";
 import { daysUntil, formatShortDate, formatTime } from "@/components/panel/dates";
 import {
   EmptyNote,
@@ -53,13 +54,23 @@ export function TasksSection({
   tasks: initialTasks,
   isEnglish,
   conPlanner = true,
+  conEtapas = false,
+  soloLectura = false,
 }: {
   tasks: PanelTask[];
   isEnglish: boolean;
   /** false sin planner: nadie va a "ir agregando lo suyo". */
   conPlanner?: boolean;
+  /**
+   * true en la Agenda: además de por fecha, la lista se puede ver por etapa
+   * del plan, con lo que llevan de cada una.
+   */
+  conEtapas?: boolean;
+  /** Prueba vencida: se ve todo, no se apunta nada (la API diría que no). */
+  soloLectura?: boolean;
 }) {
   const [tasks, setTasks] = useState<PanelTask[]>(initialTasks);
+  const [vista, setVista] = useState<"fecha" | "etapa">("fecha");
   const [error, setError] = useState<string | null>(null);
   const [nuevo, setNuevo] = useState("");
   const [guardando, setGuardando] = useState(false);
@@ -84,7 +95,9 @@ export function TasksSection({
             (isEnglish ? "Couldn't save it." : "No pudimos guardarlo.")
         );
       }
-      setTasks((prev) => [...prev, data.task!]);
+      // La API no manda lo que viene de la plantilla: lo de la pareja no tiene.
+      const nueva: PanelTask = { ...data.task!, detail: null, fase: null, orden: null };
+      setTasks((prev) => [...prev, nueva]);
       setNuevo("");
       refrescar();
     } catch (err) {
@@ -172,6 +185,12 @@ export function TasksSection({
     bloques.mes.length +
     bloques.despues.length;
 
+  const etapas = useMemo(
+    () => (conEtapas ? porEtapa(tasks, isEnglish) : []),
+    [conEtapas, tasks, isEnglish]
+  );
+  const hechasTotal = tasks.length - totalPendientes;
+
   async function patchTask(id: string, payload: Record<string, unknown>) {
     const res = await fetch("/api/panel/tasks", {
       method: "PUT",
@@ -232,8 +251,54 @@ export function TasksSection({
 
   return (
     <div className="h-full panel-card p-6 sm:p-8 md:p-10">
-      <Eyebrow>{isEnglish ? "Checklist" : "Pendientes"}</Eyebrow>
-      <SectionTitle>{isEnglish ? "Tasks" : "Tareas"}</SectionTitle>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <Eyebrow>{isEnglish ? "Checklist" : "Pendientes"}</Eyebrow>
+          <SectionTitle>{isEnglish ? "Tasks" : "Tareas"}</SectionTitle>
+        </div>
+        {conEtapas && tasks.length > 0 ? (
+          <div
+            role="group"
+            aria-label={isEnglish ? "Sort tasks" : "Ordenar las tareas"}
+            className="inline-flex rounded-full border border-linea bg-papel p-1"
+          >
+            {(
+              [
+                ["fecha", isEnglish ? "By date" : "Por fecha"],
+                ["etapa", isEnglish ? "By stage" : "Por etapa"],
+              ] as const
+            ).map(([id, rotulo]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={vista === id}
+                onClick={() => setVista(id)}
+                className={`min-h-9 rounded-full px-4 text-sm transition-[background-color,color] duration-150 ${
+                  vista === id ? "bg-noche font-medium text-niebla" : "text-noche hover:bg-papel-medio"
+                }`}
+              >
+                {rotulo}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      {conEtapas && tasks.length > 0 ? (
+        <div className="mt-5">
+          <p className="text-sm text-tinta">
+            {isEnglish
+              ? `${hechasTotal} of ${tasks.length} done`
+              : `Llevan ${hechasTotal} de ${tasks.length}`}
+          </p>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-papel">
+            <div
+              className="h-full rounded-full bg-noche transition-[width] duration-300"
+              style={{ width: `${tasks.length ? (hechasTotal / tasks.length) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {error ? (
         <div className="mt-5 flex items-start gap-2 rounded-xl border border-error/30 bg-error-fondo px-4 py-3">
@@ -256,6 +321,28 @@ export function TasksSection({
                 ? "Nothing pending. Write down anything you want to remember."
                 : "Nada pendiente. Apunten lo que quieran recordar."}
           </EmptyNote>
+        </div>
+      ) : vista === "etapa" ? (
+        <div className="mt-6 space-y-7">
+          {etapas.map((etapa, i) => {
+            // Abiertas: las dos primeras etapas que todavía tienen algo. Las
+            // terminadas y las lejanas, plegadas: existen y no pesan.
+            const conPendientes = etapas.filter((e) => e.hechas < e.total);
+            const abierta = conPendientes.slice(0, 2).includes(etapa);
+            return (
+              <BloqueDeTareas
+                key={etapa.fase ?? `propias-${i}`}
+                titulo={etapa.nombre}
+                cuenta={isEnglish ? `${etapa.hechas} of ${etapa.total}` : `${etapa.hechas} de ${etapa.total}`}
+                tareas={etapa.tareas}
+                plegado={!abierta}
+                isEnglish={isEnglish}
+                onToggle={toggleDone}
+                onSaveNotes={saveNotes}
+                onRemove={quitar}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="mt-6 space-y-7">
@@ -316,6 +403,7 @@ export function TasksSection({
           escribe aquí queda marcado como de la pareja, y sólo eso se puede
           quitar después. Lo que encarga la planner se marca como hecho, pero
           no se borra. */}
+      {soloLectura ? null : (
       <form onSubmit={agregar} className="mt-6 flex gap-2">
         <label htmlFor="nueva-tarea" className="sr-only">
           {isEnglish ? "What do you want to remember?" : "¿Qué quieren recordar?"}
@@ -339,6 +427,7 @@ export function TasksSection({
           {isEnglish ? "Add" : "Apuntar"}
         </button>
       </form>
+      )}
     </div>
   );
 }
@@ -350,6 +439,7 @@ export function TasksSection({
  */
 function BloqueDeTareas({
   titulo,
+  cuenta,
   tareas,
   isEnglish,
   onToggle,
@@ -359,6 +449,8 @@ function BloqueDeTareas({
   plegado = false,
 }: {
   titulo: string;
+  /** Lo que va junto al título; sin él, cuántas tareas hay. */
+  cuenta?: string;
   tareas: PanelTask[];
   isEnglish: boolean;
   onToggle: (t: PanelTask) => void;
@@ -386,7 +478,7 @@ function BloqueDeTareas({
           {titulo}
         </span>
         <span className="text-[11px] font-normal text-tinta tabular-nums">
-          {tareas.length}
+          {cuenta ?? tareas.length}
         </span>
         <span
           aria-hidden="true"

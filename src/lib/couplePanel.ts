@@ -197,6 +197,10 @@ export interface PanelTask {
    * Es de solo lectura; `notes` queda para lo que ellos quieran apuntar.
    */
   detail: string | null;
+  /** La etapa del plan (task_templates.fase); null en lo que apuntó la pareja. */
+  fase: string | null;
+  /** task_templates.sort_order: el orden del plan dentro y entre etapas. */
+  orden: number | null;
 }
 
 /**
@@ -1238,7 +1242,7 @@ export async function getPanelBundle(
       supabase
         .from("tasks")
         .select(
-          "id, title, due_date, done_at, notes, created_by, task_templates(detail, solo_con_planner)"
+          "id, title, due_date, done_at, notes, created_by, task_templates(detail, solo_con_planner, fase, sort_order)"
         )
         .eq("wedding_id", weddingId)
         .order("due_date", { ascending: true, nullsFirst: false }),
@@ -1270,7 +1274,12 @@ export async function getPanelBundle(
   const plantillaDe = (t: unknown) => {
     const rel = (t as { task_templates?: unknown }).task_templates;
     const fila = Array.isArray(rel) ? rel[0] : rel;
-    return (fila ?? null) as { detail?: string | null; solo_con_planner?: boolean } | null;
+    return (fila ?? null) as {
+      detail?: string | null;
+      solo_con_planner?: boolean;
+      fase?: string | null;
+      sort_order?: number | null;
+    } | null;
   };
 
   // «Liquidar el resto de los honorarios de su planner» en una boda sin planner
@@ -1286,6 +1295,8 @@ export async function getPanelBundle(
     notes: t.notes ?? null,
     createdBy: t.created_by === "couple" ? "couple" : "planner",
     detail: plantillaDe(t)?.detail || null,
+    fase: plantillaDe(t)?.fase ?? null,
+    orden: plantillaDe(t)?.sort_order ?? null,
   }));
 
   // El dinero, con la misma semántica del Checklist:

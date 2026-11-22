@@ -18,7 +18,10 @@ import { enCajas, sugerido } from "@/lib/barra";
 import { formatMXN } from "@/lib/weddingPlans";
 import { Eyebrow } from "@/components/panel/sections";
 import { countdownPhrase } from "@/components/panel/dates";
-import { TasksSection, MessagesSection } from "@/components/panel/PanelDashboard";
+import { MessagesSection } from "@/components/panel/PanelDashboard";
+import { LoQueViene } from "@/components/panel/LoQueViene";
+import { AsistenteWhatsApp } from "@/components/panel/AsistenteWhatsApp";
+import type { PanelCita } from "@/lib/agenda";
 import { PlannerBook, Polaroid } from "@/components/marketing/Ink";
 import { Watercolor } from "@/components/marketing/Watercolor";
 import { Titular } from "@/components/marca/Titular";
@@ -385,6 +388,8 @@ export function PantallaHoy({
   bienvenida = false,
   album = null,
   albumIncluido = false,
+  citas = [],
+  hoy,
 }: {
   bundle: PanelBundle;
   /** Resuelto en el servidor. Aquí NO se mira el reloj: ver getPanelDataByEmail. */
@@ -399,6 +404,10 @@ export function PantallaHoy({
   album?: AlbumDelPanel | null;
   /** Tienen el Planner completo, que incluye el álbum aunque aún no exista. */
   albumIncluido?: boolean;
+  /** Las citas de la boda (0059), para «Lo que viene». */
+  citas?: PanelCita[];
+  /** yyyy-mm-dd de hoy en CDMX, del servidor. */
+  hoy: string;
 }) {
   const { isEnglish } = useLanguage();
   const router = useRouter();
@@ -654,7 +663,7 @@ export function PantallaHoy({
         : isEnglish
           ? "Your plan. Once you set the date, each task gets its own."
           : "Su plan. En cuanto pongan la fecha, cada pendiente toma la suya.",
-      enlace: { href: "#tareas", texto: isEnglish ? "See the plan" : "Ver el plan" },
+      enlace: { href: "/panel/agenda", texto: isEnglish ? "See the plan" : "Ver el plan" },
     });
   }
 
@@ -693,6 +702,14 @@ export function PantallaHoy({
       {verBienvenida ? (
         <Bienvenida items={loQueYaEsta} isEnglish={isEnglish} onCerrar={cerrarBienvenida} />
       ) : null}
+
+      {/* Ligar el WhatsApp es lo primero que se les pide al salir del
+          onboarding: sin eso el asistente no les puede avisar nada. La
+          tarjeta decide sola si sale (su plan lo incluye, nadie ha ligado
+          un número, no dijeron «ahora no» esta semana). */}
+      <div className="mt-8 empty:hidden">
+        <AsistenteWhatsApp variante="hoy" weddingId={wedding.id} />
+      </div>
 
       {albumArriba ? (
         <Reveal app className="mt-10">
@@ -758,19 +775,26 @@ export function PantallaHoy({
       </Reveal>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        {/* id: el renglón "Ver el plan" de la bienvenida salta aquí. */}
+        {/* La lista entera vive en la Agenda; aquí, lo que toca ya. */}
         <Reveal app>
-          <div id="tareas" className="h-full scroll-mt-6">
-            <TasksSection tasks={bundle.tasks} isEnglish={isEnglish} conPlanner={conPlanner} />
-          </div>
-        </Reveal>
-        <Reveal app>
-          <MessagesSection
-            initialMessages={bundle.messages}
-            unavailable={Boolean(bundle.messagesUnavailable)}
+          <LoQueViene
+            bundle={bundle}
+            citas={citas}
+            hoy={hoy}
+            soloLectura={!acceso.puedeEditar}
             isEnglish={isEnglish}
-            conPlanner={conPlanner}
           />
+        </Reveal>
+        {/* id: los avisos de «Su planner les escribió» llevan aquí. */}
+        <Reveal app>
+          <div id="mensajes" className="h-full scroll-mt-6">
+            <MessagesSection
+              initialMessages={bundle.messages}
+              unavailable={Boolean(bundle.messagesUnavailable)}
+              isEnglish={isEnglish}
+              conPlanner={conPlanner}
+            />
+          </div>
         </Reveal>
       </div>
 
