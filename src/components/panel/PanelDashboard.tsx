@@ -1,27 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   Check,
   MessageCircle,
   Pencil,
   Plus,
-  Send,
   Trash2,
   X,
 } from "lucide-react";
 import type {
   PanelGuest,
-  PanelMessage,
   PanelTask,
 } from "@/lib/couplePanel";
 import { normalizePhone } from "@/lib/phone";
 import { parseJsonSafe } from "@/lib/http";
 import { useRefrescoDelPanel } from "@/components/panel/useRefrescoDelPanel";
 import { porEtapa } from "@/lib/agenda";
-import { daysUntil, formatShortDate, formatTime } from "@/components/panel/dates";
+import { daysUntil, formatShortDate } from "@/components/panel/dates";
 import {
   EmptyNote,
   Eyebrow,
@@ -660,243 +657,6 @@ function TaskRow({
   );
 }
 
-// =====================================================================
-// Mensajes con el planner
-// =====================================================================
-
-export function MessagesSection({
-  initialMessages,
-  unavailable,
-  isEnglish,
-  conPlanner = true,
-}: {
-  initialMessages: PanelMessage[];
-  unavailable: boolean;
-  isEnglish: boolean;
-  /**
-   * false cuando la boda no tiene planner asignada (una prueba nace así). El
-   * chat no cambia de lugar ni de forma: cambia quién contesta. Los mensajes
-   * le llegan al correo del equipo, así que prometer "su planner" era
-   * mandarlos a saludar a alguien que no existe.
-   */
-  conPlanner?: boolean;
-}) {
-  const [messages, setMessages] = useState<PanelMessage[]>(initialMessages);
-  const refrescar = useRefrescoDelPanel();
-  const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const threadRef = useRef<HTMLDivElement | null>(null);
-
-  async function handleSend() {
-    const body = draft.trim();
-    if (!body || sending) return;
-
-    setError(null);
-    setSending(true);
-
-    // optimista
-    const optimistic: PanelMessage = {
-      id: `optimistic-${Date.now()}`,
-      author: "couple",
-      body,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, optimistic]);
-    setDraft("");
-
-    try {
-      const res = await fetch("/api/panel/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
-      });
-      const { data } = await parseJsonSafe<{
-        message?: PanelMessage;
-        error?: string;
-      }>(res);
-
-      if (!res.ok) {
-        throw new Error(
-          data?.error ||
-            (isEnglish
-              ? "Couldn't send the message."
-              : "No pudimos enviar el mensaje.")
-        );
-      }
-
-      if (data?.message) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === optimistic.id ? data.message! : m))
-        );
-      }
-      refrescar();
-
-      requestAnimationFrame(() => {
-        threadRef.current?.scrollTo({
-          top: threadRef.current.scrollHeight,
-          behavior: "smooth",
-        });
-      });
-    } catch (e) {
-      // revertir y devolver el texto al composer
-      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
-      setDraft(body);
-      setError(e instanceof Error ? e.message : null);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <div className="flex h-full flex-col panel-card p-6 sm:p-8 md:p-10">
-      <Eyebrow>{isEnglish ? "Messages" : "Mensajes"}</Eyebrow>
-      <SectionTitle>
-        {conPlanner
-          ? isEnglish
-            ? "Your planner"
-            : "Su planner"
-          : isEnglish
-            ? "The Blue Book team"
-            : "Equipo Blue Book"}
-      </SectionTitle>
-      {conPlanner ? null : (
-        <p className="mt-3 max-w-[46ch] text-sm leading-relaxed text-tinta">
-          {isEnglish
-            ? "Write to us about anything you need, however small. A person from the team replies."
-            : "Escríbannos lo que necesiten, por pequeño que sea. Les contesta una persona del equipo."}
-        </p>
-      )}
-
-      {unavailable ? (
-        <div className="mt-6 flex items-start gap-3 rounded-xl border border-linea bg-papel px-4 py-4">
-          <MessageCircle
-            className="mt-0.5 h-5 w-5 flex-shrink-0 text-tinta"
-            strokeWidth={1.5}
-          />
-          <p className="text-sm leading-relaxed text-tinta">
-            {conPlanner
-              ? isEnglish
-                ? "Chat with your planner will be available very soon."
-                : "El chat con su planner estará disponible muy pronto."
-              : isEnglish
-                ? "Chat with the team will be available very soon."
-                : "El chat con el equipo estará disponible muy pronto."}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div
-            ref={threadRef}
-            className="mt-6 flex-1 space-y-3 overflow-y-auto"
-            style={{ maxHeight: "26rem" }}
-          >
-            {messages.length === 0 ? (
-              <div>
-                <EmptyNote>
-                  {conPlanner
-                    ? isEnglish
-                      ? "No messages yet. Say hi to your planner."
-                      : "Aún sin mensajes. Saluden a su planner."
-                    : isEnglish
-                      ? "No messages yet."
-                      : "Aún sin mensajes."}
-                </EmptyNote>
-              </div>
-            ) : (
-              messages.map((m) => {
-                // Lo de la pareja sale en azul noche, a la derecha, como lo
-                // saliente en el admin; lo de la planner (o del equipo), en
-                // niebla con su regla, a la izquierda.
-                const mine = m.author === "couple";
-                return (
-                  <div
-                    key={m.id}
-                    className={`flex ${mine ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
-                        mine
-                          ? "rounded-br-md bg-noche text-niebla"
-                          : "rounded-bl-md border border-linea bg-niebla text-noche"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                        {m.body}
-                      </p>
-                      {/* Una cotización (o la respuesta a una): lleva al
-                          proveedor, donde se ve el PDF y se contesta. */}
-                      {m.vendorId ? (
-                        <Link
-                          href={`/panel/proveedores#proveedor-${m.vendorId}`}
-                          className={`mt-1.5 inline-block text-xs font-medium underline underline-offset-4 ${
-                            mine ? "text-niebla decoration-niebla/50" : "text-noche decoration-linea-control"
-                          }`}
-                        >
-                          {isEnglish ? "See it in Vendors" : "Verlo en Proveedores"}
-                        </Link>
-                      ) : null}
-                      <p
-                        suppressHydrationWarning
-                        className={`mt-1 text-right text-[10px] font-normal tabular-nums ${
-                          mine ? "text-niebla" : "text-tinta"
-                        }`}
-                      >
-                        {formatTime(m.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {error ? (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-error/30 bg-error-fondo px-4 py-3">
-              <AlertCircle
-                className="mt-0.5 h-4 w-4 flex-shrink-0 text-error"
-                strokeWidth={1.5}
-              />
-              <p className="text-sm text-error">{error}</p>
-            </div>
-          ) : null}
-
-          <div className="mt-4 flex items-end gap-2">
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              rows={1}
-              maxLength={2000}
-              placeholder={
-                isEnglish ? "Write a message..." : "Escriban un mensaje..."
-              }
-              className={`min-h-[2.75rem] flex-1 resize-y ${campoEnTarjeta} px-4 py-3`}
-            />
-            <button
-              type="button"
-              onClick={handleSend}
-              disabled={sending || !draft.trim()}
-              aria-label={isEnglish ? "Send" : "Enviar"}
-              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-noche text-niebla transition-[background-color,scale] duration-150 hover:bg-noche-suave active:scale-[0.97] active:duration-100 motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {sending ? (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-niebla/30 border-t-niebla" />
-              ) : (
-                <Send className="h-4 w-4" strokeWidth={1.5} />
-              )}
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 // =====================================================================
 // Sus invitados (lista administrable por la pareja)

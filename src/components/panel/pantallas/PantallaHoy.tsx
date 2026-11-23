@@ -18,7 +18,6 @@ import { enCajas, sugerido } from "@/lib/barra";
 import { formatMXN } from "@/lib/weddingPlans";
 import { Eyebrow } from "@/components/panel/sections";
 import { countdownPhrase } from "@/components/panel/dates";
-import { MessagesSection } from "@/components/panel/PanelDashboard";
 import { LoQueViene } from "@/components/panel/LoQueViene";
 import { AsistenteWhatsApp } from "@/components/panel/AsistenteWhatsApp";
 import type { PanelCita } from "@/lib/agenda";
@@ -774,8 +773,9 @@ export function PantallaHoy({
         </div>
       </Reveal>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        {/* La lista entera vive en la Agenda; aquí, lo que toca ya. */}
+      {/* La lista entera vive en la Agenda; aquí, lo que toca ya. Los mensajes
+          ya no van aquí: son la burbuja del chat, en todas las pantallas. */}
+      <div className="mt-8">
         <Reveal app>
           <LoQueViene
             bundle={bundle}
@@ -784,17 +784,6 @@ export function PantallaHoy({
             soloLectura={!acceso.puedeEditar}
             isEnglish={isEnglish}
           />
-        </Reveal>
-        {/* id: los avisos de «Su planner les escribió» llevan aquí. */}
-        <Reveal app>
-          <div id="mensajes" className="h-full scroll-mt-6">
-            <MessagesSection
-              initialMessages={bundle.messages}
-              unavailable={Boolean(bundle.messagesUnavailable)}
-              isEnglish={isEnglish}
-              conPlanner={conPlanner}
-            />
-          </div>
         </Reveal>
       </div>
 

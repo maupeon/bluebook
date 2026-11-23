@@ -14,6 +14,7 @@ import { FranjaDePrueba } from "@/components/panel/FranjaDePrueba";
 import { LimpiarLaVuelta } from "@/components/onboarding/LimpiarLaVuelta";
 import { incluidoEnSuPlan, leerEstadoDelAlbum } from "@/app/panel/album/leerEstadoDelAlbum";
 import { diasEntre, hoyEnMexico } from "@/lib/agenda";
+import { ChatDelPanel } from "@/components/panel/ChatDelPanel";
 
 /** El id del div que scrollea. Lo comparten el layout y ResetScroll. */
 const ID_SCROLLER = "panel-scroll";
@@ -124,6 +125,8 @@ export default async function PanelLayout({
           {children}
         </div>
       </div>
+      {/* El chat con el asistente y su planner, en todas las pantallas (0060). */}
+      <ChatDelPanel weddingId={wedding.id} />
     </div>
   );
 }

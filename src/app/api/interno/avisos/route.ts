@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { avisarCotizacionALaPareja, avisarMensajeALaPareja } from "@/lib/avisos";
+import { avisarChatALaPlanner, avisarCotizacionALaPareja, avisarMensajeALaPareja } from "@/lib/avisos";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +12,8 @@ export const dynamic = "force-dynamic";
 //
 //   { tipo: "mensaje",    weddingId, mensajeId }            la planner escribió en el chat
 //   { tipo: "cotizacion", weddingId, vendorId, mensaje? }   la planner mandó una cotización
+//   { tipo: "chat_a_persona", weddingId, motivo }           el chat del panel pasó a la planner (0060)
+//                                                           — éste es para la planner, no para la pareja
 //
 // Aquí no se decide nada sobre la boda: sólo se avisa de lo que el admin ya
 // guardó. Los ids se comprueban contra la base (el mensaje y el proveedor
@@ -52,6 +54,13 @@ export async function POST(req: NextRequest) {
     if (!UUID_RE.test(vendorId)) return NextResponse.json({ error: "Proveedor inválido." }, { status: 400 });
     const mensaje = typeof body.mensaje === "string" ? body.mensaje.trim().slice(0, 2000) || null : null;
     return NextResponse.json({ resultado: await avisarCotizacionALaPareja(weddingId, vendorId, mensaje) });
+  }
+
+  if (body.tipo === "chat_a_persona") {
+    const motivo = typeof body.motivo === "string" ? body.motivo.trim().slice(0, 300) : "";
+    if (!motivo) return NextResponse.json({ error: "Falta el motivo." }, { status: 400 });
+    await avisarChatALaPlanner(weddingId, motivo);
+    return NextResponse.json({ resultado: "enviado" });
   }
 
   return NextResponse.json({ error: "Tipo de aviso desconocido." }, { status: 400 });

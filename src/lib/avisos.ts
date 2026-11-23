@@ -103,6 +103,52 @@ export async function avisarMensajeALaPlanner(
   }
 }
 
+/**
+ * El chat del panel pasó a una persona (0060): la pareja pidió hablar con
+ * alguien, o el asistente no pudo contestar. Desde ahí el asistente ya no les
+ * contesta en el panel hasta que la planner lo regrese desde el admin.
+ *
+ * Siempre avisa: el chat cambia de manos una sola vez (pasar a persona no hace
+ * nada si ya estaba con una persona), así que no hay ráfaga que cuidar.
+ * Nunca lanza.
+ */
+export async function avisarChatALaPlanner(weddingId: string, motivo: string, texto?: string | null): Promise<void> {
+  try {
+    const supabase = createAdminClient();
+    const [{ data: boda }, { data: ultimo }] = await Promise.all([
+      supabase.from("weddings").select("couple_name, display_name").eq("id", weddingId).maybeSingle(),
+      texto
+        ? Promise.resolve({ data: null })
+        : supabase
+            .from("couple_messages")
+            .select("body")
+            .eq("wedding_id", weddingId)
+            .eq("author", "couple")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+    ]);
+    const pareja = boda?.couple_name?.trim() || boda?.display_name?.trim() || "La pareja";
+    const cita = texto ?? (ultimo as { body?: string } | null)?.body ?? null;
+    const res = await sendAvisoEmail({
+      to: await correoDeLaPlanner(weddingId),
+      subject: `${pareja}: el chat pasó a ti`,
+      eyebrow: "Chat del panel",
+      titulo: `${pareja} necesitan que les contestes`,
+      parrafos: [
+        motivo,
+        "Desde ahora el asistente ya no les contesta en el chat de su panel: lo atiendes tú.",
+      ],
+      ...(cita ? { cita } : {}),
+      boton: { texto: "Abrir la conversación", url: urlDeLaBodaEnElAdmin(weddingId) },
+      pie: "Lo que escribas desde el admin les llega al momento en su panel. Cuando termines, «Regresar al asistente» le devuelve el chat.",
+    });
+    if (!res.success) console.error(`[avisos] no salió el aviso del chat de ${weddingId}:`, res.error);
+  } catch (err) {
+    console.error(`[avisos] no se pudo avisar del chat de ${weddingId}:`, err);
+  }
+}
+
 // ----- Hacia la pareja: lo que la planner escribe desde el admin -----
 //
 // El admin no manda correos: le pide a este servidor que los mande
@@ -149,7 +195,7 @@ export async function avisarMensajeALaPareja(
     titulo: "Su planner les escribió",
     parrafos: ["Les contestó en su panel de Blue Book:"],
     cita: mensaje.body,
-    boton: { texto: "Abrir su panel", url: urlDelPanel() },
+    boton: { texto: "Abrir el chat", url: `${urlDelPanel()}#chat` },
     pie: "Contesten desde su panel para que le llegue a su planner. Si les sigue escribiendo en la próxima media hora, no les llegan más correos: lo ven todo al abrirlo.",
   });
   if (!res.success) console.error(`[avisos] no salió el aviso a la pareja del mensaje ${mensajeId}:`, res.error);
